@@ -28,8 +28,8 @@ def envargs_fun(name, value, defaults, prefix=None, cls=None):
     lookup = name.upper()
     if prefix is not None:
         lookup = prefix.upper() + '_' + lookup
-    newval = os.environ.get(lookup) or defaults.get(name, None)
-    if newval is None:
+    newval = os.environ.get(lookup, None) or defaults.get(name, Missing)
+    if newval is Missing:
         raise Exception("Cannot resolve argument {}".format(name))
     return newval
 
