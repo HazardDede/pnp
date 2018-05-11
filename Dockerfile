@@ -1,5 +1,13 @@
 FROM python:3.6-slim-stretch
 
-RUN mkdir /pnp
+ENV WORKDIR=/tmp/pnp
+ENV CONFDIR=/config
 
-COPY .. /pnp
+COPY . ${WORKDIR}
+
+RUN cd ${WORKDIR} && \
+    pip3 install .
+
+VOLUME /config
+
+CMD ["pnp", "/config/config.json"]

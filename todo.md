@@ -4,9 +4,10 @@
 
 * Documentation
 * Tests ;-)
-* Dockerfile for raspi and other
+* Dockerfile for raspi and other (done)
 * Make resolver are self-maintained repository
-* Better argument parsing via docopt (or similiar)
+* Better argument parsing via docopt (or similar)
+* Join for workers. Not easy cause last worker will leave a message on the queue
 
 ## Plugins
 
