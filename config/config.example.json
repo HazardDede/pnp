@@ -1,0 +1,90 @@
+[
+  {
+    "name": "nursery_temperature",
+    "inbound": {
+      "plugin": "pnp.plugins.pull.zway.ZwayPoll",
+      "args": {
+        "url": "http://smarthome:8083/ZWaveAPI/Run/devices[19].instances[0].commandClasses[49].data[1].val.value",
+        "interval": "30s"
+      }
+    },
+    "outbound": {
+      "plugin": "pnp.plugins.push.mqtt.MQTTPush",
+      "args": {
+        "host": "services",
+        "topic": "home/nursery/temperature"
+      }
+    }
+  },
+  {
+    "name": "nursery_luminescence",
+    "inbound": {
+      "plugin": "pnp.plugins.pull.zway.ZwayPoll",
+      "args": {
+        "url": "http://smarthome:8083/ZWaveAPI/Run/devices[19].instances[0].commandClasses[49].data[3].val.value",
+        "interval": "60s"
+      }
+    },
+    "outbound": {
+      "plugin": "pnp.plugins.push.mqtt.MQTTPush",
+      "args": {
+        "host": "services",
+        "topic": "home/nursery/luminescence"
+      }
+    }
+  },
+  {
+    "name": "bedroom_temperature",
+    "inbound": {
+      "plugin": "pnp.plugins.pull.zway.ZwayPoll",
+      "args": {
+        "url": "http://smarthome:8083/ZWaveAPI/Run/devices[23].instances[0].commandClasses[49].data[1].val.value",
+        "interval": "30s"
+      }
+    },
+    "outbound": {
+      "plugin": "pnp.plugins.push.mqtt.MQTTPush",
+      "args": {
+        "host": "services",
+        "topic": "home/bedroom/temperature"
+      }
+    }
+  },
+  {
+    "name": "bedroom_luminescence",
+    "inbound": {
+      "plugin": "pnp.plugins.pull.zway.ZwayPoll",
+      "args": {
+        "url": "http://smarthome:8083/ZWaveAPI/Run/devices[23].instances[0].commandClasses[49].data[3].val.value",
+        "interval": "60s"
+      }
+    },
+    "outbound": {
+      "plugin": "pnp.plugins.push.mqtt.MQTTPush",
+      "args": {
+        "host": "services",
+        "topic": "home/bedroom/luminescence"
+      }
+    }
+  },
+  {
+    "name": "mqtt_pull",
+    "inbound": {
+      "plugin": "pnp.plugins.pull.mqtt.MQTTPull",
+      "args": {
+        "host": "services",
+        "topic": "home/#"
+      }
+    },
+    "outbound": {
+      "plugin": "pnp.plugins.push.timedb.InfluxPush",
+      "args": {
+        "host": "services",
+        "port": 8086,
+        "user": "root",
+        "database": "test",
+        "protocol": "{payload.levels[2]},room={payload.levels[1]} value={payload.payload}"
+      }
+    }
+  }
+]
