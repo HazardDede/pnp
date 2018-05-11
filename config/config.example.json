@@ -11,7 +11,7 @@
     "outbound": {
       "plugin": "pnp.plugins.push.mqtt.MQTTPush",
       "args": {
-        "host": "services",
+        "host": "192.168.178.60",
         "topic": "home/nursery/temperature"
       }
     }
@@ -28,7 +28,7 @@
     "outbound": {
       "plugin": "pnp.plugins.push.mqtt.MQTTPush",
       "args": {
-        "host": "services",
+        "host": "192.168.178.60",
         "topic": "home/nursery/luminescence"
       }
     }
@@ -45,7 +45,7 @@
     "outbound": {
       "plugin": "pnp.plugins.push.mqtt.MQTTPush",
       "args": {
-        "host": "services",
+        "host": "192.168.178.60",
         "topic": "home/bedroom/temperature"
       }
     }
@@ -62,7 +62,7 @@
     "outbound": {
       "plugin": "pnp.plugins.push.mqtt.MQTTPush",
       "args": {
-        "host": "services",
+        "host": "192.168.178.60",
         "topic": "home/bedroom/luminescence"
       }
     }
@@ -72,14 +72,14 @@
     "inbound": {
       "plugin": "pnp.plugins.pull.mqtt.MQTTPull",
       "args": {
-        "host": "services",
+        "host": "192.168.178.60",
         "topic": "home/#"
       }
     },
     "outbound": {
       "plugin": "pnp.plugins.push.timedb.InfluxPush",
       "args": {
-        "host": "services",
+        "host": "192.168.178.60",
         "port": 8086,
         "user": "root",
         "database": "test",

@@ -15,3 +15,5 @@ class MQTTPush(PushBase):
         self.logger.debug("[{name}] Publishing message on '{topic}'. Payload='{payload}'".format(
             name=self.name, topic=self.topic, payload=str(payload)))
         publish.single(topic=self.topic, payload=str(payload), hostname=self.host)
+        self.logger.debug("[{name}] Published message on '{topic}'. Payload='{payload}'".format(
+            name=self.name, topic=self.topic, payload=str(payload)))
