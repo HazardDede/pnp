@@ -1,6 +1,9 @@
 from setuptools import setup, find_packages
 
 
+VERSION = "0.1.1"
+
+
 def readme():
     with open('README.md') as f:
         return f.read()
@@ -8,7 +11,7 @@ def readme():
 
 setup(
     name='pnp',
-    version='0.1.0',
+    version=VERSION,
     description="Pull 'n' Push",
     long_description=readme(),
     long_description_content_type='text/markdown',
