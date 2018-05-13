@@ -1,5 +1,6 @@
 -e .
 
+bumpversion
+flake8
 pytest
 pytest-cov
-flake8

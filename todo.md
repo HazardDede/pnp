@@ -16,7 +16,7 @@
 
 ## Plugins
 
-* Better error message when no resolution via envargs was possible (hint of the environment variable to set)
+* Better error message when no resolution via envargs was not possible (hint of the environment variable to set)
 * Push: Extract timestamp and queue as well
 * Influx: Use timestamp from queue not actual one (value might be measured long before - depends on how many queue items are queued up already)
 * Detect hanging plugins / restart broken plugins
