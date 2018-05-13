@@ -42,6 +42,16 @@ test:
 doctest:
 		pytest --verbose --color=yes --doctest-modules $(SOURCE_PATH)
 
+docker:
+		docker build -t pnp:$(VERSION) -f Dockerfile .
+
+docker-arm:
+		docker build -t pnp:$(VERSION)-arm -f Dockerfile.arm32v7 .
+
+release:
+		$(eval NEXT_VERSION := $(shell bumpversion --dry-run --allow-dirty --list patch | grep new_version | sed s,"^.*=",,))
+		@echo $(NEXT_VERSION)
+
 rollback:
 		git reset --hard HEAD~1                        # rollback the commit
 		git tag -d `git describe --tags --abbrev=0`    # delete the tag
