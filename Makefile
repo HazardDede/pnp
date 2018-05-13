@@ -1,5 +1,6 @@
 .PHONY: clean-pyc clean-build clean lint test doctest
 
+VERSION=0.1.0
 SOURCE_PATH=./pnp
 TEST_PATH=./tests
 
@@ -14,6 +15,8 @@ help:
 		@echo "        Run py.test"
 		@echo "    doctest"
 		@echo "        Run doctest"
+		@echo "    rollback"
+		@echo "        Rolls back any changes (use for bad version bumps)"
 
 clean-pyc:
 		find . -name '*.pyc' -delete
@@ -38,3 +41,7 @@ test:
 
 doctest:
 		pytest --verbose --color=yes --doctest-modules $(SOURCE_PATH)
+
+rollback:
+		git reset --hard HEAD~1                        # rollback the commit
+		git tag -d `git describe --tags --abbrev=0`    # delete the tag

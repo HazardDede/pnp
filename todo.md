@@ -12,7 +12,7 @@
 * Rest-Api to watch various things
 * Rename inbound/outbound to pull/push (backward compatibility) (done)
 * Makefile (done)
-* Versionbump - Release process
+* Versionbump - Release process (done)
 
 ## Plugins
 
