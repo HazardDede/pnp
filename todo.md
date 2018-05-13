@@ -8,7 +8,7 @@
 * Make resolver are self-maintained repository
 * Better argument parsing via docopt (or similar)
 * Join for workers. Not easy cause last worker will leave a message on the queue
-* Overview on startup on configured tasks
+* Overview on startup on configured tasks (done)
 * Rest-Api to watch various things
 * Rename inbound/outbound to pull/push (backward compatibility) (done)
 * Makefile (done)

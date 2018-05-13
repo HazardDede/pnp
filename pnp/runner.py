@@ -1,5 +1,6 @@
 import logging
 import os
+import pprint
 import sys
 from collections import namedtuple
 
@@ -17,6 +18,16 @@ def mk_args(task, kind):
     return {'name': '{task.name}_outbound'.format(task=task), **task.outbound.args}
 
 
+def tasks_to_str(tasks):
+    res = []
+    for _, t in tasks.items():
+        res.append('{task.name} {{'.format(task=t))
+        res.append('\tinbound = {task.inbound}'.format(task=t))
+        res.append('\toutbound = {task.outbound}'.format(task=t))
+        res.append('}')
+    return "\n".join(res)
+
+
 def main():
     cfg = load_config(sys.argv[1])
     Task = namedtuple("Task", ["name", "inbound", "outbound"])
@@ -28,6 +39,8 @@ def main():
             outbound=load_plugin(task.outbound.plugin, **mk_args(task, 'outbound'))
         ) for task in cfg
     }
+
+    logging.info("Configured tasks\n{}".format(tasks_to_str(tasks)))
 
     app = Application()
     app.run(tasks)
