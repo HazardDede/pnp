@@ -2,6 +2,12 @@
 .idea/
 *.iml
 
+# Mac
+.DS_Store
+
+# Pytest
+.pytest_cache/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
