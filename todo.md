@@ -10,8 +10,8 @@
 * Join for workers. Not easy cause last worker will leave a message on the queue
 * Overview on startup on configured tasks
 * Rest-Api to watch various things
-* Rename inbound/outbound to pull/push (backward compatibility)
-* Makefile
+* Rename inbound/outbound to pull/push (backward compatibility) (done)
+* Makefile (done)
 * Versionbump - Release process
 
 ## Plugins

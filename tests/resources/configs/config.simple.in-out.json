@@ -1,13 +1,13 @@
 [
   {
     "name": "simple",
-    "pull": {
+    "inbound": {
       "plugin": "pnp.plugins.pull.simple.Sequence",
       "args": {
         "wait": 1
       }
     },
-    "push": {
+    "outbound": {
       "plugin": "pnp.plugins.push.simple.Echo"
     }
   }
