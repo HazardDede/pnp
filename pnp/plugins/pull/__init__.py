@@ -4,7 +4,7 @@ import time
 from schedule import Scheduler
 
 from .. import Plugin
-from ...utils import auto_str_ignore, parse_interval
+from ...utils import auto_str_ignore, parse_duration_literal
 
 
 @auto_str_ignore(['stopped'])
@@ -42,7 +42,7 @@ class Polling(PullBase):
     def __init__(self, interval=60, **kwargs):
         super().__init__(**kwargs)
         # polling interval in seconds
-        self.interval = parse_interval(interval)
+        self.interval = parse_duration_literal(interval)
         self.scheduler = None
 
     def pull(self):

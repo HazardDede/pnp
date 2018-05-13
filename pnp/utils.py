@@ -22,6 +22,7 @@ def make_list(item_or_items):
         ['i', 'am', 'a', 'list']
         >>> l_res is l
         True
+
     Args:
         item_or_items: A single value or an iterable.
     Returns:
@@ -37,25 +38,76 @@ def make_list(item_or_items):
 
 
 def try_parse_int(candidate):
+    """
+    Convert the given candidate to int. If it fails None is returned.
+
+    Example:
+
+        >>> type(try_parse_int(1))  # int will still be int
+        <class 'int'>
+        >>> type(try_parse_int("15"))
+        <class 'int'>
+        >>> print(try_parse_int("a"))
+        None
+
+    Args:
+        candidate: The candidate to convert.
+
+    Returns:
+        Returns the converted candidate if convertible; otherwise None.
+
+    """
     try:
         return int(candidate)
     except (ValueError, TypeError):
         return None
 
 
-def parse_interval(candidate):
+def parse_duration_literal(literal):
+    """
+    Converts duration literals as '1m', '1h', and so on to an actual duration in seconds.
+    Supported are 's' (seconds), 'm' (minutes), 'h' (hours), 'd' (days) and 'w' (weeks).
+
+    Examples:
+
+        >>> parse_duration_literal(60)  # Int will be interpreted as seconds
+        60
+        >>> parse_duration_literal('10')  # Any int convertible will be interpreted as seconds
+        10
+        >>> parse_duration_literal('20s')  # Seconds literal
+        20
+        >>> parse_duration_literal('2m')  # Minutes literal
+        120
+        >>> parse_duration_literal('1h')  # Hours literal
+        3600
+        >>> parse_duration_literal('1d')  # Days literal
+        86400
+        >>> parse_duration_literal('1w')  # Weeks literal
+        604800
+        >>> parse_duration_literal('invalid')  # Invalid will raise an error
+        Traceback (most recent call last):
+        ...
+        TypeError: Interval 'invalid' is not a valid literal
+
+    Args:
+        literal: Literal to parse.
+
+    Returns:
+        Returns the converted literal's duration in seconds. If conversion is not possible
+        an exception is raised.
+    """
     try:
         # if successful we got seconds
-        return int(candidate)
+        return int(literal)
     except:
         # We have to check for s, m, h, d, w suffix
         seconds_per_unit = {"s": 1, "m": 60, "h": 3600, "d": 86400, "w": 604800}
         # Remove all non-alphanumeric letters
-        s = re.sub('[^0-9a-zA-Z]+', '', candidate)
+        s = re.sub('[^0-9a-zA-Z]+', '', literal)
         value_str, unit = s[:-1], s[-1].lower()
         value = try_parse_int(value_str)
         if value is None or unit not in seconds_per_unit:
-            raise TypeError("Interval '{}' is not a valid interval".format(candidate))
+            raise TypeError("Interval '{}' is not a valid literal".format(literal))
         return value * seconds_per_unit[unit]
 
 
@@ -68,26 +120,22 @@ def get_field_mro(cls, field_name):
     return res
 
 
-def auto_str_ignore(ignore_list):
-    def decorator(cls):
-        ignored = make_list(ignore_list)
-        cls.__auto_str_ignore__ = ignored
-        return cls
-    return decorator
-
-
 def auto_str(__repr__=False):
     """
     Use this decorator to auto implement __str__() and optionally __repr__() methods on classes.
+
     Args:
         __repr__ (bool): If set to true, the decorator will auto-implement the __repr__() method as well.
+
     Returns:
         callable: Decorating function.
+
     Note:
         There are known issues with self referencing (self.s = self). Recursion will be identified by the python
         interpreter and will do no harm, but it will actually not work.
         A eval(class.__repr__()) will obviously not work, when there are attributes that are not part of the
         __init__'s arguments.
+
     Example:
         >>> @auto_str(__repr__=True)
         ... class Demo(object):
@@ -121,6 +169,38 @@ def auto_str(__repr__=False):
 
         return cls
 
+    return decorator
+
+
+def auto_str_ignore(ignore_list):
+    """
+    Use this decorator to suppress any fields that should not be part of the dynamically created
+    `__str__` or `__repr__` function of `auto_str`.
+
+    Example:
+
+        >>> @auto_str()
+        ... @auto_str_ignore(["l", "d"])
+        ... class Demo(object):
+        ...    def __init__(self, i=0, s="a", l=None, d=None):
+        ...        self.i = i
+        ...        self.s = s
+        ...        self.l = l
+        ...        self.d = d
+        >>> dut = Demo(10, 'abc', [1, 2, 3], {'a': 1, 'b': 2})
+        >>> print(str(dut))
+        Demo(i=10, s='abc')
+
+    Args:
+        ignore_list: List or item of the fields to suppress by `auto_str`.
+
+    Returns:
+        Returns a decorator.
+    """
+    def decorator(cls):
+        ignored = make_list(ignore_list)
+        cls.__auto_str_ignore__ = ignored
+        return cls
     return decorator
 
 

@@ -10,6 +10,9 @@
 * Join for workers. Not easy cause last worker will leave a message on the queue
 * Overview on startup on configured tasks
 * Rest-Api to watch various things
+* Rename inbound/outbound to pull/push (backward compatibility)
+* Makefile
+* Versionbump - Release process
 
 ## Plugins
 
@@ -22,3 +25,4 @@
 ## Helpful Doc
 
 https://packaging.python.org/tutorials/distributing-packages/
+http://docs.python-guide.org/en/latest/writing/structure/

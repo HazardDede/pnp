@@ -30,7 +30,8 @@ def envargs_fun(name, value, defaults, prefix=None, cls=None):
         lookup = prefix.upper() + '_' + lookup
     newval = os.environ.get(lookup, None) or defaults.get(name, Missing)
     if newval is Missing:
-        raise Exception("Cannot resolve argument {}".format(name))
+        raise Exception("Cannot resolve argument '{}' of {}. Try to set environment variable '{}'".format(
+            name, cls, lookup))
     return newval
 
 
