@@ -31,7 +31,7 @@ clean-build:
 clean: clean-pyc
 
 lint:
-		flake8 --exclude=.tox --max-line-length 120 $(SOURCE_PATH)
+		flake8 --exclude=.tox --max-line-length 120 --ignore=E722 $(SOURCE_PATH)
 
 test:
 		pytest --verbose --color=yes -s \

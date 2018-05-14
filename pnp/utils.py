@@ -99,7 +99,7 @@ def parse_duration_literal(literal):
     try:
         # if successful we got seconds
         return int(literal)
-    except:
+    except:  # pylint: disable=broad-except
         # We have to check for s, m, h, d, w suffix
         seconds_per_unit = {"s": 1, "m": 60, "h": 3600, "d": 86400, "w": 604800}
         # Remove all non-alphanumeric letters

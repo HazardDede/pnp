@@ -65,14 +65,14 @@ class Application(Loggable):
                         outbound.push(payload=payload)
                     finally:
                         self.queue.task_done()
-                except:
+                except:  # pylint: disable=broad-except
                     import traceback
                     self.logger.error("\n{}".format(traceback.format_exc()))
 
         for i in range(n_worker):
             t = Thread(target=process_queue)
             t.start()
-            self.logger.info("[Worker-{thread}] Started ({i}/{cnt})".format(thread=t.ident, i=i+1, cnt=n_worker))
+            self.logger.info("[Worker-{thread}] Started ({i}/{cnt})".format(thread=t.ident, i=i + 1, cnt=n_worker))
             self.worker.append(t)
 
     def run_tasks(self, tasks):

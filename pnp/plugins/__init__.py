@@ -39,7 +39,7 @@ def load_plugin(plugin_path, **kwargs):
     # Namespace = everything before the last '.'
     namespace = plugin_path[:k]
     # Class name = everything after the last '.'
-    clazz_name = plugin_path[k+1:]
+    clazz_name = plugin_path[k + 1:]
 
     try:
         loaded_module = import_module(namespace)

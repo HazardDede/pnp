@@ -51,7 +51,7 @@ class Polling(PullBase):
         while not self.stopped:
             try:
                 self.scheduler.run_pending()
-            except:
+            except:  # pylint: disable=broad-except
                 import traceback
                 self.logger.error("[{name}]\n{error}".format(name=self.name, error=traceback.format_exc()))
             time.sleep(1)

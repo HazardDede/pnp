@@ -57,8 +57,8 @@ def resolver(resolve_fun, ignore):
             if sig.defaults is not None:
                 defaults = {k: v for k, v in list(zip(sig.args[-len(sig.defaults):], sig.defaults))}
             named_args = list(zip(sig.args, args))
-            unset = (set(sig.args)
-                     - set([name for name, _ in named_args])
+            unset = (set(sig.args) -
+                     set([name for name, _ in named_args])
                      .union(set([name for name, _ in kwargs.items()])))
             for u in unset:
                 kwargs[u] = Missing
