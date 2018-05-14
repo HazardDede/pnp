@@ -1,6 +1,6 @@
 from importlib import import_module
 
-from ..resolver import envargs
+from argresolver import EnvironmentResolver
 from ..utils import Loggable, auto_str
 
 
@@ -8,7 +8,7 @@ class PluginMeta(type):
     def __new__(meta, name, bases, dct):
         newly = super().__new__(meta, name, bases, dct)
         # Force all __init__ of plugins to be decorated with envargs
-        newly.__init__ = envargs(ignore=None)(newly.__init__)
+        newly.__init__ = EnvironmentResolver()(newly.__init__)
         return newly
 
 

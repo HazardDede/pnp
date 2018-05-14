@@ -1,3 +1,4 @@
+--process-dependency-links
 -e .
 
 bumpversion
