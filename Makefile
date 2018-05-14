@@ -1,6 +1,6 @@
 .PHONY: clean-pyc clean-build clean lint test doctest
 
-VERSION=0.2.0
+VERSION=0.3.0
 SOURCE_PATH=./pnp
 TEST_PATH=./tests
 

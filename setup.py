@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 
-VERSION = '0.2.0'
+VERSION = '0.3.0'
 
 
 def readme():
@@ -53,10 +53,10 @@ setup(
         'requests>=2.18.4',
         'schedule>=0.5.0',
         'schema>=0.6.7',
-        'argresolver==0.2.0'
+        'argresolver==0.3.0'
     ],
     dependency_links=[
-        "git+https://github.com/HazardDede/argresolver.git@v0.2.0#egg=argresolver-0.2.0"
+        "git+https://github.com/HazardDede/argresolver.git@v0.3.0#egg=argresolver-0.3.0"
     ],
     python_requires='>=3.4',
     include_package_data=True,
