@@ -13,6 +13,7 @@
 * Rename inbound/outbound to pull/push (backward compatibility) (done)
 * Makefile (done)
 * Versionbump - Release process (done)
+* Retry when pulling fails
 
 ## Plugins
 
@@ -21,6 +22,7 @@
 * Influx: Use timestamp from queue not actual one (value might be measured long before - depends on how many queue items are queued up already)
 * Detect hanging plugins / restart broken plugins
 * Make logging easier
+* Allow multiple pushes
 
 ## Helpful Doc
 
