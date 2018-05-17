@@ -9,7 +9,7 @@ RUN apt-get update -yy && \
 COPY . ${WORKDIR}
 
 RUN cd ${WORKDIR} && \
-    pip3 install --process-dependency-links .
+    pip3 install --process-dependency-links .[dht]
 
 VOLUME /config
 
