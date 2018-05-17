@@ -6,6 +6,7 @@ from collections import namedtuple
 from .app import Application
 from .config import load_config
 from .plugins import load_plugin
+from .utils import make_list
 
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'DEBUG')
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=LOG_LEVEL)
@@ -30,8 +31,21 @@ def zway_test():
 
 def mk_args(task, kind):
     if kind.lower() == 'inbound':
-        return {'name': '{task.name}_inbound'.format(task=task), **task.inbound.args}
-    return {'name': '{task.name}_outbound'.format(task=task), **task.outbound.args}
+        return {'name': '{task.name}_pull'.format(task=task), **task.inbound.args}
+    return {'name': '{task.name}_push'.format(task=task), **task.outbound.args}
+
+
+def mk_inbound(task):
+    args = {'name': '{task.name}_pull'.format(task=task), **task.inbound.args}
+    return load_plugin(task.inbound.plugin, **args)
+
+
+def mk_outbound(task):
+    print(task)
+    for i, outbound in enumerate(make_list(task.outbound)):
+        print(i, outbound)
+        args = {'name': '{task.name}_push_{i}'.format(**locals()), **outbound.args}
+        yield load_plugin(outbound.plugin, **args)
 
 
 def tasks_to_str(tasks):
@@ -39,20 +53,23 @@ def tasks_to_str(tasks):
     for _, t in tasks.items():
         res.append('{task.name} {{'.format(task=t))
         res.append('\tinbound = {task.inbound}'.format(task=t))
-        res.append('\toutbound = {task.outbound}'.format(task=t))
+        res.append('\toutbound = ['.format())
+        for outbound in t.outbounds:
+            res.append('\t\t{outbound}'.format(outbound=outbound))
+        res.append('\t]')
         res.append('}')
     return "\n".join(res)
 
 
 def main():
     cfg = load_config(sys.argv[1])
-    Task = namedtuple("Task", ["name", "inbound", "outbound"])
+    Task = namedtuple("Task", ["name", "inbound", "outbounds"])
 
     tasks = {
         task.name: Task(
             name=task.name,
-            inbound=load_plugin(task.inbound.plugin, **mk_args(task, 'inbound')),
-            outbound=load_plugin(task.outbound.plugin, **mk_args(task, 'outbound'))
+            inbound=mk_inbound(task),
+            outbounds=list(mk_outbound(task))
         ) for task in cfg
     }
 

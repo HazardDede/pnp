@@ -32,6 +32,8 @@ def make_list(item_or_items):
         return None
     if isinstance(item_or_items, list):
         return item_or_items
+    if isinstance(item_or_items, dict):
+        return [item_or_items]
     if hasattr(item_or_items, '__iter__') and not isinstance(item_or_items, str):
         return list(item_or_items)
     return [item_or_items]

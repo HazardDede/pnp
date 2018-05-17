@@ -1,0 +1,16 @@
+[
+  {
+    "name": "simple",
+    "pull": {
+      "plugin": "pnp.plugins.pull.simple.Sequence",
+      "args": {
+        "wait": 1
+      }
+    },
+    "push": [{
+      "plugin": "pnp.plugins.push.simple.Echo"
+    }, {
+      "plugin": "pnp.plugins.push.simple.Echo"
+    }]
+  }
+]

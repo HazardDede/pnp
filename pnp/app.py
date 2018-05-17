@@ -15,12 +15,14 @@ class StoppableRunner(Thread, Loggable):
 
     def _start_pull(self):
         def on_payload(plugin, payload):
-            self.logger.debug("[Task-{thread}] Queing item '{item}' for outbound '{outbound}'".format(
-                thread=threading.get_ident(),
-                item=payload,
-                outbound=self.task.outbound
-            ))
-            self.queue.put((payload, self.task.outbound))
+            # A task / inbound might have multiple pushes / outbounds associated
+            for outbound in self.task.outbounds:
+                self.logger.debug("[Task-{thread}] Queing item '{item}' for outbound '{outbound}'".format(
+                    thread=threading.get_ident(),
+                    item=payload,
+                    outbound=outbound
+                ))
+                self.queue.put((payload, outbound))
 
         self.task.inbound.on_payload = on_payload
         # TODO: Retry pull (failure count)
