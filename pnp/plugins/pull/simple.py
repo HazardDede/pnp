@@ -18,3 +18,15 @@ class Count(PullBase):
             if self.stopped:
                 break
             time.sleep(self.wait)
+
+
+class Repeat(PullBase):
+    def __init__(self, repeat, wait, **kwargs):
+        super().__init__(**kwargs)
+        self.repeat = repeat
+        self.wait = wait
+
+    def pull(self):
+        while not self.stopped:
+            self.notify(self.repeat)
+            time.sleep(self.wait)

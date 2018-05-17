@@ -2,6 +2,7 @@ import json
 
 from attrdict import AttrDict
 from schema import Schema, Use, Optional, Or, And
+from .utils import make_list
 
 
 class OrOverride(Or):
@@ -30,6 +31,7 @@ class OrOverride(Or):
 
 plugin_schema = {
     "plugin": Use(str),
+    Optional("selector", default=None): Or(str, None),
     Optional("args", default={}): {
         Optional(str): object
     }
@@ -41,8 +43,8 @@ plugin_list = [plugin_schema]
 
 schema = Schema([{
     "name": Use(str),
-    OrOverride("inbound", "inbound", "pull"): plugin_schema,
-    OrOverride("outbound", "outbound", "push"): Or(plugin_schema, plugin_list)
+    OrOverride("pull", "inbound", "pull"): plugin_schema,
+    OrOverride("pushes", "outbound", "push"): And(Or(plugin_schema, plugin_list), Use(make_list))
 }])
 
 

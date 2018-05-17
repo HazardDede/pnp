@@ -12,7 +12,7 @@
       "plugin": "pnp.plugins.push.mqtt.MQTTPush",
       "args": {
         "host": "192.168.178.60",
-        "topic": "home/nursery/temperature"
+        "topic": "test/nursery/temperature"
       }
     }
   },
@@ -29,7 +29,7 @@
       "plugin": "pnp.plugins.push.mqtt.MQTTPush",
       "args": {
         "host": "192.168.178.60",
-        "topic": "home/nursery/luminescence"
+        "topic": "test/nursery/luminescence"
       }
     }
   },
@@ -39,7 +39,7 @@
       "plugin": "pnp.plugins.pull.mqtt.MQTTPull",
       "args": {
         "host": "192.168.178.60",
-        "topic": "home/#"
+        "topic": "test/#"
       }
     },
     "outbound": {

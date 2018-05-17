@@ -4,11 +4,14 @@ import time
 from queue import Queue
 from threading import Thread
 
-from .utils import Loggable
+from .models import Task
+from .utils import Loggable, safe_eval
 
 
 class StoppableRunner(Thread, Loggable):
     def __init__(self, task, queue):
+        if not isinstance(task, Task):
+            raise TypeError("Argument 'task' is expected to be a 'Task' instance, but is {}".format(type(task)))
         self.task = task
         self.queue = queue
         super().__init__(target=self._start_pull)
@@ -16,24 +19,27 @@ class StoppableRunner(Thread, Loggable):
     def _start_pull(self):
         def on_payload(plugin, payload):
             # A task / inbound might have multiple pushes / outbounds associated
-            for outbound in self.task.outbounds:
-                self.logger.debug("[Task-{thread}] Queing item '{item}' for outbound '{outbound}'".format(
+            for push in self.task.pushes:
+                self.logger.debug("[Task-{thread}] Queing item '{item}' for push '{push}'".format(
                     thread=threading.get_ident(),
                     item=payload,
-                    outbound=outbound
+                    push=push
                 ))
-                self.queue.put((payload, outbound))
+                # We do not evaluate the selector here. We let this handle the worker process. why?
+                # Cause the selector might take some time... and we do not need a try... catch... here
+                # Much can go wrong with the selector, if will only cause issues with the actual push
+                self.queue.put((payload, push))
 
-        self.task.inbound.on_payload = on_payload
+        self.task.pull.instance.on_payload = on_payload
         # TODO: Retry pull (failure count)
-        self.task.inbound.pull()
+        self.task.pull.instance.pull()
 
     def stop(self):
         self.logger.info("[Task-{thread}] Got stopping signal: '{task}'".format(
             thread=threading.get_ident(),
             task=self.task.name
         ))
-        self.task.inbound.stop()
+        self.task.pull.instance.stop()
 
 
 class Application(Loggable):
@@ -55,16 +61,21 @@ class Application(Loggable):
         def process_queue():
             while True:
                 try:
-                    payload, outbound = self.queue.get()
+                    payload, push = self.queue.get()
                     try:
                         if payload is self.stop_working_item:
                             self.logger.info("[Worker-{thread}] Got stopping signal".format(
                                 thread=threading.get_ident()))
                             self.queue.put((self.stop_working_item, None))
                             break
-                        self.logger.debug("[Worker-{thread}] Emitting '{payload}' to outbound '{outbound}'".format(
-                            thread=threading.get_ident(), payload=payload, outbound=outbound))
-                        outbound.push(payload=payload)
+                        if push.selector is not None:
+                            self.logger.debug("[Worker-{thread}] Applying '{selector}' to '{payload}'".format(
+                                thread=threading.get_ident(), payload=payload, selector=push.selector))
+                            payload = safe_eval(push.selector, payload=payload)
+
+                        self.logger.debug("[Worker-{thread}] Emitting '{payload}' to push '{push}'".format(
+                            thread=threading.get_ident(), payload=payload, push=push.instance))
+                        push.instance.push(payload=payload)
                     finally:
                         self.queue.task_done()
                 except:  # pylint: disable=broad-except
@@ -85,6 +96,10 @@ class Application(Loggable):
             self.runner.append(t)
 
     def run(self, tasks):
+        for _, t in tasks.items():
+            if not isinstance(t, Task):
+                raise TypeError("All items of argument 'tasks' are expected to be a 'Task' instance")
+
         self.run_queue_worker(n_worker=3)
         self.run_tasks(tasks)
         while not self.shutdown:

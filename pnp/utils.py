@@ -3,6 +3,10 @@ import logging
 import re
 
 
+class EvaluationError(Exception):
+    pass
+
+
 def make_list(item_or_items):
     """
     Makes a list out of the given items.
@@ -37,6 +41,40 @@ def make_list(item_or_items):
     if hasattr(item_or_items, '__iter__') and not isinstance(item_or_items, str):
         return list(item_or_items)
     return [item_or_items]
+
+
+def safe_eval(source, **context):
+    whitelist = {
+        "abs": abs,
+        "bool": bool,
+        "dict": dict,
+        "float": float,
+        "getattr": getattr,
+        "hasattr": hasattr,
+        "hash": hash,
+        "int": int,
+        "isinstance": isinstance,
+        "len": len,
+        "list": list,
+        "max": max,
+        "min": min,
+        "ord": ord,
+        "pow": pow,
+        "reversed": reversed,
+        "round": round,
+        "sorted": sorted,
+        "str": str,
+        "zip": zip
+    }
+    whitelist.update(context)
+    try:
+        return eval(
+            source,
+            {'__builtins__': {}},
+            whitelist
+        )
+    except Exception as exc:
+        raise EvaluationError("Failed to evaluate '{source}'".format(**locals())) from exc
 
 
 def try_parse_int(candidate):
