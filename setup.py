@@ -62,8 +62,8 @@ setup(
     include_package_data=True,
     entry_points={
         'console_scripts': [
-            'pnp=pnp.runner:main',
-            'zway-test=pnp.runner:zway_test'
+            'pnp=pnp.runner.pnp:main',
+            'zway-test=pnp.runner.zway_test:main'
         ],
     },
 )
