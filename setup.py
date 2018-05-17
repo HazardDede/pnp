@@ -56,8 +56,12 @@ setup(
         'schema>=0.6.7',
         'argresolver==0.2.0'
     ],
+    extras_require={
+      'dht': ['Adafruit_DHT']
+    },
     dependency_links=[
-        "git+https://github.com/HazardDede/argresolver.git@v0.2.0#egg=argresolver-0.2.0"
+        "git+https://github.com/HazardDede/argresolver.git@v0.2.0#egg=argresolver-0.2.0",
+        "git+https://github.com/adafruit/Adafruit_Python_DHT.git#egg=Adafruit_DHT"
     ],
     python_requires='>=3.4',
     include_package_data=True,
