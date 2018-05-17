@@ -1,0 +1,16 @@
+refs:
+  echo_plugin: &echo_plugin
+    plugin: pnp.plugins.push.simple.Echo
+    selector: "payload"
+tasks:
+  - name: simple
+    pull:
+      plugin: pnp.plugins.pull.simple.Repeat
+      args:
+        wait: 1
+        repeat: "Hello World"
+    push:
+      - <<: *echo_plugin
+        selector: "payload.split(' ')[0]"
+      - <<: *echo_plugin
+        selector: "payload.split(' ')[1]"

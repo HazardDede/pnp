@@ -40,16 +40,30 @@ plugin_schema = {
 
 plugin_list = [plugin_schema]
 
-
-schema = Schema([{
+tasks = [{
     "name": Use(str),
     OrOverride("pull", "inbound", "pull"): plugin_schema,
     OrOverride("pushes", "outbound", "push"): And(Or(plugin_schema, plugin_list), Use(make_list))
-}])
+}]
+
+tasks_settings = {
+    Optional(Or("anchors", "anchor", "ref", "refs", "alias", "aliases")): object,
+    'tasks': tasks
+}
+
+root = And(Or(
+    tasks_settings,  # Tasks with additional settings and aliases (yaml only)
+    tasks,  # Tasks without settings or aliases - just a list of tasks (backward compatibility)
+),
+    # In case of list only we create a tasks node - so we know it's always there
+    Use(lambda x: x if 'tasks' in x else dict(tasks=x))
+)
+
+schema = Schema(root)
 
 
 def load_config(config_path):
     """Load the specified config"""
     with open(config_path, 'r') as fp:
         cfg = yaml.safe_load(fp)
-    return AttrDict({'base': schema.validate(cfg)}).base
+    return AttrDict(schema.validate(cfg)).tasks
