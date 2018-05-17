@@ -3,7 +3,7 @@
     plugin: pnp.plugins.pull.sensor.DHT
     args:
       device: dht22
-      data_gpio: 17
+      data_gpio: 18
       interval: 5s
   push:
     - plugin: pnp.plugins.push.simple.Echo

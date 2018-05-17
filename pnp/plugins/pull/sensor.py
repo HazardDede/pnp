@@ -42,4 +42,4 @@ class DHT(Polling):
         if humidity is None or temperature is None:
             raise PollingError("Failed to get '{}' @ GPIO {} readings...".format(self.device, str(self.data_gpio)))
 
-        return {'humidity': float(humidity), 'temperature': float(temperature)}
+        return {'humidity': round(float(humidity),2), 'temperature': round(float(temperature), 2)}
