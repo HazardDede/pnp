@@ -1,4 +1,4 @@
-import json
+from ruamel import yaml
 
 from attrdict import AttrDict
 from schema import Schema, Use, Optional, Or, And
@@ -51,5 +51,5 @@ schema = Schema([{
 def load_config(config_path):
     """Load the specified config"""
     with open(config_path, 'r') as fp:
-        cfg = json.load(fp)
+        cfg = yaml.safe_load(fp)
     return AttrDict({'base': schema.validate(cfg)}).base
