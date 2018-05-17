@@ -1,4 +1,4 @@
-# Pull 'n' Push 0.3.1
+# Pull 'n' Push 0.4.0
 
 Pulls data from sources and pushes it to sinks
 
