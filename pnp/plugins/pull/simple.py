@@ -4,7 +4,7 @@ import time
 from . import PullBase
 
 
-class Sequence(PullBase):
+class Count(PullBase):
 
     def __init__(self, from_cnt=0, to_cnt=None, wait=5, **kwargs):
         super().__init__(**kwargs)
