@@ -1,4 +1,4 @@
-FROM arm32v7/python:3.6-slim-stretch
+FROM arm32v7/python:3.6-stretch
 
 ENV WORKDIR=/tmp/pnp
 ENV CONFDIR=/config
