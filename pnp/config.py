@@ -1,6 +1,6 @@
 from ruamel import yaml
 
-from attrdict import AttrDict
+from box import Box
 from schema import Schema, Use, Optional, Or, And
 from .utils import make_list
 
@@ -66,4 +66,4 @@ def load_config(config_path):
     """Load the specified config"""
     with open(config_path, 'r') as fp:
         cfg = yaml.safe_load(fp)
-    return AttrDict(schema.validate(cfg)).tasks
+    return Box(schema.validate(cfg)).tasks

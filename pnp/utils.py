@@ -2,6 +2,8 @@ import inspect
 import logging
 import re
 
+from box import Box, BoxKeyError
+
 
 class EvaluationError(Exception):
     pass
@@ -261,3 +263,30 @@ class Loggable(object):
         """
         component = "{}.{}".format(type(self).__module__, type(self).__name__)
         return logging.getLogger(component)
+
+
+class FallbackBox(Box):
+    """
+    In some cases we want to handle integers and floats as string when accessing
+    a boxed dictionary. For example we would like to mimic access paths like the zway api can:
+        devices[19].instances[0].commandClasses[49].data[3].val.value
+    In this case all int looking ones are actual string keys. But for plugins we want it
+    as easy as possible. So we first take the key as it is to access the data, but when it raises a `KeyError`
+    we cast the key to str and try it again to access the key as a fallback.
+
+    Examples:
+
+        >>> d = {'devices': {'1': {'instances': {'0': 'instance0', 1: 'instance1'}}}}
+        >>> dut = FallbackBox(d)
+        >>> dut.devices[1].instances[0]  # devices.1 is a syntax error, cause 1 is not a valid identifier
+        'instance0'
+        >>> dut.devices[1].instances[1]
+        'instance1'
+    """
+    def __getitem__(self, item, _ignore_default=False):
+        try:
+            return super().__getitem__(item, _ignore_default=_ignore_default)
+        except BoxKeyError as ke:
+            if isinstance(item, (int, float)):
+                return super().__getitem__(str(item), _ignore_default=_ignore_default)
+            raise ke

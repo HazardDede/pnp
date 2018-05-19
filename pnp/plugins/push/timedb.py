@@ -1,4 +1,3 @@
-from attrdict import AttrDict
 from influxdb import InfluxDBClient
 
 from . import PushBase
@@ -19,7 +18,7 @@ class InfluxPush(PushBase):
         self.protocol = protocol
 
     def push(self, payload):
-        points = [self.protocol.format(payload=AttrDict(payload))]
+        points = [self.protocol.format(payload=payload)]
         self.logger.debug("[{name}] Writing '{points}' to influxdb".format(name=self.name, points=str(points)))
         client = InfluxDBClient(self.host, self.port, self.user, self.password, self.database)
         client.write(points, {'db': self.database}, 204, 'line')

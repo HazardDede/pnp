@@ -47,7 +47,7 @@ setup(
     },
     packages=find_packages(exclude=[]),
     install_requires=[
-        'attrdict>=2.0.0',
+        'python-box>=3.2.0',
         'influxdb>=5.0.0',
         'paho-mqtt>=1.3.1',
         'requests>=2.18.4',
@@ -61,7 +61,7 @@ setup(
     },
     dependency_links=[
         "git+https://github.com/HazardDede/argresolver.git@v0.2.0#egg=argresolver-0.2.0",
-	"git+https://github.com/adafruit/Adafruit_Python_DHT.git#egg=Adafruit_DHT-1.3.2"
+        "git+https://github.com/adafruit/Adafruit_Python_DHT.git#egg=Adafruit_DHT-1.3.2"
     ],
     python_requires='>=3.4',
     include_package_data=True,

@@ -7,6 +7,6 @@
       interval: 5s
   push:
     - plugin: pnp.plugins.push.simple.Echo
-      selector: "payload['humidity']"
+      selector: "payload.humidity"
     - plugin: pnp.plugins.push.simple.Echo
-      selector: "payload['temperature']"
+      selector: "payload.temperature"

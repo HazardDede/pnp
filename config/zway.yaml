@@ -1,0 +1,14 @@
+- name: zway
+  pull:
+    plugin: pnp.plugins.pull.zway.ZwayPoll
+    args:
+      url: "http://smarthome:8083/ZWaveAPI/Run/devices"
+      interval: 5s
+  push:
+    - plugin: pnp.plugins.push.simple.Echo
+      # Temperature of fibaro motion sensor
+      # You can access the returned json like you would inquire the zway-api
+      selector: "payload[19].instances[0].commandClasses[49].data[1].val.value"
+    - plugin: pnp.plugins.push.simple.Echo
+      # Luminiscence of fibaro motion sensor
+      selector: payload[19].instances[0].commandClasses[49].data[3].val.value

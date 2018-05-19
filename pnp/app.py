@@ -5,7 +5,7 @@ from queue import Queue
 from threading import Thread
 
 from .models import Task
-from .utils import Loggable, safe_eval
+from .utils import Loggable, safe_eval, FallbackBox
 
 
 class StoppableRunner(Thread, Loggable):
@@ -68,6 +68,10 @@ class Application(Loggable):
                                 thread=threading.get_ident()))
                             self.queue.put((self.stop_working_item, None))
                             break
+                        # Wrap payload inside a Box -> this makes dot accessable dictionaries possible
+                        # We create a dictionary cause payload might not be an actual dictionary.
+                        # This way wrapping with Box will always work ;-)
+                        payload = FallbackBox({'base': payload}).base
                         if push.selector is not None:
                             self.logger.debug("[Worker-{thread}] Applying '{selector}' to '{payload}'".format(
                                 thread=threading.get_ident(), payload=payload, selector=push.selector))
@@ -75,6 +79,7 @@ class Application(Loggable):
 
                         self.logger.debug("[Worker-{thread}] Emitting '{payload}' to push '{push}'".format(
                             thread=threading.get_ident(), payload=payload, push=push.instance))
+                        # We modify payload so that
                         push.instance.push(payload=payload)
                     finally:
                         self.queue.task_done()
