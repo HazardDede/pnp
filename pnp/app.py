@@ -42,6 +42,42 @@ class StoppableRunner(Thread, Loggable):
         self.task.pull.instance.stop()
 
 
+class StoppableWorker(Thread, Loggable):
+    def __init__(self, queue, stop_working_item):
+        self.queue = queue
+        self.stop_working_item = stop_working_item
+        super().__init__(target=self._process_queue)
+
+    def _process_queue(self):
+        while True:
+            try:
+                payload, push = self.queue.get()
+                try:
+                    if payload is self.stop_working_item:
+                        self.logger.info("[Worker-{thread}] Got stopping signal".format(
+                            thread=threading.get_ident()))
+                        self.queue.put((self.stop_working_item, None))
+                        break
+                    # Wrap payload inside a Box -> this makes dot accessable dictionaries possible
+                    # We create a dictionary cause payload might not be an actual dictionary.
+                    # This way wrapping with Box will always work ;-)
+                    payload = FallbackBox({'base': payload}).base
+                    if push.selector is not None:
+                        self.logger.debug("[Worker-{thread}] Applying '{selector}' to '{payload}'".format(
+                            thread=threading.get_ident(), payload=payload, selector=push.selector))
+                        payload = safe_eval(push.selector, payload=payload)
+
+                    self.logger.debug("[Worker-{thread}] Emitting '{payload}' to push '{push}'".format(
+                        thread=threading.get_ident(), payload=payload, push=push.instance))
+                    # We modify payload so that
+                    push.instance.push(payload=payload)
+                finally:
+                    self.queue.task_done()
+            except:  # pylint: disable=broad-except
+                import traceback
+                self.logger.error("\n{}".format(traceback.format_exc()))
+
+
 class Application(Loggable):
     def __init__(self):
         self.shutdown = False
@@ -58,37 +94,8 @@ class Application(Loggable):
         self.shutdown = True
 
     def run_queue_worker(self, n_worker=1):
-        def process_queue():
-            while True:
-                try:
-                    payload, push = self.queue.get()
-                    try:
-                        if payload is self.stop_working_item:
-                            self.logger.info("[Worker-{thread}] Got stopping signal".format(
-                                thread=threading.get_ident()))
-                            self.queue.put((self.stop_working_item, None))
-                            break
-                        # Wrap payload inside a Box -> this makes dot accessable dictionaries possible
-                        # We create a dictionary cause payload might not be an actual dictionary.
-                        # This way wrapping with Box will always work ;-)
-                        payload = FallbackBox({'base': payload}).base
-                        if push.selector is not None:
-                            self.logger.debug("[Worker-{thread}] Applying '{selector}' to '{payload}'".format(
-                                thread=threading.get_ident(), payload=payload, selector=push.selector))
-                            payload = safe_eval(push.selector, payload=payload)
-
-                        self.logger.debug("[Worker-{thread}] Emitting '{payload}' to push '{push}'".format(
-                            thread=threading.get_ident(), payload=payload, push=push.instance))
-                        # We modify payload so that
-                        push.instance.push(payload=payload)
-                    finally:
-                        self.queue.task_done()
-                except:  # pylint: disable=broad-except
-                    import traceback
-                    self.logger.error("\n{}".format(traceback.format_exc()))
-
         for i in range(n_worker):
-            t = Thread(target=process_queue)
+            t = StoppableWorker(self.queue, self.stop_working_item)
             t.start()
             self.logger.info("[Worker-{thread}] Started ({i}/{cnt})".format(thread=t.ident, i=i + 1, cnt=n_worker))
             self.worker.append(t)

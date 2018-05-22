@@ -18,10 +18,10 @@ def test_runner_for_smoke():
     dut = app.StoppableRunner(task, queue)
     dut.daemon = True
     dut.start()
-    time.sleep(2.5)
+    time.sleep(1)
     dut.stop()
     dut.join(timeout=1)
     if dut.is_alive():
         assert False
 
-    assert queue.qsize() >= 4
+    assert queue.qsize() >= 2
