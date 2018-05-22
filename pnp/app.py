@@ -1,6 +1,7 @@
 import signal
 import threading
 import time
+from datetime import datetime
 from queue import Queue
 from threading import Thread
 
@@ -9,14 +10,26 @@ from .utils import Loggable, safe_eval, FallbackBox
 
 
 class StoppableRunner(Thread, Loggable):
-    def __init__(self, task, queue):
+    def __init__(self, task, queue, retry_wait=60, max_retries=3, reset_retry_threshold=60):
         if not isinstance(task, Task):
             raise TypeError("Argument 'task' is expected to be a 'Task' instance, but is {}".format(type(task)))
         self.task = task
         self.queue = queue
+        self.retry_wait = int(retry_wait)  # in seconds
+        self.stopped = False
+        self.max_retries = int(max_retries) if max_retries is not None else None
+        self.reset_retry_threshold = reset_retry_threshold  # Reset retry_count after x seconds of successful running
         super().__init__(target=self._start_pull)
 
+    def _eval_retry(self, retry_count):
+        if self.max_retries is None or self.max_retries < 0:
+            return True
+        return retry_count <= self.max_retries
+
     def _start_pull(self):
+        retry_count = 0
+        last_error = None
+
         def on_payload(plugin, payload):
             # A task / inbound might have multiple pushes / outbounds associated
             for push in self.task.pushes:
@@ -27,18 +40,67 @@ class StoppableRunner(Thread, Loggable):
                 ))
                 # We do not evaluate the selector here. We let this handle the worker process. why?
                 # Cause the selector might take some time... and we do not need a try... catch... here
-                # Much can go wrong with the selector, if will only cause issues with the actual push
+                # Much can go wrong with the selector, if it does it will only cause issues with a single push
                 self.queue.put((payload, push))
 
+        def handle_error():
+            if last_error is None:
+                # Inital value -> no retries so far, the next is 1
+                new_retry_count = 1
+            elif (datetime.now() - last_error).total_seconds() > self.reset_retry_threshold:
+                # Reset retry count because threshold has reached, next try is 1
+                new_retry_count = 1
+            else:
+                # Count the retry accordingly
+                new_retry_count = retry_count + 1
+
+            # We don't have to wait if the given max_retries threshold is already reached
+            if self._eval_retry(new_retry_count):
+                # We couldn't just easily call time.sleep(self, retry_wait), cause we cannot react on the stopping
+                # signal. So have to manually sleep in 0.5 second steps and check for stopping signal
+                for _ in range(self.retry_wait * 2):
+                    if self.stopped:
+                        break
+                    time.sleep(0.5)
+
+            # We use this to see how long the new pull lasted
+            new_last_error = datetime.now()
+
+            return new_last_error, new_retry_count
+
         self.task.pull.instance.on_payload = on_payload
-        # TODO: Retry pull (failure count)
-        self.task.pull.instance.pull()
+
+        while not self.stopped and self._eval_retry(retry_count):
+            try:
+                self.task.pull.instance.pull()
+                if not self.stopped:
+                    # Bad thing... Pulling exited unexpectedly
+                    self.logger.error("[Task-{thread}] Pulling of '{pull}' exited unexpectedly".format(
+                        thread=threading.get_ident(),
+                        pull=self.task.pull.instance,
+                    ))
+                    last_error, retry_count = handle_error()
+            except:
+                import traceback
+                self.logger.error("[Task-{thread}] Pulling of '{pull}' raised an error\n{error}".format(
+                    thread=threading.get_ident(),
+                    pull=self.task.pull.instance,
+                    error=traceback.format_exc()
+                ))
+                last_error, retry_count = handle_error()
+
+        if not self.stopped:
+            self.logger.error("[Task-{thread}] Pulling of '{pull}' exited due to retry limitation".format(
+                thread=threading.get_ident(),
+                pull=self.task.pull.instance,
+            ))
 
     def stop(self):
         self.logger.info("[Task-{thread}] Got stopping signal: '{task}'".format(
             thread=threading.get_ident(),
             task=self.task.name
         ))
+        self.stopped = True
         self.task.pull.instance.stop()
 
 
