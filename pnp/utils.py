@@ -221,7 +221,7 @@ def get_field_mro(cls, field_name):
             # No class, no instance ... Return empty set
             return res
         cls = type(cls)
-        
+
     for c in inspect.getmro(cls):
         values_ = getattr(c, field_name, None)
         if values_ is not None:
@@ -320,6 +320,8 @@ class Loggable(object):
         >>> class NeedsLogger(Loggable):
         ...     def do(self, message):
         ...         self.logger.info(message)
+        >>> dut = NeedsLogger()
+        >>> dut.do('mymessage')
     """
     @property
     def logger(self):
