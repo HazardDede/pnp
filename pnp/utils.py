@@ -46,6 +46,34 @@ def make_list(item_or_items):
 
 
 def safe_eval(source, **context):
+    """
+    Calls the `eval` function with modified globals() and locals(). By default of `eval` the current globals() and
+    locals() are passed. We do not want that behaviour because the user can make a lot of nasty things with it
+    (think of a already imported `os` module...).
+
+    Instead we pass some functions (not all) from `__builtins__` (aka the whitelist) and remove all other modules.
+    The caller can pass some additional context (like variables) to the eval.
+
+    Examples:
+
+        >>> payload = {'foo': {'bar': 1, 'baz': 2}}
+        >>> safe_eval("str(payload['foo']['bar'])", payload=payload)  # We pass some context the eval has access to
+        '1'
+        >>> import os
+        >>> safe_eval("os.system('echo 0')")  # Try to access os
+        Traceback (most recent call last):
+        ...
+        pnp.utils.EvaluationError: Failed to evaluate 'os.system('echo 0')'
+        >>> safe_eval("os.system('echo 0')", os=os)  # The caller can pass the os module... if he really wants to...
+        0
+
+    Args:
+        source: The source to execute.
+        **context: Additional context (e.g. variables) to pass to eval.
+
+    Returns:
+        Return the result of the eval. If something went wrong it raises an error.
+    """
     whitelist = {
         "abs": abs,
         "bool": bool,
@@ -154,7 +182,46 @@ def parse_duration_literal(literal):
 
 
 def get_field_mro(cls, field_name):
+    """
+    Goes up the mro (method resolution order) of the given class and returns the union of a given field.
+
+    Example:
+
+        >>> class Root:
+        ...     __myfield__ = 'root'
+
+        >>> class A(Root):
+        ...     __myfield__ = ['a', 'common']
+
+        >>> class B(Root):
+        ...     __myfield__ = ['b', 'common']
+
+        >>> class Final(A, B):
+        ...     __myfield__ = 'final'
+
+        >>> get_field_mro(Final, '__myfield__') == {'root', 'a', 'b', 'common', 'final'}
+        True
+        >>> get_field_mro(A, '__myfield__') == {'root', 'a', 'common'}
+        True
+        >>> f = Final()
+        >>> get_field_mro(f, '__myfield__') == {'root', 'a', 'b', 'common', 'final'}
+        True
+
+    Args:
+        cls:
+        field_name:
+
+    Returns:
+
+    """
     res = set()
+    if not hasattr(cls, '__mro__'):
+        # cls might be an instance. mro is only available on classes
+        if not hasattr(type(cls), '__mro__'):
+            # No class, no instance ... Return empty set
+            return res
+        cls = type(cls)
+        
     for c in inspect.getmro(cls):
         values_ = getattr(c, field_name, None)
         if values_ is not None:
