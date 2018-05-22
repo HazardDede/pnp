@@ -51,13 +51,15 @@ class StoppableWorker(Thread, Loggable):
     def _process_queue(self):
         while True:
             try:
-                payload, push = self.queue.get()
+                payload = self.queue.get()
+                if payload is self.stop_working_item:
+                    self.logger.info("[Worker-{thread}] Got stopping signal".format(
+                        thread=threading.get_ident()))
+                    self.queue.put(self.stop_working_item)
+                    break
                 try:
-                    if payload is self.stop_working_item:
-                        self.logger.info("[Worker-{thread}] Got stopping signal".format(
-                            thread=threading.get_ident()))
-                        self.queue.put((self.stop_working_item, None))
-                        break
+                    # We assume payload is actual payload, push
+                    payload, push = payload
                     # Wrap payload inside a Box -> this makes dot accessable dictionaries possible
                     # We create a dictionary cause payload might not be an actual dictionary.
                     # This way wrapping with Box will always work ;-)
@@ -124,4 +126,4 @@ class Application(Loggable):
     def stop_all(self):
         for runner in self.runner:
             runner.stop()
-        self.queue.put((self.stop_working_item, None))
+        self.queue.put(self.stop_working_item)

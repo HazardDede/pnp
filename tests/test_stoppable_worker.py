@@ -38,7 +38,7 @@ def test_worker_for_smoke():
     runner.start()
     time.sleep(1)
     runner.stop()
-    queue.put((stop_item, None))
+    queue.put(stop_item)
 
     runner.join(timeout=1)
     if runner.is_alive():
