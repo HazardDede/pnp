@@ -7,6 +7,7 @@ from threading import Thread
 
 from .models import Task
 from .utils import Loggable, safe_eval, FallbackBox
+from .plugins.push import SUPPRESS_PUSH
 
 
 class StoppableRunner(Thread, Loggable):
@@ -81,6 +82,7 @@ class StoppableRunner(Thread, Loggable):
                     ))
                     last_error, retry_count = handle_error()
             except:
+                # Bad thing... Pulling exited with exception
                 import traceback
                 self.logger.error("[Task-{thread}] Pulling of '{pull}' raised an error\n{error}".format(
                     thread=threading.get_ident(),
@@ -129,12 +131,21 @@ class StoppableWorker(Thread, Loggable):
                     if push.selector is not None:
                         self.logger.debug("[Worker-{thread}] Applying '{selector}' to '{payload}'".format(
                             thread=threading.get_ident(), payload=payload, selector=push.selector))
-                        payload = safe_eval(push.selector, payload=payload)
+                        payload = safe_eval(
+                            source=push.selector,
+                            payload=payload,
+                            suppressme=SUPPRESS_PUSH, SUPPRESSME=SUPPRESS_PUSH, SUPPRESS=SUPPRESS_PUSH,
+                            suppress=SUPPRESS_PUSH
+                        )
 
-                    self.logger.debug("[Worker-{thread}] Emitting '{payload}' to push '{push}'".format(
-                        thread=threading.get_ident(), payload=payload, push=push.instance))
-                    # We modify payload so that
-                    push.instance.push(payload=payload)
+                    if payload is not SUPPRESS_PUSH:
+                        self.logger.debug("[Worker-{thread}] Emitting '{payload}' to push '{push}'".format(
+                            thread=threading.get_ident(), payload=payload, push=push.instance))
+                        # We modify payload so that
+                        push.instance.push(payload=payload)
+                    else:
+                        self.logger.debug("[Worker-{thread}] Selector evaluated to suppress. Skipping the push".format(
+                            thread=threading.get_ident()))
                 finally:
                     self.queue.task_done()
             except:  # pylint: disable=broad-except
