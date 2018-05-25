@@ -6,8 +6,8 @@ from queue import Queue
 from threading import Thread
 
 from .models import Task
-from .utils import Loggable, safe_eval, FallbackBox
-from .plugins.push import SUPPRESS_PUSH
+from .utils import Loggable
+from .plugins.push import PayloadSelector
 
 
 class StoppableRunner(Thread, Loggable):
@@ -124,24 +124,18 @@ class StoppableWorker(Thread, Loggable):
                 try:
                     # We assume payload is actual payload, push
                     payload, push = payload
-                    # Wrap payload inside a Box -> this makes dot accessable dictionaries possible
-                    # We create a dictionary cause payload might not be an actual dictionary.
-                    # This way wrapping with Box will always work ;-)
-                    payload = FallbackBox({'base': payload}).base
-                    if push.selector is not None:
-                        self.logger.debug("[Worker-{thread}] Applying '{selector}' to '{payload}'".format(
-                            thread=threading.get_ident(), payload=payload, selector=push.selector))
-                        payload = safe_eval(
-                            source=push.selector,
-                            payload=payload,
-                            suppressme=SUPPRESS_PUSH, SUPPRESSME=SUPPRESS_PUSH, SUPPRESS=SUPPRESS_PUSH,
-                            suppress=SUPPRESS_PUSH
-                        )
 
-                    if payload is not SUPPRESS_PUSH:
+                    self.logger.debug("[Worker-{thread}] Applying '{selector}' to '{payload}'".format(
+                        thread=threading.get_ident(), payload=payload, selector=push.selector))
+                    # If selector is None -> returns a dot accessable dictionary if applicable
+                    # If selector is not None -> returns the evaluated expression (as a dot accessable dictionary
+                    # if applicable
+                    payload = PayloadSelector.instance.eval_selector(push.selector, payload)
+
+                    # Only make the push if the selector wasn't evaluated to suppress the push
+                    if payload is not PayloadSelector.instance.SuppressLiteral:
                         self.logger.debug("[Worker-{thread}] Emitting '{payload}' to push '{push}'".format(
                             thread=threading.get_ident(), payload=payload, push=push.instance))
-                        # We modify payload so that
                         push.instance.push(payload=payload)
                     else:
                         self.logger.debug("[Worker-{thread}] Selector evaluated to suppress. Skipping the push".format(

@@ -313,6 +313,32 @@ def auto_str_ignore(ignore_list):
     return decorator
 
 
+class classproperty(property):
+    """
+    Decorator classproperty:
+    Make class methods look like read-only class properties.
+    Writing to that classproperty will not do what you expect ;-)
+    Examples:
+        >>> class Foo(object):
+        ...     _instance = 5
+        ...     @classproperty
+        ...     def my_prop(cls):
+        ...         return cls._instance
+        >>> Foo.my_prop
+        5
+        >>> Foo._instance
+        5
+        >>> Foo._instance = 15
+        >>> Foo.my_prop
+        15
+        >>> Foo.my_prop = 10
+        >>> Foo._instance
+        15
+    """
+    def __get__(self, cls, owner):
+        return classmethod(self.fget).__get__(None, owner)()
+
+
 class Loggable(object):
     """
     Adds a logger property to the class to provide easy access to a configured logging instance to use.
@@ -359,3 +385,63 @@ class FallbackBox(Box):
             if isinstance(item, (int, float)):
                 return super().__getitem__(str(item), _ignore_default=_ignore_default)
             raise ke
+
+
+class Singleton(object):
+    """
+    Derive from this class to create a singleton.
+    Examples:
+        >>> class Foo(Singleton):
+        ...     def __init__(self, state):
+        ...         self.state = state
+        >>> # Instance will be created on first call ...
+        >>> f = Foo('statef')
+        >>> # ... and passing different arguments will not change the already created instance.
+        >>> g = Foo('stateg')
+        >>> f is g
+        True
+        >>> print(f.state)
+        statef
+        >>> print(g.state)
+        statef
+        >>> # Two ways to retrieve the singleton instance
+        >>> # 1. Pretend to "create" a new instance. This will return the already created instance.
+        >>> Foo() is f
+        True
+        >>> # Arguments work as well (but will be ignored)
+        >>> Foo("i", "get", "ignored") is f
+        True
+        >>> # 2. The more explicit variant: Call ``instance`` on the Singleton (Explicit is good).
+        >>> Foo.instance is f
+        True
+        >>> # You can re-initialize the instance
+        >>> f.init('new_state')
+        >>> print(f.state)
+        new_state
+        >>> print(g.state)
+        new_state
+    """
+    def __new__(cls, *args, **kwargs):
+        instance = cls.__dict__.get("__singleton__")
+        if instance is None:
+            # Create the singleton
+            cls.__singleton__ = instance = object.__new__(cls)
+            # Initialize it once.
+            instance.__init__(*args, **kwargs)
+
+            # Backup initializer ...
+            cls.init = cls.__init__
+            # .. and then forget about it...
+
+            def empty_init(self, *args, **kwargs):
+                pass
+            cls.__init__ = empty_init
+        return instance
+
+    @classproperty
+    def instance(cls):
+        """
+        Returns the singleton instance. If there is none yet, it will be created by calling the ``init`` method
+        without any arguments.
+        """
+        return cls.__new__(cls)
