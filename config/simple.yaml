@@ -1,3 +1,6 @@
+# Define "pulls" to pull data from sources
+# Define multiple "pushes" per pull to push the pulled data anywhere else (you only need a plugin that is capable of)
+# You can define your configurations in yaml or json. It is up to you.
 - name: simple
   pull:
     plugin: pnp.plugins.pull.simple.Count

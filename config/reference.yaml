@@ -1,3 +1,4 @@
+# Optional refs node to define aliases you can reference later
 refs:
   echo_plugin: &echo_plugin
     plugin: pnp.plugins.push.simple.Echo
