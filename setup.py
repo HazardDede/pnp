@@ -57,7 +57,8 @@ setup(
         'argresolver==0.2.0'
     ],
     extras_require={
-      'dht': ['Adafruit_DHT==1.3.2']
+        'dht': ['Adafruit_DHT==1.3.2'],
+        'fswatcher': ['watchdog>=0.8.3']
     },
     dependency_links=[
         "git+https://github.com/HazardDede/argresolver.git@v0.2.0#egg=argresolver-0.2.0",
