@@ -1,4 +1,4 @@
-import base64
+from base64 import b64encode
 
 from . import PushBase
 
@@ -25,4 +25,4 @@ class FileLoad(PushBase):
 
         self.logger.info("[{self.name}] Loading file '{load_file}'".format(**locals()))
         with open(load_file, 'rb' if self.binary_mode else 'r') as fs:
-            return base64.b64encode(fs.read()) if self.base64 else fs.read()
+            return b64encode(fs.read()) if self.base64 else fs.read()
