@@ -33,7 +33,7 @@ def test_runner_for_smoke():
     task = models.Task(
         name='pytest_task',
         pull=models.Pull(instance=pull_simpe.Count(name='pytest_pull', wait=0.5)),
-        pushes=[models.Push(instance=push_simple.Echo(name='pytest_push'), selector=None)]
+        pushes=[models.Push(instance=push_simple.Echo(name='pytest_push'), selector=None, deps=[])]
     )
     dut = app.StoppableRunner(task, queue)
     dut.daemon = True
@@ -53,7 +53,7 @@ def test_runner_for_retries_on_error():
         task = models.Task(
             name='pytest_task',
             pull=models.Pull(instance=pull),
-            pushes=[models.Push(instance=push_simple.Echo(name='pytest_push'), selector=None)]
+            pushes=[models.Push(instance=push_simple.Echo(name='pytest_push'), selector=None, deps=[])]
         )
         dut = app.StoppableRunner(task, queue, retry_wait=1, max_retries=max_retries)
         dut.daemon = True

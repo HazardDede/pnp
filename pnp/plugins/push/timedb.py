@@ -22,3 +22,4 @@ class InfluxPush(PushBase):
         self.logger.debug("[{name}] Writing '{points}' to influxdb".format(name=self.name, points=str(points)))
         client = InfluxDBClient(self.host, self.port, self.user, self.password, self.database)
         client.write(points, {'db': self.database}, 204, 'line')
+        return payload

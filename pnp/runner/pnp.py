@@ -6,7 +6,7 @@ from ..app import Application
 from ..config import load_config
 from ..models import Task, Pull, Push
 from ..plugins import load_plugin
-from ..utils import make_list
+
 
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'DEBUG')
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=LOG_LEVEL)
@@ -17,10 +17,19 @@ def mk_inbound(task):
     return Pull(instance=load_plugin(task.pull.plugin, **args))
 
 
+def mk_pushes(pushes, push_prefix):
+    for i, push in enumerate(pushes):
+        push_name = '{push_prefix}_{i}'.format(**locals())
+        args = {'name': push_name, **push.args}
+        yield Push(
+            instance=load_plugin(push.plugin, **args),
+            selector=push.selector,
+            deps=list(mk_pushes(push.deps, push_name))
+        )
+
+
 def mk_outbound(task):
-    for i, push in enumerate(make_list(task.pushes)):
-        args = {'name': '{task.name}_push_{i}'.format(**locals()), **push.args}
-        yield Push(instance=load_plugin(push.plugin, **args), selector=push.selector)
+    return list(mk_pushes(task.pushes, "{task.name}_push".format(**locals())))
 
 
 def tasks_to_str(tasks):

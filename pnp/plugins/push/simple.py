@@ -9,6 +9,7 @@ class Echo(PushBase):
 
         >>> dut = Echo(name="echo_push")
         >>> dut.push("I will be logged")
+        'I will be logged'
     """
 
     def __init__(self, **kwargs):
@@ -16,3 +17,4 @@ class Echo(PushBase):
 
     def push(self, payload):
         self.logger.info("[{self.name}] Got {payload}".format(**locals()))
+        return payload

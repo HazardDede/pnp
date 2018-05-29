@@ -23,7 +23,7 @@ def test_worker_for_smoke():
     task = models.Task(
         name='pytest_task',
         pull=models.Pull(instance=pull_simple.Count(name='pytest_pull', wait=0.5)),
-        pushes=[models.Push(instance=push_instance, selector=None)]
+        pushes=[models.Push(instance=push_instance, selector=None, deps=[])]
     )
     # Worker
     stop_item = object()

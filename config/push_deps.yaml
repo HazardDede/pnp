@@ -1,0 +1,15 @@
+- name: file_watcher
+  pull:
+    plugin: pnp.plugins.pull.fs.FileSystemWatcher
+    args:
+      path: "/tmp"
+      ignore_directories: True
+
+  push:
+    plugin: pnp.plugins.push.fs.FileLoad
+    args:
+      binary_mode: false
+      base64: true
+    deps:
+      # Dependencies are plugins as well
+      plugin: pnp.plugins.push.simple.Echo

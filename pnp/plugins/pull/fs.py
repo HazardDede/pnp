@@ -19,7 +19,7 @@ class FileSystemWatcher(PullBase):
         from watchdog.observers import Observer
         from watchdog.events import PatternMatchingEventHandler
 
-        notify = self.notify
+        that = self
 
         class EventHandler(PatternMatchingEventHandler):
             def __init__(self, *args, **kwargs):
@@ -32,7 +32,8 @@ class FileSystemWatcher(PullBase):
                     'source': getattr(event, 'src_path', None),
                     'destination': getattr(event, 'dest_path', None)
                 }
-                notify(payload)
+                that.logger.info("[{that.name}] Got {payload}".format(**locals()))
+                that.notify(payload)
 
         observer = Observer()
         observer.schedule(EventHandler(

@@ -16,3 +16,4 @@ class MQTTPush(PushBase):
         publish.single(topic=self.topic, payload=str(payload), hostname=self.host, port=self.port)
         self.logger.debug("[{self.name}] Published message on '{self.topic}' @ {self.host}:{self.port}. "
                           "Payload='{payload}'".format(**locals()))
+        return payload

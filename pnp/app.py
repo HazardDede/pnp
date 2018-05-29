@@ -125,7 +125,7 @@ class StoppableWorker(Thread, Loggable):
                     # We assume payload is actual payload, push
                     payload, push = payload
 
-                    self.logger.debug("[Worker-{thread}] Applying '{selector}' to '{payload}'".format(
+                    self.logger.debug("[Worker-{thread}] Selector: Applying '{selector}' to '{payload}'".format(
                         thread=threading.get_ident(), payload=payload, selector=push.selector))
                     # If selector is None -> returns a dot accessable dictionary if applicable
                     # If selector is not None -> returns the evaluated expression (as a dot accessable dictionary
@@ -136,7 +136,11 @@ class StoppableWorker(Thread, Loggable):
                     if payload is not PayloadSelector.instance.SuppressLiteral:
                         self.logger.debug("[Worker-{thread}] Emitting '{payload}' to push '{push}'".format(
                             thread=threading.get_ident(), payload=payload, push=push.instance))
-                        push.instance.push(payload=payload)
+                        push_result = push.instance.push(payload=payload)
+
+                        # Trigger any dependent pushes
+                        for dependency in push.deps:
+                            self.queue.put((push_result, dependency))
                     else:
                         self.logger.debug("[Worker-{thread}] Selector evaluated to suppress. Skipping the push".format(
                             thread=threading.get_ident()))
