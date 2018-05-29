@@ -1,4 +1,6 @@
 # DHT temperature and humidity polling (requires extra 'dht')
+# Pull returns a dictionary containing the temperature and humidity.
+
 - name: dht
   pull:
     plugin: pnp.plugins.pull.sensor.DHT

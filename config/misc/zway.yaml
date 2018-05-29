@@ -1,3 +1,7 @@
+# Fetches device data from a zwave-compatible rest api
+# Please make sure to adjust host and device ids.
+# Please see the README.md for selector examples.
+
 - name: zway
   pull:
     plugin: pnp.plugins.pull.zway.ZwayPoll
@@ -8,7 +12,7 @@
     - plugin: pnp.plugins.push.simple.Echo
       # Temperature of fibaro motion sensor
       # You can access the returned json like you would inquire the zway-api
-      selector: "payload[19].instances[0].commandClasses[49].data[1].val.value"
+      selector: payload[19].instances[0].commandClasses[49].data[1].val.value
     - plugin: pnp.plugins.push.simple.Echo
       # Luminiscence of fibaro motion sensor
       selector: payload[19].instances[0].commandClasses[49].data[3].val.value

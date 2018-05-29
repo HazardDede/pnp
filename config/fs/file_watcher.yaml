@@ -1,3 +1,5 @@
+# Watches the directory '/tmp' for file changes (create, modify, delete) and prints them out
+
 - name: file_watcher
   pull:
     plugin: pnp.plugins.pull.fs.FileSystemWatcher

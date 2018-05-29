@@ -1,5 +1,8 @@
-# Parse the payload via a so called selector
-- name: "simple"
+# You can define multiple pushes to push the pulled data to multiple sinks.
+
+# This example yields the string 'Hello World' every second. Both pushes print it out.
+
+- name: multipush
   pull:
     plugin: pnp.plugins.pull.simple.Repeat
     args:
@@ -7,6 +10,4 @@
       repeat: "Hello World"
   push:
     - plugin: pnp.plugins.push.simple.Echo
-      selector: "payload.split(' ')[0]"
     - plugin: pnp.plugins.push.simple.Echo
-      selector: "payload.split(' ')[1]"

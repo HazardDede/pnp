@@ -1,4 +1,9 @@
-- name: selector_suppress
+# By returning a pre-defined constant (SUPRESSME, SUPPRESS, SUPPRESS_ME) from a selector you can suppress
+# the execution of a push.
+
+# This example counts from 0 to infinity. The push is only fired when the counter is even.
+
+- name: suppress
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
