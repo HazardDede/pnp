@@ -12,7 +12,7 @@ class MQTTPull(PullBase):
 
     def on_connect(self, client, userdata, flags, rc):
         self.logger.info("[{self.name}] Connected with result code '{rc}' "
-                          "to {self.topic} @ {self.host}:{self.port}".format(**locals()))
+                         "to {self.topic} @ {self.host}:{self.port}".format(**locals()))
 
         # Subscribing in on_connect() means that if we lose the connection and
         # reconnect then subscriptions will be renewed.
