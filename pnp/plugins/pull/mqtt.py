@@ -6,9 +6,9 @@ class MQTTPull(PullBase):
 
     def __init__(self, host, topic, port=1883, **kwargs):
         super().__init__(**kwargs)
-        self.host = host
-        self.topic = topic
-        self.port = port
+        self.host = str(host)
+        self.topic = str(topic)
+        self.port = int(port)
 
     def on_connect(self, client, userdata, flags, rc):
         self.logger.info("[{self.name}] Connected with result code '{rc}' "
@@ -24,7 +24,7 @@ class MQTTPull(PullBase):
         self.notify(dict(
             topic=str(msg.topic),
             levels=[level for level in msg.topic.split('/')],
-            payload=str(msg.payload.decode('utf-8'))
+            payload=msg.payload.decode('utf-8')
         ))
 
     def pull(self):
