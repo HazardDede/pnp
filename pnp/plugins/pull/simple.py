@@ -8,9 +8,9 @@ class Count(PullBase):
 
     def __init__(self, from_cnt=0, to_cnt=None, wait=5, **kwargs):
         super().__init__(**kwargs)
-        self.from_cnt = from_cnt
-        self.to_cnt = to_cnt
-        self.wait = wait
+        self.from_cnt = int(from_cnt)
+        self.to_cnt = int(to_cnt) if to_cnt is not None else None
+        self.wait = float(wait)
 
     def pull(self):
         for i in range(self.from_cnt, self.to_cnt or sys.maxsize):
@@ -21,10 +21,10 @@ class Count(PullBase):
 
 
 class Repeat(PullBase):
-    def __init__(self, repeat, wait, **kwargs):
+    def __init__(self, repeat, wait=5, **kwargs):
         super().__init__(**kwargs)
         self.repeat = repeat
-        self.wait = wait
+        self.wait = float(wait)
 
     def pull(self):
         while not self.stopped:
