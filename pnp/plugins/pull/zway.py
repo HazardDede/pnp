@@ -11,9 +11,9 @@ class ZwayPoll(Polling):
 
     def __init__(self, url, user, password, **kwargs):
         super().__init__(**kwargs)
-        self.url = url
-        self.user = user
-        self.password = password
+        self.url = str(url)
+        self.user = str(user)
+        self.password = str(password)
 
     def poll(self):
         self.logger.debug("[{name}] Polling url '{url}'".format(name=self.name, url=self.url))

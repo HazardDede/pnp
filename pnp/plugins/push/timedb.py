@@ -10,12 +10,12 @@ class InfluxPush(PushBase):
 
     def __init__(self, host, port, user, password, database, protocol, **kwargs):
         super().__init__(**kwargs)
-        self.host = host
+        self.host = str(host)
         self.port = int(port)
-        self.user = user
-        self.password = password
-        self.database = database
-        self.protocol = protocol
+        self.user = str(user)
+        self.password = str(password)
+        self.database = str(database)
+        self.protocol = str(protocol)
 
     def push(self, payload):
         points = [self.protocol.format(payload=payload)]
