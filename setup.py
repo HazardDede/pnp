@@ -47,6 +47,7 @@ setup(
     },
     packages=find_packages(exclude=[]),
     install_requires=[
+        'binaryornot>=0.4.4'
         'python-box>=3.2.0',
         'influxdb>=5.0.0',
         'paho-mqtt>=1.3.1',
@@ -58,7 +59,8 @@ setup(
     ],
     extras_require={
         'dht': ['Adafruit_DHT==1.3.2'],
-        'fswatcher': ['watchdog>=0.8.3']
+        'fswatcher': ['watchdog>=0.8.3'],
+        'faceR': ['image>=1.5.24', 'face-recognition>=1.2.2']
     },
     dependency_links=[
         "git+https://github.com/HazardDede/argresolver.git@v0.2.0#egg=argresolver-0.2.0",
