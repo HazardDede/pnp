@@ -6,6 +6,8 @@
     args:
       path: "/tmp"
       ignore_directories: True
+      events: [created, deleted, modified]
+      load_file: False
 
   push:
     plugin: pnp.plugins.push.simple.Echo

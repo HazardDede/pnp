@@ -1,28 +1,24 @@
-from base64 import b64encode
+import os
+import time
 
 from . import PushBase
+from ...validator import Validator
 
 
-class FileLoad(PushBase):
-    """
-    """
-
-    def __init__(self, binary_mode=True, base64=False, **kwargs):
+class FileDump(PushBase):
+    def __init__(self, directory='.', extension='.dump', binary_mode=True, **kwargs):
         super().__init__(**kwargs)
-        self.binary_mode = base64 or binary_mode
-        self.base64 = base64
+        self.directory = directory
+        Validator.is_directory(directory=self.directory)
+        self.extension = str(extension)
+        self.binary_mode = bool(binary_mode)
+
+    def _generate_file_name(self):
+        return os.path.join(self.directory, time.strftime("%Y%m%d-%H%M%S") + self.extension)
 
     def push(self, payload):
-        load_file = None
-        # filepath as a string argument
-        if isinstance(payload, str):
-            load_file = payload
-        # compatibility with FileSystemWatcher
-        elif isinstance(payload, dict):
-            load_file = payload.get('destination', None) or payload.get('source', None)
-        if load_file is None:
-            raise ValueError("Couldn't extract any file name to load")
+        file_name = self._generate_file_name()
+        with open(file_name, 'wb' if self.binary_mode else 'w') as fs:
+            fs.write(payload)
 
-        self.logger.info("[{self.name}] Loading file '{load_file}'".format(**locals()))
-        with open(load_file, 'rb' if self.binary_mode else 'r') as fs:
-            return b64encode(fs.read()) if self.base64 else fs.read()
+        return file_name
