@@ -1,8 +1,13 @@
 import inspect
 import logging
+import os
 import re
+from base64 import b64encode, b64decode
 
+from binaryornot.check import is_binary
 from box import Box, BoxKeyError
+
+FILE_MODES = ['binary', 'text', 'auto']
 
 
 class EvaluationError(Exception):
@@ -94,7 +99,9 @@ def safe_eval(source, **context):
         "round": round,
         "sorted": sorted,
         "str": str,
-        "zip": zip
+        "zip": zip,
+        "b64encode": b64encode,
+        "b64decode": b64decode
     }
     whitelist.update(context)
     try:
@@ -131,6 +138,31 @@ def try_parse_int(candidate):
         return int(candidate)
     except (ValueError, TypeError):
         return None
+
+
+def get_file_mode(file_path, mode):
+    if mode == 'binary':
+        return 'rb'
+    if mode == 'text':
+        return 'r'
+    if mode == 'auto':
+        return 'rb' if is_binary(file_path) else 'r'
+
+    raise ValueError("Argument 'mode' is expected to be one of: auto, binary, text")
+
+
+def load_file(fp, mode='auto', base64=False):
+    if not isinstance(base64, bool):
+        raise TypeError("Argument 'base64' is expected to be a bool, but is {}".format(type(base64)))
+    mode = 'binary' if base64 else mode
+    if mode not in FILE_MODES:
+        raise ValueError("Argument 'mode' is expected to be one of: {}".format(FILE_MODES))
+
+    read_mode = get_file_mode(fp, mode=mode)
+    with open(fp, read_mode) as fs:
+        contents = b64encode(fs.read()) if base64 else fs.read()
+
+    return dict(file_name=os.path.basename(fp), content=contents, mode=read_mode, base64=base64)
 
 
 def parse_duration_literal(literal):
