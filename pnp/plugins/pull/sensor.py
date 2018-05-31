@@ -1,6 +1,7 @@
 import random
 
 from . import Polling, PollingError
+from ...validator import Validator
 
 
 class Adafruit_Dummy:
@@ -20,12 +21,9 @@ class DHT(Polling):
 
     def __init__(self, device='dht22', data_gpio=17, **kwargs):
         super().__init__(**kwargs)
-        if not isinstance(device, str):
-            raise TypeError("Argument 'device' is expected to be str, but is {}".format(type(device)))
         valid_devices = ['dht11', 'dht22', 'am2302']
-        if device.lower() not in valid_devices:
-            raise ValueError("Argument 'device' is expected to be one of {}".format(valid_devices))
-        self.device = device.lower()
+        self.device = str(device).lower()
+        Validator.one_of(valid_devices, device=self.device)
         self.data_gpio = int(data_gpio)
 
     def poll(self):
