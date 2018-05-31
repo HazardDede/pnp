@@ -1,6 +1,6 @@
+import time
 from abc import abstractmethod
 
-import time
 from schedule import Scheduler
 
 from .. import Plugin

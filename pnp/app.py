@@ -6,8 +6,8 @@ from queue import Queue
 from threading import Thread
 
 from .models import Task
-from .utils import Loggable
 from .plugins.push import PayloadSelector
+from .utils import Loggable
 
 
 class StoppableRunner(Thread, Loggable):

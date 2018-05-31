@@ -7,7 +7,6 @@ from ..config import load_config
 from ..models import Task, Pull, Push
 from ..plugins import load_plugin
 
-
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'DEBUG')
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=LOG_LEVEL)
 
