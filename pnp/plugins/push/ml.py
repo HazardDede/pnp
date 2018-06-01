@@ -8,6 +8,24 @@ from ...validator import Validator
 
 @auto_str_ignore(['known_encodings'])
 class FaceR(PushBase):
+    """
+    FaceR (short one for face recognition) screens images for known faces. Output is the image with the
+    all faces tagged whether with the known name or an `unknown_label`.
+
+    Known faces can be ingested either by a directory of known faces (`known_faces_dir`) or by mapping of `known_faces`
+    (dictionary: name -> [list of face files]).
+
+    Examples:
+
+        >>> faces_dir = os.path.join(os.path.dirname(__file__), '../../../tests/resources/faces')
+        >>> trump = os.path.join(os.path.dirname(__file__), '../../../tests/resources/faces/trump.jpg')
+        >>> fr = FaceR(name='doctest', known_faces_dir=faces_dir)
+        >>> with open(trump, 'rb') as fs:
+        ...     contents = fs.read()
+        >>> result = fr.push(contents)
+        >>> result['no_of_faces'], result['known_faces']
+        (1, ['trump'])
+    """
     def __init__(self, known_faces=None, known_faces_dir=None, unknown_label="Unknown", **kwargs):
         # known_faces -> mapping name -> list of files
         # known_faces_dir -> directory with known faces (filename -> name)

@@ -3,7 +3,7 @@ from . import PushBase
 
 class Echo(PushBase):
     """
-    Simply logs the payload.
+    This push simply logs the `payload` via the `logging` module.
 
     Examples:
 
