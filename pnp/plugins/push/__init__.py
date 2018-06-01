@@ -50,5 +50,6 @@ class PayloadSelector(Singleton):
         return safe_eval(
             source=selector,
             payload=payload,
+            data=payload,
             **suppress_kwargs
         )
