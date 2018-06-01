@@ -141,6 +141,28 @@ def try_parse_int(candidate):
 
 
 def get_file_mode(file_path, mode):
+    """
+    Returns 'rb' if mode = 'binary'.
+    Returns 'r' if mode = 'text'
+    Returns 'rb' or 'r' if mode = 'auto' -> Will be automatically detected.
+
+    Example:
+
+        >>> get_file_mode("doesn't matter", 'binary')
+        'rb'
+        >>> get_file_mode("doesn't matter", 'text')
+        'r'
+        >>> get_file_mode(__file__, 'auto')
+        'r'
+
+    Args:
+        file_path: File to load.
+        mode: One of ['binary', 'text', 'auto'].
+
+    Returns:
+        One of ['rb', 'r']
+
+    """
     if mode == 'binary':
         return 'rb'
     if mode == 'text':
