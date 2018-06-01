@@ -12,14 +12,13 @@ Pulls data from sources and pushes it to sinks.
     
 ### Optional extras
 
-* dht: Enables `pnp.plugins.pull.sensor.DHT` (temperature and humidity sensor)
+* dht: Enables `pnp.plugins.pull.sensor.DHT` (temperature and humidity sensor). Only works on ARM-based systems (like raspberry, arduino)
 * fswatcher: Enables `pnp.plugins.pull.fs.FileSystemWatcher` (Watch file system for created, modified, 
 deleted, moved files)
 * faceR: Enables `pnp.plugins.push.ml.FaceR` (Screen image files for known faces)
 
-
-    # Installation with extras
-    # extra 'dht' only works on arm based systems
+Installation with extras:
+    
     pip3 install --process-dependency-links .[dht,fswatcher,faceR]
 
 
