@@ -9,6 +9,21 @@ class Validator:
         return not (allow_none and arg_value is None)
 
     @staticmethod
+    def cast_or_none(cast_fun, arg_value):
+        """
+        Examples:
+            >>> print(Validator.cast_or_none(str, None))
+            None
+            >>> Validator.cast_or_none(str, 1)
+            '1'
+            >>> Validator.cast_or_none(int, 'a')
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid literal for int() with base 10: 'a'
+        """
+        return cast_fun(arg_value) if arg_value is not None else None
+
+    @staticmethod
     def is_not_none(**kwargs):
         """
         Examples:
