@@ -1,25 +1,39 @@
 # For mocking
 import paho.mqtt.publish
+import time
+
+from mock import patch
 
 from pnp.plugins.pull.mqtt import MQTTPull
 from pnp.plugins.push.mqtt import MQTTPush
-from tests.plugins.helper import make_runner
+from tests.plugins.helper import make_runner, MqttMessage
 
 
-# def test_mqtt_pull():
-#     def callback(plugin, payload):
-#         print(payload)
-#
-#     dut = MQTTPull(name='pytest', host='youneverknow', topic='test/#', port=1883)
-#     runner = make_runner(dut, callback)
-#     runner.start()
-#
-#     runner.stop()
-#     runner.join()
-#
-#     print(runner.error())
-#     if runner.error() is not None:
-#         assert False, runner.error()
+@patch('paho.mqtt.client.Client')
+def test_mqtt_pull(mock_client):
+    mc = mock_client.return_value
+
+    def callback(plugin, payload):
+        assert payload['payload'] == "Payload"
+        assert payload['topic'] == "test/device1/temperature"
+        assert payload['levels'] == ["test", "device1", "temperature"]
+
+    dut = MQTTPull(name='pytest', host='youneverknow', topic='test/#', port=1883)
+    runner = make_runner(dut, callback)
+    runner.start()
+    time.sleep(0.5)
+    mc.on_connect(mc, "userdata", "flags", 0)
+    mc.on_message(mc, "obj", MqttMessage(payload="Payload".encode('utf-8'), topic="test/device1/temperature"))
+    runner.stop()
+    runner.join()
+    runner.raise_on_error()
+
+    mock_client.assert_called
+    mc.connect.assert_called
+    mc.connect.assert_called_with('youneverknow', 1883, 60)
+    mc.subscribe.assert_called
+    mc.subscribe.assert_called_with('test/#')
+    mc.loop.assert_called
 
 
 def test_mqtt_push(monkeypatch):

@@ -2,7 +2,8 @@ from collections import namedtuple
 from threading import Thread
 from pnp.plugins.pull import PullBase
 
-Runner = namedtuple("Runner", ["pull", "start", "stop", "join", "error"])
+Runner = namedtuple("Runner", ["pull", "start", "stop", "join", "raise_on_error"])
+MqttMessage = namedtuple("MqttMessage", ["payload", "topic"])
 
 
 def make_runner(plugin, callback):
@@ -15,6 +16,7 @@ def make_runner(plugin, callback):
             plugin.pull()
         except:
             import traceback
+            nonlocal error
             error = traceback.format_exc()
 
     t = Thread(target=_wrapper)
@@ -28,7 +30,7 @@ def make_runner(plugin, callback):
     def join():
         t.join()
 
-    def get_error():
-        return error
+    def raise_if_applicable():
+        assert error is None, error
 
-    return Runner(pull=t, start=start, stop=stop, join=join, error=get_error)
+    return Runner(pull=t, start=start, stop=stop, join=join, raise_on_error=raise_if_applicable)

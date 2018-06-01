@@ -46,6 +46,7 @@ def _helper_file_system_watcher(config, operations, expected):
 
         runner.stop()
         runner.join()
+        runner.raise_on_error()
 
     exp = expected(tmpdir)
     assert len(events) == len(exp)
