@@ -1,5 +1,9 @@
 # Fetches device data from a zwave-compatible rest api
-# Please make sure to adjust host and device ids.
+# Please make sure to adjust url and device ids.
+# Username and Password are injected from environment variables:
+#     export ZWAY_USER=admin
+#     export ZWAY_PASSWORD=secretone
+#
 # Please see the README.md for selector examples.
 
 - name: zway
