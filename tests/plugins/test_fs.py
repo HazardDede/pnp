@@ -6,29 +6,35 @@ import os
 
 from functools import partial
 
+from datetime import datetime
+
 from pnp.plugins.pull.fs import FileSystemWatcher
 from tests.plugins.helper import make_runner
 
 
 def _touch(tmpdir, filename):
+    # print(datetime.now(), "Touched")
     open(os.path.join(tmpdir, filename), 'w').close()
 
 
 def _modify(tmpdir, filename, content):
+    # print(datetime.now(), "Modified")
     with open(os.path.join(tmpdir, filename), 'w') as fs:
         fs.write(content)
 
 
 def _delete(tmpdir, filename):
+    # print(datetime.now(), "Deleted")
     os.remove(os.path.join(tmpdir, filename))
 
 
 def _move(tmpdir, filename, newname):
+    # print(datetime.now(), "Moved")
     os.rename(os.path.join(tmpdir, filename), os.path.join(tmpdir, newname))
 
 
 def _helper_file_system_watcher(config, operations, expected):
-    WAIT_SLEEP=5
+    WAIT_SLEEP = 1
     events = []
 
     def callback(plugin, payload):
@@ -44,6 +50,8 @@ def _helper_file_system_watcher(config, operations, expected):
         for op in operations:
             op(tmpdir)
             time.sleep(WAIT_SLEEP)
+
+        time.sleep(2)
 
         runner.stop()
         runner.join()
@@ -95,6 +103,61 @@ def test_file_system_watcher_pull_with_load_file():
         operations=[
             partial(_touch, filename='foo.txt'),
             partial(_modify, filename='foo.txt', content='Blub'),
+            partial(_delete, filename='foo.txt')
+        ],
+        expected=expected
+    )
+
+
+def test_file_system_watcher_pull_with_deferred_modified_results_in_one_event():
+    def expected(tmpdir):
+        return [
+            {'operation': 'created', 'is_directory': False, 'source': os.path.join(tmpdir, 'foo.txt'),
+             'destination': None, 'file': {'file_name': 'foo.txt', 'content': '', 'mode': 'r', 'base64': False}},
+            {'operation': 'modified', 'is_directory': False, 'source': os.path.join(tmpdir, 'foo.txt'),
+             'destination': None, 'file': {'file_name': 'foo.txt', 'content': 'Last one', 'mode': 'r', 'base64': False}}
+        ]
+
+    def _multiple_modifications(tmpdir):
+        _modify(tmpdir, filename='foo.txt', content="First one")
+        time.sleep(1)
+        _modify(tmpdir, filename='foo.txt', content="Second one")
+        time.sleep(1)
+        _modify(tmpdir, filename='foo.txt', content="Last one")
+
+    _helper_file_system_watcher(
+        config=dict(ignore_directories=True, load_file=True, defer_modified=1.5),
+        operations=[
+            partial(_touch, filename='foo.txt'),
+            _multiple_modifications
+        ],
+        expected=expected
+    )
+
+
+def test_file_system_watcher_pull_with_defer_modified_correct_sequence():
+    def expected(tmpdir):
+        return [
+            {'operation': 'created', 'is_directory': False, 'source': os.path.join(tmpdir, 'foo.txt'),
+             'destination': None, 'file': {'file_name': 'foo.txt', 'content': '', 'mode': 'r', 'base64': False}},
+            {'operation': 'modified', 'is_directory': False, 'source': os.path.join(tmpdir, 'foo.txt'),
+             'destination': None, 'file': {'file_name': 'foo.txt', 'content': 'Last one', 'mode': 'r', 'base64': False}},
+            {'operation': 'deleted', 'is_directory': False, 'source': os.path.join(tmpdir, 'foo.txt'),
+             'destination': None}
+        ]
+
+    def _multiple_modifications(tmpdir):
+        _modify(tmpdir, filename='foo.txt', content="First one")
+        time.sleep(1)
+        _modify(tmpdir, filename='foo.txt', content="Second one")
+        time.sleep(1)
+        _modify(tmpdir, filename='foo.txt', content="Last one")
+
+    _helper_file_system_watcher(
+        config=dict(ignore_directories=True, load_file=True, defer_modified=1.5),
+        operations=[
+            partial(_touch, filename='foo.txt'),
+            _multiple_modifications,
             partial(_delete, filename='foo.txt')
         ],
         expected=expected
