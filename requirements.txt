@@ -1,5 +1,5 @@
 --process-dependency-links
--e .[fswatcher]
+-e .[fswatcher,faceR]
 
 bumpversion
 flake8
