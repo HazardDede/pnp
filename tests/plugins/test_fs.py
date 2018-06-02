@@ -38,11 +38,11 @@ def _helper_file_system_watcher(config, operations, expected):
 
         runner = make_runner(dut, callback)
         runner.start()
-        time.sleep(1)
+        time.sleep(5)
 
         for op in operations:
             op(tmpdir)
-            time.sleep(1)
+            time.sleep(5)
 
         runner.stop()
         runner.join()

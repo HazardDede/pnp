@@ -3,6 +3,7 @@ import logging
 import os
 import re
 from base64 import b64encode, b64decode
+from collections import OrderedDict
 
 from binaryornot.check import is_binary
 from box import Box, BoxKeyError
@@ -307,13 +308,13 @@ def auto_str(__repr__=False):
         ...        self.s = s
         ...        self.l = l
         ...        self.d = d
-        >>> dut = Demo(10, 'abc', [1, 2, 3], {'a': 1, 'b': 2})
+        >>> dut = Demo(10, 'abc', [1, 2, 3], OrderedDict(a=1, b=2))
         >>> print(dut.__str__())
-        Demo(d={'a': 1, 'b': 2}, i=10, l=[1, 2, 3], s='abc')
+        Demo(d=OrderedDict([('a', 1), ('b', 2)]), i=10, l=[1, 2, 3], s='abc')
         >>> print(eval(dut.__repr__()).__str__())
-        Demo(d={'a': 1, 'b': 2}, i=10, l=[1, 2, 3], s='abc')
+        Demo(d=OrderedDict([('a', 1), ('b', 2)]), i=10, l=[1, 2, 3], s='abc')
         >>> print(dut.__repr__())
-        Demo(d={'a': 1, 'b': 2}, i=10, l=[1, 2, 3], s='abc')
+        Demo(d=OrderedDict([('a', 1), ('b', 2)]), i=10, l=[1, 2, 3], s='abc')
     """
     def decorator(cls):
         def __str__(self):
