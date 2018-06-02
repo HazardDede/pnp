@@ -3,8 +3,7 @@ python:
   - 3.5
   - 3.6
 install:
-  - pip install -r requirements.txt
-  - "[ ${TRAVIS_EVENT_TYPE} == 'cron' ] && pip install -e .[faceR]"
+  - ./.travis/install.sh
 script:
   - make lint
   - make test
