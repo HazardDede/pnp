@@ -1,5 +1,7 @@
 # Pull 'n' Push 0.5.0
 
+[![Build Status](https://travis-ci.org/HazardDede/pnp.svg?branch=master)](https://travis-ci.org/HazardDede/pnp)
+
 Pulls data from sources and pushes it to sinks.
 
 
