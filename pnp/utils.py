@@ -309,18 +309,18 @@ def auto_str(__repr__=False):
         ...        self.d = d
         >>> dut = Demo(10, 'abc', [1, 2, 3], {'a': 1, 'b': 2})
         >>> print(dut.__str__())
-        Demo(i=10, s='abc', l=[1, 2, 3], d={'a': 1, 'b': 2})
+        Demo(d={'a': 1, 'b': 2}, i=10, l=[1, 2, 3], s='abc')
         >>> print(eval(dut.__repr__()).__str__())
-        Demo(i=10, s='abc', l=[1, 2, 3], d={'a': 1, 'b': 2})
+        Demo(d={'a': 1, 'b': 2}, i=10, l=[1, 2, 3], s='abc')
         >>> print(dut.__repr__())
-        Demo(i=10, s='abc', l=[1, 2, 3], d={'a': 1, 'b': 2})
+        Demo(d={'a': 1, 'b': 2}, i=10, l=[1, 2, 3], s='abc')
     """
     def decorator(cls):
         def __str__(self):
             items = ["{name}={value}".format(
                 name=name,
-                value=value.__repr__()
-            ) for name, value in vars(self).items()
+                value=vars(self)[name].__repr__()
+            ) for name in [key for key in sorted(vars(self))]
                 if name not in get_field_mro(self.__class__, '__auto_str_ignore__')]
             return "{clazz}({items})".format(
                 clazz=str(type(self).__name__),
