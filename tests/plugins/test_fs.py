@@ -28,6 +28,7 @@ def _move(tmpdir, filename, newname):
 
 
 def _helper_file_system_watcher(config, operations, expected):
+    WAIT_SLEEP=5
     events = []
 
     def callback(plugin, payload):
@@ -38,11 +39,11 @@ def _helper_file_system_watcher(config, operations, expected):
 
         runner = make_runner(dut, callback)
         runner.start()
-        time.sleep(5)
+        time.sleep(WAIT_SLEEP)
 
         for op in operations:
             op(tmpdir)
-            time.sleep(5)
+            time.sleep(WAIT_SLEEP)
 
         runner.stop()
         runner.join()

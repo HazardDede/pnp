@@ -35,7 +35,6 @@ setup(
 
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
     ],
@@ -66,7 +65,7 @@ setup(
         "git+https://github.com/HazardDede/argresolver.git@v0.2.0#egg=argresolver-0.2.0",
         "git+https://github.com/adafruit/Adafruit_Python_DHT.git#egg=Adafruit_DHT-1.3.2"
     ],
-    python_requires='>=3.4',
+    python_requires='>=3.5',
     include_package_data=True,
     entry_points={
         'console_scripts': [
