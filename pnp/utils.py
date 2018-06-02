@@ -303,18 +303,18 @@ def auto_str(__repr__=False):
     Example:
         >>> @auto_str(__repr__=True)
         ... class Demo(object):
-        ...    def __init__(self, i=0, s="a", l=None, d=None):
+        ...    def __init__(self, i=0, s="a", l=None, t=None):
         ...        self.i = i
         ...        self.s = s
         ...        self.l = l
-        ...        self.d = d
-        >>> dut = Demo(10, 'abc', [1, 2, 3], OrderedDict(a=1, b=2))
+        ...        self.t = t
+        >>> dut = Demo(10, 'abc', [1, 2, 3], (1,2,3))
         >>> print(dut.__str__())
-        Demo(d=OrderedDict([('a', 1), ('b', 2)]), i=10, l=[1, 2, 3], s='abc')
+        Demo(i=10, l=[1, 2, 3], s='abc', t=(1, 2, 3))
         >>> print(eval(dut.__repr__()).__str__())
-        Demo(d=OrderedDict([('a', 1), ('b', 2)]), i=10, l=[1, 2, 3], s='abc')
+        Demo(i=10, l=[1, 2, 3], s='abc', t=(1, 2, 3))
         >>> print(dut.__repr__())
-        Demo(d=OrderedDict([('a', 1), ('b', 2)]), i=10, l=[1, 2, 3], s='abc')
+        Demo(i=10, l=[1, 2, 3], s='abc', t=(1, 2, 3))
     """
     def decorator(cls):
         def __str__(self):
