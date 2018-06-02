@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 
-VERSION = '0.5.0'
+VERSION = '0.6.0'
 
 
 def readme():
@@ -52,7 +52,7 @@ setup(
         'paho-mqtt>=1.3.1',
         'requests>=2.18.4',
         'ruamel.yaml>=0.15.37',
-        'schedule>=0.5.0',
+        'schedule>=0.6.0',
         'schema>=0.6.7',
         'argresolver==0.2.0'
     ],
