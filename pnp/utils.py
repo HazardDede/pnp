@@ -2,8 +2,7 @@ import inspect
 import logging
 import os
 import re
-from base64 import b64encode, b64decode
-from collections import OrderedDict
+from base64 import b64encode, b64decodes
 
 from binaryornot.check import is_binary
 from box import Box, BoxKeyError
