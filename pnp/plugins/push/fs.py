@@ -13,7 +13,31 @@ class FileDump(PushBase):
     file name.
     Argument `binary_mode` controls whether the dump is binary (mode=wb) or text (mode=w).
 
-    When the push is performed it returns the name of the created file.
+    Args:
+        directory (str): The target directory to store the dumps.
+        file_name (str or None): The name of the file to dump. If set to None a file name will be automatically
+            generated.
+        extension (str): The extension to use when the file name is automatically generated.
+        binary_mode (bool): If set to True the file will be written in binary mode ('wb'); otherwise in text mode ('w').
+
+    Returns:
+
+        When the push is performed it returns the name of the created file.
+
+    Example configuration:
+
+        name: file_dump
+        pull:
+          plugin: pnp.plugins.pull.simple.Repeat
+          args:
+            repeat: "Hello World"
+        push:
+          plugin: pnp.plugins.push.fs.FileDump
+          args:
+            directory: "/tmp"
+            file_name: null  # Auto-generated file (timestamp)
+            extension: ".txt"  # Extension of auto-generated file
+            binary_mode: False  # text mode
 
     Examples:
 

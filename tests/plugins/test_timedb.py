@@ -1,5 +1,6 @@
-from mock import patch
 from box import Box
+from mock import patch
+
 from pnp.plugins.push.timedb import InfluxPush
 
 

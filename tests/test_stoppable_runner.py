@@ -1,8 +1,6 @@
 import time
 from queue import Queue
 
-from .context import pnp
-
 from pnp import app, models
 from pnp.plugins import pull
 from pnp.plugins.pull import simple as pull_simpe

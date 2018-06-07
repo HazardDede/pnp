@@ -1,11 +1,9 @@
 import time
 from queue import Queue
 
-from .context import pnp
-
 from pnp import app, models
-from pnp.plugins.pull import simple as pull_simple
 from pnp.plugins import push
+from pnp.plugins.pull import simple as pull_simple
 
 
 class PushMock(push.PushBase):

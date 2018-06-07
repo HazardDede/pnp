@@ -134,7 +134,14 @@ class Validator:
     @staticmethod
     def is_file(allow_none=False, **kwargs):
         """
-
+        Examples:
+            >>> import tempfile
+            >>> with tempfile.NamedTemporaryFile() as tmpf:
+            ...     Validator.is_file(arg=tmpf.name)
+            >>> Validator.is_file(arg='/thisonedoesnotexists.txt')
+            Traceback (most recent call last):
+            ...
+            ValueError: Argument 'arg' is expected to be a file, but is '/thisonedoesnotexists.txt'
         """
         for arg_name, arg_value in kwargs.items():
             if Validator._allow_none(arg_value, allow_none) and not os.path.isfile(arg_value):

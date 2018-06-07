@@ -1,9 +1,20 @@
 from collections import namedtuple
+from contextlib import contextmanager
 from threading import Thread
+
 from pnp.plugins.pull import PullBase
 
 Runner = namedtuple("Runner", ["pull", "start", "stop", "join", "raise_on_error"])
 MqttMessage = namedtuple("MqttMessage", ["payload", "topic"])
+
+
+@contextmanager
+def start_runner(runner):
+    runner.start()
+    yield
+    runner.stop()
+    runner.join()
+    runner.raise_on_error()
 
 
 def make_runner(plugin, callback):

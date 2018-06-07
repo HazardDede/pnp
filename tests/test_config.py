@@ -1,5 +1,5 @@
-from .context import pnp
 from .conftest import path_to_config
+from .context import pnp
 
 
 def test_config_load():

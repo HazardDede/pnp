@@ -10,7 +10,7 @@ class PushBase(Plugin):
 
     @abstractmethod
     def push(self, payload):
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover
 
 
 class PayloadSelector(Singleton):

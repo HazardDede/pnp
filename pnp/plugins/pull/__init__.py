@@ -15,16 +15,12 @@ class PullBase(Plugin):
 
     @abstractmethod
     def pull(self):
-        # TODO: Make a _pull
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover
 
     def on_payload(self, payload):
-        pass
+        pass  # pragma: no cover
 
     def notify(self, payload):
-        # TODO: Make payload a dict (if it isn't)
-        # TODO: Add a timestamp as meta
-        # TODO: Add the inbounds name
         self.on_payload(self, payload)
 
     def stop(self):
@@ -35,7 +31,7 @@ class PollingError(Exception):
     pass
 
 
-@auto_str_ignore(['scheduler'])
+@auto_str_ignore(['scheduler', 'on_payload'])
 class Polling(PullBase):
     __prefix__ = 'poll'
 
@@ -54,7 +50,7 @@ class Polling(PullBase):
             except:  # pylint: disable=broad-except
                 import traceback
                 self.logger.error("[{name}]\n{error}".format(name=self.name, error=traceback.format_exc()))
-            time.sleep(1)
+            time.sleep(0.5)
 
     def run_schedule(self):
         payload = self.poll()
@@ -62,4 +58,4 @@ class Polling(PullBase):
 
     @abstractmethod
     def poll(self):
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover

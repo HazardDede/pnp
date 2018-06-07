@@ -17,6 +17,33 @@ class Adafruit_Dummy:
 
 
 class DHT(Polling):
+    """
+    Periodically polls a dht11 or dht22 (aka am2302) for temperature and humidity readings.
+    Polling interval is controlled by `interval`.
+
+    Args:
+        device (str): The device to poll (one of dht22, dht11, am2302)
+        data_gpio (int): The data gpio port where the device operates on.
+
+    Returns:
+        The callback `on_payload` passes a dictionary containing `temperature` and `humidity`.
+
+    Example configuration:
+
+    name: dht
+        pull:
+          plugin: pnp.plugins.pull.sensor.DHT
+          args:
+            device: dht22  # Connect to a dht22
+            data_gpio: 17  # DHT is connected to gpio port 17
+            interval: 5m  # Polls the readings every 5 minutes
+        push:
+          - plugin: pnp.plugins.push.simple.Echo
+            selector: payload.temperature  # Temperature reading
+          - plugin: pnp.plugins.push.simple.Echo
+            selector: payload.humidity  # Humidity reading
+
+    """
     __prefix__ = 'dht'
 
     def __init__(self, device='dht22', data_gpio=17, **kwargs):

@@ -1,5 +1,4 @@
 import time
-
 from threading import Thread
 
 from . import PullBase
@@ -8,6 +7,66 @@ from ...validator import Validator
 
 
 class FileSystemWatcher(PullBase):
+    """
+    Watches the given directory for changes like created, moved, modified and deleted files. If `ignore_directories` is
+    set to False, then directories will be reported as well.
+
+    Per default will recursively report any file that is touched, changed or deleted in the given path. The
+    directory itself or subdirectories will be object to reporting too, if `ignore_directories` is set to False.
+
+    Args:
+        path (str): The path to track for events.
+        recursive (bool): If set to True, any subfolders of the given path will be tracked too.
+        patterns (str or list): Any file pattern (e.g. *.txt or [*.txt, *.md].
+        ignore_patterns (str or list): Any patterns to ignore (specify like argument patterns).
+        ignore_directories (str): If set to True will send events for directories when file change.
+        case_sensitive (bool): If set to True, any pattern is case_sensitive, otherwise it is case insensitive.
+        events (str or list): The events to track. One or multiple of 'moved', 'deleted', 'created' and/or 'modified'.
+        load_file (bool): If set to True the file will be loaded to the result.
+        mode (str): Open mode of the file (only necessary when load_file is True). Can be text, binary or auto
+            (guessing).
+        base64 (bool): If set to True the loaded file will be converted to base64 (only applicable when
+            load_file is True). `mode` will be automatically set to 'binary'.
+        defer_modified (float): If set greater than 0, it will defer the sending of modified events for that amount.
+            There might be multiple flushes of a file before it is written completely to disk.
+            Without defer_modified each flush will raise a modified event.
+
+    Returns:
+        The callback `on_payload` will offer a payload that is a dictionary that represents the reported file
+        system event. Example ->
+            {
+                'operation': 'modified',
+                'source': '/tmp/abc.txt',
+                'is_directory': False,
+                'destination': None,  # Only non-None when operation = 'moved'
+                'file': {  # Only present when load_file is True
+                    'file_name': 'abc.txt',
+                    'content': 'foo and bar',
+                    'read_mode': 'text',
+                    'base64': False
+                }
+            }
+
+    Example configuration:
+
+        name: watcher
+        pull:
+          plugin: pnp.plugins.pull.fs.FileSystemWatcher
+          args:
+            path: '/tmp'
+            recursive: True
+            patterns: '*.txt'
+            ignore_directories: True
+            case_sensitive: False
+            events: [created, deleted]
+            load_file: False
+            mode: text
+            base64: False
+            defer_modified: 0
+        push:
+            plugin: pnp.plugins.push.simple.Echo
+    """
+
     EVENT_TYPE_MOVED = 'moved'
     EVENT_TYPE_DELETED = 'deleted'
     EVENT_TYPE_CREATED = 'created'
@@ -30,7 +89,9 @@ class FileSystemWatcher(PullBase):
         self.events = make_list(events)
         Validator.subset_of(self.EVENT_TYPES, allow_none=True, events=self.events)
         self.mode = mode
-        Validator.one_of(FILE_MODES, mode=mode)
+        Validator.one_of(FILE_MODES, mode=self.mode)
+        # TODO: When defer_modified < 0 -> raise ValueError
+        # TODO: When defer_modified = 0 -> ignore defer
         self.defer_modified = float(defer_modified)
 
     def pull(self):

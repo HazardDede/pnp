@@ -10,6 +10,25 @@ class MQTTPush(PushBase):
     The `payload` will be pushed as it is. No transformation is applied. If you need to some transformations, use the
     selector.
 
+    Args:
+        host (str): The host where the mosquitto broker is running.
+        port (int): The port where the mosquitto broker is listening (default is 1883).
+        topic (str): The topic to subscribe to.
+
+    Returns:
+        For chaining of pushes the payload is simply returned as is.
+
+    Example configuration:
+
+        name: mqtt
+        pull:
+          plugin: pnp.plugins.pull.simple.Count
+        push:
+          plugin: pnp.plugins.push.mqtt.MQTTPush
+          args:
+            host: localhost
+            topic: home/devices/#
+            port: 1883
     """
     __prefix__ = 'mqtt'
 

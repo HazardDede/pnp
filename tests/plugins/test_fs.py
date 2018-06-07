@@ -1,15 +1,10 @@
-import tempfile
-
-import time
-
 import os
-
+import tempfile
+import time
 from functools import partial
 
-from datetime import datetime
-
 from pnp.plugins.pull.fs import FileSystemWatcher
-from tests.plugins.helper import make_runner
+from tests.plugins.helper import make_runner, start_runner
 
 
 def _touch(tmpdir, filename):
@@ -44,18 +39,15 @@ def _helper_file_system_watcher(config, operations, expected):
         dut = FileSystemWatcher(name='pytest', path=tmpdir, **config)
 
         runner = make_runner(dut, callback)
-        runner.start()
-        time.sleep(WAIT_SLEEP)
-
-        for op in operations:
-            op(tmpdir)
+        with start_runner(runner):
+            time.sleep(1)
             time.sleep(WAIT_SLEEP)
 
-        time.sleep(2)
+            for op in operations:
+                op(tmpdir)
+                time.sleep(WAIT_SLEEP)
 
-        runner.stop()
-        runner.join()
-        runner.raise_on_error()
+            time.sleep(2)
 
     exp = expected(tmpdir)
     assert len(events) == len(exp)

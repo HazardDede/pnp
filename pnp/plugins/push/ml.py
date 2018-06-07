@@ -9,11 +9,47 @@ from ...validator import Validator
 @auto_str_ignore(['known_encodings'])
 class FaceR(PushBase):
     """
-    FaceR (short one for face recognition) screens images for known faces. Output is the image with the
-    all faces tagged whether with the known name or an `unknown_label`.
+    FaceR (short one for face recognition) tags known faces in images. Output is the image with the
+    all faces tagged whether with the known name or an `unknown_label`. Default for unknown ones is 'Unknown'.
 
     Known faces can be ingested either by a directory of known faces (`known_faces_dir`) or by mapping of `known_faces`
     (dictionary: name -> [list of face files]).
+
+    The `payload` passed to the `push` method is expected to be a valid byte array that represents an image in memory.
+
+    Args:
+        known_faces (dict): Mapping of a person's name to a list of images that contain the person's face.
+        known_faces_dir (str): A directory containing images with knonwn persons (file_name -> person's name)
+        unknown_label (str): Tag label of unknown faces.
+
+    Returns:
+        If the push is performed the resulting dictionary looks like
+        {
+            'tagged_image': <bytes of tagged image>
+            'no_of_faces': 2
+            'known_faces': ['obama']
+        }
+
+    Example configuration:
+
+        name: faceR
+        pull:
+          plugin: pnp.plugins.pull.fs.FileSystemWatcher
+          args:
+            path: "/tmp"
+            recursive: True
+            patterns: "*.jpg"
+            ignore_directories: True
+            case_sensitive: False
+            events: [created]
+            load_file: True
+            mode: binary
+            base64: False
+        push:
+          plugin: pnp.plugins.push.ml.FaceR
+          args:
+            known_faces_dir: /path/to/known/faces
+            unknown_label: "don't know him"
     """
     def __init__(self, known_faces=None, known_faces_dir=None, unknown_label="Unknown", **kwargs):
         # known_faces -> mapping name -> list of files

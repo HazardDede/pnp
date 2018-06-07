@@ -1,12 +1,12 @@
 # For mocking
-import paho.mqtt.publish
 import time
 
+import paho.mqtt.publish
 from mock import patch
 
 from pnp.plugins.pull.mqtt import MQTTPull
 from pnp.plugins.push.mqtt import MQTTPush
-from tests.plugins.helper import make_runner, MqttMessage
+from tests.plugins.helper import make_runner, MqttMessage, start_runner
 
 
 @patch('paho.mqtt.client.Client')
@@ -20,13 +20,10 @@ def test_mqtt_pull(mock_client):
 
     dut = MQTTPull(name='pytest', host='youneverknow', topic='test/#', port=1883)
     runner = make_runner(dut, callback)
-    runner.start()
-    time.sleep(0.5)
-    mc.on_connect(mc, "userdata", "flags", 0)
-    mc.on_message(mc, "obj", MqttMessage(payload="Payload".encode('utf-8'), topic="test/device1/temperature"))
-    runner.stop()
-    runner.join()
-    runner.raise_on_error()
+    with start_runner(runner):
+        time.sleep(0.5)
+        mc.on_connect(mc, "userdata", "flags", 0)
+        mc.on_message(mc, "obj", MqttMessage(payload="Payload".encode('utf-8'), topic="test/device1/temperature"))
 
     mock_client.assert_called
     mc.connect.assert_called
