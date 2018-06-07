@@ -42,7 +42,7 @@ class ZwayPoll(Polling):
             interval: 5m  # Poll the api every 5 minutes
         push:
           - plugin: pnp.plugins.push.Echo
-            selector: payload[19].instances[0].commandClasses[49].data[1].val.value  # temperature of fibaro motion sensor
+            selector: payload[19].instances[0].commandClasses[49].data[1].val.value  # temp. of fibaro motion sensor
           - plugin: pnp.plugins.push.Echo
             selector: payload[9].instances[0].commandClasses[128].data.last.value  # Setpoint of heater
 
