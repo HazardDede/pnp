@@ -4,7 +4,7 @@ from abc import abstractmethod
 from schedule import Scheduler
 
 from .. import Plugin
-from ...utils import auto_str_ignore, parse_duration_literal
+from ...utils import auto_str_ignore, parse_duration_literal, StopCycleError, interruptible_sleep
 
 
 @auto_str_ignore(['stopped'])
@@ -25,6 +25,12 @@ class PullBase(Plugin):
 
     def stop(self):
         self.stopped = True
+
+    def _sleep(self, sleep_time):
+        def callback():
+            if self.stopped:
+                raise StopCycleError()
+        interruptible_sleep(sleep_time, callback, interval=0.5)
 
 
 class PollingError(Exception):
@@ -47,7 +53,7 @@ class Polling(PullBase):
         while not self.stopped:
             try:
                 self.scheduler.run_pending()
-            except:  # pylint: disable=broad-except
+            except:  # pragma: no cover
                 import traceback
                 self.logger.error("[{name}]\n{error}".format(name=self.name, error=traceback.format_exc()))
             time.sleep(0.5)

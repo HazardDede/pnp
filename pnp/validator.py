@@ -147,3 +147,22 @@ class Validator:
             if Validator._allow_none(arg_value, allow_none) and not os.path.isfile(arg_value):
                 raise ValueError("Argument '{arg_name}' is expected to be a file, "
                                  "but is '{arg_value}'".format(**locals()))
+
+    @staticmethod
+    def is_function(allow_none=False, **kwargs):
+        """
+        Examples:
+            >>> def foo():
+            ...     pass
+            >>> Validator.is_function(foo=foo)
+            >>> Validator.is_function(bar='bar')
+            Traceback (most recent call last):
+            ...
+            TypeError: Argument 'bar' is expected to be a function/callable, but is '<class 'str'>'
+            >>> Validator.is_function(baz=lambda: True)
+        """
+        for arg_name, arg_value in kwargs.items():
+            if Validator._allow_none(arg_value, allow_none) and not callable(arg_value):
+                arg_type = type(arg_value)
+                raise TypeError("Argument '{arg_name}' is expected to be a function/callable, "
+                                "but is '{arg_type}'".format(**locals()))

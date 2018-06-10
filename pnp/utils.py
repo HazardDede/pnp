@@ -2,6 +2,7 @@ import inspect
 import logging
 import os
 import re
+import time
 from base64 import b64encode, b64decode
 
 from binaryornot.check import is_binary
@@ -11,6 +12,10 @@ FILE_MODES = ['binary', 'text', 'auto']
 
 
 class EvaluationError(Exception):
+    pass
+
+
+class StopCycleError(Exception):
     pass
 
 
@@ -48,6 +53,49 @@ def make_list(item_or_items):
     if hasattr(item_or_items, '__iter__') and not isinstance(item_or_items, str):
         return list(item_or_items)
     return [item_or_items]
+
+
+def interruptible_sleep(wait, callback, interval=0.5):
+    """
+
+    Waits the specified amount of time. The waiting can be interrupted when the callback raises a `StopCycleError`.
+    The argument `interval` defines after how much wait time the callback should be called.
+
+    Examples:
+
+        >>> interruptible_sleep(0.5, lambda: print("Cycle"), 0.2)  # Does perform two cycles of 0.2 secs and one 0.1
+        Cycle
+        Cycle
+        >>> i = 0
+        >>> def callback():
+        ...     global i
+        ...     if i == 2:
+        ...         raise StopCycleError()
+        ...     print("Cycle")
+        ...     i = i + 1
+        >>> interruptible_sleep(0.5, callback, 0.1)  # Aborts the wait after 2 cycles
+        Cycle
+        Cycle
+
+    Args:
+        wait (float): Wait for this amount of time, if not interrupted (some semantias as in `time.sleep(wait)`.
+        interval (float): How often the callback should be called.
+
+    Returns:
+        None
+    """
+    wait = float(wait)
+    interval = float(interval)
+
+    complete_cycles = int(wait // interval)
+    try:
+        for i in range(0, complete_cycles):
+            callback()  # Should raise a StopCycleError error when waiting should be aborted
+            time.sleep(interval)
+
+        time.sleep(wait % interval)
+    except StopCycleError:
+        pass
 
 
 def safe_eval(source, **context):

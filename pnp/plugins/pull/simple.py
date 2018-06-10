@@ -1,7 +1,7 @@
 import sys
-import time
 
-from . import PullBase
+from . import PullBase, Polling
+from ...validator import Validator
 
 
 class Count(PullBase):
@@ -21,13 +21,13 @@ class Count(PullBase):
 
         name: count
         pull:
-          plugin: pnp.plugins.pull.Count
+          plugin: pnp.plugins.pull.simple.Count
           args:
             from_cnt: 0
             to_cnt: 10
             wait: 5
         push:
-          plugin: pnp.plugins.push.Echo
+          plugin: pnp.plugins.push.simple.Echo
 
 
     """
@@ -43,7 +43,7 @@ class Count(PullBase):
             self.notify(i)
             if self.stopped:
                 break
-            time.sleep(self.wait)
+            self._sleep(self.wait)
 
 
 class Repeat(PullBase):
@@ -61,12 +61,12 @@ class Repeat(PullBase):
 
     name: repeat
     pull:
-      plugin: pnp.plugins.pull.Repeat
+      plugin: pnp.plugins.pull.simple.Repeat
       args:
         repeat: "Hello World"  # Repeats 'Hello World'
         wait: 1  # Every second
     push:
-      plugin: pnp.plugins.push.Echo
+      plugin: pnp.plugins.push.simple.Echo
 
     """
 
@@ -78,4 +78,27 @@ class Repeat(PullBase):
     def pull(self):
         while not self.stopped:
             self.notify(self.repeat)
-            time.sleep(self.wait)
+            self._sleep(self.wait)
+
+
+class CustomPolling(Polling):
+    """
+    Calls the specified callable every `interval`. The result of the callable is simply returned.
+
+    Args:
+        scheduled_callable (callable): Custom function to execute every `interval`.
+
+    Returns:
+        The `on_payload` callback will pass anything that the scheduled_callable has returned.
+
+    Example configuration:
+
+        Does not work with yaml or json configurations so far.
+    """
+    def __init__(self, scheduled_callable, **kwargs):
+        super().__init__(**kwargs)
+        self.scheduled_callable = scheduled_callable
+        Validator.is_function(scheduled_callable=self.scheduled_callable)
+
+    def poll(self):
+        return self.scheduled_callable()
