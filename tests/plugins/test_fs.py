@@ -3,8 +3,18 @@ import tempfile
 import time
 from functools import partial
 
+import pytest
+
 from pnp.plugins.pull.fs import FileSystemWatcher
 from tests.plugins.helper import make_runner, start_runner
+
+
+def _required_packages_installed():
+    try:
+        import watchdog
+        return True
+    except ImportError:
+        return False
 
 
 def _touch(tmpdir, filename):
@@ -54,6 +64,7 @@ def _helper_file_system_watcher(config, operations, expected):
     assert all([actual == expected for actual, expected in zip(events, exp)])
 
 
+@pytest.mark.skipif(not _required_packages_installed(), reason="requires package watchdog")
 def test_file_system_watcher_pull():
     def expected(tmpdir):
         return [
@@ -79,6 +90,7 @@ def test_file_system_watcher_pull():
     )
 
 
+@pytest.mark.skipif(not _required_packages_installed(), reason="requires package watchdog")
 def test_file_system_watcher_pull_with_load_file():
     def expected(tmpdir):
         return [
@@ -101,6 +113,7 @@ def test_file_system_watcher_pull_with_load_file():
     )
 
 
+@pytest.mark.skipif(not _required_packages_installed(), reason="requires package watchdog")
 def test_file_system_watcher_pull_with_deferred_modified_results_in_one_event():
     def expected(tmpdir):
         return [
@@ -127,6 +140,7 @@ def test_file_system_watcher_pull_with_deferred_modified_results_in_one_event():
     )
 
 
+@pytest.mark.skipif(not _required_packages_installed(), reason="requires package watchdog")
 def test_file_system_watcher_pull_with_defer_modified_correct_sequence():
     def expected(tmpdir):
         return [
