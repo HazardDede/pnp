@@ -14,9 +14,14 @@ class OrOverride(Or):
     Example:
         >>> # Whether inbound or outbound are valid keys, but will be overridden by override
         >>> schema = Schema({OrOverride('override', 'inbound', 'outbound'): Use(str)})
-        >>> data = dict(inbound='value')
-        >>> schema.validate(data)
+        >>> schema.validate({'inbound': 'value'})  # inbound will be mapped to override
         {'override': 'value'}
+        >>> schema.validate({'outbound': 'value'})  # outbound will be mapped to override
+        {'override': 'value'}
+        >>> OrOverride('override')  # Only override without valid directives is bad...
+        Traceback (most recent call last):
+        ...
+        ValueError: OrMap expects the mapping value at first and then multiple validation directives
 
     """
     def __init__(self, *args, **kwargs):
