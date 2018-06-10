@@ -12,8 +12,7 @@ class Adafruit_Dummy:
 
         @staticmethod
         def read_retry(sensor, pin):
-            return round(random.uniform(1, 100), 2), round(random.uniform(8, 36), 2)
-            # return None, None
+            return round(random.uniform(1, 100), 2), round(random.uniform(8, 36), 2)  # pragma: no cover
 
 
 class DHT(Polling):
@@ -57,7 +56,7 @@ class DHT(Polling):
         # Adafruit package is optional - import at the last moment
         try:
             import Adafruit_DHT
-        except:
+        except:  # pragma: no cover
             self.logger.error("Adafruit_DHT package is not available - Using dummy implementation")
             Adafruit_DHT = Adafruit_Dummy.Adafruit_DHT
 
