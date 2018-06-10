@@ -1,5 +1,7 @@
 from collections import namedtuple
 
+from box import Box
+
 from .plugins import load_plugin
 
 Task = namedtuple("Task", ["name", "pull", "pushes"])
@@ -26,6 +28,9 @@ def _mk_push(task):
 
 
 def from_dict(task):
+    if not isinstance(task, Box):
+        task = Box(dict(base=task)).base
+
     return Task(
         name=task.name,
         pull=_mk_pull(task),

@@ -51,6 +51,27 @@ def test_mk_push():
     assert dep.selector is None
 
 
+def test_mk_task():
+    input = {
+        'name': 'pytest',
+        'pull': {
+            'plugin': 'pnp.plugins.pull.simple.Repeat',
+            'args': {'repeat': 'hello', 'wait': 1.0}
+        },
+        'pushes': [{
+            'plugin': 'pnp.plugins.push.simple.Echo',
+            'selector': 'blub',
+            'args': {},
+            'deps': [
+                {'plugin': 'pnp.plugins.push.simple.Echo', 'selector': None, 'args': {}, 'deps': []}
+            ]
+        }]
+    }
+    res = Task.from_dict(input)
+
+    assert isinstance(res, Task)
+
+
 def test_task_to_str_for_smoke():
     tasks_to_str({'pytest':
         Task(
