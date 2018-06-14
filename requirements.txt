@@ -1,4 +1,3 @@
---process-dependency-links
 -e .[fswatcher]
 
 bumpversion
@@ -6,3 +5,5 @@ flake8
 mock
 pytest
 pytest-cov
+setuptools
+twine

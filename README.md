@@ -5,13 +5,6 @@
 Pulls data from sources and pushes it to sinks.
 
 
-## Installation
-
-    git clone https://github.com/HazardDede/pnp.git
-    cd pnp
-    pip3 install --process-dependency-links .  # Vanilla installation without extras
-
-    
 ### Optional extras
 
 * dht: Enables `pnp.plugins.pull.sensor.DHT` (temperature and humidity sensor). Only works on ARM-based systems (like raspberry, arduino)
@@ -21,7 +14,10 @@ deleted, moved files)
 
 Installation with extras:
     
-    pip3 install --process-dependency-links .[dht,fswatcher,faceR]
+    pip install .[fswatcher,faceR]
+    # In case of extra 'dht' you have to enable the option --process-dependency-links ...
+    # ... cause the required adafruit package is not on pypi.
+    pip install --process-dependency-links .[dht]
 
 
 ## Getting started

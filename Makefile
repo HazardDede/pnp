@@ -30,6 +30,10 @@ clean-build:
 		rm --force --recursive dist/
 		rm --force --recursive *.egg-info
 
+setup:
+		pip install pip --upgrade
+		pip install -r requirements.txt --upgrade
+
 clean: clean-pyc
 
 lint:
@@ -50,7 +54,7 @@ docker:
 docker-arm:
 		docker build -t pnp:$(VERSION)-arm -f Dockerfile.arm32v7 .
 
-release:
+next-version:
 		$(eval NEXT_VERSION := $(shell bumpversion --dry-run --allow-dirty --list patch | grep new_version | sed s,"^.*=",,))
 		@echo $(NEXT_VERSION)
 
@@ -60,3 +64,13 @@ rollback:
 
 version:
 		@echo $(VERSION)
+
+sdist:
+		rm -f dist/*
+		python setup.py sdist
+
+release-test: lint test sdist
+		twine upload dist/* -r testpypi
+
+release: lint test sdist
+		twine upload dist/* -r pypi

@@ -44,8 +44,9 @@ setup(
         'Source': 'https://github.com/HazardDede/pnp/',
         'Tracker': 'https://github.com/HazardDede/pnp/issues',
     },
-    packages=find_packages(exclude=[]),
+    packages=find_packages(exclude=["tests"]),
     install_requires=[
+        'argresolver>=0.2.3',
         'binaryornot>=0.4.4',
         'docopt>=0.6.2',
         'python-box>=3.2.0',
@@ -54,8 +55,7 @@ setup(
         'requests>=2.18.4',
         'ruamel.yaml>=0.15.37',
         'schedule>=0.5.0',
-        'schema>=0.6.7',
-        'argresolver==0.2.0'
+        'schema>=0.6.7'
     ],
     extras_require={
         'dht': ['Adafruit_DHT==1.3.2'],
@@ -63,7 +63,6 @@ setup(
         'faceR': ['image>=1.5.24', 'face-recognition>=1.2.2']
     },
     dependency_links=[
-        "git+https://github.com/HazardDede/argresolver.git@v0.2.0#egg=argresolver-0.2.0",
         "git+https://github.com/adafruit/Adafruit_Python_DHT.git#egg=Adafruit_DHT-1.3.2"
     ],
     python_requires='>=3.5',
