@@ -1,4 +1,4 @@
-# Pull 'n' Push 0.6.4
+# Pull 'n' Push 0.7.0
 
 [![Build Status](https://travis-ci.org/HazardDede/pnp.svg?branch=master)](https://travis-ci.org/HazardDede/pnp)
 
