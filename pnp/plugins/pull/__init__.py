@@ -7,7 +7,7 @@ from .. import Plugin
 from ...utils import auto_str_ignore, parse_duration_literal, StopCycleError, interruptible_sleep
 
 
-@auto_str_ignore(['stopped'])
+@auto_str_ignore(['stopped', 'on_payload'])
 class PullBase(Plugin):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

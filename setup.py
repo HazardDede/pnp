@@ -49,6 +49,7 @@ setup(
         'argresolver>=0.2.3',
         'binaryornot>=0.4.4',
         'docopt>=0.6.2',
+        'Flask>=1.0.2',
         'python-box>=3.2.0',
         'influxdb>=5.0.0',
         'paho-mqtt>=1.3.1',

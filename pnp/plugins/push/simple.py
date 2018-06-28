@@ -16,8 +16,9 @@ class Echo(PushBase):
         super().__init__(**kwargs)
 
     def push(self, payload):
-        self.logger.info("[{self.name}] Got {payload}".format(**locals()))
-        return payload
+        envelope, real_payload = self.envelope_payload(payload)
+        self.logger.info("[{self.name}] Got '{real_payload}' with envelope '{envelope}'".format(**locals()))
+        return payload  # Payload as is. With envelope (if any)
 
 
 class Nop(PushBase):

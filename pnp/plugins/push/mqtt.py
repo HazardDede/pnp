@@ -13,7 +13,9 @@ class MQTTPush(PushBase):
     Args:
         host (str): The host where the mosquitto broker is running.
         port (int): The port where the mosquitto broker is listening (default is 1883).
-        topic (str): The topic to subscribe to.
+        topic (str): The topic to subscribe to. If set to None the envelope of the
+                     payload has to contain a topic key or the push will fail (default is None). If both exists
+                     the topic from the envelope will overrule the __init__ one.
 
     Returns:
         For chaining of pushes the payload is simply returned as is.
@@ -32,15 +34,22 @@ class MQTTPush(PushBase):
     """
     __prefix__ = 'mqtt'
 
-    def __init__(self, host, topic, port=1883, **kwargs):
+    def __init__(self, host, topic=None, port=1883, **kwargs):
         super().__init__(**kwargs)
         self.host = str(host)
-        self.topic = str(topic)
+        self.topic = str(topic) if topic is not None else None
         self.port = int(port)
 
     def push(self, payload):
         import paho.mqtt.publish as publish
-        publish.single(topic=self.topic, payload=payload, hostname=self.host, port=self.port)
-        self.logger.debug("[{self.name}] Published message on '{self.topic}' @ {self.host}:{self.port}. "
+
+        envelope, real_payload = self.envelope_payload(payload)
+        topic = envelope.get('topic', self.topic)  # Override topic via envelope
+
+        if topic is None:
+            raise ValueError("Topic was not defined either by the __init__ nor by the envelope")
+
+        publish.single(topic=topic, payload=real_payload, hostname=self.host, port=self.port)
+        self.logger.debug("[{self.name}] Published message on '{topic}' @ {self.host}:{self.port}. "
                           "Payload='{payload}'".format(**locals()))
-        return payload
+        return payload  # Payload as is. With envelope (if any).

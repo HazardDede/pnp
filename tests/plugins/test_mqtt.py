@@ -1,4 +1,3 @@
-# For mocking
 import time
 
 import paho.mqtt.publish

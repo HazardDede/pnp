@@ -56,6 +56,8 @@ class MQTTPull(PullBase):
     def on_message(self, client, obj, msg):
         self.logger.debug("[{self.name}] Got message from broker on topic '{self.topic}'. "
                           "Payload='{msg.payload}'".format(**locals()))
+
+        # This one is a envelope with data
         self.notify(dict(
             topic=str(msg.topic),
             levels=[level for level in msg.topic.split('/')],

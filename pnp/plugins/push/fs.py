@@ -16,8 +16,10 @@ class FileDump(PushBase):
     Args:
         directory (str): The target directory to store the dumps.
         file_name (str or None): The name of the file to dump. If set to None a file name will be automatically
-            generated.
-        extension (str): The extension to use when the file name is automatically generated.
+            generated. You can specify the file_name via the envelope, too.
+            Envelope will override __init__ file name.
+        extension (str): The extension to use when the file name is automatically generated. Can be overridden by
+            envelope.
         binary_mode (bool): If set to True the file will be written in binary mode ('wb'); otherwise in text mode ('w').
 
     Returns:
@@ -54,20 +56,26 @@ class FileDump(PushBase):
         super().__init__(**kwargs)
         self.directory = directory
         Validator.is_directory(directory=self.directory)
-        self.extension = str(extension)
-        if not self.extension.startswith('.'):
-            self.extension = '.' + self.extension
+        self.extension = self._normalize_extension(extension)
         self.binary_mode = bool(binary_mode)
         self.file_name = Validator.cast_or_none(str, file_name)
 
-    def _generate_file_name(self):
-        return os.path.join(self.directory, time.strftime("%Y%m%d-%H%M%S") + self.extension)
+    @staticmethod
+    def _normalize_extension(extension):
+        extension = str(extension)
+        if not extension.startswith('.'):
+            return'.' + extension
+        return extension
 
     def push(self, payload):
-        file_name = self.file_name
+        envelope, payload = self.envelope_payload(payload)
+        file_name = envelope.get('file_name', self.file_name)
+        extension = self._normalize_extension(envelope.get('extension', self.extension))
+
         if file_name is None:
-            file_name = self._generate_file_name()
-        with open(file_name, 'wb' if self.binary_mode else 'w') as fs:
+            file_name = time.strftime("%Y%m%d-%H%M%S")
+        file_path = os.path.join(self.directory, file_name + extension)
+        with open(file_path, 'wb' if self.binary_mode else 'w') as fs:
             fs.write(str(payload) if not self.binary_mode else payload)
 
-        return file_name
+        return file_path

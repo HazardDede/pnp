@@ -1,6 +1,8 @@
 # Publishes a counter to the mqtt topic 'test/counter'
 # The other task subscribes to the topic and prints out the counter.
-# Is it basically our simple example with a mqtt broker in between
+# Is it basically our simple example with a mqtt broker in between.
+# Since version 0.7.0 the MQTTPull plugin will emit an enveloped payload.
+# To restore the behaviour previous to 0.7.0 just uncomment the selector.
 
 - name: publisher
   pull:
@@ -22,3 +24,4 @@
       topic: test/counter
   push:
     plugin: pnp.plugins.push.simple.Echo
+    # selector: "{'data': data}"

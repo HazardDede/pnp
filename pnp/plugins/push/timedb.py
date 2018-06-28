@@ -36,11 +36,13 @@ class InfluxPush(PushBase):
         self.protocol = str(protocol)
 
     def push(self, payload):
-        points = [self.protocol.format(payload=payload)]
+        envelope, real_payload = self.envelope_payload(payload)
+
+        points = [self.protocol.format(payload=real_payload)]
         self.logger.debug("[{name}] Writing '{points}' to influxdb".format(name=self.name, points=str(points)))
 
         from influxdb import InfluxDBClient
         client = InfluxDBClient(self.host, self.port, self.user, self.password, self.database)
         client.write(points, {'db': self.database}, 204, 'line')
 
-        return payload
+        return payload  # Payload as is. With envelope (if any)

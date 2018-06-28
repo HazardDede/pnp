@@ -145,6 +145,64 @@ Back to our example let's assume we want to print out the path to the created fi
 As you can see we just add a dependant push to the previous one.
 
 
+### Envelope (new @ 0.7.0)
+
+Using envelopes it is possible to change the behaviour of `pushes` during runtime.
+Best examples are the `pnp.plugins.push.fs.FileDump` and `pnp.plugins.push.mqtt.MQTTPush` plugins, where
+you can override / set the actual `file_name` and `extension` of the file to dump 
+resp. the `topic` where the message should be published.
+
+Given the example ...
+
+    - name: envelope
+      pull:
+        plugin: pnp.plugins.pull.simple.Count
+        args:
+          wait: 1
+      push:
+        plugin: pnp.plugins.push.fs.FileDump
+        selector: '{"file_name": str(data), "extension": ".cnt", "data": data}'
+        args:
+          directory: "/tmp/counter"
+          file_name: "counter"  # Overridden by envelope
+          extension: ".txt"  #  Overridden by envelope
+          binary_mode: False  # text mode
+          
+... this push dumps multiple files (0.cnt, 1.cnt, 2.cnt, ...) for each pulled counter value,
+instead of dumping one file 'couter.txt' which is overridden each time a new counter is emitted.
+
+How does this work: If the emitted or transformed payload (via selector) contains the key `data` or
+`payload` it is assumed that the actual payload is the data stored in this key and all other keys
+represent the so called `envelope`.
+
+Remark: This feature might actually break your existing configurations if you use the plugin
+`pnp.plugins.pull.mqtt.MQTTPull` which will now emit an enveloped payload.
+
+This snippet echoed a dictionary with the keys 'topic', 'levels' and 'payload' previously to version 0.7.0.
+It will now differentiate between the actual 'payload' (key 'payload' resp. 'data') and the envelope (other keys).
+
+    - name: subscriber
+      pull:
+        plugin: pnp.plugins.pull.mqtt.MQTTPull
+        args:
+          host: localhost
+          topic: test/counter
+      push:
+        plugin: pnp.plugins.push.simple.Echo
+        
+If you want to "restore" the previous behaviour, you only have to wrap the whole payload
+into a dictionary inside the 'payload' or 'data' key via selector.
+
+    - name: subscriber
+      pull:
+        plugin: pnp.plugins.pull.mqtt.MQTTPull
+        args:
+          host: localhost
+          topic: test/counter
+      push:
+        plugin: pnp.plugins.push.simple.Echo
+        selector: "{'data': data}"
+
 ## Plugins
 
 ### pnp.plugins.pull.ZwayPoll

@@ -123,6 +123,7 @@ class FaceR(PushBase):
             del draw
 
     def push(self, payload):
+        envelope, payload = self.envelope_payload(payload)
         # Load unknown image and find faces
         unknown_image = self.face_recognition.load_image_file(io.BytesIO(payload))
         face_locations = self.face_recognition.face_locations(unknown_image)

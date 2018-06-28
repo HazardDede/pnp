@@ -1,3 +1,4 @@
+import copy
 import signal
 import threading
 import time
@@ -130,7 +131,7 @@ class StoppableWorker(Thread, Loggable):
                     # If selector is None -> returns a dot accessable dictionary if applicable
                     # If selector is not None -> returns the evaluated expression (as a dot accessable dictionary
                     # if applicable
-                    payload = PayloadSelector.instance.eval_selector(push.selector, payload)
+                    payload = PayloadSelector.instance.eval_selector(push.selector, copy.deepcopy(payload))
 
                     # Only make the push if the selector wasn't evaluated to suppress the push
                     if payload is not PayloadSelector.instance.SuppressLiteral:
