@@ -3,6 +3,8 @@ from collections import namedtuple
 from box import Box
 
 from .plugins import load_plugin
+from .plugins.pull import PullBase
+from .plugins.push import PushBase
 
 Task = namedtuple("Task", ["name", "pull", "pushes"])
 Pull = namedtuple("Pull", ["instance"])
@@ -11,7 +13,7 @@ Push = namedtuple("Push", ["instance", "selector", "deps"])
 
 def _mk_pull(task):
     args = {'name': '{task.name}_pull'.format(task=task), **task.pull.args}
-    return Pull(instance=load_plugin(task.pull.plugin, **args))
+    return Pull(instance=load_plugin(task.pull.plugin, PullBase, **args))
 
 
 def _mk_push(task):
@@ -20,7 +22,7 @@ def _mk_push(task):
             push_name = '{prefix}_{i}'.format(**locals())
             args = {'name': push_name, **push.args}
             yield Push(
-                instance=load_plugin(push.plugin, **args),
+                instance=load_plugin(push.plugin, PushBase, **args),
                 selector=push.selector,
                 deps=list(_many(push.deps, push_name))
             )
