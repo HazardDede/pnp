@@ -7,7 +7,7 @@ from queue import Queue
 from threading import Thread
 
 from .models import Task
-from .plugins.push import PayloadSelector
+from .selector import PayloadSelector
 from .utils import Loggable
 
 

@@ -3,7 +3,7 @@ import logging
 import os
 import re
 import time
-from base64 import b64encode, b64decode
+from base64 import b64encode
 
 from binaryornot.check import is_binary
 from box import Box, BoxKeyError
@@ -147,9 +147,7 @@ def safe_eval(source, **context):
         "round": round,
         "sorted": sorted,
         "str": str,
-        "zip": zip,
-        "b64encode": b64encode,
-        "b64decode": b64decode
+        "zip": zip
     }
     whitelist.update(context)
     try:
@@ -186,6 +184,80 @@ def try_parse_int(candidate):
         return int(candidate)
     except (ValueError, TypeError):
         return None
+
+
+def try_parse_bool(value, default=None):
+    """
+    Tries to parse the given value as a boolean. If the parsing is unsuccessful the default will be returned.
+
+    Args:
+        value: Value to parse.
+        default (optional): The value to return in case the conversion is not successful.
+
+    Returns:
+        If successful the converted representation of value; otherwise the default.
+
+    Examples:
+        >>> print(try_parse_bool(1))
+        True
+        >>> print(try_parse_bool('true'))
+        True
+        >>> print(try_parse_bool('T'))
+        True
+        >>> print(try_parse_bool('unknown', default='Unknown'))
+        Unknown
+        >>> print(try_parse_bool(None, default=True))
+        True
+        >>> print(try_parse_bool(1.0))
+        True
+        >>> print(try_parse_bool(0.99))
+        True
+        >>> print(try_parse_bool(0.0))
+        False
+        >>> print(try_parse_bool(lambda x: True, default="default"))
+        True
+    """
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        if value.lower() in ['t', 'true', '1', 'wahr', 'ja', 'yes', 'on']:
+            return True
+        elif value.lower() in ['f', 'false', '0', 'falsch', 'nein', 'no', 'off']:
+            return False
+        else:
+            return default
+
+    try:
+        return bool(value)
+    except (ValueError, TypeError):
+        return default
+
+
+def on_off(value):
+    """
+    Tries to convert the given value to a on / off literal. If conversion is not possible (unsupported datatype) it will
+    silently fail and return 'off'.
+
+    Examples:
+
+        >>> on_off(True), on_off(False)
+        ('on', 'off')
+        >>> on_off('True'), on_off('False')
+        ('on', 'off')
+        >>> on_off(None)
+        'off'
+        >>> on_off(99), on_off(0)
+        ('on', 'off')
+
+    Args:
+        value: The value to convert to on / off.
+
+    Returns:
+        Return 'on' if the the `value` is True or equivalent (see try_parse_bool); otherwise 'off'.
+    """
+    return 'on' if try_parse_bool(value, default=False) else 'off'
 
 
 def get_file_mode(file_path, mode):
