@@ -1,4 +1,4 @@
-# Pull 'n' Push 0.7.0
+# Pull 'n' Push 0.7.1
 
 [![Build Status](https://travis-ci.org/HazardDede/pnp.svg?branch=master)](https://travis-ci.org/HazardDede/pnp)
 
@@ -145,7 +145,7 @@ Back to our example let's assume we want to print out the path to the created fi
 As you can see we just add a dependant push to the previous one.
 
 
-### Envelope (new @ 0.7.0)
+### Envelope (new @ 0.7.1)
 
 Using envelopes it is possible to change the behaviour of `pushes` during runtime.
 Best examples are the `pnp.plugins.push.fs.FileDump` and `pnp.plugins.push.mqtt.MQTTPush` plugins, where
@@ -178,7 +178,7 @@ represent the so called `envelope`.
 Remark: This feature might actually break your existing configurations if you use the plugin
 `pnp.plugins.pull.mqtt.MQTTPull` which will now emit an enveloped payload.
 
-This snippet echoed a dictionary with the keys 'topic', 'levels' and 'payload' previously to version 0.7.0.
+This snippet echoed a dictionary with the keys 'topic', 'levels' and 'payload' previously to version 0.7.1.
 It will now differentiate between the actual 'payload' (key 'payload' resp. 'data') and the envelope (other keys).
 
     - name: subscriber
