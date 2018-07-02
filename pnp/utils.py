@@ -158,7 +158,7 @@ def instance_lookup(instance, lookups):
         None
 
     Args:
-        cls: The class to lookup for the given attribute names.
+        instance: The class to lookup for the given attribute names.
         lookups: Attribute names to lookup.
 
     Returns:

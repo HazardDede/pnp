@@ -63,7 +63,7 @@ class RestServer(PullBase):
         Validator.subset_of(self.METHODS, allowed_methods=allowed_methods)
 
     def pull(self):
-        self._create_app().run(host= '0.0.0.0', port=self.port, threaded=True)
+        self._create_app().run(host='0.0.0.0', port=self.port, threaded=True)
 
     def stop(self):
         super().stop()
