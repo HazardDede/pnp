@@ -10,7 +10,7 @@
   push:
     - plugin: pnp.plugins.push.simple.Echo
       selector: '{"topic": "/".join(data.levels[:-1]), "data": data.levels[-1]}'
-    - plugin: pnp.plugins.push.mqtt.MQTTPush
-      selector: '{"topic": "/".join(data.levels[:-1]), "data": data.levels[-1]}'
-      args:
-        host: localhost
+#    - plugin: pnp.plugins.push.mqtt.MQTTPush
+#      selector: '{"topic": "/".join(data.levels[:-1]), "data": data.levels[-1]}'
+#      args:
+#        host: localhost
