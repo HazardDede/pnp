@@ -1,4 +1,5 @@
 from . import PushBase
+from ...utils import try_parse_bool
 
 
 class MQTTPush(PushBase):
@@ -34,22 +35,30 @@ class MQTTPush(PushBase):
     """
     __prefix__ = 'mqtt'
 
-    def __init__(self, host, topic=None, port=1883, **kwargs):
+    def __init__(self, host, topic=None, port=1883, retain=False, **kwargs):
         super().__init__(**kwargs)
         self.host = str(host)
-        self.topic = str(topic) if topic is not None else None
+        self.topic = self._parse_topic(topic)
         self.port = int(port)
+        self.retain = self._parse_retain(retain)
+
+    def _parse_retain(self, val):
+        return try_parse_bool(val, default=False)
+
+    def _parse_topic(self, val):
+        return str(val) if val is not None else None
 
     def push(self, payload):
         import paho.mqtt.publish as publish
 
         envelope, real_payload = self.envelope_payload(payload)
-        topic = envelope.get('topic', self.topic)  # Override topic via envelope
+        topic = self._parse_envelope_value('topic', envelope)  # Override topic via envelope
+        retain = self._parse_envelope_value('retain', envelope)  # Override retain via envelope
 
         if topic is None:
             raise ValueError("Topic was not defined either by the __init__ nor by the envelope")
 
-        publish.single(topic=topic, payload=real_payload, hostname=self.host, port=self.port)
+        publish.single(topic=topic, payload=real_payload, hostname=self.host, port=self.port, retain=retain)
         self.logger.debug("[{self.name}] Published message on '{topic}' @ {self.host}:{self.port}. "
                           "Payload='{payload}'".format(**locals()))
         return payload  # Payload as is. With envelope (if any).

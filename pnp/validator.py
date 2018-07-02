@@ -1,7 +1,5 @@
 import os
 
-from .utils import make_list
-
 
 class Validator:
     @staticmethod
@@ -110,6 +108,7 @@ class Validator:
             ValueError: Argument 'arg' is expected to be a subset of ['a', 'b', 'c'], but is 'd'
             >>> Validator.subset_of(['a', 'b', 'c'], allow_none=True, arg1=None, arg2=None)
         """
+        from .utils import make_list
         Validator.is_instance(list, tuple, possible=possible)
         for arg_name, arg_value in kwargs.items():
             if Validator._allow_none(arg_value, allow_none) and not (set(make_list(arg_value)) <= set(possible)):

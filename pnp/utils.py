@@ -4,9 +4,12 @@ import os
 import re
 import time
 from base64 import b64encode
+from collections import OrderedDict
 
 from binaryornot.check import is_binary
 from box import Box, BoxKeyError
+
+from pnp.validator import Validator
 
 FILE_MODES = ['binary', 'text', 'auto']
 
@@ -96,6 +99,82 @@ def interruptible_sleep(wait, callback, interval=0.5):
         time.sleep(wait % interval)
     except StopCycleError:
         pass
+
+
+def make_public_protected_private_attr_lookup(attr_name, as_dict=False):
+    """
+    Given an attribute name this function will generate names of public, private and protected attribute names.
+    The order is of lookups is always the given attr_name first and then descending by visibility (public -> proctected
+    -> private)
+
+    Examples:
+        >>> make_public_protected_private_attr_lookup('my_lookup')  # Public attribute name
+        ['my_lookup', '_my_lookup', '__my_lookup']
+        >>> make_public_protected_private_attr_lookup('_my_lookup')  # Protected attribute name
+        ['_my_lookup', 'my_lookup', '__my_lookup']
+        >>> make_public_protected_private_attr_lookup('__my_lookup')  # Private attribute name
+        ['__my_lookup', 'my_lookup', '_my_lookup']
+        >>> list(make_public_protected_private_attr_lookup('_my_lookup', as_dict=True).keys())
+        ['protected', 'public', 'private']
+
+    """
+    Validator.is_instance(str, lookup_name=attr_name)
+    as_dict = try_parse_bool(as_dict, default=False)
+    if attr_name.startswith('__'):
+        # __lookup, lookup, _lookup
+        res = OrderedDict(private=attr_name, public=attr_name[2:], protected=attr_name[1:])
+    elif attr_name.startswith('_'):
+        # _lookup, lookup, __lookup
+        res = OrderedDict(protected=attr_name, public=attr_name[1:], private='_' + attr_name)
+    else:
+        # lookup, _lookup, __lookup
+        res = OrderedDict(public=attr_name, protected='_' + attr_name, private='__' + attr_name)
+    return res if as_dict else list(res.values())
+
+
+def instance_lookup(instance, lookups):
+    """
+    Will lookup the instance for the given attribute names in `lookups`.
+    Returns the first occurrence found.
+
+    Examples:
+
+        >>> class Foo:
+        ...     def __init__(self):
+        ...         self.a = 1
+        ...         self.b = 2
+        ...         self.c = 3
+        ...         self.__a = 99
+        >>> instance = Foo()
+        >>> instance_lookup(instance, 'a')
+        1
+        >>> instance_lookup(instance, '__a')
+        99
+        >>> instance_lookup(instance, ['c', 'b'])
+        3
+        >>> instance_lookup(instance, ['d', 'b'])
+        2
+        >>> print(instance_lookup(instance, ['x', 'y', 'z']))
+        None
+
+    Args:
+        cls: The class to lookup for the given attribute names.
+        lookups: Attribute names to lookup.
+
+    Returns:
+        Returns the value of the first found attribute name in lookups. If none is found, simply None is returned.s
+    """
+    lookups = make_list(lookups)
+    # There might be some name mangling for private attributes - add them as lookups
+    privates = ['_{classname}{attrname}'.format(classname=type(instance).__name__, attrname=x)
+                for x in lookups if x.startswith('__') and not x.endswith('__')]
+    lookups = lookups + privates
+    _Nothing = object()
+    for lookup in lookups:
+        val = getattr(instance, lookup, _Nothing)
+        if val is not _Nothing:
+            return val
+    return None
 
 
 def safe_eval(source, **context):

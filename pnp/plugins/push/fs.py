@@ -56,21 +56,23 @@ class FileDump(PushBase):
         super().__init__(**kwargs)
         self.directory = directory
         Validator.is_directory(directory=self.directory)
-        self.extension = self._normalize_extension(extension)
+        self.extension = self._parse_extension(extension)
         self.binary_mode = bool(binary_mode)
-        self.file_name = Validator.cast_or_none(str, file_name)
+        self.file_name = self._parse_file_name(file_name)
 
-    @staticmethod
-    def _normalize_extension(extension):
-        extension = str(extension)
-        if not extension.startswith('.'):
-            return'.' + extension
-        return extension
+    def _parse_file_name(self, value):
+        return Validator.cast_or_none(str, value)
+
+    def _parse_extension(self, value):
+        value = str(value)
+        if not value.startswith('.'):
+            return'.' + value
+        return value
 
     def push(self, payload):
         envelope, payload = self.envelope_payload(payload)
-        file_name = envelope.get('file_name', self.file_name)
-        extension = self._normalize_extension(envelope.get('extension', self.extension))
+        file_name = self._parse_envelope_value('file_name', envelope)
+        extension = self._parse_envelope_value('extension', envelope)
 
         if file_name is None:
             file_name = time.strftime("%Y%m%d-%H%M%S")
