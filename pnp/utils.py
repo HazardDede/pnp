@@ -114,21 +114,22 @@ def make_public_protected_private_attr_lookup(attr_name, as_dict=False):
         ['_my_lookup', 'my_lookup', '__my_lookup']
         >>> make_public_protected_private_attr_lookup('__my_lookup')  # Private attribute name
         ['__my_lookup', 'my_lookup', '_my_lookup']
-        >>> list(make_public_protected_private_attr_lookup('_my_lookup', as_dict=True).keys())
-        ['protected', 'public', 'private']
+        >>> l = make_public_protected_private_attr_lookup('_my_lookup', as_dict=True)
+        >>> list(l.keys()), list(l.values())
+        (['protected', 'public', 'private'], ['_my_lookup', 'my_lookup', '__my_lookup'])
 
     """
     Validator.is_instance(str, lookup_name=attr_name)
     as_dict = try_parse_bool(as_dict, default=False)
     if attr_name.startswith('__'):
         # __lookup, lookup, _lookup
-        res = OrderedDict(private=attr_name, public=attr_name[2:], protected=attr_name[1:])
+        res = OrderedDict([('private', attr_name), ('public', attr_name[2:]), ('protected', attr_name[1:])])
     elif attr_name.startswith('_'):
         # _lookup, lookup, __lookup
-        res = OrderedDict(protected=attr_name, public=attr_name[1:], private='_' + attr_name)
+        res = OrderedDict([('protected', attr_name), ('public', attr_name[1:]), ('private', '_' + attr_name)])
     else:
         # lookup, _lookup, __lookup
-        res = OrderedDict(public=attr_name, protected='_' + attr_name, private='__' + attr_name)
+        res = OrderedDict([('public', attr_name), ('protected', '_' + attr_name), ('private', '__' + attr_name)])
     return res if as_dict else list(res.values())
 
 
