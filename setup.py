@@ -71,7 +71,6 @@ setup(
     entry_points={
         'console_scripts': [
             'pnp=pnp.runner.pnp:main',
-            'zway-test=pnp.runner.zway_test:main'
         ],
     },
 )
