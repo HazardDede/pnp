@@ -2,18 +2,18 @@
 
 ## Pull
 
-!INCLUDE "docs/plugins/pull/count/index.md", 3
-!INCLUDE "docs/plugins/pull/dht/index.md", 3
-!INCLUDE "docs/plugins/pull/file_system_watcher/index.md", 3
-!INCLUDE "docs/plugins/pull/mqtt_pull/index.md", 3
-!INCLUDE "docs/plugins/pull/repeat/index.md", 3
-!INCLUDE "docs/plugins/pull/rest_server/index.md", 3
-!INCLUDE "docs/plugins/pull/zway_poll/index.md", 3
+!INCLUDE "docs/plugins/pull/count/index.md", 2
+!INCLUDE "docs/plugins/pull/dht/index.md", 2
+!INCLUDE "docs/plugins/pull/file_system_watcher/index.md", 2
+!INCLUDE "docs/plugins/pull/mqtt_pull/index.md", 2
+!INCLUDE "docs/plugins/pull/repeat/index.md", 2
+!INCLUDE "docs/plugins/pull/rest_server/index.md", 2
+!INCLUDE "docs/plugins/pull/zway_poll/index.md", 2
 
 ## Push
 
-!INCLUDE "docs/plugins/push/echo/index.md", 3
-!INCLUDE "docs/plugins/push/facer/index.md", 3
-!INCLUDE "docs/plugins/push/file_dump/index.md", 3
-!INCLUDE "docs/plugins/push/influx_push/index.md", 3
-!INCLUDE "docs/plugins/push/mqtt_push/index.md", 3
+!INCLUDE "docs/plugins/push/echo/index.md", 2
+!INCLUDE "docs/plugins/push/facer/index.md", 2
+!INCLUDE "docs/plugins/push/file_dump/index.md", 2
+!INCLUDE "docs/plugins/push/influx_push/index.md", 2
+!INCLUDE "docs/plugins/push/mqtt_push/index.md", 2

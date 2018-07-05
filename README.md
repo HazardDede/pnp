@@ -14,19 +14,19 @@ Pulls data from sources and pushes it to sinks.
 3.5\.  [Envelope (>= 0.7.1)](#envelope>=0.7.1)  
 4\.  [Plugins](#plugins)  
 4.1\.  [Pull](#pull-1)  
-4.1.0.1\.  [pnp.plugins.pull.simple.Count](#pnp.plugins.pull.simple.count)  
-4.1.0.2\.  [pnp.plugins.pull.sensor.DHT](#pnp.plugins.pull.sensor.dht)  
-4.1.0.3\.  [pnp.plugins.pull.fs.FileSystemWatcher](#pnp.plugins.pull.fs.filesystemwatcher)  
-4.1.0.4\.  [pnp.plugins.pull.mqtt.MQTTPull](#pnp.plugins.pull.mqtt.mqttpull)  
-4.1.0.5\.  [pnp.plugins.pull.simple.Repeat](#pnp.plugins.pull.simple.repeat)  
-4.1.0.6\.  [pnp.plugins.pull.rest.RestServer](#pnp.plugins.pull.rest.restserver)  
-4.1.0.7\.  [pnp.plugins.pull.ZwayPoll](#pnp.plugins.pull.zwaypoll)  
+4.1.1\.  [pnp.plugins.pull.simple.Count](#pnp.plugins.pull.simple.count)  
+4.1.2\.  [pnp.plugins.pull.sensor.DHT](#pnp.plugins.pull.sensor.dht)  
+4.1.3\.  [pnp.plugins.pull.fs.FileSystemWatcher](#pnp.plugins.pull.fs.filesystemwatcher)  
+4.1.4\.  [pnp.plugins.pull.mqtt.MQTTPull](#pnp.plugins.pull.mqtt.mqttpull)  
+4.1.5\.  [pnp.plugins.pull.simple.Repeat](#pnp.plugins.pull.simple.repeat)  
+4.1.6\.  [pnp.plugins.pull.rest.RestServer](#pnp.plugins.pull.rest.restserver)  
+4.1.7\.  [pnp.plugins.pull.ZwayPoll](#pnp.plugins.pull.zwaypoll)  
 4.2\.  [Push](#push-1)  
-4.2.0.1\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
-4.2.0.2\.  [pnp.plugins.push.ml.FaceR](#pnp.plugins.push.ml.facer)  
-4.2.0.3\.  [pnp.plugins.push.fs.FileDump](#pnp.plugins.push.fs.filedump)  
-4.2.0.4\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
-4.2.0.5\.  [pnp.plugins.push.mqtt.MQTTPush](#pnp.plugins.push.mqtt.mqttpush)  
+4.2.1\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
+4.2.2\.  [pnp.plugins.push.ml.FaceR](#pnp.plugins.push.ml.facer)  
+4.2.3\.  [pnp.plugins.push.fs.FileDump](#pnp.plugins.push.fs.filedump)  
+4.2.4\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
+4.2.5\.  [pnp.plugins.push.mqtt.MQTTPush](#pnp.plugins.push.mqtt.mqttpush)  
 
 <a name="installation"></a>
 
@@ -270,7 +270,7 @@ into a dictionary inside the 'payload' or 'data' key via selector.
 
 <a name="pnp.plugins.pull.simple.count"></a>
 
-##### 4.1.0.1\. pnp.plugins.pull.simple.Count
+#### 4.1.1\. pnp.plugins.pull.simple.Count
 
 Emits every `wait` seconds a counting value which runs from `from_cnt` to `to_cnt`.
 If `to_cnt` is None the counter will count to infinity.
@@ -300,7 +300,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.sensor.dht"></a>
 
-##### 4.1.0.2\. pnp.plugins.pull.sensor.DHT
+#### 4.1.2\. pnp.plugins.pull.sensor.DHT
 
 Periodically polls a dht11 or dht22 (aka am2302) for temperature and humidity readings.
 Polling interval is controlled by `interval`.
@@ -337,7 +337,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.fs.filesystemwatcher"></a>
 
-##### 4.1.0.3\. pnp.plugins.pull.fs.FileSystemWatcher
+#### 4.1.3\. pnp.plugins.pull.fs.FileSystemWatcher
 
 Watches the given directory for changes like created, moved, modified and deleted files. If `ignore_directories` is
 set to False, then directories will be reported as well.
@@ -404,7 +404,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.mqtt.mqttpull"></a>
 
-##### 4.1.0.4\. pnp.plugins.pull.mqtt.MQTTPull
+#### 4.1.4\. pnp.plugins.pull.mqtt.MQTTPull
 
 Pulls messages from the specified topic from the given mosquitto mqtt broker (identified by host and port).
 
@@ -444,7 +444,7 @@ __Examples__
 
 <a name="pnp.plugins.pull.simple.repeat"></a>
 
-##### 4.1.0.5\. pnp.plugins.pull.simple.Repeat
+#### 4.1.5\. pnp.plugins.pull.simple.Repeat
 
 Emits every `wait` seconds the same `repeat`.
 
@@ -471,7 +471,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.rest.restserver"></a>
 
-##### 4.1.0.6\. pnp.plugins.pull.rest.RestServer
+#### 4.1.6\. pnp.plugins.pull.rest.RestServer
 
 Listens on the specified `port` for requests to any endpoint.
 Any data passed to the endpoint will be tried to be parsed to a dictionary (json). If this is not possible
@@ -528,7 +528,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.zwaypoll"></a>
 
-##### 4.1.0.7\. pnp.plugins.pull.ZwayPoll
+#### 4.1.7\. pnp.plugins.pull.ZwayPoll
 
 Pulls the specified json content from the zway rest api. The content is specified by the url, e.g.
 `http://<host>:8083/ZWaveAPI/Run/devices` will pull all devices and serve the result as a json.
@@ -558,10 +558,10 @@ Emits the content of the fetched url as it is.
 __Examples__
 
 ```yaml
-##### Please make sure to adjust url and device ids
-##### Username and Password are injected from environment variables:
-#####     export ZWAY_USER=admin
-#####     export ZWAY_PASSWORD=secret_one
+#### Please make sure to adjust url and device ids
+#### Username and Password are injected from environment variables:
+####     export ZWAY_USER=admin
+####     export ZWAY_PASSWORD=secret_one
 - name: zway
   pull:
     plugin: pnp.plugins.pull.zway.ZwayPoll
@@ -605,7 +605,7 @@ Below are some common selector examples to fetch various metrics from various de
 
 <a name="pnp.plugins.push.simple.echo"></a>
 
-##### 4.2.0.1\. pnp.plugins.push.simple.Echo
+#### 4.2.1\. pnp.plugins.push.simple.Echo
 
 Simply log the passed payload to the default logging instance.
 
@@ -632,7 +632,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.ml.facer"></a>
 
-##### 4.2.0.2\. pnp.plugins.push.ml.FaceR
+#### 4.2.2\. pnp.plugins.push.ml.FaceR
 
 FaceR (short one for face recognition) tags known faces in images. Output is the image with all faces tagged whether
 with the known name or an `unknown_label`. Default for unknown ones is 'Unknown'.
@@ -689,7 +689,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.fs.filedump"></a>
 
-##### 4.2.0.3\. pnp.plugins.push.fs.FileDump
+#### 4.2.3\. pnp.plugins.push.fs.FileDump
 
 This push dumps the given `payload` to a file to the specified `directory`.
 If argument `file_name` is None, a name will be generated based on the current datetime (%Y%m%d-%H%M%S).
@@ -752,7 +752,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.timedb.influxpush"></a>
 
-##### 4.2.0.4\. pnp.plugins.push.timedb.InfluxPush
+#### 4.2.4\. pnp.plugins.push.timedb.InfluxPush
 
 Pushes the given `payload` to an influx database using the line `protocol`.
 You have to specify `host`, `port`, `user`, `password` and the `database`.
@@ -800,7 +800,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.mqtt.mqttpush"></a>
 
-##### 4.2.0.5\. pnp.plugins.push.mqtt.MQTTPush
+#### 4.2.5\. pnp.plugins.push.mqtt.MQTTPush
 
 Will push the given `payload` to a mqtt broker (in this case mosquitto).
 The broker is specified by `host` and `port`. In addition a topic needs to be specified were the payload
