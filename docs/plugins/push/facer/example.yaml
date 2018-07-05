@@ -1,0 +1,18 @@
+- name: faceR
+  pull:
+    plugin: pnp.plugins.pull.fs.FileSystemWatcher
+    args:
+      path: "/tmp"
+      recursive: True
+      patterns: "*.jpg"
+      ignore_directories: True
+      case_sensitive: False
+      events: [created]
+      load_file: True
+      mode: binary
+      base64: False
+  push:
+    plugin: pnp.plugins.push.ml.FaceR
+    args:
+      known_faces_dir: /path/to/known/faces
+      unknown_label: "don't know him"

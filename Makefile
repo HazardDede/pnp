@@ -1,4 +1,4 @@
-.PHONY: clean-pyc clean-build clean lint test doctest version
+.PHONY: clean-pyc clean-build clean docs lint test doctest version
 
 VERSION=0.7.2
 SOURCE_PATH=./pnp
@@ -33,6 +33,9 @@ clean-build:
 setup:
 		pip install pip --upgrade
 		pip install -r requirements.txt --upgrade
+
+docs:
+		python ./scripts/process_docs.py
 
 clean: clean-pyc
 

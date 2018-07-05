@@ -1,0 +1,8 @@
+- name: rest
+  pull:
+    plugin: pnp.plugins.pull.rest.RestServer
+    args:
+      port: 5000
+      allowed_methods: [GET, POST]
+  push:
+    plugin: pnp.plugins.push.simple.Echo

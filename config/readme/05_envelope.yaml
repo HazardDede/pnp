@@ -1,0 +1,13 @@
+- name: envelope
+  pull:
+    plugin: pnp.plugins.pull.simple.Count
+    args:
+      wait: 1
+  push:
+    plugin: pnp.plugins.push.fs.FileDump
+    selector: '{"file_name": str(data), "extension": ".cnt", "data": data}'
+    args:
+      directory: "/tmp/counter"
+      file_name: "counter"  # Overridden by envelope
+      extension: ".txt"  #  Overridden by envelope
+      binary_mode: False  # text mode

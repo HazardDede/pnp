@@ -7,3 +7,4 @@ pytest
 pytest-cov
 setuptools
 twine
+git+git://github.com/HazardDede/markdown-pp@include-code#egg=MarkdownPP

@@ -1,0 +1,12 @@
+- name: dht
+  pull:
+    plugin: pnp.plugins.pull.sensor.DHT
+    args:
+      device: dht22  # Connect to a dht22
+      data_gpio: 17  # DHT is connected to gpio port 17
+      interval: 5m  # Polls the readings every 5 minutes
+  push:
+    - plugin: pnp.plugins.push.simple.Echo
+      selector: payload.temperature  # Temperature reading
+    - plugin: pnp.plugins.push.simple.Echo
+      selector: payload.humidity  # Humidity reading

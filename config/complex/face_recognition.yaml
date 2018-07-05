@@ -30,7 +30,7 @@
     plugin: pnp.plugins.push.ml.FaceR
     selector: b64decode(payload.payload)
     args:
-      known_faces_dir: '/Users/dmuth/private/sandbox/faces'
+      known_faces_dir: '/path/to/faces'
     deps:
       - plugin: pnp.plugins.push.simple.Echo
         selector: (payload['known_faces'], payload['no_of_faces'])
