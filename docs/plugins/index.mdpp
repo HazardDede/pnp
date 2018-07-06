@@ -15,5 +15,6 @@
 !INCLUDE "docs/plugins/push/echo/index.md", 2
 !INCLUDE "docs/plugins/push/facer/index.md", 2
 !INCLUDE "docs/plugins/push/file_dump/index.md", 2
+!INCLUDE "docs/plugins/push/http_call/index.md", 2
 !INCLUDE "docs/plugins/push/influx_push/index.md", 2
 !INCLUDE "docs/plugins/push/mqtt_push/index.md", 2

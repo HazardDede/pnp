@@ -58,7 +58,7 @@ class Server(PullBase):
         super().__init__(**kwargs)
         self.port = int(port)
         self.allowed_methods = [m.upper() for m in make_list(allowed_methods)]
-        Validator.subset_of(HTTP_METHODS, allowed_methods=allowed_methods)
+        Validator.subset_of(HTTP_METHODS, allowed_methods=self.allowed_methods)
 
     def pull(self):
         self._create_app().run(host='0.0.0.0', port=self.port, threaded=True)

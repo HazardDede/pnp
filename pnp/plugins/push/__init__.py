@@ -6,6 +6,10 @@ from ... import utils
 from ...validator import Validator
 
 
+class PushExecutionError(Exception):
+    pass
+
+
 class PushBase(Plugin):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

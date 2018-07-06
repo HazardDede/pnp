@@ -40,10 +40,10 @@ class Count(PullBase):
 
     def pull(self):
         for i in range(self.from_cnt, self.to_cnt or sys.maxsize):
+            self._sleep(self.wait)
             self.notify(i)
             if self.stopped:
                 break
-            self._sleep(self.wait)
 
 
 class Repeat(PullBase):
@@ -77,8 +77,8 @@ class Repeat(PullBase):
 
     def pull(self):
         while not self.stopped:
-            self.notify(self.repeat)
             self._sleep(self.wait)
+            self.notify(self.repeat)
 
 
 class CustomPolling(Polling):
