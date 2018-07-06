@@ -8,10 +8,13 @@ from collections import OrderedDict
 
 from binaryornot.check import is_binary
 from box import Box, BoxKeyError
+from threading import Timer
 
 from pnp.validator import Validator
 
 FILE_MODES = ['binary', 'text', 'auto']
+
+HTTP_METHODS = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH']
 
 
 class EvaluationError(Exception):
@@ -639,6 +642,62 @@ class FallbackBox(Box):
             if isinstance(item, (int, float)):
                 return super().__getitem__(str(item), _ignore_default=_ignore_default)
             raise ke
+
+
+class Debounce:
+    """
+    Defers a function execution until `wait` seconds have elapsed since the last time it was invoked.
+    It is a way to collect multiple invokes and only really execute the last invocation.
+
+    Examples:
+
+        >>> results = []
+        >>> def foo(counter):
+        ...     results.append(counter)
+
+        >>> dut = Debounce(foo, 0.2)  # Defers the execution for 200 milliseconds
+        >>> for cnt in range(3): dut(cnt)
+        >>> time.sleep(0.3)
+        >>> results
+        [2]
+
+        >>> for cnt in range(4): dut(cnt)
+        >>> time.sleep(0.3)
+        >>> results
+        [2, 3]
+
+        >>> results.clear()
+        >>> for cnt in range(3): dut(cnt)
+        >>> dut.execute_now()
+        >>> for cnt in range(4): dut(cnt)
+        >>> time.sleep(0.3)
+        >>> results
+        [2, 3]
+
+
+
+    """
+    def __init__(self, fun, wait=0.5):
+        Validator.is_function(fun=fun)
+        self.fun = fun
+        self.wait = float(wait)
+        self.timer = None
+
+    def _safe_stop_timer(self):
+        if self.timer is not None:
+            self.timer.cancel()
+
+    def execute_now(self):
+        # Without checking self.timer.finished.is_set(), in rare situations the actual function would get executed
+        # twice
+        if self.timer is not None and not self.timer.finished.is_set():
+            self._safe_stop_timer()
+            self.timer.function(*self.timer.args, **self.timer.kwargs)
+
+    def __call__(self, *args, **kwargs):
+        self._safe_stop_timer()
+        self.timer = Timer(self.wait, self.fun, args, kwargs)
+        self.timer.start()
 
 
 class Singleton(object):

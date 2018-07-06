@@ -74,6 +74,31 @@ class Validator:
                                 ", but is {actual_type}".format(**locals(), actual_type=type(arg_value)))
 
     @staticmethod
+    def is_non_negative(allow_none=False, **kwargs):
+        """
+        Examples:
+            >>> Validator.is_non_negative(arg=0)
+            >>> Validator.is_non_negative(arg=1)
+            >>> Validator.is_non_negative(arg=-0.01)
+            Traceback (most recent call last):
+            ...
+            ValueError: Argument 'arg' is expected to be greater or equal to zero, but it is not
+            >>> Validator.is_non_negative(arg="a")
+            Traceback (most recent call last):
+            ...
+            ValueError: Argument 'arg' is not numeric (float, int, ...)
+        """
+        for arg_name, arg_value in kwargs.items():
+            try:
+                arg_value = float(arg_value)
+            except (TypeError, ValueError):
+                raise ValueError("Argument '{arg_name}' is not numeric (float, int, ...)".format(**locals()))
+
+            if Validator._allow_none(arg_value, allow_none) and arg_value < 0.0:
+                raise ValueError("Argument '{arg_name}' is expected to be greater or equal to zero"
+                                 ", but it is not".format(**locals()))
+
+    @staticmethod
     def one_of(possible, allow_none=False, **kwargs):
         """
         Examples:

@@ -1,8 +1,7 @@
 import time
-from threading import Thread
 
 from . import PullBase
-from ...utils import make_list, load_file, FILE_MODES
+from ...utils import make_list, load_file, FILE_MODES, Debounce
 from ...validator import Validator
 
 
@@ -90,9 +89,8 @@ class FileSystemWatcher(PullBase):
         Validator.subset_of(self.EVENT_TYPES, allow_none=True, events=self.events)
         self.mode = mode
         Validator.one_of(FILE_MODES, mode=self.mode)
-        # TODO: When defer_modified < 0 -> raise ValueError
-        # TODO: When defer_modified = 0 -> ignore defer
         self.defer_modified = float(defer_modified)
+        Validator.is_non_negative(allow_none=True, defer_modified=self.defer_modified)
 
     def pull(self):
         from watchdog.observers import Observer
@@ -113,14 +111,41 @@ class FileSystemWatcher(PullBase):
                         return load_file(file_name, that.mode, that.base64)
                 return None
 
-            def _deferred_dispatch(self, modified_file, fingerprint):
-                time.sleep(that.defer_modified)
-                dispatch_fingerprint, payload = self.dispatcher.get(modified_file, (None, None))
-                # If fingerprints do not match, another modified event changed the file... just ignore the change
-                if fingerprint == dispatch_fingerprint:
-                    # No modifications made. Assuming file is closed and finished
+            def stop_dispatcher(self):
+                # We cannot alter the dictionary during iteration - so we have to get all relevant debounces ...
+                candidates = [debounce for _, debounce in self.dispatcher.items()]
+                # ... and then loop it over outside the iterator context
+                for debounce in candidates:
+                    debounce.execute_now()
+
+            def _deferred_notify(self, modified_file, payload):
+                # Let's remove the dispatcher instance - it is done
+                self.dispatcher.pop(modified_file, None)
+                # trigger the actual notification event
+                that.notify(payload)
+
+            def _notify(self, event, payload):
+                if event.event_type == that.EVENT_TYPE_MODIFIED:
+                    # There might be multiple flushes of a file before it is completely written to disk
+                    # Each flush will raise a modified event... Let's wait for more modified events...
+                    if that.defer_modified <= 0:
+                        that.notify(payload)
+                    else:
+                        modified_file = payload['source']
+                        defer_fun = self.dispatcher.get(modified_file, None)
+                        if defer_fun is None:
+                            defer_fun = Debounce(self._deferred_notify, that.defer_modified)
+                            self.dispatcher[modified_file] = defer_fun
+                        defer_fun(modified_file, payload)
+                        that.logger.debug("[{that.name}] Event of modified_file '{modified_file}' "
+                                          "is deferred for {that.defer_modified}".format(**locals()))
+                else:
+                    defer_fun = self.dispatcher.get(payload['source'], None)
+                    # There might be some deferred modified event... Lets check and send it to keep the correct
+                    # sequence. Assuming the file is closed and finished by now...
+                    if defer_fun is not None:
+                        defer_fun.execute_now()
                     that.notify(payload)
-                    del self.dispatcher[modified_file]
 
             def on_any_event(self, event):
                 if that.events is None or event.event_type in that.events:
@@ -136,34 +161,21 @@ class FileSystemWatcher(PullBase):
                         if file_envelope is not None:
                             payload['file'] = file_envelope
 
-                    if event.event_type == that.EVENT_TYPE_MODIFIED:
-                        # There might be multiple flushes of that file before it is written completely to disk
-                        # Each flush will raise a modified event... Let's wait for more modified events...
-                        modified_file = getattr(event, 'src_path', None)
-                        if modified_file is not None:
-                            fingerprint = time.time()
-                            self.dispatcher[modified_file] = (fingerprint, payload)
-                            Thread(target=self._deferred_dispatch, args=(modified_file, fingerprint)).start()
-                    else:
-                        deferred = self.dispatcher.pop(payload['source'], None)
-                        # There might be some deferred modified event... Lets check and send it to keep the correct
-                        # sequence. Assuming the file is closed and finished by now...
-                        if deferred is not None:
-                            _, deferred_payload = deferred
-                            that.notify(deferred_payload)
-                        that.notify(payload)
+                    self._notify(event, payload)
 
         observer = Observer()
-        observer.schedule(EventHandler(
+        handler = EventHandler(
             patterns=self.patterns,
             ignore_patterns=self.ignore_patterns,
             ignore_directories=self.ignore_directories,
             case_sensitive=self.case_sensitive
-        ), self.path, recursive=self.recursive)
+        )
+        observer.schedule(handler, self.path, recursive=self.recursive)
         observer.start()
 
         while not self.stopped:
             time.sleep(1)
 
         observer.stop()
+        handler.stop_dispatcher()
         observer.join()
