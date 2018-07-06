@@ -193,7 +193,7 @@ __Examples__
   push:
     plugin: pnp.plugins.push.simple.Echo
 ```
-### pnp.plugins.pull.rest.RestServer
+### pnp.plugins.pull.http.Server
 
 Listens on the specified `port` for requests to any endpoint.
 Any data passed to the endpoint will be tried to be parsed to a dictionary (json). If this is not possible
@@ -241,7 +241,7 @@ __Examples__
 ```yaml
 - name: rest
   pull:
-    plugin: pnp.plugins.pull.rest.RestServer
+    plugin: pnp.plugins.pull.http.Server
     args:
       port: 5000
       allowed_methods: [GET, POST]

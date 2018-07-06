@@ -19,7 +19,7 @@ Pulls data from sources and pushes it to sinks.
 4.1.3\.  [pnp.plugins.pull.fs.FileSystemWatcher](#pnp.plugins.pull.fs.filesystemwatcher)  
 4.1.4\.  [pnp.plugins.pull.mqtt.MQTTPull](#pnp.plugins.pull.mqtt.mqttpull)  
 4.1.5\.  [pnp.plugins.pull.simple.Repeat](#pnp.plugins.pull.simple.repeat)  
-4.1.6\.  [pnp.plugins.pull.rest.RestServer](#pnp.plugins.pull.rest.restserver)  
+4.1.6\.  [pnp.plugins.pull.http.Server](#pnp.plugins.pull.http.server)  
 4.1.7\.  [pnp.plugins.pull.ZwayPoll](#pnp.plugins.pull.zwaypoll)  
 4.2\.  [Push](#push-1)  
 4.2.1\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
@@ -469,9 +469,9 @@ __Examples__
   push:
     plugin: pnp.plugins.push.simple.Echo
 ```
-<a name="pnp.plugins.pull.rest.restserver"></a>
+<a name="pnp.plugins.pull.http.server"></a>
 
-#### 4.1.6\. pnp.plugins.pull.rest.RestServer
+#### 4.1.6\. pnp.plugins.pull.http.Server
 
 Listens on the specified `port` for requests to any endpoint.
 Any data passed to the endpoint will be tried to be parsed to a dictionary (json). If this is not possible
@@ -519,7 +519,7 @@ __Examples__
 ```yaml
 - name: rest
   pull:
-    plugin: pnp.plugins.pull.rest.RestServer
+    plugin: pnp.plugins.pull.http.Server
     args:
       port: 5000
       allowed_methods: [GET, POST]
