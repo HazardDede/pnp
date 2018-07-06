@@ -19,10 +19,10 @@ deleted, moved files)
 
 Installation with extras:
     
-    pip install .[fswatcher,faceR]
+    pip install pnp[fswatcher,faceR]
     # In case of extra 'dht' you have to enable the option --process-dependency-links ...
     # ... cause the required adafruit package is not on pypi.
-    pip install --process-dependency-links .[dht]
+    pip install --process-dependency-links pnp[dht]
 
 
 ## Getting started
