@@ -470,7 +470,7 @@ __Arguments__
 
 **url (str)**: Request url. Can be overridden via envelope.<br/>
 **method (str, optional)**: The http method to use for the request. Must be a valid http method (GET, POST, ...).
-    Default is 'GET'. Can be overridden via envelope.
+    Default is 'GET'. Can be overridden via envelope.<br/>
 **fail_on_error (bool, optional)**: If True the push will fail on a http status code <> 2xx. This leads to an error
     message recorded into the logs and no further execution of any dependencies. Default is False. Can be overridden
     by the envelope.<br/>
