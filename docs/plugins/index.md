@@ -554,7 +554,7 @@ You have to specify `host`, `port`, `user`, `password` and the `database`.
 The `protocol` is basically a string that will be augmented at push-time with data from the payload.
 E.g. {payload.metric},room={payload.location} value={payload.value} assumes that payload contains metric, location
 and value.
-See [https://docs.influxdata.com/influxdb/v1.5/write_protocols/line_protocol_tutorial/](See https://docs.influxdata.com/influxdb/v1.5/write_protocols/line_protocol_tutorial/)
+See [https://docs.influxdata.com/influxdb/v1.5/write_protocols/line_protocol_tutorial/](https://docs.influxdata.com/influxdb/v1.5/write_protocols/line_protocol_tutorial/)
 
 __Arguments__
 
