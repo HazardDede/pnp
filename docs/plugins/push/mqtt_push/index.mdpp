@@ -16,7 +16,7 @@ __Arguments__
     the topic from the envelope will overrule the __init__ one.<br/>
 **retain (bool, optional)**: If set to True will mark the message as retained. Default is False.
     See the mosquitto man page for further guidance
-    (https://mosquitto.org/man/mqtt-7.html)[https://mosquitto.org/man/mqtt-7.html].
+    [https://mosquitto.org/man/mqtt-7.html](https://mosquitto.org/man/mqtt-7.html).
 
 __Result__
 
