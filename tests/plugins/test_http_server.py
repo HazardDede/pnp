@@ -16,14 +16,15 @@ def get_free_tcp_port():
     return port
 
 
-def _run_test(url, data, assertion_fun, method=requests.get, allowed_methods='GET', status_code=200):
+def _run_test(url, data, assertion_fun, method=requests.get, allowed_methods='GET', status_code=200,
+              server_impl='gevent'):
     output = None
     def callback(plugin, payload):
         nonlocal output
         output = payload
 
     port = get_free_tcp_port()
-    dut = RestServer(port=port, name='pytest', allowed_methods=allowed_methods)
+    dut = RestServer(port=port, name='pytest', allowed_methods=allowed_methods, server_impl=server_impl)
     runner = make_runner(dut, callback)
     with start_runner(runner):
         time.sleep(0.5)
@@ -36,7 +37,7 @@ def _run_test(url, data, assertion_fun, method=requests.get, allowed_methods='GE
     assertion_fun(output)
 
 
-def test_rest_server_json_data():
+def test_http_server_json_data():
     def assert_this(payload):
         assert payload is not None
         assert payload['endpoint'] == "resource/endpoint"
@@ -52,7 +53,24 @@ def test_rest_server_json_data():
     )
 
 
-def test_rest_server_non_json_data():
+def test_http_server_json_data_flask_server():
+    def assert_this(payload):
+        assert payload is not None
+        assert payload['endpoint'] == "resource/endpoint"
+        assert payload['method'] == "GET"
+        assert payload['query'] == {'foo': 'bar', 'bar': 'baz'}
+        assert payload['data'] == {"baz": "bar"}
+        assert payload['is_json'] is True
+
+    _run_test(
+        url='http://localhost:{port}/resource/endpoint?foo=bar&bar=baz',
+        data=json.dumps({"baz": "bar"}),
+        assertion_fun=assert_this,
+        server_impl='flask'
+    )
+
+
+def test_http_server_non_json_data():
     def assert_this(payload):
         assert payload is not None
         assert payload['endpoint'] == "resource/endpoint"
@@ -68,7 +86,7 @@ def test_rest_server_non_json_data():
     )
 
 
-def test_rest_server_multiple_query_params():
+def test_http_server_multiple_query_params():
     def assert_this(payload):
         assert payload is not None
         assert payload['endpoint'] == "resource/endpoint/queryparam"
@@ -84,7 +102,7 @@ def test_rest_server_multiple_query_params():
     )
 
 
-def test_rest_server_query_params_wo_value():
+def test_http_server_query_params_wo_value():
     def assert_this(payload):
         assert payload is not None
         assert payload['endpoint'] == "resource/endpoint/queryparam"
@@ -100,7 +118,7 @@ def test_rest_server_query_params_wo_value():
     )
 
 
-def test_rest_server_query_different_methods():
+def test_http_server_query_different_methods():
     def assert_this(payload):
         assert payload['method'] == 'GET'
     _run_test(

@@ -54,27 +54,52 @@ class Server(PullBase):
     """
     __prefix__ = "rest"
 
-    def __init__(self, port=5000, allowed_methods='GET', **kwargs):
+    SERVER_IMPL = ['gevent', 'flask']
+
+    def __init__(self, port=5000, allowed_methods='GET', server_impl='gevent', **kwargs):
         super().__init__(**kwargs)
         self.port = int(port)
         self.allowed_methods = [m.upper() for m in make_list(allowed_methods)]
         Validator.subset_of(HTTP_METHODS, allowed_methods=self.allowed_methods)
 
+        self.server_impl = server_impl
+        Validator.one_of(self.SERVER_IMPL, server_impl=self.server_impl)
+
+        # Instance of the actual http server (wsgi)
+        self.server = None
+
     def pull(self):
-        self._create_app().run(host='0.0.0.0', port=self.port, threaded=True)
+        app = self._create_app()
+        if self.server_impl == 'flask':
+            # Running the flask app with flask development server (do not use for production!)
+            app.run(host='0.0.0.0', port=self.port, threaded=True)
+            self.server = app
+        elif self.server_impl == 'gevent':
+            from gevent.pywsgi import WSGIServer
+            self.server = WSGIServer(('', self.port), app)
+            self.server.serve_forever()
 
     def stop(self):
         super().stop()
-        requests.delete('http://localhost:{port}/_shutdown'.format(port=str(self.port)))
+        if self.server_impl == 'flask':
+            requests.delete('http://localhost:{port}/_shutdown'.format(port=str(self.port)))
+        elif self.server_impl == 'gevent':
+            self.server.stop()
 
     def _create_app(self):
         that = self
         app = Flask(__name__)
 
-        @app.route('/_shutdown', methods=['DELETE'])
-        def shutdown():
-            that.shutdown_server()
-            return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
+        if self.server_impl == 'flask':
+            # We need to register a shutdown endpoint, to end the serving if using the flask development server
+            @app.route('/_shutdown', methods=['DELETE'])
+            def shutdown():
+                from flask import request
+                func = request.environ.get('werkzeug.server.shutdown')
+                if func is None:
+                    raise RuntimeError('Not running with the Werkzeug Server')  # pragma: no cover
+                func()
+                return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
 
         @app.route('/', defaults={'path': '/'}, methods=self.allowed_methods)
         @app.route('/<path:path>', methods=self.allowed_methods)
@@ -97,14 +122,6 @@ class Server(PullBase):
             return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
 
         return app
-
-    @staticmethod
-    def shutdown_server():
-        from flask import request
-        func = request.environ.get('werkzeug.server.shutdown')
-        if func is None:
-            raise RuntimeError('Not running with the Werkzeug Server')  # pragma: no cover
-        func()
 
     @staticmethod
     def _flatten_query_args(args):
