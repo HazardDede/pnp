@@ -16,7 +16,7 @@ from .helper import make_runner, start_runner
     (Repeat(name='pytest', repeat='hello', wait=10)),
     (MQTTPull(name='pytest', host='youneverknow', topic='test/#', port=1883)),
     (CustomPolling(name='pytest', scheduled_callable=lambda: True, interval='1m')),
-    (Server(name='pytest'))
+    # (Server(name='pytest'))
 ])
 def test_pull_for_stopping_fast_with_high_wait(mqtt_client, dut):
     def callback(plugin, payload):
