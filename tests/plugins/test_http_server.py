@@ -4,7 +4,7 @@ import time
 
 import requests
 
-from pnp.plugins.pull.rest import RestServer
+from pnp.plugins.pull.http import Server
 from tests.plugins.helper import make_runner, start_runner
 
 
@@ -24,7 +24,7 @@ def _run_test(url, data, assertion_fun, method=requests.get, allowed_methods='GE
         output = payload
 
     port = get_free_tcp_port()
-    dut = RestServer(port=port, name='pytest', allowed_methods=allowed_methods, server_impl=server_impl)
+    dut = Server(port=port, name='pytest', allowed_methods=allowed_methods, server_impl=server_impl)
     runner = make_runner(dut, callback)
     with start_runner(runner):
         time.sleep(0.5)
