@@ -17,9 +17,8 @@ import os
 from docopt import docopt
 from schema import Schema, Use, And
 
+from ..engines.thread_engine import ThreadEngine
 from ..app import Application
-from ..config import load_config
-from ..models import Task, tasks_to_str
 
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'DEBUG')
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=LOG_LEVEL)
@@ -36,16 +35,12 @@ def validate_args(args):
 
 def run(args):
     validated = validate_args(args)
-    cfg = load_config(validated['<configuration>'])
 
-    tasks = {
-        task.name: Task.from_dict(task) for task in cfg
-    }
-
-    logging.info("Configured tasks\n{}".format(tasks_to_str(tasks)))
-
-    app = Application()
-    app.run(tasks)
+    # TODO: Make engine configurable via configuration
+    # TODO: Make number of queue_worker configurable by configuration
+    app = Application.from_file(validated['<configuration>'])
+    app.bind(engine=ThreadEngine())
+    app.start()
 
 
 def main():

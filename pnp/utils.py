@@ -5,10 +5,10 @@ import re
 import time
 from base64 import b64encode
 from collections import OrderedDict
+from threading import Timer
 
 from binaryornot.check import is_binary
 from box import Box, BoxKeyError
-from threading import Timer
 
 from pnp.validator import Validator
 
@@ -606,14 +606,14 @@ class Loggable(object):
         >>> dut = NeedsLogger()
         >>> dut.do('mymessage')
     """
-    @property
-    def logger(self):
+    @classproperty
+    def logger(cls):
         """
         Configures and returns a logger instance for further use.
         Returns:
             (logging.Logger)
         """
-        component = "{}.{}".format(type(self).__module__, type(self).__name__)
+        component = "{}.{}".format(cls.__module__, cls.__name__)
         return logging.getLogger(component)
 
 

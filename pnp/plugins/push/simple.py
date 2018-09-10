@@ -36,6 +36,8 @@ class Nop(PushBase):
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.last_payload = None
 
     def push(self, payload):
+        self.last_payload = payload
         return payload

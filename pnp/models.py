@@ -1,4 +1,5 @@
 from collections import namedtuple
+from typing import Dict, List
 
 from box import Box
 
@@ -10,13 +11,17 @@ Task = namedtuple("Task", ["name", "pull", "pushes"])
 Pull = namedtuple("Pull", ["instance"])
 Push = namedtuple("Push", ["instance", "selector", "deps"])
 
+TaskName = str
+TaskCfg = Box
+TaskSet = Dict[str, Task]
 
-def _mk_pull(task):
+
+def _mk_pull(task: TaskCfg) -> Pull:
     args = {'name': '{task.name}_pull'.format(task=task), **task.pull.args}
     return Pull(instance=load_plugin(task.pull.plugin, PullBase, **args))
 
 
-def _mk_push(task):
+def _mk_push(task: TaskCfg) -> List[Push]:
     def _many(pushlist, prefix):
         for i, push in enumerate(pushlist):
             push_name = '{prefix}_{i}'.format(**locals())
@@ -29,7 +34,7 @@ def _mk_push(task):
     return list(_many(task.pushes, "{task.name}_push".format(**locals())))
 
 
-def from_dict(task):
+def from_dict(task: TaskCfg) -> Task:
     if not isinstance(task, Box):
         task = Box(dict(base=task)).base
 
@@ -43,7 +48,7 @@ def from_dict(task):
 setattr(Task, 'from_dict', from_dict)
 
 
-def tasks_to_str(tasks):
+def tasks_to_str(tasks: TaskSet):
     res = []
     for _, t in tasks.items():
         res.append('{task.name} {{'.format(task=t))

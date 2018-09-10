@@ -1,7 +1,8 @@
 import time
 from queue import Queue
 
-from pnp import app, models
+from pnp import models
+from pnp.engines import thread_engine as te
 from pnp.plugins import push
 from pnp.plugins.pull import simple as pull_simple
 
@@ -25,12 +26,12 @@ def test_worker_for_smoke():
     )
     # Worker
     stop_item = object()
-    worker = app.StoppableWorker(queue, stop_item)
+    worker = te.StoppableWorker(queue, stop_item)
     worker.daemon = True
     worker.start()
 
     # Runner
-    runner = app.StoppableRunner(task, queue)
+    runner = te.StoppableRunner(task, queue)
     runner.daemon = True
 
     runner.start()
