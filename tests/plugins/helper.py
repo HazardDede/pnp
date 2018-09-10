@@ -8,6 +8,10 @@ Runner = namedtuple("Runner", ["pull", "start", "stop", "join", "raise_on_error"
 MqttMessage = namedtuple("MqttMessage", ["payload", "topic"])
 
 
+def dummy_callback(plugin, payload):
+    pass
+
+
 @contextmanager
 def start_runner(runner):
     runner.start()

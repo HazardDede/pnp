@@ -26,6 +26,8 @@ class Nop(PushBase):
     Executes no operation at all. A call to push(...) just returns the payload.
     This push is useful when you only need the power of the selector for dependent pushes.
 
+    Nop = No operation OR No push ;-)
+
     Examples:
 
         >>> dut = Nop(name="nop_push")

@@ -5,7 +5,7 @@ from mock import patch
 
 from pnp.plugins.pull.mqtt import MQTTPull
 from pnp.plugins.push.mqtt import MQTTPush
-from tests.plugins.helper import make_runner, MqttMessage, start_runner
+from tests.plugins.helper import make_runner, MqttMessage, start_runner, dummy_callback
 
 
 @patch('paho.mqtt.client.Client')
@@ -27,9 +27,29 @@ def test_mqtt_pull(mock_client):
     mock_client.assert_called()
     mc.connect.assert_called()
     mc.connect.assert_called_with('youneverknow', 1883, 60)
+    mc.username_pw_set.assert_not_called()
     mc.subscribe.assert_called()
     mc.subscribe.assert_called_with('test/#')
-    mc.loop.assert_called()
+    mc.loop_forever.assert_called()
+
+
+@patch('paho.mqtt.client.Client')
+def test_mqtt_pull_credentials(mock_client):
+    dut = MQTTPull(name='pytest', host='youneverknow', topic='test/#', port=1883)
+    assert dut.user is None
+    assert dut.password is None
+
+    dut = MQTTPull(name='pytest', host='youneverknow', topic='test/#', port=1883, user="foo", password="bar")
+    assert dut.user == "foo"
+    assert dut.password == "bar"
+
+    mc = mock_client.return_value
+    runner = make_runner(dut, dummy_callback)
+    with start_runner(runner):
+        pass
+    mock_client.assert_called()
+    mc.username_pw_set.assert_called()
+    mc.username_pw_set.assert_called_with("foo", "bar")
 
 
 def test_mqtt_push(monkeypatch):
@@ -40,6 +60,8 @@ def test_mqtt_push(monkeypatch):
         assert kwargs.get('port') == 1883
         assert kwargs.get('payload') == "This is the payload"
         assert not kwargs.get('retain')
+        assert kwargs.get('auth') is None
+        assert kwargs.get('qos') == 0
 
     monkeypatch.setattr(paho.mqtt.publish, 'single', call_validator)
 
@@ -55,8 +77,26 @@ def test_mqtt_push_with_envelope_override(monkeypatch):
         assert kwargs.get('port') == 1883
         assert kwargs.get('payload') == "This is the payload"
         assert kwargs.get('retain')
+        assert kwargs.get('auth') is None
+        assert kwargs.get('qos') == 2
 
     monkeypatch.setattr(paho.mqtt.publish, 'single', call_validator)
 
     dut = MQTTPush(name='pytest', host='localhost', topic='test/foo/bar')
-    dut.push(dict(data="This is the payload", topic='override', retain=True))
+    dut.push(dict(data="This is the payload", topic='override', retain=True, qos=2))
+
+
+def test_mqtt_with_credentials(monkeypatch):
+
+    def call_validator(**kwargs):
+        assert kwargs.get('topic') == 'test/foo/bar'
+        assert kwargs.get('hostname') == 'localhost'
+        assert kwargs.get('port') == 1883
+        assert kwargs.get('payload') == "This is the payload"
+        assert not kwargs.get('retain')
+        assert kwargs.get('auth') == {"username": "foo", "password": "bar"}
+
+    monkeypatch.setattr(paho.mqtt.publish, 'single', call_validator)
+
+    dut = MQTTPush(name='pytest', host='localhost', topic='test/foo/bar', user="foo", password="bar")
+    dut.push("This is the payload")
