@@ -2,7 +2,8 @@ import time
 from queue import Queue
 
 from pnp import models
-from pnp.engines import thread_engine as te
+from pnp.engines import SimpleRetryHandler
+from pnp.engines import parallel as te
 from pnp.plugins import push
 from pnp.plugins.pull import simple as pull_simple
 
@@ -31,7 +32,7 @@ def test_worker_for_smoke():
     worker.start()
 
     # Runner
-    runner = te.StoppableRunner(task, queue)
+    runner = te.StoppableRunner(task, queue, retry_handler=SimpleRetryHandler())
     runner.daemon = True
 
     runner.start()

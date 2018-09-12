@@ -46,4 +46,4 @@ curl -X GET 'http://localhost:5000/resource/endpoint' --data 'no json obviously'
 
 __Examples__
 
-!INCLUDECODE "docs/plugins/pull/rest_server/example.yaml" (yaml)
+!INCLUDECODE "docs/plugins/pull/http_server/example.yaml" (yaml)

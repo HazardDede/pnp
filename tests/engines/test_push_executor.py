@@ -1,4 +1,4 @@
-from pnp.engines.general import PushExecutor
+from pnp.engines import PushExecutor
 from pnp.models import Push
 from pnp.plugins.push.simple import Nop
 

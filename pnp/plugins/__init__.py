@@ -10,7 +10,7 @@ class PluginMeta(type):
     def __new__(meta, name, bases, dct):
         newly = super().__new__(meta, name, bases, dct)
         # Force all __init__ of plugins to be decorated with envargs
-        newly.__init__ = EnvironmentResolver()(newly.__init__)
+        newly.__init__ = EnvironmentResolver(default_override=True)(newly.__init__)
         return newly
 
 

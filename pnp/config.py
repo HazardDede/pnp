@@ -1,8 +1,11 @@
+from functools import partial
 from ruamel import yaml
 
 from box import Box
 from schema import Schema, Use, Optional, Or, And
 
+from .engines import Engine, RetryHandler
+from .plugins import load_plugin
 from .utils import make_list
 
 
@@ -60,8 +63,11 @@ tasks_schema = Schema([{
     OrOverride("pushes", "outbound", "push"): And(Or(push_list_schema, push_schema), Use(make_list))
 }])
 
+engine_schema = Engine
+
 tasks_settings_schema = Schema({
     Optional(Or("anchors", "anchor", "ref", "refs", "alias", "aliases")): object,
+    Optional("engine", default=None): engine_schema,
     'tasks': tasks_schema
 })
 
@@ -84,12 +90,24 @@ def validate_push_deps(push):
         yield validated_push
 
 
+def custom_constructor(loader, node, clstype):
+    args = loader.construct_mapping(node, deep=True)
+    if 'type' not in args:
+        raise ValueError("You have to specify a 'type' when instantiating a engine with !engine")
+    clazz_name = args.pop('type')
+    return load_plugin(clazz_name, clstype, **args)
+
+
 def load_config(config_path):
     """Load the specified config"""
+    yaml.SafeLoader.add_constructor(u"!engine", partial(custom_constructor, clstype=Engine))
+    yaml.SafeLoader.add_constructor(u"!retry", partial(custom_constructor, clstype=RetryHandler))
+
     with open(config_path, 'r') as fp:
         cfg = yaml.safe_load(fp)
     validated = schema.validate(cfg)
     for pull in validated['tasks']:
         for push in pull['pushes']:
             push['deps'] = list(validate_push_deps(push))
-    return Box(validated).tasks
+    b = Box(validated)
+    return b.engine if 'engine' in b else None, b.tasks

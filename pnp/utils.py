@@ -6,6 +6,7 @@ import time
 from base64 import b64encode
 from collections import OrderedDict
 from threading import Timer
+from typing import Union
 
 from binaryornot.check import is_binary
 from box import Box, BoxKeyError
@@ -390,7 +391,10 @@ def load_file(fp, mode='auto', base64=False):
     return dict(file_name=os.path.basename(fp), content=contents, mode=read_mode, base64=base64)
 
 
-def parse_duration_literal(literal):
+DurationLiteral = Union[str, int]
+
+
+def parse_duration_literal(literal: DurationLiteral):
     """
     Converts duration literals as '1m', '1h', and so on to an actual duration in seconds.
     Supported are 's' (seconds), 'm' (minutes), 'h' (hours), 'd' (days) and 'w' (weeks).
@@ -430,7 +434,7 @@ def parse_duration_literal(literal):
         # We have to check for s, m, h, d, w suffix
         seconds_per_unit = {"s": 1, "m": 60, "h": 3600, "d": 86400, "w": 604800}
         # Remove all non-alphanumeric letters
-        s = re.sub('[^0-9a-zA-Z]+', '', literal)
+        s = re.sub('[^0-9a-zA-Z]+', '', str(literal))
         value_str, unit = s[:-1], s[-1].lower()
         value = try_parse_int(value_str)
         if value is None or unit not in seconds_per_unit:

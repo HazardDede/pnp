@@ -2,7 +2,8 @@ import time
 from queue import Queue
 
 from pnp import models
-from pnp.engines import thread_engine as te
+from pnp.engines import SimpleRetryHandler, AdvancedRetryHandler
+from pnp.engines import parallel as te
 from pnp.plugins import pull
 from pnp.plugins.pull import simple as pull_simpe
 from pnp.plugins.push import simple as push_simple
@@ -34,7 +35,7 @@ def test_runner_for_smoke():
         pull=models.Pull(instance=pull_simpe.Count(name='pytest_pull', wait=0.5)),
         pushes=[models.Push(instance=push_simple.Echo(name='pytest_push'), selector=None, deps=[])]
     )
-    dut = te.StoppableRunner(task, queue)
+    dut = te.StoppableRunner(task, queue, SimpleRetryHandler())
     dut.daemon = True
     dut.start()
     time.sleep(1)
@@ -54,7 +55,7 @@ def test_runner_for_retries_on_error():
             pull=models.Pull(instance=pull),
             pushes=[models.Push(instance=push_simple.Echo(name='pytest_push'), selector=None, deps=[])]
         )
-        dut = te.StoppableRunner(task, queue, retry_wait=1, max_retries=max_retries)
+        dut = te.StoppableRunner(task, queue, AdvancedRetryHandler(retry_wait=1, max_retries=max_retries))
         dut.daemon = True
         dut.start()
         time.sleep(sleep)

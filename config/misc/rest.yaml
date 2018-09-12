@@ -1,5 +1,5 @@
-# DHT temperature and humidity polling (requires extra 'dht')
-# Pull returns a dictionary containing the temperature and humidity.
+# Starts up an http server on port 5000 and listens on "any" endpoint
+# Push will print the actual calling on the screen
 
 - name: rest
   pull:
@@ -9,8 +9,3 @@
       allowed_methods: [GET, POST]
   push:
     - plugin: pnp.plugins.push.simple.Echo
-      selector: '{"topic": "/".join(data.levels[:-1]), "data": data.levels[-1]}'
-#    - plugin: pnp.plugins.push.mqtt.MQTTPush
-#      selector: '{"topic": "/".join(data.levels[:-1]), "data": data.levels[-1]}'
-#      args:
-#        host: localhost

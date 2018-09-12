@@ -1,17 +1,22 @@
+import multiprocessing as proc
 import time
 from abc import abstractmethod
 
 from schedule import Scheduler
 
 from .. import Plugin
-from ...utils import auto_str_ignore, parse_duration_literal, StopCycleError, interruptible_sleep
+from ...utils import auto_str_ignore, parse_duration_literal, StopCycleError, interruptible_sleep, try_parse_bool
 
 
-@auto_str_ignore(['stopped', 'on_payload'])
+@auto_str_ignore(['stopped', '_stopped', 'on_payload'])
 class PullBase(Plugin):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.stopped = False
+        self._stopped = proc.Event()
+
+    @property
+    def stopped(self):
+        return self._stopped.is_set()
 
     @abstractmethod
     def pull(self):
@@ -24,7 +29,7 @@ class PullBase(Plugin):
         self.on_payload(self, payload)
 
     def stop(self):
-        self.stopped = True
+        self._stopped.set()
 
     def _sleep(self, sleep_time):
         def callback():
@@ -37,22 +42,27 @@ class PollingError(Exception):
     pass
 
 
-@auto_str_ignore(['scheduler', 'on_payload'])
+@auto_str_ignore(['_scheduler'])
 class Polling(PullBase):
     __prefix__ = 'poll'
 
-    def __init__(self, interval=60, **kwargs):
+    def __init__(self, interval=60, instant_run=False, **kwargs):
         super().__init__(**kwargs)
         # polling interval in seconds
         self.interval = parse_duration_literal(interval)
-        self.scheduler = None
+        self._scheduler = None
+        self.instant_run = try_parse_bool(instant_run, False)
 
     def pull(self):
-        self.scheduler = Scheduler()
-        self.scheduler.every(self.interval).seconds.do(self.run_schedule)
+        self._scheduler = Scheduler()
+        self._scheduler.every(self.interval).seconds.do(self.run_schedule)
+
+        if self.instant_run:
+            self._scheduler.run_all()
+
         while not self.stopped:
             try:
-                self.scheduler.run_pending()
+                self._scheduler.run_pending()
             except:  # pragma: no cover
                 import traceback
                 self.logger.error("[{name}]\n{error}".format(name=self.name, error=traceback.format_exc()))

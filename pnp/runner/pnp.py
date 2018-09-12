@@ -1,11 +1,12 @@
 """Pull 'n' Push
 
 Usage:
-  pnp <configuration>
+  pnp [(-c | --check)] <configuration>
   pnp (-h | --help)
   pnp (-v | --version)
 
 Options:
+  -c --check        Only check configuration and do not run it.
   -h --help         Show this screen.
   -v --version      Show version.
 
@@ -17,7 +18,6 @@ import os
 from docopt import docopt
 from schema import Schema, Use, And
 
-from ..engines.thread_engine import ThreadEngine
 from ..app import Application
 
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'DEBUG')
@@ -28,6 +28,7 @@ def validate_args(args):
     validator = Schema({
         "--help": Use(bool),
         "--version": Use(str),
+        "--check": Use(bool),
         "<configuration>": And(os.path.isfile, Use(os.path.abspath))
     })
     return validator.validate(args)
@@ -35,12 +36,9 @@ def validate_args(args):
 
 def run(args):
     validated = validate_args(args)
-
-    # TODO: Make engine configurable via configuration
-    # TODO: Make number of queue_worker configurable by configuration
     app = Application.from_file(validated['<configuration>'])
-    app.bind(engine=ThreadEngine())
-    app.start()
+    if not validated['--check']:
+        app.start()
 
 
 def main():

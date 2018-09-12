@@ -1,4 +1,5 @@
 import sys
+import time
 
 from . import PullBase, Polling
 from ...validator import Validator
@@ -79,6 +80,20 @@ class Repeat(PullBase):
         while not self.stopped:
             self._sleep(self.wait)
             self.notify(self.repeat)
+
+
+class Infinite(PullBase):
+    """Just for demonstration purposes. DO NOT USE!"""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def pull(self):
+        while True:
+            try:
+                time.sleep(0.5)
+            except:
+                pass
 
 
 class CustomPolling(Polling):
