@@ -42,7 +42,7 @@ def run(args):
 
 
 def main():
-    arguments = docopt(__doc__, version='0.9.0')
+    arguments = docopt(__doc__, version='0.9.1')
     run(arguments)
 
 
