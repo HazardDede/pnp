@@ -55,6 +55,9 @@ test:
 			--cov=$(SOURCE_PATH) --cov-report html --cov-report term $(TEST_PATH) \
 			$(SOURCE_PATH)
 
+test-configs:
+		python scripts/test_configs.py
+
 doctest:
 		pytest --verbose --color=yes --doctest-modules $(SOURCE_PATH)
 
@@ -67,7 +70,7 @@ docker-arm:
 version:
 		@echo $(VERSION)
 
-next-version: lint test
+next-version: lint test-configs test
 		$(eval NEXT_VERSION := $(shell bumpversion --dry-run --allow-dirty --list $(VERSION_PART) | grep new_version | sed s,"^.*=",,))
 		@echo Next version is $(NEXT_VERSION)
 		bumpversion $(VERSION_PART)
