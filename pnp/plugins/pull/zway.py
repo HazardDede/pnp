@@ -125,8 +125,10 @@ class ZwayReceiver(Server):
     @staticmethod
     def _make_regex(url_format):
         escaped_url = re.escape(url_format)
-        return re.compile('.*' + escaped_url.replace('\%DEVICE\%', "(?P<device>{})".format(ZwayReceiver.DEVICE_REGEX))
-                          .replace('\%VALUE\%', "(?P<value>{})".format(ZwayReceiver.VALUE_REGEX)))
+        device_group = "(?P<device>{})".format(ZwayReceiver.DEVICE_REGEX)
+        value_group = "(?P<value>{})".format(ZwayReceiver.VALUE_REGEX)
+        return re.compile('.*' + escaped_url.replace('\%DEVICE\%', device_group).replace('\%VALUE\%', value_group)
+                          .replace('%DEVICE%', device_group).replace('%VALUE%', value_group))
 
     @staticmethod
     def _safe_get_group(match, group_name):
