@@ -173,7 +173,7 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 
     pip install pnp==0.10.0
 
-* **0.10.1** Introduces the pull.ZwayReceiver component.
+* **0.10.1** Introduces the pull.zway.ZwayReceiver and pull.sensor.OpenWeather component.
 * **0.10.0** Introduces engines. You are not enforced to explicitly use one and backward compatibility with
 legacy configs is given (actually the example configs work as they did before the change). So there shouldn't be any breaking change.
 * ... -> no history
