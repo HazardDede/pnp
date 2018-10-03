@@ -52,6 +52,7 @@ setup(
         'Flask>=1.0.2',
         'gevent>=1.3.4',
         'python-box>=3.2.0',
+        'pytz>=2018.4',
         'influxdb>=5.0.0',
         'paho-mqtt>=1.3.1',
         'requests>=2.18.4',
