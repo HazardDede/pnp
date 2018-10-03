@@ -21,12 +21,13 @@ Pulls data from sources and pushes it to sinks.
 4.5\.  [pnp.plugins.pull.simple.Repeat](#pnp.plugins.pull.simple.repeat)  
 4.6\.  [pnp.plugins.pull.http.Server](#pnp.plugins.pull.http.server)  
 4.7\.  [pnp.plugins.pull.ZwayPoll](#pnp.plugins.pull.zwaypoll)  
-4.8\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
-4.9\.  [pnp.plugins.push.ml.FaceR](#pnp.plugins.push.ml.facer)  
-4.10\.  [pnp.plugins.push.fs.FileDump](#pnp.plugins.push.fs.filedump)  
-4.11\.  [pnp.plugins.push.http.Call](#pnp.plugins.push.http.call)  
-4.12\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
-4.13\.  [pnp.plugins.push.mqtt.MQTTPush](#pnp.plugins.push.mqtt.mqttpush)  
+4.8\.  [pnp.plugins.pull.ZwayReceiver](#pnp.plugins.pull.zwayreceiver)  
+4.9\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
+4.10\.  [pnp.plugins.push.ml.FaceR](#pnp.plugins.push.ml.facer)  
+4.11\.  [pnp.plugins.push.fs.FileDump](#pnp.plugins.push.fs.filedump)  
+4.12\.  [pnp.plugins.push.http.Call](#pnp.plugins.push.http.call)  
+4.13\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
+4.14\.  [pnp.plugins.push.mqtt.MQTTPush](#pnp.plugins.push.mqtt.mqttpush)  
 5\.  [Changelog](#changelog)  
 
 <a name="installation"></a>
@@ -669,9 +670,68 @@ Below are some common selector examples to fetch various metrics from various de
 **Battery operated devices**
 * Battery level
 `payload[deviceid].instances[0].commandClasses[128].data.last.value`
+
+<a name="pnp.plugins.pull.zwayreceiver"></a>
+
+### 4.8\. pnp.plugins.pull.ZwayReceiver
+
+Setups a http server to process incoming GET-requests from the Zway-App [`HttpGet`](https://github.com/hplato/Zway-HTTPGet/blob/master/index.js).
+
+__Arguments__
+
+**url_format (str)**: The url_format that is configured in your HttpGet App. If you configured
+`http://<ip>:<port>/set?device=%DEVICE%&state=%VALUE%` (default of the App), you basically have to copy the path
+component `set?device=%DEVICE%&state=%VALUE%` to be your `url_format`.<br/>
+**device_mapping (Or(Dict[Str, Str], Dict[Str, Dict]), optional)**: A mapping to map the somewhat cryptic virtual device names to
+human readable ones. Default is None, which means that no mapping will be performed. Two ways possible:
+1. Ordinary mapping from virtual device name -> alias.
+2. Enhanced mapping from virtual device name to dictionary with additional properties. One property has to be alias.<br/>
+**ignore_unknown_devices (bool, optional)**: If set to True all incoming requests that are associated with an device
+that is not part of the mapping will be ignored. Default is False.<br/>
+
+Additionally the component will accept any arguments that `pnp.plugins.pull.http.Server` would accept.
+
+__Result__
+
+Given the url_format `%DEVICE%?value=%VALUE%`, the url `http://<ip>:<port>/set?vdevice1?value=5.5` and
+the device_mapping `vdevice1 -> alias of vdevice1` the emitted message will look like this:
+
+```yaml
+{
+    'device_name': 'alias of vdevice1',
+    'raw_device': 'vdevice1'
+    'value': 5.5,
+    'props': {}
+}
+```
+
+__Examples__
+
+```yaml
+- name: zway_receiver
+  pull:
+    plugin: pnp.plugins.pull.zway.ZwayReceiver
+    args:
+      port: 5000
+      device_mapping:
+        vdevice1:  # Props = {type: motion}
+          alias: dev1
+          type: motion
+        vdevice2:  # Props = {type: switch, other_prop: foo}
+          alias: dev2
+          type: switch
+          other_prop: foo
+        vdevice3: dev3  # props == {}
+      url_format: "%DEVICE%?value=%VALUE%"
+      ignore_unknown_devices: False
+  push:
+    - plugin: pnp.plugins.push.simple.Echo
+      selector: "'Got value {} from device {} ({}) with props {}'.format(data.value, data.device_name, data.raw_device, data.props)"
+```
+
 <a name="pnp.plugins.push.simple.echo"></a>
 
-### 4.8\. pnp.plugins.push.simple.Echo
+### 4.9\. pnp.plugins.push.simple.Echo
 
 Simply log the passed payload to the default logging instance.
 
@@ -698,7 +758,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.ml.facer"></a>
 
-### 4.9\. pnp.plugins.push.ml.FaceR
+### 4.10\. pnp.plugins.push.ml.FaceR
 
 FaceR (short one for face recognition) tags known faces in images. Output is the image with all faces tagged whether
 with the known name or an `unknown_label`. Default for unknown ones is 'Unknown'.
@@ -738,7 +798,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.fs.FileSystemWatcher
     args:
-      path: "/tmp"
+      path: "/tmp/camera"
       recursive: True
       patterns: "*.jpg"
       ignore_directories: True
@@ -750,12 +810,12 @@ __Examples__
   push:
     plugin: pnp.plugins.push.ml.FaceR
     args:
-      known_faces_dir: /path/to/known/faces
+      known_faces_dir: "/tmp/faces"
       unknown_label: "don't know him"
 ```
 <a name="pnp.plugins.push.fs.filedump"></a>
 
-### 4.10\. pnp.plugins.push.fs.FileDump
+### 4.11\. pnp.plugins.push.fs.FileDump
 
 This push dumps the given `payload` to a file to the specified `directory`.
 If argument `file_name` is None, a name will be generated based on the current datetime (%Y%m%d-%H%M%S).
@@ -818,7 +878,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.http.call"></a>
 
-### 4.11\. pnp.plugins.push.http.Call
+### 4.12\. pnp.plugins.push.http.Call
 
 Makes a request to a http resource.
 
@@ -904,7 +964,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.timedb.influxpush"></a>
 
-### 4.12\. pnp.plugins.push.timedb.InfluxPush
+### 4.13\. pnp.plugins.push.timedb.InfluxPush
 
 Pushes the given `payload` to an influx database using the line `protocol`.
 You have to specify `host`, `port`, `user`, `password` and the `database`.
@@ -952,7 +1012,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.mqtt.mqttpush"></a>
 
-### 4.13\. pnp.plugins.push.mqtt.MQTTPush
+### 4.14\. pnp.plugins.push.mqtt.MQTTPush
 
 Will push the given `payload` to a mqtt broker (in this case mosquitto).
 The broker is specified by `host` and `port`. In addition a topic needs to be specified were the payload
@@ -1016,6 +1076,7 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 
     pip install pnp==0.10.0
 
+* **0.10.1** Introduces the pull.ZwayReceiver component.
 * **0.10.0** Introduces engines. You are not enforced to explicitly use one and backward compatibility with
 legacy configs is given (actually the example configs work as they did before the change). So there shouldn't be any breaking change.
 * ... -> no history

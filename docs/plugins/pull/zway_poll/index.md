@@ -69,3 +69,4 @@ Below are some common selector examples to fetch various metrics from various de
 **Battery operated devices**
 * Battery level
 `payload[deviceid].instances[0].commandClasses[128].data.last.value`
+

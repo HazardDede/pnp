@@ -4,10 +4,11 @@ import requests
 from flask import Flask
 
 from . import PullBase
-from ...utils import make_list, HTTP_METHODS
+from ...utils import auto_str_ignore, make_list, HTTP_METHODS
 from ...validator import Validator
 
 
+@auto_str_ignore(ignore_list=['server'])
 class Server(PullBase):
     """
     Listens on the specified `port` for requests to any endpoint.
@@ -115,7 +116,10 @@ class Server(PullBase):
                 method=request.method,
                 query=self._flatten_query_args(dict(request.args)),
                 data=data,
-                is_json=isinstance(data, dict)
+                is_json=isinstance(data, dict),
+                url=request.url,
+                full_path=request.full_path,
+                path=request.path
             )
             that.notify(payload)
 

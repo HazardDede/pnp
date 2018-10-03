@@ -38,7 +38,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.fs.FileSystemWatcher
     args:
-      path: "/tmp"
+      path: "/tmp/camera"
       recursive: True
       patterns: "*.jpg"
       ignore_directories: True
@@ -50,6 +50,6 @@ __Examples__
   push:
     plugin: pnp.plugins.push.ml.FaceR
     args:
-      known_faces_dir: /path/to/known/faces
+      known_faces_dir: "/tmp/faces"
       unknown_label: "don't know him"
 ```

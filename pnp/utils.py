@@ -270,6 +270,36 @@ def try_parse_int(candidate):
         return None
 
 
+def try_parse_int_float_str(candidate):
+    """
+    Tries to parse the given value as an int or float. If this does not work simply the string-representation of the
+    candidate will be returned.
+
+    Examples:
+        >>> res = try_parse_int_float_str(5)
+        >>> res, type(res)
+        (5, <class 'int'>)
+        >>> res = try_parse_int_float_str(5.5)
+        >>> res, type(res)
+        (5.5, <class 'float'>)
+        >>> res = try_parse_int_float_str(5.0)
+        >>> res, type(res)
+        (5, <class 'int'>)
+        >>> res = try_parse_int_float_str('simple_string')
+        >>> res, type(res)
+        ('simple_string', <class 'str'>)
+
+    Args:
+        candidate: Candidate to convert.
+
+    """
+    try:
+        ffloat = float(candidate)
+        return int(ffloat) if ffloat.is_integer() else ffloat
+    except:
+        return str(candidate)
+
+
 def try_parse_bool(value, default=None):
     """
     Tries to parse the given value as a boolean. If the parsing is unsuccessful the default will be returned.
