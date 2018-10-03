@@ -107,7 +107,8 @@ class OpenWeather(Polling):
         self.tz = Validator.cast_or_none(str, tz)
 
         from pytz import timezone
-        self._tz = datetime.utcnow().astimezone().tzinfo if self.tz is None else timezone(self.tz)
+        from tzlocal import get_localzone
+        self._tz = get_localzone() if self.tz is None else timezone(self.tz)
 
     def poll(self):
         url = self._create_request_url()

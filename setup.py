@@ -58,7 +58,8 @@ setup(
         'requests>=2.18.4',
         'ruamel.yaml>=0.15.37',
         'schedule>=0.5.0',
-        'schema>=0.6.7'
+        'schema>=0.6.7',
+        'tzlocal>=1.5.0'
     ],
     extras_require={
         'dht': ['Adafruit_DHT==1.3.2'],

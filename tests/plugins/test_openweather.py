@@ -30,7 +30,7 @@ def patch_requests_for_openweather(monkeypatch, status_code, response):
     monkeypatch.setattr(requests, 'get', call_validator)
 
 
-def test_openweather_for_smoke(monkeypatch):
+def test_openweather_for_valid_response(monkeypatch):
     response = json.loads(VALID_RESPONSE)
 
     patch_requests_for_openweather(monkeypatch, 200, response)
@@ -66,3 +66,8 @@ def test_openweather_lat_lon_city_name():
     with pytest.raises(ValueError) as ve:
         OpenWeather(name='pytest', api_key="secret", lon=1.0)
     assert "You have to pass city_name or lat and lon." in str(ve)
+
+
+def test_openweather_tz_for_smoke():
+    OpenWeather(name='pytest', api_key="secret", city_name="Elmshorn")  # local timezone
+    OpenWeather(name='pytest', api_key="secret", city_name="Elmshorn", tz="GMT")  # tz override with GMT
