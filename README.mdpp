@@ -147,20 +147,45 @@ into a dictionary inside the 'payload' or 'data' key via selector.
 
 ### Engines (>= 0.10.0)
 
-You can now specify different engines to run your tasks. Please see the snippets below.
+!INCLUDE "docs/engines/index.md", 3
 
-!INCLUDECODE "config/engines/threading.yaml" (yaml)
+## Useful hints
 
-!INCLUDECODE "config/engines/process.yaml" (yaml)
+### Configuration checking
 
-If you do not specify any engine the `ThreadEngine` is chosen by default accompanied by the `AdvancedRetryHandler`.
-This keeps maximum backwards compatibility.
+You can check your pnp configuration file by starting pnp with the `-c | --check` flag set. This will only run
+the initializer but not execute the configuration.
 
-By using the `Sequential` engine you can run your configs as scripts. Given the example below, the "script" will
-end when it has finished counting to 3. Make sure to use the `NoRetryHandler` to actually end the runner when
-the pull has finished instead of retrying the "failed" `pull`.
+```bash
+pnp --check <pnp_configuration>
+```
 
-!INCLUDECODE "config/engines/sequential.yaml" (yaml)
+### Logging
+
+You can use different logging configurations in two ways:
+
+```bash
+# Specify when starting pnp
+pnp --log=<logging_configuration> <pnp_configuration>
+# Specify by environment variable
+export PNP_LOG_CONF=<logging_configuration>
+pnp <pnp_configuration>
+```
+
+A simple logging configuration that will log severe errors to a separate rotating log file looks like this:
+
+!INCLUDECODE "config/logging/severe.logging" (yaml)
+
+### Docker images
+
+```bash
+make docker  # OR: make docker-arm  for raspberry image
+# Mount the task and logging configuration when starting up the container
+docker run -it --rm \
+    -v /path/to/pnp/config/01_hello_world.yaml:/config/config.yaml \
+    -v /path/to/logging/config/file.logging:/config/logging.yaml \
+    pnp:0.10.0
+```
 
 
 !INCLUDE "docs/plugins/index.md", 1
@@ -173,7 +198,7 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 
     pip install pnp==0.10.0
 
-* **0.10.1** Introduces the pull.zway.ZwayReceiver and pull.sensor.OpenWeather component.
+* **0.10.1** Introduces the pull.zway.ZwayReceiver and pull.sensor.OpenWeather component. Introduces logging configurations.
 * **0.10.0** Introduces engines. You are not enforced to explicitly use one and backward compatibility with
 legacy configs is given (actually the example configs work as they did before the change). So there shouldn't be any breaking change.
 * ... -> no history

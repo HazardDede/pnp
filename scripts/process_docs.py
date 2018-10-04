@@ -21,6 +21,7 @@ def main():
     process_directory('docs/plugins/pull')
     process_directory('docs/plugins/push')
     process_file('docs/plugins/index.mdpp')
+    process_file('docs/engines/index.mdpp')
     process_file('README.mdpp')
 
 

@@ -13,22 +13,29 @@ Pulls data from sources and pushes it to sinks.
 3.4\.  [Dependencies](#dependencies)  
 3.5\.  [Envelope (>= 0.7.1)](#envelope>=0.7.1)  
 3.6\.  [Engines (>= 0.10.0)](#engines>=0.10.0)  
-4\.  [Plugins](#plugins)  
-4.1\.  [pnp.plugins.pull.simple.Count](#pnp.plugins.pull.simple.count)  
-4.2\.  [pnp.plugins.pull.sensor.DHT](#pnp.plugins.pull.sensor.dht)  
-4.3\.  [pnp.plugins.pull.fs.FileSystemWatcher](#pnp.plugins.pull.fs.filesystemwatcher)  
-4.4\.  [pnp.plugins.pull.mqtt.MQTTPull](#pnp.plugins.pull.mqtt.mqttpull)  
-4.5\.  [pnp.plugins.pull.simple.Repeat](#pnp.plugins.pull.simple.repeat)  
-4.6\.  [pnp.plugins.pull.http.Server](#pnp.plugins.pull.http.server)  
-4.7\.  [pnp.plugins.pull.ZwayPoll](#pnp.plugins.pull.zwaypoll)  
-4.8\.  [pnp.plugins.pull.ZwayReceiver](#pnp.plugins.pull.zwayreceiver)  
-4.9\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
-4.10\.  [pnp.plugins.push.ml.FaceR](#pnp.plugins.push.ml.facer)  
-4.11\.  [pnp.plugins.push.fs.FileDump](#pnp.plugins.push.fs.filedump)  
-4.12\.  [pnp.plugins.push.http.Call](#pnp.plugins.push.http.call)  
-4.13\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
-4.14\.  [pnp.plugins.push.mqtt.MQTTPush](#pnp.plugins.push.mqtt.mqttpush)  
-5\.  [Changelog](#changelog)  
+3.6.1\.  [pnp.engines.sequential.SequentialEngine](#pnp.engines.sequential.sequentialengine)  
+3.6.2\.  [pnp.engines.thread.ThreadEngine](#pnp.engines.thread.threadengine)  
+3.6.3\.  [pnp.engines.process.ProcessEngine](#pnp.engines.process.processengine)  
+4\.  [Useful hints](#usefulhints)  
+4.1\.  [Configuration checking](#configurationchecking)  
+4.2\.  [Logging](#logging)  
+4.3\.  [Docker images](#dockerimages)  
+5\.  [Plugins](#plugins)  
+5.1\.  [pnp.plugins.pull.simple.Count](#pnp.plugins.pull.simple.count)  
+5.2\.  [pnp.plugins.pull.sensor.DHT](#pnp.plugins.pull.sensor.dht)  
+5.3\.  [pnp.plugins.pull.fs.FileSystemWatcher](#pnp.plugins.pull.fs.filesystemwatcher)  
+5.4\.  [pnp.plugins.pull.mqtt.MQTTPull](#pnp.plugins.pull.mqtt.mqttpull)  
+5.5\.  [pnp.plugins.pull.simple.Repeat](#pnp.plugins.pull.simple.repeat)  
+5.6\.  [pnp.plugins.pull.http.Server](#pnp.plugins.pull.http.server)  
+5.7\.  [pnp.plugins.pull.ZwayPoll](#pnp.plugins.pull.zwaypoll)  
+5.8\.  [pnp.plugins.pull.ZwayReceiver](#pnp.plugins.pull.zwayreceiver)  
+5.9\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
+5.10\.  [pnp.plugins.push.ml.FaceR](#pnp.plugins.push.ml.facer)  
+5.11\.  [pnp.plugins.push.fs.FileDump](#pnp.plugins.push.fs.filedump)  
+5.12\.  [pnp.plugins.push.http.Call](#pnp.plugins.push.http.call)  
+5.13\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
+5.14\.  [pnp.plugins.push.mqtt.MQTTPush](#pnp.plugins.push.mqtt.mqttpush)  
+6\.  [Changelog](#changelog)  
 
 <a name="installation"></a>
 
@@ -270,9 +277,45 @@ into a dictionary inside the 'payload' or 'data' key via selector.
 
 ### 3.6\. Engines (>= 0.10.0)
 
-You can now specify different engines to run your tasks. Please see the snippets below.
+If you do not specify any engine the `ThreadEngine` is chosen by default accompanied by the `AdvancedRetryHandler`.
+This keeps maximum backwards compatibility.
+
+<a name="pnp.engines.sequential.sequentialengine"></a>
+
+#### 3.6.1\. pnp.engines.sequential.SequentialEngine
+
+By using the `Sequential` engine you can run your configs as scripts. Given the example below, the "script" will
+end when it has finished counting to 3. Make sure to use the `NoRetryHandler` to actually end the runner when
+the pull has finished instead of retrying the "failed" `pull`. You cn only run a single task not multiple.
+When you want to run multiple task in a concurrent manner you have to use the `ThreadEngine` or the `ProcessEngine`.
 
 ```yaml
+#### Simple sequential handler
+#### Counts from 1 to 3 and then terminates
+engine: !engine
+  type: pnp.engines.sequential.SequentialEngine
+  retry_handler: !retry
+    type: pnp.engines.NoRetryHandler  # Is the key to termination after counting has finished
+tasks:
+  - name: sequential
+    pull:
+      plugin: pnp.plugins.pull.simple.Count
+      args:
+        wait: 1
+        from_cnt: 1
+        to_cnt: 4
+    push:
+      - plugin: pnp.plugins.push.simple.Echo
+
+```
+
+<a name="pnp.engines.thread.threadengine"></a>
+
+#### 3.6.2\. pnp.engines.thread.ThreadEngine
+
+```yaml
+#### Will use threads to accomplish concurrency
+#### Drawback: If a plugin does not stop gracefully the termination will hang...
 engine: !engine
   type: pnp.engines.thread.ThreadEngine
   queue_worker: 1
@@ -289,7 +332,13 @@ tasks:
       - plugin: pnp.plugins.push.simple.Echo
 ```
 
+<a name="pnp.engines.process.processengine"></a>
+
+#### 3.6.3\. pnp.engines.process.ProcessEngine
+
 ```yaml
+#### Will use multiprocessing to accomplish concurrency
+#### Drawback: Some plugins might not work or need to be aware of
 engine: !engine
   type: pnp.engines.process.ProcessEngine
   queue_worker: 1
@@ -306,39 +355,87 @@ tasks:
       - plugin: pnp.plugins.push.simple.Echo
 ```
 
-If you do not specify any engine the `ThreadEngine` is chosen by default accompanied by the `AdvancedRetryHandler`.
-This keeps maximum backwards compatibility.
+<a name="usefulhints"></a>
 
-By using the `Sequential` engine you can run your configs as scripts. Given the example below, the "script" will
-end when it has finished counting to 3. Make sure to use the `NoRetryHandler` to actually end the runner when
-the pull has finished instead of retrying the "failed" `pull`.
+## 4\. Useful hints
+
+<a name="configurationchecking"></a>
+
+### 4.1\. Configuration checking
+
+You can check your pnp configuration file by starting pnp with the `-c | --check` flag set. This will only run
+the initializer but not execute the configuration.
+
+```bash
+pnp --check <pnp_configuration>
+```
+
+<a name="logging"></a>
+
+### 4.2\. Logging
+
+You can use different logging configurations in two ways:
+
+```bash
+# Specify when starting pnp
+pnp --log=<logging_configuration> <pnp_configuration>
+# Specify by environment variable
+export PNP_LOG_CONF=<logging_configuration>
+pnp <pnp_configuration>
+```
+
+A simple logging configuration that will log severe errors to a separate rotating log file looks like this:
 
 ```yaml
-engine: !engine
-  type: pnp.engines.sequential.SequentialEngine
-  retry_handler: !retry
-    type: pnp.engines.NoRetryHandler
-tasks:
-  - name: sequential
-    pull:
-      plugin: pnp.plugins.pull.simple.Count
-      args:
-        wait: 1
-        from_cnt: 1
-        to_cnt: 4
-    push:
-      - plugin: pnp.plugins.push.simple.Echo
+version: 1
+disable_existing_loggers: False
 
+formatters:
+    simple:
+        format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+handlers:
+    console:
+        class: logging.StreamHandler
+        level: DEBUG
+        formatter: simple
+        stream: ext://sys.stdout
+
+    error_file_handler:
+        class: logging.handlers.RotatingFileHandler
+        level: ERROR
+        formatter: simple
+        filename: errors.log
+        maxBytes: 10485760 # 10MB
+        backupCount: 20
+        encoding: utf8
+
+root:
+    level: INFO
+    handlers: [console, error_file_handler]
+```
+
+<a name="dockerimages"></a>
+
+### 4.3\. Docker images
+
+```bash
+make docker  # OR: make docker-arm  for raspberry image
+# Mount the task and logging configuration when starting up the container
+docker run -it --rm \
+    -v /path/to/pnp/config/01_hello_world.yaml:/config/config.yaml \
+    -v /path/to/logging/config/file.logging:/config/logging.yaml \
+    pnp:0.10.0
 ```
 
 
 <a name="plugins"></a>
 
-## 4\. Plugins
+## 5\. Plugins
 
 <a name="pnp.plugins.pull.simple.count"></a>
 
-### 4.1\. pnp.plugins.pull.simple.Count
+### 5.1\. pnp.plugins.pull.simple.Count
 
 Emits every `wait` seconds a counting value which runs from `from_cnt` to `to_cnt`.
 If `to_cnt` is None the counter will count to infinity.
@@ -368,7 +465,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.sensor.dht"></a>
 
-### 4.2\. pnp.plugins.pull.sensor.DHT
+### 5.2\. pnp.plugins.pull.sensor.DHT
 
 Periodically polls a dht11 or dht22 (aka am2302) for temperature and humidity readings.
 Polling interval is controlled by `interval`.
@@ -405,7 +502,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.fs.filesystemwatcher"></a>
 
-### 4.3\. pnp.plugins.pull.fs.FileSystemWatcher
+### 5.3\. pnp.plugins.pull.fs.FileSystemWatcher
 
 Watches the given directory for changes like created, moved, modified and deleted files. If `ignore_directories` is
 set to False, then directories will be reported as well.
@@ -472,7 +569,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.mqtt.mqttpull"></a>
 
-### 4.4\. pnp.plugins.pull.mqtt.MQTTPull
+### 5.4\. pnp.plugins.pull.mqtt.MQTTPull
 
 Pulls messages from the specified topic from the given mosquitto mqtt broker (identified by host and port).
 
@@ -512,7 +609,7 @@ __Examples__
 
 <a name="pnp.plugins.pull.simple.repeat"></a>
 
-### 4.5\. pnp.plugins.pull.simple.Repeat
+### 5.5\. pnp.plugins.pull.simple.Repeat
 
 Emits every `wait` seconds the same `repeat`.
 
@@ -539,7 +636,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.http.server"></a>
 
-### 4.6\. pnp.plugins.pull.http.Server
+### 5.6\. pnp.plugins.pull.http.Server
 
 Listens on the specified `port` for requests to any endpoint.
 Any data passed to the endpoint will be tried to be parsed to a dictionary (json). If this is not possible
@@ -599,7 +696,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.zwaypoll"></a>
 
-### 4.7\. pnp.plugins.pull.ZwayPoll
+### 5.7\. pnp.plugins.pull.ZwayPoll
 
 Pulls the specified json content from the zway rest api. The content is specified by the url, e.g.
 `http://<host>:8083/ZWaveAPI/Run/devices` will pull all devices and serve the result as a json.
@@ -673,7 +770,7 @@ Below are some common selector examples to fetch various metrics from various de
 
 <a name="pnp.plugins.pull.zwayreceiver"></a>
 
-### 4.8\. pnp.plugins.pull.ZwayReceiver
+### 5.8\. pnp.plugins.pull.ZwayReceiver
 
 Setups a http server to process incoming GET-requests from the Zway-App [`HttpGet`](https://github.com/hplato/Zway-HTTPGet/blob/master/index.js).
 
@@ -731,7 +828,7 @@ __Examples__
 
 <a name="pnp.plugins.push.simple.echo"></a>
 
-### 4.9\. pnp.plugins.push.simple.Echo
+### 5.9\. pnp.plugins.push.simple.Echo
 
 Simply log the passed payload to the default logging instance.
 
@@ -758,7 +855,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.ml.facer"></a>
 
-### 4.10\. pnp.plugins.push.ml.FaceR
+### 5.10\. pnp.plugins.push.ml.FaceR
 
 FaceR (short one for face recognition) tags known faces in images. Output is the image with all faces tagged whether
 with the known name or an `unknown_label`. Default for unknown ones is 'Unknown'.
@@ -815,7 +912,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.fs.filedump"></a>
 
-### 4.11\. pnp.plugins.push.fs.FileDump
+### 5.11\. pnp.plugins.push.fs.FileDump
 
 This push dumps the given `payload` to a file to the specified `directory`.
 If argument `file_name` is None, a name will be generated based on the current datetime (%Y%m%d-%H%M%S).
@@ -878,7 +975,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.http.call"></a>
 
-### 4.12\. pnp.plugins.push.http.Call
+### 5.12\. pnp.plugins.push.http.Call
 
 Makes a request to a http resource.
 
@@ -964,7 +1061,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.timedb.influxpush"></a>
 
-### 4.13\. pnp.plugins.push.timedb.InfluxPush
+### 5.13\. pnp.plugins.push.timedb.InfluxPush
 
 Pushes the given `payload` to an influx database using the line `protocol`.
 You have to specify `host`, `port`, `user`, `password` and the `database`.
@@ -1012,7 +1109,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.mqtt.mqttpush"></a>
 
-### 4.14\. pnp.plugins.push.mqtt.MQTTPush
+### 5.14\. pnp.plugins.push.mqtt.MQTTPush
 
 Will push the given `payload` to a mqtt broker (in this case mosquitto).
 The broker is specified by `host` and `port`. In addition a topic needs to be specified were the payload
@@ -1068,7 +1165,7 @@ __Examples__
 
 <a name="changelog"></a>
 
-## 5\. Changelog
+## 6\. Changelog
 
 We cannot ensure not to introduce any breaking changes to interfaces / behaviour. This might occur every commit whether it is
 intended or by accident. Nevertheless we try to list breaking changes in the changelog that we are aware of.
@@ -1076,7 +1173,7 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 
     pip install pnp==0.10.0
 
-* **0.10.1** Introduces the pull.zway.ZwayReceiver and pull.sensor.OpenWeather component.
+* **0.10.1** Introduces the pull.zway.ZwayReceiver and pull.sensor.OpenWeather component. Introduces logging configurations.
 * **0.10.0** Introduces engines. You are not enforced to explicitly use one and backward compatibility with
 legacy configs is given (actually the example configs work as they did before the change). So there shouldn't be any breaking change.
 * ... -> no history
