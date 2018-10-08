@@ -12,7 +12,8 @@ DOCS_PATH = os.path.join(os.path.dirname(__file__), '../docs')
 ENV = {
     'ZWAY_USER': 'foo',
     'ZWAY_PASSWORD': 'bar',
-    'OPENWEATHER_API_KEY': 'baz'
+    'OPENWEATHER_API_KEY': 'baz',
+    'MESSAGE': 'Hello World'
 }
 
 
