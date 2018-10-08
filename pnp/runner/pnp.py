@@ -61,7 +61,7 @@ def run(args):
 
 
 def main():
-    arguments = docopt(__doc__, version='0.10.0')
+    arguments = docopt(__doc__, version='0.11.0')
     run(arguments)
 
 
