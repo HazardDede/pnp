@@ -121,6 +121,7 @@ def load_config(config_path):
 
     mentor = make_mentor(config_path)
     # Remove the faked dictionary as root level
+
     validated = schema.validate(mentor.augment(cfg)['cfg'])
     for pull in validated['tasks']:
         for push in pull['pushes']:

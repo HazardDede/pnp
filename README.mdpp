@@ -42,7 +42,9 @@ This example yields the string 'Hello World' every second.
 
 Tip: You can validate your config without actually executing it with
 
+```yaml
    pnp --check helloworld.yaml
+```
 
 ## Building Blocks
 
@@ -197,7 +199,9 @@ Example:
 
 !INCLUDECODE "config/dictmentor/base.yaml" (yaml)
 
-!INCLUDECODE "config/dictmentor/push.ext" (yaml)
+!INCLUDECODE "config/dictmentor/echo.pull" (yaml)
+
+!INCLUDECODE "config/dictmentor/nop.pull" (yaml)
 
 
 ### Docker images

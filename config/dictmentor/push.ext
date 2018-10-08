@@ -1,3 +1,0 @@
-# Contents of push.ext
-push:
-- plugin: pnp.plugins.push.simple.Echo

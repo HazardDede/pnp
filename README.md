@@ -87,7 +87,9 @@ This example yields the string 'Hello World' every second.
 
 Tip: You can validate your config without actually executing it with
 
+```yaml
    pnp --check helloworld.yaml
+```
 
 <a name="buildingblocks"></a>
 
@@ -442,19 +444,25 @@ Example:
 # Make sure to export the environment variable to echo:
 # export MESSAGE="Hello World"
 
-- name: selector
+- name: dictmentor
   pull:
     plugin: pnp.plugins.pull.simple.Repeat
     args:
       wait: 1
       repeat: "{{env::MESSAGE}}"
-  external: push.ext
+  push:
+    - external: echo.pull
+    - external: nop.pull
 ```
 
 ```yaml
-# Contents of push.ext
-push:
-- plugin: pnp.plugins.push.simple.Echo
+# Contents of echo.pull
+plugin: pnp.plugins.push.simple.Echo
+```
+
+```yaml
+# Contents of nop.pull
+plugin: pnp.plugins.push.simple.Nop
 ```
 
 
