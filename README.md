@@ -18,8 +18,9 @@ Pulls data from sources and pushes it to sinks.
 3.6.3\.  [pnp.engines.process.ProcessEngine](#pnp.engines.process.processengine)  
 4\.  [Useful hints](#usefulhints)  
 4.1\.  [Configuration checking](#configurationchecking)  
-4.2\.  [Logging](#logging)  
-4.3\.  [Docker images](#dockerimages)  
+4.2\.  [Logging (>= 0.11.0)](#logging>=0.11.0)  
+4.3\.  [dictmentor (>= 0.11.0)](#dictmentor>=0.11.0)  
+4.4\.  [Docker images](#dockerimages)  
 5\.  [Plugins](#plugins)  
 5.1\.  [pnp.plugins.pull.simple.Count](#pnp.plugins.pull.simple.count)  
 5.2\.  [pnp.plugins.pull.sensor.DHT](#pnp.plugins.pull.sensor.dht)  
@@ -370,9 +371,9 @@ the initializer but not execute the configuration.
 pnp --check <pnp_configuration>
 ```
 
-<a name="logging"></a>
+<a name="logging>=0.11.0"></a>
 
-### 4.2\. Logging
+### 4.2\. Logging (>= 0.11.0)
 
 You can use different logging configurations in two ways:
 
@@ -415,9 +416,51 @@ root:
     handlers: [console, error_file_handler]
 ```
 
+
+<a name="dictmentor>=0.11.0"></a>
+
+### 4.3\. dictmentor (>= 0.11.0)
+
+You can augment the configuration by extensions from the `dictmentor` package.
+Please see [DictMentor](https://github.com/HazardDede/dictmentor) for further reference.
+
+The `DictMentor` instance will be instantiated with the following code and thus the following extensions:
+
+```yaml
+from dictmentor import DictMentor, ext
+return DictMentor(
+    ext.Environment(fail_on_unset=True),
+    ext.ExternalResource(base_path=os.path.dirname(config_path)),
+    ext.ExternalYamlResource(base_path=os.path.dirname(config_path))
+)
+```
+
+Example:
+
+```yaml
+# Uses the dictmentor package to augment the configuration by dictmentor extensions.
+# Make sure to export the environment variable to echo:
+# export MESSAGE="Hello World"
+
+- name: selector
+  pull:
+    plugin: pnp.plugins.pull.simple.Repeat
+    args:
+      wait: 1
+      repeat: "{{env::MESSAGE}}"
+  external: push.ext
+```
+
+```yaml
+# Contents of push.ext
+push:
+- plugin: pnp.plugins.push.simple.Echo
+```
+
+
 <a name="dockerimages"></a>
 
-### 4.3\. Docker images
+### 4.4\. Docker images
 
 ```bash
 make docker  # OR: make docker-arm  for raspberry image
@@ -1173,7 +1216,8 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 
     pip install pnp==0.10.0
 
-* **0.10.1** Introduces the pull.zway.ZwayReceiver and pull.sensor.OpenWeather component. Introduces logging configurations.
+* **0.11.0** Introduces the pull.zway.ZwayReceiver and pull.sensor.OpenWeather component.
+ Introduces logging configurations. Integrates dictmentor package to augment configuration.
 * **0.10.0** Introduces engines. You are not enforced to explicitly use one and backward compatibility with
 legacy configs is given (actually the example configs work as they did before the change). So there shouldn't be any breaking change.
 * ... -> no history

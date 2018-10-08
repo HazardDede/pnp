@@ -7,4 +7,5 @@ install:
   - ./.travis/install.sh
 script:
   - make lint
+  - make test-configs
   - make test

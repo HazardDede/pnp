@@ -1,0 +1,11 @@
+# Uses the dictmentor package to augment the configuration by dictmentor extensions.
+# Make sure to export the environment variable to echo:
+# export MESSAGE="Hello World"
+
+- name: selector
+  pull:
+    plugin: pnp.plugins.pull.simple.Repeat
+    args:
+      wait: 1
+      repeat: "{{env::MESSAGE}}"
+  external: push.ext

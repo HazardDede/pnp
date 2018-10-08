@@ -1,3 +1,4 @@
+import os
 from functools import partial
 from ruamel import yaml
 
@@ -98,6 +99,15 @@ def custom_constructor(loader, node, clstype):
     return load_plugin(clazz_name, clstype, **args)
 
 
+def make_mentor(config_path):
+    from dictmentor import DictMentor, ext
+    return DictMentor(
+        ext.Environment(fail_on_unset=True),
+        ext.ExternalResource(base_path=os.path.dirname(config_path)),
+        ext.ExternalYamlResource(base_path=os.path.dirname(config_path))
+    )
+
+
 def load_config(config_path):
     """Load the specified config"""
     yaml.SafeLoader.add_constructor(u"!engine", partial(custom_constructor, clstype=Engine))
@@ -105,7 +115,13 @@ def load_config(config_path):
 
     with open(config_path, 'r') as fp:
         cfg = yaml.safe_load(fp)
-    validated = schema.validate(cfg)
+        # pnp configuration is probably of list of tasks. dictmentor needs a dict ...
+        # ... let's fake it ;-)
+        cfg = dict(cfg=cfg)
+
+    mentor = make_mentor(config_path)
+    # Remove the faked dictionary as root level
+    validated = schema.validate(mentor.augment(cfg)['cfg'])
     for pull in validated['tasks']:
         for push in pull['pushes']:
             push['deps'] = list(validate_push_deps(push))

@@ -160,7 +160,7 @@ the initializer but not execute the configuration.
 pnp --check <pnp_configuration>
 ```
 
-### Logging
+### Logging (>= 0.11.0)
 
 You can use different logging configurations in two ways:
 
@@ -175,6 +175,30 @@ pnp <pnp_configuration>
 A simple logging configuration that will log severe errors to a separate rotating log file looks like this:
 
 !INCLUDECODE "config/logging/severe.logging" (yaml)
+
+
+### dictmentor (>= 0.11.0)
+
+You can augment the configuration by extensions from the `dictmentor` package.
+Please see [DictMentor](https://github.com/HazardDede/dictmentor) for further reference.
+
+The `DictMentor` instance will be instantiated with the following code and thus the following extensions:
+
+```yaml
+from dictmentor import DictMentor, ext
+return DictMentor(
+    ext.Environment(fail_on_unset=True),
+    ext.ExternalResource(base_path=os.path.dirname(config_path)),
+    ext.ExternalYamlResource(base_path=os.path.dirname(config_path))
+)
+```
+
+Example:
+
+!INCLUDECODE "config/dictmentor/base.yaml" (yaml)
+
+!INCLUDECODE "config/dictmentor/push.ext" (yaml)
+
 
 ### Docker images
 
@@ -198,7 +222,8 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 
     pip install pnp==0.10.0
 
-* **0.10.1** Introduces the pull.zway.ZwayReceiver and pull.sensor.OpenWeather component. Introduces logging configurations.
+* **0.11.0** Introduces the pull.zway.ZwayReceiver and pull.sensor.OpenWeather component.
+ Introduces logging configurations. Integrates dictmentor package to augment configuration.
 * **0.10.0** Introduces engines. You are not enforced to explicitly use one and backward compatibility with
 legacy configs is given (actually the example configs work as they did before the change). So there shouldn't be any breaking change.
 * ... -> no history
