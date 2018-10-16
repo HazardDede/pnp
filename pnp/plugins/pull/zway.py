@@ -170,6 +170,7 @@ class ZwayReceiver(Server):
         device_map = self.device_mapping.get(raw_device)
         if device_map is None:
             if self.ignore_unknown_devices:
+                self.logger.debug("Got device '{raw_device}' but it is ignored".format(**locals()))
                 return  # Device is not mapped and should be ignored-> abort
             device_map = dict(alias=raw_device)  # If it isn't ignored just take the raw name
 
