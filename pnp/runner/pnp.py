@@ -21,20 +21,21 @@ from docopt import docopt
 from schema import Schema, Use, And, Or
 from ruamel import yaml
 
+from ..utils import get_first_existing_file
 from ..app import Application
 
 
-def setup_logging(default_path, default_level=logging.INFO, env_key='PNP_LOG_CONF'):
+def setup_logging(*candidates, default_level=logging.INFO, env_key='PNP_LOG_CONF'):
     """Setup logging configuration"""
-    path = default_path
-    value = os.getenv(env_key, None)
-    if value:
-        path = value
-    if os.path.exists(path):
-        with open(path, 'rt') as f:
+    log_file_path = get_first_existing_file(*candidates)
+    env_path = os.getenv(env_key, None)
+    if env_path:
+        log_file_path = env_path
+    if os.path.exists(log_file_path):
+        with open(log_file_path, 'rt') as f:
             config = yaml.safe_load(f.read())
         logging.config.dictConfig(config)
-        logging.info("Logging loaded from: {}".format(path))
+        logging.info("Logging loaded from: {}".format(log_file_path))
     else:
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=default_level)
         logging.info("Logging loaded with basic configuration")
@@ -52,10 +53,12 @@ def validate_args(args):
 
 
 def run(args):
-    default_log_level = os.environ.get('LOG_LEVEL', 'DEBUG')
-    setup_logging(default_path=(args['--log'] or 'logging.yaml'), default_level=default_log_level)
     validated = validate_args(args)
-    app = Application.from_file(validated['<configuration>'])
+    pnp_cfg_path = validated['<configuration>']
+    default_log_level = os.environ.get('LOG_LEVEL', 'DEBUG')
+    setup_logging(args['--log'], 'logging.yaml', os.path.join(os.path.dirname(pnp_cfg_path), 'logging.yaml'),
+                  default_level=default_log_level)
+    app = Application.from_file(pnp_cfg_path)
     if not validated['--check']:
         app.start()
 

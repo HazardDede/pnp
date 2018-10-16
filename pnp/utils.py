@@ -421,6 +421,24 @@ def load_file(fp, mode='auto', base64=False):
     return dict(file_name=os.path.basename(fp), content=contents, mode=read_mode, base64=base64)
 
 
+def get_first_existing_file(*file_list):
+    """
+    Given is a list of possible files. The function returns the first item that exists. If none of the candidates
+    exists `None` is returned.
+
+    Examples:
+        >>> import tempfile
+        >>> with tempfile.NamedTemporaryFile() as ntf:
+        ...     res = get_first_existing_file('idonotexists.exists', ntf.name, '/asd/dasd/ad.ad')
+        >>> res == ntf.name
+        True
+    """
+    for fp in file_list:
+        if isinstance(fp, str) and os.path.isfile(fp):
+            return fp
+    return None
+
+
 DurationLiteral = Union[str, int]
 
 
