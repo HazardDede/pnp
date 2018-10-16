@@ -58,24 +58,30 @@ pull_schema = Schema({
 
 push_list_schema = Schema([push_schema])
 
-tasks_schema = Schema([{
+task_entity_schema = Schema({
     "name": Use(str),
     OrOverride("pull", "inbound", "pull"): pull_schema,
     OrOverride("pushes", "outbound", "push"): And(Or(push_list_schema, push_schema), Use(make_list))
-}])
+})
+
+task_list_schema = Schema([task_entity_schema])
+
+# Allow confguration of a single task
+tasks = Schema(Or(And(task_entity_schema, Use(make_list)), task_list_schema))  # Single or multiple tasks are allowed
 
 engine_schema = Engine
 
 tasks_settings_schema = Schema({
     Optional(Or("anchors", "anchor", "ref", "refs", "alias", "aliases")): object,
     Optional("engine", default=None): engine_schema,
-    'tasks': tasks_schema
+    'tasks': tasks
 })
 
-root_schema = Schema(And(Or(
-    tasks_settings_schema,  # Tasks with additional settings and aliases (yaml only)
-    tasks_schema,  # Tasks without settings or aliases - just a list of tasks (backward compatibility)
-),
+root_schema = Schema(And(
+    Or(
+        tasks_settings_schema,  # Tasks with additional settings and aliases (yaml only)
+        tasks,  # Tasks without settings or aliases - just a list of tasks (backward compatibility)
+    ),
     # In case of list only we create a tasks node - so we know it's always there
     Use(lambda x: x if 'tasks' in x else dict(tasks=x))
 ))
