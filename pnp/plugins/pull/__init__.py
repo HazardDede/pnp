@@ -66,18 +66,18 @@ class Polling(PullBase):
             self._scheduler.run_all()
 
         while not self.stopped:
-            try:
-                self._scheduler.run_pending()
-            except StopPollingError:
-                self.stop()
-            except:  # pragma: no cover
-                import traceback
-                self.logger.error("[{name}]\n{error}".format(name=self.name, error=traceback.format_exc()))
+            self._scheduler.run_pending()
             time.sleep(0.5)
 
     def run_schedule(self):
-        payload = self.poll()
-        self.notify(payload)
+        try:
+            payload = self.poll()
+            self.notify(payload)
+        except StopPollingError:
+            self.stop()
+        except:  # pragma: no cover
+            import traceback
+            self.logger.error("[{name}]\n{error}".format(name=self.name, error=traceback.format_exc()))
 
     @abstractmethod
     def poll(self):
