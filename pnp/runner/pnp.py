@@ -31,7 +31,7 @@ def setup_logging(*candidates, default_level=logging.INFO, env_key='PNP_LOG_CONF
     env_path = os.getenv(env_key, None)
     if env_path:
         log_file_path = env_path
-    if os.path.exists(log_file_path):
+    if log_file_path and os.path.exists(log_file_path):
         with open(log_file_path, 'rt') as f:
             config = yaml.safe_load(f.read())
         logging.config.dictConfig(config)
