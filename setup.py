@@ -47,7 +47,7 @@ setup(
     },
     packages=find_packages(exclude=["tests"]),
     install_requires=[
-        'argresolver>=0.3.1',
+        'argresolver>=0.3.2',
         'binaryornot>=0.4.4',
         'dictmentor>=0.1.0',
         'docopt>=0.6.2',
