@@ -6,7 +6,9 @@ Polling interval is controlled by `interval`.
 __Arguments__
 
 **device (str, optional)**: The device to poll (one of dht22, dht11, am2302). Default is 'dht22'.<br/>
-**data_gpio (int, optional)**: The data gpio port where the device operates on. Default is 17.
+**data_gpio (int, optional)**: The data gpio port where the device operates on. Default is 17.</br>
+**humidity_offset (float, optional)**: Positive/Negative offset for humidity. Default is 0.0.</br>
+**temp_offset (float, optional)**: Positive/Negative offset for temperature. Default is 0.0.
 
 __Result__
 
@@ -27,6 +29,8 @@ __Examples__
       device: dht22  # Connect to a dht22
       data_gpio: 17  # DHT is connected to gpio port 17
       interval: 5m  # Polls the readings every 5 minutes
+      humidity_offset: -5.0  # Subtracts 5% from the humidity reading
+      temp_offset: 1.0  # Adds 1 °C to the temperature reading
   push:
     - plugin: pnp.plugins.push.simple.Echo
       selector: payload.temperature  # Temperature reading

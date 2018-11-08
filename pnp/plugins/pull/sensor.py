@@ -49,12 +49,14 @@ class DHT(Polling):
     """
     __prefix__ = 'dht'
 
-    def __init__(self, device='dht22', data_gpio=17, **kwargs):
+    def __init__(self, device='dht22', data_gpio=17, humidity_offset=0.0, temp_offset=0.0, **kwargs):
         super().__init__(**kwargs)
         valid_devices = ['dht11', 'dht22', 'am2302']
         self.device = str(device).lower()
         Validator.one_of(valid_devices, device=self.device)
         self.data_gpio = int(data_gpio)
+        self.humidity_offset = float(humidity_offset)
+        self.temp_offset = float(temp_offset)
 
     def poll(self):
         # Adafruit package is optional - import at the last moment
@@ -70,7 +72,10 @@ class DHT(Polling):
         if humidity is None or temperature is None:
             raise PollingError("Failed to get '{}' @ GPIO {} readings...".format(self.device, str(self.data_gpio)))
 
-        return {'humidity': round(float(humidity), 2), 'temperature': round(float(temperature), 2)}
+        return {
+            'humidity': round(float(humidity) + self.humidity_offset, 2),
+            'temperature': round(float(temperature) + self.temp_offset, 2)
+        }
 
 
 @auto_str_ignore(ignore_list=["api_key"])

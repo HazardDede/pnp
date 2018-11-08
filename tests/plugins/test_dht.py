@@ -1,5 +1,6 @@
 import sys
 import time
+import math
 import types
 
 from mock import Mock
@@ -27,7 +28,23 @@ def test_dht_poll_for_smoke():
 
     runner = make_runner(dut, callback)
     with start_runner(runner):
-        time.sleep(5)
+        time.sleep(3)
 
-    assert len(events) >= 4
-    assert all([e['humidity'] == 57.5 and e['temperature'] == 23.2 for e in events])
+    assert len(events) >= 2
+    assert all([math.isclose(e['humidity'], 57.5) and math.isclose(e['temperature'], 23.2) for e in events])
+
+
+def test_dht_poll_with_offset():
+    mock_adafruit.read_retry.return_value = (57.5, 23.2)  # (humidity, temp)
+    dut = DHT(name='pytest', device='dht22', data_gpio=99, interval="1s", humidity_offset=-5.25, temp_offset=1.5)
+
+    events = []
+    def callback(plugin, payload):
+        events.append(payload)
+
+    runner = make_runner(dut, callback)
+    with start_runner(runner):
+        time.sleep(3)
+
+    assert len(events) >= 2
+    assert all([math.isclose(e['humidity'], 52.25) and math.isclose(e['temperature'], 24.7) for e in events])
