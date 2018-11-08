@@ -121,6 +121,21 @@ class ZwayReceiver(Server):
 
     DEVICE_REGEX = r'[a-zA-Z0-9_\-]+'
     VALUE_REGEX = r'[a-zA-Z0-9\.,]+'
+    MODE_AUTO = 'auto'
+    MODE_MAPPING = 'mapping'
+    MODE_BOTH = 'both'
+    VALID_MODES = [MODE_AUTO, MODE_MAPPING, MODE_BOTH]
+    VDEV_REGEX = r'ZWayVDev_zway_(?P<device_id>[0-9]+)\-(?P<instance>[0-9]+)\-(?P<cclass>[0-9]+)(\-(?P<mode>[0-9]+))?'
+
+    AUTO_MAPPING = {
+        '37': 'switch',  # Switch binary
+        '38': 'level',  # Switch multilevel
+        '48': {'1': 'motion'},  # Sensor binary
+        '49': {'1': 'temperature', '3': 'illumination', '4': 'power'},  # Sensor multilevel
+        '50': {'0': 'consumption'},  # Meter
+        '67': {'1': 'setpoint'},  # Thermostat
+        '128': 'battery'
+    }
 
     @staticmethod
     def _make_regex(url_format):
@@ -137,8 +152,17 @@ class ZwayReceiver(Server):
         except IndexError:
             return None
 
+    @classmethod
+    def _auto_map(cls, cclass, mode):
+        descr = cls.AUTO_MAPPING.get(str(cclass))
+        if not descr:
+            return None
+        if isinstance(descr, dict) and mode:
+            descr = descr.get(str(mode))
+        return descr
+
     def __init__(self, url_format="/set?device=%DEVICE%&state=%VALUE%", device_mapping=None,
-                 ignore_unknown_devices=False, **kwargs):
+                 ignore_unknown_devices=False, mode='mapping', vdev_regex=None, **kwargs):
         # Zway module HttpGet only supports GET calls
         kwargs['allowed_methods'] = 'GET'
         super().__init__(**kwargs)
@@ -156,18 +180,49 @@ class ZwayReceiver(Server):
             device_mapping = {}
         self.device_mapping = self.MAPPING_SCHEMA.validate(device_mapping)
 
+        Validator.one_of(self.VALID_MODES, False, mode=mode)
+        self.mode = mode
+
+        if mode in [self.MODE_BOTH, self.MODE_AUTO]:
+            self._vdev_regex = vdev_regex or self.VDEV_REGEX
+            self._vdev_regex_compiled = re.compile(self.VDEV_REGEX)
+
     def notify(self, payload):
         full_path = payload['full_path']
         match = self.url_format_regex.match(full_path)
         if match is None:
-            self.logger.warn("Cannot extract device_name and/or value from '{}' with regex '{}'".format(
+            self.logger.warning("Cannot extract device_name and/or value from '{}' with regex '{}'".format(
                 full_path, self.url_format_regex
             ))
             return
         raw_device = match.group('device')
         value = match.group('value')
 
-        device_map = self.device_mapping.get(raw_device)
+        device_map = None
+        if self.mode in [self.MODE_MAPPING, self.MODE_BOTH]:
+            device_map = self.device_mapping.get(raw_device)
+
+        if not device_map and self.mode in [self.MODE_AUTO, self.MODE_BOTH]:
+            match = self._vdev_regex_compiled.match(raw_device)
+
+            if match is not None:
+                device_id, cclass, mode = match.group('device_id'), match.group('cclass'), match.group('mode')
+                type_of_device = self._auto_map(cclass, mode)
+                if not type_of_device and self.ignore_unknown_devices:
+                    self.logger.debug("Got device '{raw_device}' but it is unknown to the automapper".format(
+                        **locals()))
+                    return
+                device_map = {
+                    'alias': device_id,
+                    'command_class': cclass,
+                    'mode': mode,
+                    'type': type_of_device or (cclass + '-{}'.format(mode) if mode else '')
+                }
+            else:
+                self.logger.warning("Cannot extract device_name and/or value from '{}' with regex '{}'".format(
+                    raw_device, self._vdev_regex
+                ))
+
         if device_map is None:
             if self.ignore_unknown_devices:
                 self.logger.debug("Got device '{raw_device}' but it is ignored".format(**locals()))

@@ -3,6 +3,7 @@
     plugin: pnp.plugins.pull.zway.ZwayReceiver
     args:
       port: 5000
+      mode: mapping  # mapping, auto or both
       device_mapping:
         vdevice1:  # Props = {type: motion}
           alias: dev1
