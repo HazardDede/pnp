@@ -1248,7 +1248,9 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 
     pip install pnp==0.10.0
 
-* **0.11.1** Adds auto-mapping magic to the `pull.zway.ZwayReceiver`. Adds humidity and temperature offset to dht.
+* **0.11.3** Adds auto-mapping magic to the `pull.zway.ZwayReceiver`. Adds humidity and temperature offset to dht.
+* **0.11.2** Fixes error catching of `run_pending` in `Polling` base class
+* **0.11.1** Fixes resolution of logging configuration on startup
 * **0.11.0** Introduces the pull.zway.ZwayReceiver and pull.sensor.OpenWeather component.
  Introduces logging configurations. Integrates dictmentor package to augment configuration.
 * **0.10.0** Introduces engines. You are not enforced to explicitly use one and backward compatibility with
