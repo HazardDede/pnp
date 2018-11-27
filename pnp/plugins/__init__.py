@@ -14,7 +14,7 @@ class InstallOptionalExtraError(ModuleNotFoundError):
 def load_optional_module(namespace, extra):
     try:
         return import_module(namespace)
-    except ModuleNotFoundError:
+    except ImportError:
         raise InstallOptionalExtraError(extra)
 
 
