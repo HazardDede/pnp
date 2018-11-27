@@ -190,3 +190,22 @@ class Validator:
                 arg_type = type(arg_value)
                 raise TypeError("Argument '{arg_name}' is expected to be a function/callable, "
                                 "but is '{arg_type}'".format(**locals()))
+
+    @staticmethod
+    def is_iterable_but_no_str(allow_none=False, **kwargs):
+        """
+        Examples:
+            >>> Validator.is_iterable_but_no_str(l=[])
+            >>> Validator.is_iterable_but_no_str(t=("a", "b"))
+            >>> Validator.is_iterable_but_no_str(s="abc")
+            Traceback (most recent call last):
+            ...
+            TypeError: Argument 's' is expected to be a non-str iterable, but is '<class 'str'>'
+
+        """
+        from .utils import is_iterable_but_no_str
+        for arg_name, arg_value in kwargs.items():
+            if Validator._allow_none(arg_value, allow_none) and not is_iterable_but_no_str(arg_value):
+                arg_type = type(arg_value)
+                raise TypeError("Argument '{arg_name}' is expected to be a non-str iterable, "
+                                "but is '{arg_type}'".format(**locals()))

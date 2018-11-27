@@ -8,6 +8,9 @@ from ...utils import safe_get, auto_str_ignore
 from ...validator import Validator
 
 
+EXTRA = 'dht'
+
+
 class Adafruit_Dummy:
     class Adafruit_DHT:
         DHT22 = "dht22"

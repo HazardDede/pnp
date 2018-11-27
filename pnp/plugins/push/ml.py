@@ -2,8 +2,12 @@ import io
 import os
 
 from . import PushBase
+from .. import load_optional_module
 from ...utils import make_list, auto_str_ignore
 from ...validator import Validator
+
+
+EXTRA = 'faceR'
 
 
 @auto_str_ignore(['known_encodings'])
@@ -58,7 +62,7 @@ class FaceR(PushBase):
         super().__init__(**kwargs)
 
         # Do not break the complete module, when extra_packages are not present
-        self.face_recognition = __import__("face_recognition")
+        self.face_recognition = load_optional_module('face_recognition', EXTRA)
 
         Validator.one_not_none(known_faces=known_faces, known_faces_dir=known_faces_dir)
         # If both are set known_faces is the default

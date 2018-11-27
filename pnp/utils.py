@@ -11,7 +11,7 @@ from typing import Union
 from binaryornot.check import is_binary
 from box import Box, BoxKeyError
 
-from pnp.validator import Validator
+from .validator import Validator
 
 FILE_MODES = ['binary', 'text', 'auto']
 
@@ -60,6 +60,21 @@ def make_list(item_or_items):
     if hasattr(item_or_items, '__iter__') and not isinstance(item_or_items, str):
         return list(item_or_items)
     return [item_or_items]
+
+
+def is_iterable_but_no_str(candidate):
+    """
+    Checks if the given candidate is an iterable but not a str instance
+
+    Example:
+        >>> is_iterable_but_no_str(['a'])
+        True
+        >>> is_iterable_but_no_str('a')
+        False
+        >>> is_iterable_but_no_str(None)
+        False
+    """
+    return hasattr(candidate, '__iter__') and not isinstance(candidate, (str, bytes))
 
 
 def interruptible_sleep(wait, callback, interval=0.5):

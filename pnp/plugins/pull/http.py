@@ -1,11 +1,14 @@
 import json
 
 import requests
-from flask import Flask
 
 from . import PullBase
+from .. import load_optional_module
 from ...utils import auto_str_ignore, make_list, HTTP_METHODS
 from ...validator import Validator
+
+
+EXTRA = 'http-server'
 
 
 @auto_str_ignore(ignore_list=['server'])
@@ -76,7 +79,7 @@ class Server(PullBase):
             app.run(host='0.0.0.0', port=self.port, threaded=True)
             self.server = app
         elif self.server_impl == 'gevent':
-            from gevent.pywsgi import WSGIServer
+            WSGIServer = load_optional_module('gevent.pywsgi', EXTRA).WSGIServer
             self.server = WSGIServer(('', self.port), app)
             self.server.serve_forever()
 
@@ -85,10 +88,12 @@ class Server(PullBase):
         if self.server_impl == 'flask':
             requests.delete('http://localhost:{port}/_shutdown'.format(port=str(self.port)))
         elif self.server_impl == 'gevent':
-            self.server.stop()
+            if self.server:
+                self.server.stop()
 
     def _create_app(self):
         that = self
+        Flask = load_optional_module('flask', EXTRA).Flask
         app = Flask(__name__)
 
         if self.server_impl == 'flask':

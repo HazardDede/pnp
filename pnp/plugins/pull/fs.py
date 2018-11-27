@@ -1,8 +1,12 @@
 import time
 
 from . import PullBase
+from .. import load_optional_module
 from ...utils import make_list, load_file, FILE_MODES, Debounce
 from ...validator import Validator
+
+
+EXTRA = 'fswatcher'
 
 
 class FileSystemWatcher(PullBase):
@@ -93,8 +97,8 @@ class FileSystemWatcher(PullBase):
         Validator.is_non_negative(allow_none=True, defer_modified=self.defer_modified)
 
     def pull(self):
-        from watchdog.observers import Observer
-        import watchdog.events as wev
+        Observer = load_optional_module('watchdog.observers', EXTRA).Observer
+        wev = load_optional_module('watchdog.events', EXTRA)
 
         that = self
 

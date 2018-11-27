@@ -9,3 +9,6 @@ include LICENSE
 
 # Include the configuration examples
 recursive-include config *.json
+
+# Ignore tests
+prune tests

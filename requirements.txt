@@ -1,4 +1,4 @@
--e .[fswatcher]
+-e .[fswatcher,http-server]
 
 bumpversion
 flake8
