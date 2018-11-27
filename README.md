@@ -6,37 +6,39 @@ Pulls data from sources and pushes it to sinks.
 
 1\.  [Installation](#installation)  
 2\.  [Getting started](#gettingstarted)  
-3\.  [Building Blocks](#buildingblocks)  
-3.1\.  [Pull](#pull)  
-3.2\.  [Push](#push)  
-3.3\.  [Selector](#selector)  
-3.4\.  [Dependencies](#dependencies)  
-3.5\.  [Envelope (>= 0.7.1)](#envelope>=0.7.1)  
-3.6\.  [Engines (>= 0.10.0)](#engines>=0.10.0)  
-3.6.1\.  [pnp.engines.sequential.SequentialEngine](#pnp.engines.sequential.sequentialengine)  
-3.6.2\.  [pnp.engines.thread.ThreadEngine](#pnp.engines.thread.threadengine)  
-3.6.3\.  [pnp.engines.process.ProcessEngine](#pnp.engines.process.processengine)  
-4\.  [Useful hints](#usefulhints)  
-4.1\.  [Configuration checking](#configurationchecking)  
-4.2\.  [Logging (>= 0.11.0)](#logging>=0.11.0)  
-4.3\.  [dictmentor (>= 0.11.0)](#dictmentor>=0.11.0)  
-4.4\.  [Docker images](#dockerimages)  
-5\.  [Plugins](#plugins)  
-5.1\.  [pnp.plugins.pull.simple.Count](#pnp.plugins.pull.simple.count)  
-5.2\.  [pnp.plugins.pull.sensor.DHT](#pnp.plugins.pull.sensor.dht)  
-5.3\.  [pnp.plugins.pull.fs.FileSystemWatcher](#pnp.plugins.pull.fs.filesystemwatcher)  
-5.4\.  [pnp.plugins.pull.mqtt.MQTTPull](#pnp.plugins.pull.mqtt.mqttpull)  
-5.5\.  [pnp.plugins.pull.simple.Repeat](#pnp.plugins.pull.simple.repeat)  
-5.6\.  [pnp.plugins.pull.http.Server](#pnp.plugins.pull.http.server)  
-5.7\.  [pnp.plugins.pull.ZwayPoll](#pnp.plugins.pull.zwaypoll)  
-5.8\.  [pnp.plugins.pull.ZwayReceiver](#pnp.plugins.pull.zwayreceiver)  
-5.9\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
-5.10\.  [pnp.plugins.push.ml.FaceR](#pnp.plugins.push.ml.facer)  
-5.11\.  [pnp.plugins.push.fs.FileDump](#pnp.plugins.push.fs.filedump)  
-5.12\.  [pnp.plugins.push.http.Call](#pnp.plugins.push.http.call)  
-5.13\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
-5.14\.  [pnp.plugins.push.mqtt.MQTTPush](#pnp.plugins.push.mqtt.mqttpush)  
-6\.  [Changelog](#changelog)  
+3\.  [Runner](#runner)  
+4\.  [Building Blocks](#buildingblocks)  
+4.1\.  [Pull](#pull)  
+4.2\.  [Push](#push)  
+4.3\.  [Selector](#selector)  
+4.4\.  [Dependencies](#dependencies)  
+4.5\.  [Envelope (>= 0.7.1)](#envelope>=0.7.1)  
+4.6\.  [Engines (>= 0.10.0)](#engines>=0.10.0)  
+4.6.1\.  [pnp.engines.sequential.SequentialEngine](#pnp.engines.sequential.sequentialengine)  
+4.6.2\.  [pnp.engines.thread.ThreadEngine](#pnp.engines.thread.threadengine)  
+4.6.3\.  [pnp.engines.process.ProcessEngine](#pnp.engines.process.processengine)  
+5\.  [Useful hints](#usefulhints)  
+5.1\.  [Configuration checking](#configurationchecking)  
+5.2\.  [Logging (>= 0.11.0)](#logging>=0.11.0)  
+5.3\.  [dictmentor (>= 0.11.0)](#dictmentor>=0.11.0)  
+5.4\.  [Docker images](#dockerimages)  
+6\.  [Plugins](#plugins)  
+6.1\.  [pnp.plugins.pull.simple.Count](#pnp.plugins.pull.simple.count)  
+6.2\.  [pnp.plugins.pull.sensor.DHT](#pnp.plugins.pull.sensor.dht)  
+6.3\.  [pnp.plugins.pull.fs.FileSystemWatcher](#pnp.plugins.pull.fs.filesystemwatcher)  
+6.4\.  [pnp.plugins.pull.mqtt.MQTTPull](#pnp.plugins.pull.mqtt.mqttpull)  
+6.5\.  [pnp.plugins.pull.simple.Repeat](#pnp.plugins.pull.simple.repeat)  
+6.6\.  [pnp.plugins.pull.http.Server](#pnp.plugins.pull.http.server)  
+6.7\.  [pnp.plugins.pull.ZwayPoll](#pnp.plugins.pull.zwaypoll)  
+6.8\.  [pnp.plugins.pull.ZwayReceiver](#pnp.plugins.pull.zwayreceiver)  
+6.9\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
+6.10\.  [pnp.plugins.push.simple.Execute](#pnp.plugins.push.simple.execute)  
+6.11\.  [pnp.plugins.push.ml.FaceR](#pnp.plugins.push.ml.facer)  
+6.12\.  [pnp.plugins.push.fs.FileDump](#pnp.plugins.push.fs.filedump)  
+6.13\.  [pnp.plugins.push.http.Call](#pnp.plugins.push.http.call)  
+6.14\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
+6.15\.  [pnp.plugins.push.mqtt.MQTTPush](#pnp.plugins.push.mqtt.mqttpush)  
+7\.  [Changelog](#changelog)  
 
 <a name="installation"></a>
 
@@ -91,16 +93,37 @@ Tip: You can validate your config without actually executing it with
    pnp --check helloworld.yaml
 ```
 
+<a name="runner"></a>
+
+## 3\. Runner
+
+```
+> pnp --help
+Pull 'n' Push
+
+Usage:
+  pnp [(-c | --check)] [(-v | --verbose)] [--log=<log_conf>] <configuration>
+  pnp (-h | --help)
+  pnp --version
+
+Options:
+  -c --check        Only check configuration and do not run it.
+  -v --verbose      Switches log level to debug.
+  --log=<log_conf>  Specify logging configuration to load.
+  -h --help         Show this screen.
+  --version         Show version.
+```
+
 <a name="buildingblocks"></a>
 
-## 3\. Building Blocks
+## 4\. Building Blocks
 
 Below the basic building blocks of pull 'n' push are explained in more detail
 
 
 <a name="pull"></a>
 
-### 3.1\. Pull
+### 4.1\. Pull
 
 As stated before pulls fetch data from various source systems and/or apis. Please see the section plugins for already
 implemented pulls. To instantiate a pull by configuration file you only have to provide it's fully qualified name
@@ -126,7 +149,7 @@ is a dictionary that contains the topic, levels and the actual payload.
 
 <a name="push"></a>
 
-### 3.2\. Push
+### 4.2\. Push
 
 A pull passes its data to multiple pushes to transfer/transform the data. For example a push might save sensor data
 to influx or dump a file to the file system.
@@ -153,7 +176,7 @@ the specified directory as a textfile. The second push just prints out the incom
 
 <a name="selector"></a>
 
-### 3.3\. Selector
+### 4.3\. Selector
 
 Sometimes the output of a pull needs to be transformed before the specified push can handle it. `Selectors` to the 
 rescue. Given our input we decide to just dump the payload and print out the first level of the topic.
@@ -181,7 +204,7 @@ Easy as that. We can reference our incoming data via `data` or `payload`.
 
 <a name="dependencies"></a>
 
-### 3.4\. Dependencies
+### 4.4\. Dependencies
 
 By default any pushes will execute in parallel (not completly true) when new incoming data is available.
 But now it would be nice if we could chain pushes together. So that the output if one push becomes the 
@@ -214,7 +237,7 @@ As you can see we just add a dependant push to the previous one.
 
 <a name="envelope>=0.7.1"></a>
 
-### 3.5\. Envelope (>= 0.7.1)
+### 4.5\. Envelope (>= 0.7.1)
 
 Using envelopes it is possible to change the behaviour of `pushes` during runtime.
 Best examples are the `pnp.plugins.push.fs.FileDump` and `pnp.plugins.push.mqtt.MQTTPush` plugins, where
@@ -278,14 +301,14 @@ into a dictionary inside the 'payload' or 'data' key via selector.
 
 <a name="engines>=0.10.0"></a>
 
-### 3.6\. Engines (>= 0.10.0)
+### 4.6\. Engines (>= 0.10.0)
 
 If you do not specify any engine the `ThreadEngine` is chosen by default accompanied by the `AdvancedRetryHandler`.
 This keeps maximum backwards compatibility.
 
 <a name="pnp.engines.sequential.sequentialengine"></a>
 
-#### 3.6.1\. pnp.engines.sequential.SequentialEngine
+#### 4.6.1\. pnp.engines.sequential.SequentialEngine
 
 By using the `Sequential` engine you can run your configs as scripts. Given the example below, the "script" will
 end when it has finished counting to 3. Make sure to use the `NoRetryHandler` to actually end the runner when
@@ -314,7 +337,7 @@ tasks:
 
 <a name="pnp.engines.thread.threadengine"></a>
 
-#### 3.6.2\. pnp.engines.thread.ThreadEngine
+#### 4.6.2\. pnp.engines.thread.ThreadEngine
 
 ```yaml
 #### Will use threads to accomplish concurrency
@@ -337,7 +360,7 @@ tasks:
 
 <a name="pnp.engines.process.processengine"></a>
 
-#### 3.6.3\. pnp.engines.process.ProcessEngine
+#### 4.6.3\. pnp.engines.process.ProcessEngine
 
 ```yaml
 #### Will use multiprocessing to accomplish concurrency
@@ -360,11 +383,11 @@ tasks:
 
 <a name="usefulhints"></a>
 
-## 4\. Useful hints
+## 5\. Useful hints
 
 <a name="configurationchecking"></a>
 
-### 4.1\. Configuration checking
+### 5.1\. Configuration checking
 
 You can check your pnp configuration file by starting pnp with the `-c | --check` flag set. This will only run
 the initializer but not execute the configuration.
@@ -375,7 +398,7 @@ pnp --check <pnp_configuration>
 
 <a name="logging>=0.11.0"></a>
 
-### 4.2\. Logging (>= 0.11.0)
+### 5.2\. Logging (>= 0.11.0)
 
 You can use different logging configurations in two ways:
 
@@ -421,7 +444,7 @@ root:
 
 <a name="dictmentor>=0.11.0"></a>
 
-### 4.3\. dictmentor (>= 0.11.0)
+### 5.3\. dictmentor (>= 0.11.0)
 
 You can augment the configuration by extensions from the `dictmentor` package.
 Please see [DictMentor](https://github.com/HazardDede/dictmentor) for further reference.
@@ -468,7 +491,7 @@ plugin: pnp.plugins.push.simple.Nop
 
 <a name="dockerimages"></a>
 
-### 4.4\. Docker images
+### 5.4\. Docker images
 
 ```bash
 make docker  # OR: make docker-arm  for raspberry image
@@ -482,11 +505,11 @@ docker run -it --rm \
 
 <a name="plugins"></a>
 
-## 5\. Plugins
+## 6\. Plugins
 
 <a name="pnp.plugins.pull.simple.count"></a>
 
-### 5.1\. pnp.plugins.pull.simple.Count
+### 6.1\. pnp.plugins.pull.simple.Count
 
 Emits every `wait` seconds a counting value which runs from `from_cnt` to `to_cnt`.
 If `to_cnt` is None the counter will count to infinity.
@@ -516,7 +539,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.sensor.dht"></a>
 
-### 5.2\. pnp.plugins.pull.sensor.DHT
+### 6.2\. pnp.plugins.pull.sensor.DHT
 
 Periodically polls a dht11 or dht22 (aka am2302) for temperature and humidity readings.
 Polling interval is controlled by `interval`.
@@ -557,7 +580,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.fs.filesystemwatcher"></a>
 
-### 5.3\. pnp.plugins.pull.fs.FileSystemWatcher
+### 6.3\. pnp.plugins.pull.fs.FileSystemWatcher
 
 Watches the given directory for changes like created, moved, modified and deleted files. If `ignore_directories` is
 set to False, then directories will be reported as well.
@@ -624,7 +647,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.mqtt.mqttpull"></a>
 
-### 5.4\. pnp.plugins.pull.mqtt.MQTTPull
+### 6.4\. pnp.plugins.pull.mqtt.MQTTPull
 
 Pulls messages from the specified topic from the given mosquitto mqtt broker (identified by host and port).
 
@@ -664,7 +687,7 @@ __Examples__
 
 <a name="pnp.plugins.pull.simple.repeat"></a>
 
-### 5.5\. pnp.plugins.pull.simple.Repeat
+### 6.5\. pnp.plugins.pull.simple.Repeat
 
 Emits every `wait` seconds the same `repeat`.
 
@@ -691,7 +714,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.http.server"></a>
 
-### 5.6\. pnp.plugins.pull.http.Server
+### 6.6\. pnp.plugins.pull.http.Server
 
 Listens on the specified `port` for requests to any endpoint.
 Any data passed to the endpoint will be tried to be parsed to a dictionary (json). If this is not possible
@@ -751,7 +774,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.zwaypoll"></a>
 
-### 5.7\. pnp.plugins.pull.ZwayPoll
+### 6.7\. pnp.plugins.pull.ZwayPoll
 
 Pulls the specified json content from the zway rest api. The content is specified by the url, e.g.
 `http://<host>:8083/ZWaveAPI/Run/devices` will pull all devices and serve the result as a json.
@@ -825,7 +848,7 @@ Below are some common selector examples to fetch various metrics from various de
 
 <a name="pnp.plugins.pull.zwayreceiver"></a>
 
-### 5.8\. pnp.plugins.pull.ZwayReceiver
+### 6.8\. pnp.plugins.pull.ZwayReceiver
 
 Setups a http server to process incoming GET-requests from the Zway-App [`HttpGet`](https://github.com/hplato/Zway-HTTPGet/blob/master/index.js).
 
@@ -903,7 +926,7 @@ __Examples__
 
 <a name="pnp.plugins.push.simple.echo"></a>
 
-### 5.9\. pnp.plugins.push.simple.Echo
+### 6.9\. pnp.plugins.push.simple.Echo
 
 Simply log the passed payload to the default logging instance.
 
@@ -928,9 +951,62 @@ __Examples__
   push:
     plugin: pnp.plugins.push.simple.Echo
 ```
+<a name="pnp.plugins.push.simple.execute"></a>
+
+### 6.10\. pnp.plugins.push.simple.Execute
+
+Executes a command with given arguments in a shell of the operating system.
+
+Will return the exit code of the command and optionally the output from stdout and stderr.
+
+__Arguments__
+
+**command (str)**: The command to execute.<br/>
+**args (str or iterable, optional)**: The arguments to pass to the command. Default is no arguments.<br/>
+**cwd (str, optional)**: Specifies where to execute the command (working directory). Default is current working directory.<br/>
+**timeout (duration literal, optional)**: Specifies how long the worker should wait for the command to finish.</br>
+**capture (bool, optional)**: If True stdout and stderr output is captured, otherwise not.
+
+__Result__
+
+Returns a dictionary that contains the `return_code` and optionally the output from `stdout` and `stderr` whether
+`capture` is set or not. The output is a list of lines.
+
+```yaml
+{
+    'return_code': 0
+    'stdout': ["hello", "dude!"]
+    'stderr': []
+}
+```
+
+__Examples__
+
+```yaml
+- name: execute
+  pull:
+    plugin: pnp.plugins.pull.simple.Count
+    args:
+      wait: 1
+      from_cnt: 1
+      to_cnt: 10
+  push:
+    plugin: pnp.plugins.push.simple.Execute
+    args:
+      command: date  # The command to execute
+      args:  # Argument passed to the command
+        - "-v"
+        - "-1d"
+        - "+%Y-%m-%d"
+      timeout: 2s
+      cwd:  # None -> current directory
+      capture: True  # Capture stdout and stderr
+    deps:
+      - plugin: pnp.plugins.push.simple.Echo
+```
 <a name="pnp.plugins.push.ml.facer"></a>
 
-### 5.10\. pnp.plugins.push.ml.FaceR
+### 6.11\. pnp.plugins.push.ml.FaceR
 
 FaceR (short one for face recognition) tags known faces in images. Output is the image with all faces tagged whether
 with the known name or an `unknown_label`. Default for unknown ones is 'Unknown'.
@@ -987,7 +1063,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.fs.filedump"></a>
 
-### 5.11\. pnp.plugins.push.fs.FileDump
+### 6.12\. pnp.plugins.push.fs.FileDump
 
 This push dumps the given `payload` to a file to the specified `directory`.
 If argument `file_name` is None, a name will be generated based on the current datetime (%Y%m%d-%H%M%S).
@@ -1050,7 +1126,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.http.call"></a>
 
-### 5.12\. pnp.plugins.push.http.Call
+### 6.13\. pnp.plugins.push.http.Call
 
 Makes a request to a http resource.
 
@@ -1136,7 +1212,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.timedb.influxpush"></a>
 
-### 5.13\. pnp.plugins.push.timedb.InfluxPush
+### 6.14\. pnp.plugins.push.timedb.InfluxPush
 
 Pushes the given `payload` to an influx database using the line `protocol`.
 You have to specify `host`, `port`, `user`, `password` and the `database`.
@@ -1184,7 +1260,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.mqtt.mqttpush"></a>
 
-### 5.14\. pnp.plugins.push.mqtt.MQTTPush
+### 6.15\. pnp.plugins.push.mqtt.MQTTPush
 
 Will push the given `payload` to a mqtt broker (in this case mosquitto).
 The broker is specified by `host` and `port`. In addition a topic needs to be specified were the payload
@@ -1240,7 +1316,7 @@ __Examples__
 
 <a name="changelog"></a>
 
-## 6\. Changelog
+## 7\. Changelog
 
 We cannot ensure not to introduce any breaking changes to interfaces / behaviour. This might occur every commit whether it is
 intended or by accident. Nevertheless we try to list breaking changes in the changelog that we are aware of.
@@ -1248,6 +1324,10 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 
     pip install pnp==0.10.0
 
+* **0.12.0** Adds `pull.simple.Execute` to run commands in a shell.
+Adds extra `http-server` to optionally install `flask` and `gevent` when needed.
+Adds utility method to check for installed extras.
+Adds `-v | --verbose` flag to pnp runner to switch logging level to `DEBUG`. No matter what...
 * **0.11.3** Adds auto-mapping magic to the `pull.zway.ZwayReceiver`. Adds humidity and temperature offset to dht.
 * **0.11.2** Fixes error catching of `run_pending` in `Polling` base class
 * **0.11.1** Fixes resolution of logging configuration on startup
