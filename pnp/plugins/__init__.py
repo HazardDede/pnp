@@ -6,7 +6,7 @@ from ..utils import Loggable, auto_str
 from ..validator import Validator
 
 
-class InstallOptionalExtraError(ModuleNotFoundError):
+class InstallOptionalExtraError(ImportError):
     def __init__(self, extra_name):
         super().__init__("You have to install extra '{}' to use this plugin".format(extra_name))
 
