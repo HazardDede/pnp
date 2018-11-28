@@ -6,9 +6,6 @@ from ...utils import make_list, load_file, FILE_MODES, Debounce
 from ...validator import Validator
 
 
-EXTRA = 'fswatcher'
-
-
 class FileSystemWatcher(PullBase):
     """
     Watches the given directory for changes like created, moved, modified and deleted files. If `ignore_directories` is
@@ -70,6 +67,7 @@ class FileSystemWatcher(PullBase):
             plugin: pnp.plugins.push.simple.Echo
     """
 
+    EXTRA = 'fswatcher'
     EVENT_TYPE_MOVED = 'moved'
     EVENT_TYPE_DELETED = 'deleted'
     EVENT_TYPE_CREATED = 'created'
@@ -97,8 +95,8 @@ class FileSystemWatcher(PullBase):
         Validator.is_non_negative(allow_none=True, defer_modified=self.defer_modified)
 
     def pull(self):
-        Observer = load_optional_module('watchdog.observers', EXTRA).Observer
-        wev = load_optional_module('watchdog.events', EXTRA)
+        Observer = load_optional_module('watchdog.observers', self.EXTRA).Observer
+        wev = load_optional_module('watchdog.events', self.EXTRA)
 
         that = self
 

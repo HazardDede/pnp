@@ -7,9 +7,6 @@ from ...utils import make_list, auto_str_ignore
 from ...validator import Validator
 
 
-EXTRA = 'faceR'
-
-
 @auto_str_ignore(['known_encodings'])
 class FaceR(PushBase):
     """
@@ -55,6 +52,8 @@ class FaceR(PushBase):
             known_faces_dir: /path/to/known/faces
             unknown_label: "don't know him"
     """
+    EXTRA = 'faceR'
+
     def __init__(self, known_faces=None, known_faces_dir=None, unknown_label="Unknown", **kwargs):
         # known_faces -> mapping name -> list of files
         # known_faces_dir -> directory with known faces (filename -> name)
@@ -62,7 +61,7 @@ class FaceR(PushBase):
         super().__init__(**kwargs)
 
         # Do not break the complete module, when extra_packages are not present
-        self.face_recognition = load_optional_module('face_recognition', EXTRA)
+        self.face_recognition = load_optional_module('face_recognition', self.EXTRA)
 
         Validator.one_not_none(known_faces=known_faces, known_faces_dir=known_faces_dir)
         # If both are set known_faces is the default

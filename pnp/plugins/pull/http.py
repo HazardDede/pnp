@@ -8,9 +8,6 @@ from ...utils import auto_str_ignore, make_list, HTTP_METHODS
 from ...validator import Validator
 
 
-EXTRA = 'http-server'
-
-
 @auto_str_ignore(ignore_list=['server'])
 class Server(PullBase):
     """
@@ -58,6 +55,7 @@ class Server(PullBase):
     """
     __prefix__ = "rest"
 
+    EXTRA = 'http-server'
     SERVER_IMPL = ['gevent', 'flask']
 
     def __init__(self, port=5000, allowed_methods='GET', server_impl='gevent', **kwargs):
@@ -79,7 +77,7 @@ class Server(PullBase):
             app.run(host='0.0.0.0', port=self.port, threaded=True)
             self.server = app
         elif self.server_impl == 'gevent':
-            WSGIServer = load_optional_module('gevent.pywsgi', EXTRA).WSGIServer
+            WSGIServer = load_optional_module('gevent.pywsgi', self.EXTRA).WSGIServer
             self.server = WSGIServer(('', self.port), app)
             self.server.serve_forever()
 
@@ -93,7 +91,7 @@ class Server(PullBase):
 
     def _create_app(self):
         that = self
-        Flask = load_optional_module('flask', EXTRA).Flask
+        Flask = load_optional_module('flask', self.EXTRA).Flask
         app = Flask(__name__)
 
         if self.server_impl == 'flask':

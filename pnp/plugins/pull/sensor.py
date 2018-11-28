@@ -1,4 +1,4 @@
-import random
+import logging
 from datetime import datetime
 
 import requests
@@ -7,19 +7,16 @@ from . import Polling, PollingError
 from ...utils import safe_get, auto_str_ignore
 from ...validator import Validator
 
+logger = logging.getLogger(__name__)
 
-EXTRA = 'dht'
 
-
-class Adafruit_Dummy:
-    class Adafruit_DHT:
-        DHT22 = "dht22"
-        DHT11 = "dht11"
-        AM2302 = "am2302"
-
-        @staticmethod
-        def read_retry(sensor, pin):
-            return round(random.uniform(1, 100), 2), round(random.uniform(8, 36), 2)  # pragma: no cover
+def load_dht_package():
+    try:
+        import Adafruit_DHT as DHT
+    except ImportError:  # pragma: no cover
+        logger.warning("Adafruit_DHT package is not available - Using mock")
+        from ...mocking import DHTMock as DHT
+    return DHT
 
 
 class DHT(Polling):
@@ -52,6 +49,8 @@ class DHT(Polling):
     """
     __prefix__ = 'dht'
 
+    EXTRA = 'dht'
+
     def __init__(self, device='dht22', data_gpio=17, humidity_offset=0.0, temp_offset=0.0, **kwargs):
         super().__init__(**kwargs)
         valid_devices = ['dht11', 'dht22', 'am2302']
@@ -63,14 +62,10 @@ class DHT(Polling):
 
     def poll(self):
         # Adafruit package is optional - import at the last moment
-        try:
-            import Adafruit_DHT
-        except:  # pragma: no cover
-            self.logger.error("Adafruit_DHT package is not available - Using dummy implementation")
-            Adafruit_DHT = Adafruit_Dummy.Adafruit_DHT
+        DHT = load_dht_package()
 
-        device_map = {'dht11': Adafruit_DHT.DHT11, 'dht22': Adafruit_DHT.DHT22, 'am2302': Adafruit_DHT.AM2302}
-        humidity, temperature = Adafruit_DHT.read_retry(device_map[self.device], self.data_gpio)
+        device_map = {'dht11': DHT.DHT11, 'dht22': DHT.DHT22, 'am2302': DHT.AM2302}
+        humidity, temperature = DHT.read_retry(device_map[self.device], self.data_gpio)
 
         if humidity is None or temperature is None:
             raise PollingError("Failed to get '{}' @ GPIO {} readings...".format(self.device, str(self.data_gpio)))

@@ -36,7 +36,7 @@ class Count(PullBase):
     def __init__(self, from_cnt=0, to_cnt=None, wait=5, **kwargs):
         super().__init__(**kwargs)
         self.from_cnt = int(from_cnt)
-        self.to_cnt = int(to_cnt) if to_cnt is not None else None
+        self.to_cnt = to_cnt and int(to_cnt)
         self.wait = float(wait)
 
     def pull(self):
