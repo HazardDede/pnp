@@ -15,7 +15,7 @@ RUN mkdir -p ${WORKDIR} && \
 COPY . ${WORKDIR}
 
 RUN cd ${WORKDIR} && \
-    pip3 install --process-dependency-links .[dht,fswatcher,http-server]
+    pip3 install --process-dependency-links .[dht,fswatcher,gpio,http-server]
 
 VOLUME ${CONFDIR}
 VOLUME ${LOGDIR}

@@ -1,3 +1,24 @@
+# pnp.plugins.pull.gpio.Watcher
+
+Listens for low/high state changes on the configured gpio pins.
+
+__Arguments__
+
+**pins (list)**: The gpio pins to observe for state changes. Please see the examples section on how to configure it.<br/>
+**default (on of [rising, falling, switch, motion]**: The default mode/direction that is applied when not configured. Please see the examples section for further details.
+
+__Result__
+
+```yaml
+{
+    "gpio_pin": 17  # The gpio pin which state has changed
+    "direction": rising  # One of [rising, falling, switch, motion_on, motion_off]
+}
+```
+
+__Examples__
+
+```yaml
 - name: gpio
   pull:
     plugin: pnp.plugins.pull.gpio.Watcher
@@ -13,3 +34,4 @@
         - 9:motion(1m)    # Specify delay (default is 30 seconds)
   push:
     - plugin: pnp.plugins.push.simple.Echo
+```

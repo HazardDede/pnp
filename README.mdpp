@@ -1,6 +1,9 @@
 # Pull 'n' Push
 
+[![PyPI version](https://badge.fury.io/py/pnp.svg)](https://badge.fury.io/py/pnp)
 [![Build Status](https://travis-ci.org/HazardDede/pnp.svg?branch=master)](https://travis-ci.org/HazardDede/pnp)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 
 Pulls data from sources and pushes it to sinks.
 
@@ -245,15 +248,28 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 
     pip install pnp==0.10.0
 
-* **0.12.0** Adds `pull.simple.Execute` to run commands in a shell.
-Adds extra `http-server` to optionally install `flask` and `gevent` when needed.
-Adds utility method to check for installed extras.
-Adds `-v | --verbose` flag to pnp runner to switch logging level to `DEBUG`. No matter what...
-* **0.11.3** Adds auto-mapping magic to the `pull.zway.ZwayReceiver`. Adds humidity and temperature offset to dht.
-* **0.11.2** Fixes error catching of `run_pending` in `Polling` base class
-* **0.11.1** Fixes resolution of logging configuration on startup
-* **0.11.0** Introduces the pull.zway.ZwayReceiver and pull.sensor.OpenWeather component.
- Introduces logging configurations. Integrates dictmentor package to augment configuration.
-* **0.10.0** Introduces engines. You are not enforced to explicitly use one and backward compatibility with
-legacy configs is given (actually the example configs work as they did before the change). So there shouldn't be any breaking change.
-* ... -> no history
+**0.12.0**
+* Adds `pull.gpio.Watcher` (extra `gpio`) to watch gpio pins for state changes. Only works on raspberry
+* Adds `push.simple.Execute` to run commands in a shell
+* Adds extra `http-server` to optionally install `flask` and `gevent` when needed
+* Adds utility method to check for installed extras
+* Adds `-v | --verbose` flag to pnp runner to switch logging level to `DEBUG`. No matter what...
+
+**0.11.3** 
+* Adds auto-mapping magic to the `pull.zway.ZwayReceiver`.
+* Adds humidity and temperature offset to dht
+
+**0.11.2** 
+* Fixes error catching of `run_pending` in `Polling` base class
+
+**0.11.1** 
+* Fixes resolution of logging configuration on startup
+
+**0.11.0** 
+* Introduces the pull.zway.ZwayReceiver and pull.sensor.OpenWeather component
+* Introduces logging configurations. Integrates dictmentor package to augment configuration
+
+**0.10.0** 
+* Introduces engines. You are not enforced to explicitly use one and backward compatibility with
+legacy configs is given (actually the example configs work as they did before the change). 
+So there shouldn't be any breaking change.

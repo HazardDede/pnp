@@ -61,6 +61,7 @@ __Examples__
       interval: 5m  # Polls the readings every 5 minutes
       humidity_offset: -5.0  # Subtracts 5% from the humidity reading
       temp_offset: 1.0  # Adds 1 °C to the temperature reading
+      instant_run: True
   push:
     - plugin: pnp.plugins.push.simple.Echo
       selector: payload.temperature  # Temperature reading
@@ -131,6 +132,43 @@ __Examples__
       load_file: False
   push:
     plugin: pnp.plugins.push.simple.Echo
+```
+## pnp.plugins.pull.gpio.Watcher
+
+Listens for low/high state changes on the configured gpio pins.
+
+__Arguments__
+
+**pins (list)**: The gpio pins to observe for state changes. Please see the examples section on how to configure it.<br/>
+**default (on of [rising, falling, switch, motion]**: The default mode/direction that is applied when not configured. Please see the examples section for further details.
+
+__Result__
+
+```yaml
+{
+    "gpio_pin": 17  # The gpio pin which state has changed
+    "direction": rising  # One of [rising, falling, switch, motion_on, motion_off]
+}
+```
+
+__Examples__
+
+```yaml
+- name: gpio
+  pull:
+    plugin: pnp.plugins.pull.gpio.Watcher
+    args:
+      default: rising
+      pins:
+        - 2               # No mode specified: Default mode (in this case 'rising')
+        - 3:rising        # Equal to '3' (without explicit mode)
+        - 3:falling       # Get the falling event for gpio pin 3 as well
+        - 4:switch        # Uses some debouncing magic and emits only one rising event
+        - 5:switch(1000)  # Specify debounce in millseconds (default is 500ms)
+        - 7:motion        # Uses some delay magic to emit only one motion on and one motion off event
+        - 9:motion(1m)    # Specify delay (default is 30 seconds)
+  push:
+    - plugin: pnp.plugins.push.simple.Echo
 ```
 ## pnp.plugins.pull.mqtt.MQTTPull
 

@@ -1,6 +1,9 @@
 # Pull 'n' Push
 
+[![PyPI version](https://badge.fury.io/py/pnp.svg)](https://badge.fury.io/py/pnp)
 [![Build Status](https://travis-ci.org/HazardDede/pnp.svg?branch=master)](https://travis-ci.org/HazardDede/pnp)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 
 Pulls data from sources and pushes it to sinks.
 
@@ -26,18 +29,19 @@ Pulls data from sources and pushes it to sinks.
 6.1\.  [pnp.plugins.pull.simple.Count](#pnp.plugins.pull.simple.count)  
 6.2\.  [pnp.plugins.pull.sensor.DHT](#pnp.plugins.pull.sensor.dht)  
 6.3\.  [pnp.plugins.pull.fs.FileSystemWatcher](#pnp.plugins.pull.fs.filesystemwatcher)  
-6.4\.  [pnp.plugins.pull.mqtt.MQTTPull](#pnp.plugins.pull.mqtt.mqttpull)  
-6.5\.  [pnp.plugins.pull.simple.Repeat](#pnp.plugins.pull.simple.repeat)  
-6.6\.  [pnp.plugins.pull.http.Server](#pnp.plugins.pull.http.server)  
-6.7\.  [pnp.plugins.pull.ZwayPoll](#pnp.plugins.pull.zwaypoll)  
-6.8\.  [pnp.plugins.pull.ZwayReceiver](#pnp.plugins.pull.zwayreceiver)  
-6.9\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
-6.10\.  [pnp.plugins.push.simple.Execute](#pnp.plugins.push.simple.execute)  
-6.11\.  [pnp.plugins.push.ml.FaceR](#pnp.plugins.push.ml.facer)  
-6.12\.  [pnp.plugins.push.fs.FileDump](#pnp.plugins.push.fs.filedump)  
-6.13\.  [pnp.plugins.push.http.Call](#pnp.plugins.push.http.call)  
-6.14\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
-6.15\.  [pnp.plugins.push.mqtt.MQTTPush](#pnp.plugins.push.mqtt.mqttpush)  
+6.4\.  [pnp.plugins.pull.gpio.Watcher](#pnp.plugins.pull.gpio.watcher)  
+6.5\.  [pnp.plugins.pull.mqtt.MQTTPull](#pnp.plugins.pull.mqtt.mqttpull)  
+6.6\.  [pnp.plugins.pull.simple.Repeat](#pnp.plugins.pull.simple.repeat)  
+6.7\.  [pnp.plugins.pull.http.Server](#pnp.plugins.pull.http.server)  
+6.8\.  [pnp.plugins.pull.ZwayPoll](#pnp.plugins.pull.zwaypoll)  
+6.9\.  [pnp.plugins.pull.ZwayReceiver](#pnp.plugins.pull.zwayreceiver)  
+6.10\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
+6.11\.  [pnp.plugins.push.simple.Execute](#pnp.plugins.push.simple.execute)  
+6.12\.  [pnp.plugins.push.ml.FaceR](#pnp.plugins.push.ml.facer)  
+6.13\.  [pnp.plugins.push.fs.FileDump](#pnp.plugins.push.fs.filedump)  
+6.14\.  [pnp.plugins.push.http.Call](#pnp.plugins.push.http.call)  
+6.15\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
+6.16\.  [pnp.plugins.push.mqtt.MQTTPush](#pnp.plugins.push.mqtt.mqttpush)  
 7\.  [Changelog](#changelog)  
 
 <a name="installation"></a>
@@ -572,6 +576,7 @@ __Examples__
       interval: 5m  # Polls the readings every 5 minutes
       humidity_offset: -5.0  # Subtracts 5% from the humidity reading
       temp_offset: 1.0  # Adds 1 °C to the temperature reading
+      instant_run: True
   push:
     - plugin: pnp.plugins.push.simple.Echo
       selector: payload.temperature  # Temperature reading
@@ -645,9 +650,48 @@ __Examples__
   push:
     plugin: pnp.plugins.push.simple.Echo
 ```
+<a name="pnp.plugins.pull.gpio.watcher"></a>
+
+### 6.4\. pnp.plugins.pull.gpio.Watcher
+
+Listens for low/high state changes on the configured gpio pins.
+
+__Arguments__
+
+**pins (list)**: The gpio pins to observe for state changes. Please see the examples section on how to configure it.<br/>
+**default (on of [rising, falling, switch, motion]**: The default mode/direction that is applied when not configured. Please see the examples section for further details.
+
+__Result__
+
+```yaml
+{
+    "gpio_pin": 17  # The gpio pin which state has changed
+    "direction": rising  # One of [rising, falling, switch, motion_on, motion_off]
+}
+```
+
+__Examples__
+
+```yaml
+- name: gpio
+  pull:
+    plugin: pnp.plugins.pull.gpio.Watcher
+    args:
+      default: rising
+      pins:
+        - 2               # No mode specified: Default mode (in this case 'rising')
+        - 3:rising        # Equal to '3' (without explicit mode)
+        - 3:falling       # Get the falling event for gpio pin 3 as well
+        - 4:switch        # Uses some debouncing magic and emits only one rising event
+        - 5:switch(1000)  # Specify debounce in millseconds (default is 500ms)
+        - 7:motion        # Uses some delay magic to emit only one motion on and one motion off event
+        - 9:motion(1m)    # Specify delay (default is 30 seconds)
+  push:
+    - plugin: pnp.plugins.push.simple.Echo
+```
 <a name="pnp.plugins.pull.mqtt.mqttpull"></a>
 
-### 6.4\. pnp.plugins.pull.mqtt.MQTTPull
+### 6.5\. pnp.plugins.pull.mqtt.MQTTPull
 
 Pulls messages from the specified topic from the given mosquitto mqtt broker (identified by host and port).
 
@@ -687,7 +731,7 @@ __Examples__
 
 <a name="pnp.plugins.pull.simple.repeat"></a>
 
-### 6.5\. pnp.plugins.pull.simple.Repeat
+### 6.6\. pnp.plugins.pull.simple.Repeat
 
 Emits every `wait` seconds the same `repeat`.
 
@@ -714,7 +758,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.http.server"></a>
 
-### 6.6\. pnp.plugins.pull.http.Server
+### 6.7\. pnp.plugins.pull.http.Server
 
 Listens on the specified `port` for requests to any endpoint.
 Any data passed to the endpoint will be tried to be parsed to a dictionary (json). If this is not possible
@@ -774,7 +818,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.zwaypoll"></a>
 
-### 6.7\. pnp.plugins.pull.ZwayPoll
+### 6.8\. pnp.plugins.pull.ZwayPoll
 
 Pulls the specified json content from the zway rest api. The content is specified by the url, e.g.
 `http://<host>:8083/ZWaveAPI/Run/devices` will pull all devices and serve the result as a json.
@@ -848,7 +892,7 @@ Below are some common selector examples to fetch various metrics from various de
 
 <a name="pnp.plugins.pull.zwayreceiver"></a>
 
-### 6.8\. pnp.plugins.pull.ZwayReceiver
+### 6.9\. pnp.plugins.pull.ZwayReceiver
 
 Setups a http server to process incoming GET-requests from the Zway-App [`HttpGet`](https://github.com/hplato/Zway-HTTPGet/blob/master/index.js).
 
@@ -926,7 +970,7 @@ __Examples__
 
 <a name="pnp.plugins.push.simple.echo"></a>
 
-### 6.9\. pnp.plugins.push.simple.Echo
+### 6.10\. pnp.plugins.push.simple.Echo
 
 Simply log the passed payload to the default logging instance.
 
@@ -953,7 +997,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.simple.execute"></a>
 
-### 6.10\. pnp.plugins.push.simple.Execute
+### 6.11\. pnp.plugins.push.simple.Execute
 
 Executes a command with given arguments in a shell of the operating system.
 
@@ -1006,7 +1050,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.ml.facer"></a>
 
-### 6.11\. pnp.plugins.push.ml.FaceR
+### 6.12\. pnp.plugins.push.ml.FaceR
 
 FaceR (short one for face recognition) tags known faces in images. Output is the image with all faces tagged whether
 with the known name or an `unknown_label`. Default for unknown ones is 'Unknown'.
@@ -1063,7 +1107,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.fs.filedump"></a>
 
-### 6.12\. pnp.plugins.push.fs.FileDump
+### 6.13\. pnp.plugins.push.fs.FileDump
 
 This push dumps the given `payload` to a file to the specified `directory`.
 If argument `file_name` is None, a name will be generated based on the current datetime (%Y%m%d-%H%M%S).
@@ -1126,7 +1170,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.http.call"></a>
 
-### 6.13\. pnp.plugins.push.http.Call
+### 6.14\. pnp.plugins.push.http.Call
 
 Makes a request to a http resource.
 
@@ -1212,7 +1256,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.timedb.influxpush"></a>
 
-### 6.14\. pnp.plugins.push.timedb.InfluxPush
+### 6.15\. pnp.plugins.push.timedb.InfluxPush
 
 Pushes the given `payload` to an influx database using the line `protocol`.
 You have to specify `host`, `port`, `user`, `password` and the `database`.
@@ -1260,7 +1304,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.mqtt.mqttpush"></a>
 
-### 6.15\. pnp.plugins.push.mqtt.MQTTPush
+### 6.16\. pnp.plugins.push.mqtt.MQTTPush
 
 Will push the given `payload` to a mqtt broker (in this case mosquitto).
 The broker is specified by `host` and `port`. In addition a topic needs to be specified were the payload
@@ -1324,15 +1368,28 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 
     pip install pnp==0.10.0
 
-* **0.12.0** Adds `pull.simple.Execute` to run commands in a shell.
-Adds extra `http-server` to optionally install `flask` and `gevent` when needed.
-Adds utility method to check for installed extras.
-Adds `-v | --verbose` flag to pnp runner to switch logging level to `DEBUG`. No matter what...
-* **0.11.3** Adds auto-mapping magic to the `pull.zway.ZwayReceiver`. Adds humidity and temperature offset to dht.
-* **0.11.2** Fixes error catching of `run_pending` in `Polling` base class
-* **0.11.1** Fixes resolution of logging configuration on startup
-* **0.11.0** Introduces the pull.zway.ZwayReceiver and pull.sensor.OpenWeather component.
- Introduces logging configurations. Integrates dictmentor package to augment configuration.
-* **0.10.0** Introduces engines. You are not enforced to explicitly use one and backward compatibility with
-legacy configs is given (actually the example configs work as they did before the change). So there shouldn't be any breaking change.
-* ... -> no history
+**0.12.0**
+* Adds `pull.gpio.Watcher` (extra `gpio`) to watch gpio pins for state changes. Only works on raspberry
+* Adds `push.simple.Execute` to run commands in a shell
+* Adds extra `http-server` to optionally install `flask` and `gevent` when needed
+* Adds utility method to check for installed extras
+* Adds `-v | --verbose` flag to pnp runner to switch logging level to `DEBUG`. No matter what...
+
+**0.11.3** 
+* Adds auto-mapping magic to the `pull.zway.ZwayReceiver`.
+* Adds humidity and temperature offset to dht
+
+**0.11.2** 
+* Fixes error catching of `run_pending` in `Polling` base class
+
+**0.11.1** 
+* Fixes resolution of logging configuration on startup
+
+**0.11.0** 
+* Introduces the pull.zway.ZwayReceiver and pull.sensor.OpenWeather component
+* Introduces logging configurations. Integrates dictmentor package to augment configuration
+
+**0.10.0** 
+* Introduces engines. You are not enforced to explicitly use one and backward compatibility with
+legacy configs is given (actually the example configs work as they did before the change). 
+So there shouldn't be any breaking change.

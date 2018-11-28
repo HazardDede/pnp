@@ -3,6 +3,7 @@
 !INCLUDE "docs/plugins/pull/count/index.md", 1
 !INCLUDE "docs/plugins/pull/dht/index.md", 1
 !INCLUDE "docs/plugins/pull/file_system_watcher/index.md", 1
+!INCLUDE "docs/plugins/pull/gpio/index.md", 1
 !INCLUDE "docs/plugins/pull/mqtt_pull/index.md", 1
 !INCLUDE "docs/plugins/pull/repeat/index.md", 1
 !INCLUDE "docs/plugins/pull/http_server/index.md", 1

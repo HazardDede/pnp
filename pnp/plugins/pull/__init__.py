@@ -31,7 +31,7 @@ class PullBase(Plugin):
     def stop(self):
         self._stopped.set()
 
-    def _sleep(self, sleep_time):
+    def _sleep(self, sleep_time=10):
         def callback():
             if self.stopped:
                 raise StopCycleError()
