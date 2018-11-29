@@ -25,7 +25,10 @@ CONST_MOTION_OFF = "motion_off"
 
 def load_gpio_package():
     try:
-        import RPi.GPIO as GPIO
+        try:
+            import RPi.GPIO as GPIO
+        except ImportError:
+            from RPi import GPIO  # Only works for test cases when using the mocked package
     except ImportError:
         logger.warning("RPi.GPIO package is not available - Using mock")
         from ...mocking import GPIOMock as GPIO

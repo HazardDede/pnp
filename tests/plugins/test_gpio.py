@@ -31,6 +31,7 @@ def test_gpio_pull_for_smoke(mock_gpio):
 
     runner = make_runner(dut, callback)
     with start_runner(runner):
+        time.sleep(0.5)
         mock_gpio.fire_event(2, mock_gpio.RISING)
         mock_gpio.fire_event(3, mock_gpio.FALLING)
         mock_gpio.fire_event(4, mock_gpio.RISING)
@@ -51,10 +52,12 @@ def test_gpio_pull_with_motion_debounce(mock_gpio):
 
     runner = make_runner(dut, callback)
     with start_runner(runner):
+        time.sleep(0.5)
         for _ in range(10):
             mock_gpio.fire_event(2, mock_gpio.RISING)
         time.sleep(1.2)
         mock_gpio.fire_event(2, mock_gpio.RISING)
+        time.sleep(0.5)
 
     assert len(events) == 4
     assert events[0] == {'gpio_pin': 2, 'direction': 'motion_on'}
