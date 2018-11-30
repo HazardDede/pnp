@@ -15,10 +15,12 @@ def dummy_callback(plugin, payload):
 @contextmanager
 def start_runner(runner):
     runner.start()
-    yield
-    runner.stop()
-    runner.join()
-    runner.raise_on_error()
+    try:
+        yield
+    finally:
+        runner.stop()
+        runner.join()
+        runner.raise_on_error()
 
 
 def make_runner(plugin, callback):

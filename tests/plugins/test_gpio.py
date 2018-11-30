@@ -19,7 +19,7 @@ def mock_gpio():
     sys.modules[module_name] = mock_rpi_gpio
     mock_rpi_gpio.GPIO = GPIOMock
     yield mock_rpi_gpio.GPIO
-    GPIOMock.clear_callbacks()
+    GPIOMock.clear()
 
 
 def test_gpio_pull_for_smoke(mock_gpio):
@@ -38,9 +38,50 @@ def test_gpio_pull_for_smoke(mock_gpio):
         time.sleep(0.5)
 
     assert len(events) == 3
-    assert events[0] == {'gpio_pin': 2, 'direction': 'rising'}
-    assert events[1] == {'gpio_pin': 3, 'direction': 'falling'}
-    assert events[2] == {'gpio_pin': 4, 'direction': 'switch'}
+    assert events[0] == {'gpio_pin': 2, 'event': 'rising'}
+    assert events[1] == {'gpio_pin': 3, 'event': 'falling'}
+    assert events[2] == {'gpio_pin': 4, 'event': 'switch'}
+
+
+def test_gpio_pull_for_duplicate_pins(mock_gpio):
+    dut = gpio.Watcher(["2:rising", "2:falling", "2:rising"], name='pytest')
+    assert len(dut._pins) == 2
+
+    dut = gpio.Watcher(["2:rising", "2:rising", "2:rising"], name='pytest')
+    assert len(dut._pins) == 1
+
+    dut = gpio.Watcher(["2:falling", "2:falling"], name='pytest')
+    assert len(dut._pins) == 1
+
+    dut = gpio.Watcher(["2:switch(500)", "2:switch(1000)", "2:rising"], name='pytest')
+    assert len(dut._pins) == 2
+
+    dut = gpio.Watcher(["2:motion(1s)", "2:motion(5s)", "2:rising"], name='pytest')
+    assert len(dut._pins) == 2
+
+
+def test_gpio_with_rising_falling_on_same_pin(mock_gpio):
+    dut = gpio.Watcher(["2:rising", "2:falling"], name='pytest')
+
+    events = []
+    def callback(plugin, payload):
+        events.append(payload)
+
+    runner = make_runner(dut, callback)
+    with start_runner(runner):
+        time.sleep(0.5)
+        mock_gpio.fire_event(2, mock_gpio.RISING)
+        mock_gpio.fire_event(2, mock_gpio.FALLING)
+        mock_gpio.fire_event(2, mock_gpio.FALLING)
+        mock_gpio.fire_event(2, mock_gpio.FALLING)
+        time.sleep(0.5)
+
+    assert len(events) == 4
+    assert len(events) == 4
+    assert events[0] == {'gpio_pin': 2, 'event': 'rising'}
+    assert events[1] == {'gpio_pin': 2, 'event': 'falling'}
+    assert events[2] == {'gpio_pin': 2, 'event': 'rising'}
+    assert events[3] == {'gpio_pin': 2, 'event': 'falling'}
 
 
 def test_gpio_pull_with_motion_debounce(mock_gpio):
@@ -60,10 +101,34 @@ def test_gpio_pull_with_motion_debounce(mock_gpio):
         time.sleep(0.5)
 
     assert len(events) == 4
-    assert events[0] == {'gpio_pin': 2, 'direction': 'motion_on'}
-    assert events[1] == {'gpio_pin': 2, 'direction': 'motion_off'}
-    assert events[0] == {'gpio_pin': 2, 'direction': 'motion_on'}
-    assert events[1] == {'gpio_pin': 2, 'direction': 'motion_off'}
+    assert events[0] == {'gpio_pin': 2, 'event': 'motion_on'}
+    assert events[1] == {'gpio_pin': 2, 'event': 'motion_off'}
+    assert events[2] == {'gpio_pin': 2, 'event': 'motion_on'}
+    assert events[3] == {'gpio_pin': 2, 'event': 'motion_off'}
+
+
+def test_gpio_pull_with_multiple_callbacks_on_pin(mock_gpio):
+    dut = gpio.Watcher(["2:motion(1s)", "2:rising", "2:switch"], name='pytest')
+
+    events = []
+    def callback(plugin, payload):
+        events.append(payload)
+
+    runner = make_runner(dut, callback)
+    with start_runner(runner):
+        time.sleep(0.5)
+        mock_gpio.fire_event(2, mock_gpio.RISING)
+        time.sleep(0.1)
+        mock_gpio.fire_event(2, mock_gpio.RISING)
+        time.sleep(1.2)
+
+    assert len(events) == 6
+    assert events[0] == {'gpio_pin': 2, 'event': 'motion_on'}
+    assert events[1] == {'gpio_pin': 2, 'event': 'rising'}
+    assert events[2] == {'gpio_pin': 2, 'event': 'switch'}
+    assert events[3] == {'gpio_pin': 2, 'event': 'rising'}
+    assert events[4] == {'gpio_pin': 2, 'event': 'switch'}
+    assert events[5] == {'gpio_pin': 2, 'event': 'motion_off'}
 
 
 def test_callback_from_str():
