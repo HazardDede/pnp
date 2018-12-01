@@ -225,6 +225,31 @@ Example:
 
 !INCLUDECODE "config/dictmentor/nop.pull" (yaml)
 
+### Advanced selector expressions (>= 0.12.0)
+
+Instead of string-only selector expressions, you may now use complex dictionary and/or list constructs in your yaml
+to define a selector expression. The configuration below will repeat `{'hello': 'Hello', 'words': ['World', 'Moon', 'Mars']}`.
+
+```yaml
+- name: selector
+  pull:
+    plugin: pnp.plugins.pull.simple.Repeat
+    args:
+      wait: 1
+      repeat: "Hello World Moon Mars"
+  push:
+    - plugin: pnp.plugins.push.simple.Echo
+      selector:
+        hello: payload.split(' ')[0]
+        words:
+          - payload.split(' ')[1]
+          - payload.split(' ')[2]
+          - payload.split(' ')[3]
+```
+
+Before the advanced selector feature your epxressions would have probably looked similiar to this:
+`dict(hello=payload.split(' ')[0], words=[payload.split(' ')[1], payload.split(' ')[2], payload.split(' ')[3]])`.
+The first one is more readable, isn't it?
 
 ### Docker images
 
@@ -249,6 +274,7 @@ You are encouraged to specify explicitly the version in your dependency tools, e
     pip install pnp==0.10.0
 
 **0.12.0**
+* Adds feature to use complex lists and/or dictionary constructs in selector expressions
 * Adds `pull.gpio.Watcher` (extra `gpio`) to watch gpio pins for state changes. Only works on raspberry
 * Adds `push.simple.Execute` to run commands in a shell
 * Adds extra `http-server` to optionally install `flask` and `gevent` when needed

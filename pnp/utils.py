@@ -213,11 +213,20 @@ def safe_eval(source, **context):
         '1'
         >>> import os
         >>> safe_eval("os.system('echo 0')")  # Try to access os
-        Traceback (most recent call last):
-        ...
-        pnp.utils.EvaluationError: Failed to evaluate 'os.system('echo 0')'
+        "os.system('echo 0')"
         >>> safe_eval("os.system('echo 0')", os=os)  # The caller can pass the os module... if he really wants to...
         0
+
+        >>> safe_eval({
+        ...     "payload['foo']['bar']": 'baz',
+        ...     "foo": "payload['foo']['baz']",
+        ...     "payload['foo']['baz']": "payload['foo']['bar']"
+        ... }, payload=payload) == {1: 'baz', 'foo': 2, 2: 1}
+        True
+
+        >>> safe_eval(["payload['foo']['bar']", "payload['foo']['baz']",
+        ...     {"payload['foo']['bar']": "payload['foo']['baz']"}], payload=payload)
+        [1, 2, {1: 2}]
 
     Args:
         source: The source to execute.
@@ -226,6 +235,15 @@ def safe_eval(source, **context):
     Returns:
         Return the result of the eval. If something went wrong it raises an error.
     """
+    def eval_snippet(snippet):
+        try:
+            return eval(str(snippet), {'__builtins__': {}}, whitelist)
+        except NameError:
+            return snippet
+
+    def e(snippet):
+        return safe_eval(snippet, **context)
+
     whitelist = {
         "abs": abs,
         "bool": bool,
@@ -250,11 +268,11 @@ def safe_eval(source, **context):
     }
     whitelist.update(context)
     try:
-        return eval(
-            source,
-            {'__builtins__': {}},
-            whitelist
-        )
+        if isinstance(source, dict):
+            return {e(k): e(v) for k, v in source.items()}
+        if isinstance(source, list):
+            return [e(i) for i in source]
+        return eval_snippet(str(source))
     except Exception as exc:
         raise EvaluationError("Failed to evaluate '{source}'".format(**locals())) from exc
 

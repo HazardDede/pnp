@@ -24,7 +24,8 @@ Pulls data from sources and pushes it to sinks.
 5.1\.  [Configuration checking](#configurationchecking)  
 5.2\.  [Logging (>= 0.11.0)](#logging>=0.11.0)  
 5.3\.  [dictmentor (>= 0.11.0)](#dictmentor>=0.11.0)  
-5.4\.  [Docker images](#dockerimages)  
+5.4\.  [Advanced selector expressions (>= 0.12.0)](#advancedselectorexpressions>=0.12.0)  
+5.5\.  [Docker images](#dockerimages)  
 6\.  [Plugins](#plugins)  
 6.1\.  [pnp.plugins.pull.simple.Count](#pnp.plugins.pull.simple.count)  
 6.2\.  [pnp.plugins.pull.sensor.DHT](#pnp.plugins.pull.sensor.dht)  
@@ -492,10 +493,37 @@ plugin: pnp.plugins.push.simple.Echo
 plugin: pnp.plugins.push.simple.Nop
 ```
 
+<a name="advancedselectorexpressions>=0.12.0"></a>
+
+### 5.4\. Advanced selector expressions (>= 0.12.0)
+
+Instead of string-only selector expressions, you may now use complex dictionary and/or list constructs in your yaml
+to define a selector expression. The configuration below will repeat `{'hello': 'Hello', 'words': ['World', 'Moon', 'Mars']}`.
+
+```yaml
+- name: selector
+  pull:
+    plugin: pnp.plugins.pull.simple.Repeat
+    args:
+      wait: 1
+      repeat: "Hello World Moon Mars"
+  push:
+    - plugin: pnp.plugins.push.simple.Echo
+      selector:
+        hello: payload.split(' ')[0]
+        words:
+          - payload.split(' ')[1]
+          - payload.split(' ')[2]
+          - payload.split(' ')[3]
+```
+
+Before the advanced selector feature your epxressions would have probably looked similiar to this:
+`dict(hello=payload.split(' ')[0], words=[payload.split(' ')[1], payload.split(' ')[2], payload.split(' ')[3]])`.
+The first one is more readable, isn't it?
 
 <a name="dockerimages"></a>
 
-### 5.4\. Docker images
+### 5.5\. Docker images
 
 ```bash
 make docker  # OR: make docker-arm  for raspberry image
@@ -1370,6 +1398,7 @@ You are encouraged to specify explicitly the version in your dependency tools, e
     pip install pnp==0.10.0
 
 **0.12.0**
+* Adds feature to use complex lists and/or dictionary constructs in selector expressions
 * Adds `pull.gpio.Watcher` (extra `gpio`) to watch gpio pins for state changes. Only works on raspberry
 * Adds `push.simple.Execute` to run commands in a shell
 * Adds extra `http-server` to optionally install `flask` and `gevent` when needed

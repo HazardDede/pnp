@@ -41,7 +41,7 @@ class OrOverride(Or):
 
 push_schema = Schema({
     "plugin": Use(str),
-    Optional("selector", default=None): Or(str, None),
+    Optional("selector", default=None): Or(object, None),
     Optional("args", default={}): {
         Optional(str): object
     },
