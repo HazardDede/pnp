@@ -79,7 +79,7 @@ class Execute(PushBase):
 
         import subprocess
         cmd_str = _command_str()
-        self.logger.debug("[{self.name}] Running command in shell: {cmd_str}".format(**locals()))
+        self.logger.info("[{self.name}] Running command in shell: {cmd_str}".format(**locals()))
         p = subprocess.Popen(
             args=cmd_str,
             shell=True,
