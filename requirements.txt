@@ -1,4 +1,4 @@
--e .[fswatcher,http-server]
+-e .[dropbox,fswatcher,http-server,pushbullet]
 
 bumpversion
 flake8
