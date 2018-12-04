@@ -10,6 +10,7 @@
 !INCLUDE "docs/plugins/pull/zway_poll/index.md", 1
 !INCLUDE "docs/plugins/pull/zway_receiver/index.md", 1
 
+!INCLUDE "docs/plugins/push/dropbox/index.md", 1
 !INCLUDE "docs/plugins/push/echo/index.md", 1
 !INCLUDE "docs/plugins/push/execute/index.md", 1
 !INCLUDE "docs/plugins/push/facer/index.md", 1
@@ -17,3 +18,4 @@
 !INCLUDE "docs/plugins/push/http_call/index.md", 1
 !INCLUDE "docs/plugins/push/influx_push/index.md", 1
 !INCLUDE "docs/plugins/push/mqtt_push/index.md", 1
+!INCLUDE "docs/plugins/push/pushbullet/index.md", 1

@@ -36,13 +36,15 @@ Pulls data from sources and pushes it to sinks.
 6.7\.  [pnp.plugins.pull.http.Server](#pnp.plugins.pull.http.server)  
 6.8\.  [pnp.plugins.pull.ZwayPoll](#pnp.plugins.pull.zwaypoll)  
 6.9\.  [pnp.plugins.pull.ZwayReceiver](#pnp.plugins.pull.zwayreceiver)  
-6.10\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
-6.11\.  [pnp.plugins.push.simple.Execute](#pnp.plugins.push.simple.execute)  
-6.12\.  [pnp.plugins.push.ml.FaceR](#pnp.plugins.push.ml.facer)  
-6.13\.  [pnp.plugins.push.fs.FileDump](#pnp.plugins.push.fs.filedump)  
-6.14\.  [pnp.plugins.push.http.Call](#pnp.plugins.push.http.call)  
-6.15\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
-6.16\.  [pnp.plugins.push.mqtt.MQTTPush](#pnp.plugins.push.mqtt.mqttpush)  
+6.10\.  [pnp.plugins.push.storage.Dropbox](#pnp.plugins.push.storage.dropbox)  
+6.11\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
+6.12\.  [pnp.plugins.push.simple.Execute](#pnp.plugins.push.simple.execute)  
+6.13\.  [pnp.plugins.push.ml.FaceR](#pnp.plugins.push.ml.facer)  
+6.14\.  [pnp.plugins.push.fs.FileDump](#pnp.plugins.push.fs.filedump)  
+6.15\.  [pnp.plugins.push.http.Call](#pnp.plugins.push.http.call)  
+6.16\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
+6.17\.  [pnp.plugins.push.mqtt.MQTTPush](#pnp.plugins.push.mqtt.mqttpush)  
+6.18\.  [pnp.plugins.push.notify.Pushbullet](#pnp.plugins.push.notify.pushbullet)  
 7\.  [Changelog](#changelog)  
 
 <a name="installation"></a>
@@ -997,9 +999,66 @@ __Examples__
       selector: "'Got value {} from device {} ({}) with props {}'.format(data.value, data.device_name, data.raw_device, data.props)"
 ```
 
+<a name="pnp.plugins.push.storage.dropbox"></a>
+
+### 6.10\. pnp.plugins.push.storage.Dropbox
+
+Uploads provided file to the specified dropbox account.
+
+__Arguments__
+
+**api_key (str)**: The api key to your dropbox account/app.<br/>
+**target_file_name (str, optional)**: The file path on the server where to upload the file to.
+If not specified you have to specify this argument during push time by setting it in the envelope.<br/>
+**create_shared_link (bool, optional)**: If set to True, the push will create a publicly available link to your uploaded file. Default is `True`.
+
+__Result__
+
+Returns a dictionary that contains metadata information about your uploaded file. If you uploaded a file named `42.txt`,
+your result will be similiar to the one below:
+
+```yaml
+{
+    "name": "42.txt",
+    "id": "HkdashdasdOOOOOadss",
+    "content_hash": "aljdhfjdahfafuhu489",
+    "size": 42,
+    "path": "/42.txt",
+    "shared_link": "http://someserver/tosomestuff/asdasd?dl=1",
+    "raw_link": "http://someserver/tosomestuff/asdasd?raw=1"
+}
+```
+
+`shared_link` is the one that is publicly available (if you know the link). Same for `raw_link`, but this link will return
+the raw file (without the dropbox overhead). Both are `None` if `create_shared_link` is set to `False`.
+
+__Examples__
+
+```yaml
+### Make sure that you provided DROPBOX_API_KEY as an environment variable
+
+- name: dropbox
+  pull:
+    plugin: pnp.plugins.pull.fs.FileSystemWatcher
+    args:
+      path: "/tmp"
+      ignore_directories: True
+      events:
+        - created
+        - modified
+      load_file: False
+  push:
+    - plugin: pnp.plugins.push.storage.Dropbox
+      args:
+        create_shared_link: True  # Create a publicly available link
+      selector:
+        data: data.source  # Absolute path to file
+        target_file_name: basename(data.source)  # File name only
+
+```
 <a name="pnp.plugins.push.simple.echo"></a>
 
-### 6.10\. pnp.plugins.push.simple.Echo
+### 6.11\. pnp.plugins.push.simple.Echo
 
 Simply log the passed payload to the default logging instance.
 
@@ -1026,7 +1085,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.simple.execute"></a>
 
-### 6.11\. pnp.plugins.push.simple.Execute
+### 6.12\. pnp.plugins.push.simple.Execute
 
 Executes a command with given arguments in a shell of the operating system.
 
@@ -1079,7 +1138,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.ml.facer"></a>
 
-### 6.12\. pnp.plugins.push.ml.FaceR
+### 6.13\. pnp.plugins.push.ml.FaceR
 
 FaceR (short one for face recognition) tags known faces in images. Output is the image with all faces tagged whether
 with the known name or an `unknown_label`. Default for unknown ones is 'Unknown'.
@@ -1136,7 +1195,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.fs.filedump"></a>
 
-### 6.13\. pnp.plugins.push.fs.FileDump
+### 6.14\. pnp.plugins.push.fs.FileDump
 
 This push dumps the given `payload` to a file to the specified `directory`.
 If argument `file_name` is None, a name will be generated based on the current datetime (%Y%m%d-%H%M%S).
@@ -1199,7 +1258,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.http.call"></a>
 
-### 6.14\. pnp.plugins.push.http.Call
+### 6.15\. pnp.plugins.push.http.Call
 
 Makes a request to a http resource.
 
@@ -1285,7 +1344,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.timedb.influxpush"></a>
 
-### 6.15\. pnp.plugins.push.timedb.InfluxPush
+### 6.16\. pnp.plugins.push.timedb.InfluxPush
 
 Pushes the given `payload` to an influx database using the line `protocol`.
 You have to specify `host`, `port`, `user`, `password` and the `database`.
@@ -1333,7 +1392,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.mqtt.mqttpush"></a>
 
-### 6.16\. pnp.plugins.push.mqtt.MQTTPush
+### 6.17\. pnp.plugins.push.mqtt.MQTTPush
 
 Will push the given `payload` to a mqtt broker (in this case mosquitto).
 The broker is specified by `host` and `port`. In addition a topic needs to be specified were the payload
@@ -1386,6 +1445,47 @@ __Examples__
       host: localhost
       port: 1883
 ```
+<a name="pnp.plugins.push.notify.pushbullet"></a>
+
+### 6.18\. pnp.plugins.push.notify.Pushbullet
+
+Sends a message to the [Pushbullet](http://www.pushbullet.com) service.
+The type of the message will guessed:
+
+* `push_link` for a single http link
+* `push_file` if the link is directed to a file (mimetype will be guessed)
+* `push_note` for everything else (converted to `str`)
+
+__Arguments__
+
+**api_key (str)**: The api key to your pushbullet account.<br/>
+**title (str, optional)**: The title to use for your messages. Defaults to `pnp`</br>
+
+__Result__
+
+Will return the payload as it is for easy chaining of dependencies.
+
+__Examples__
+
+```yaml
+### Make sure that you provided PUSHBULETT_API_KEY as an environment variable
+
+- name: pushbullet
+  pull:
+    plugin: pnp.plugins.pull.fs.FileSystemWatcher
+    args:
+      path: "/tmp"
+      ignore_directories: True
+      events:
+        - created
+      load_file: False
+  push:
+    plugin: pnp.plugins.push.notify.Pushbullet
+    args:
+      title: "Watcher"
+    selector: "'New file: {}'.format(data.source)"
+
+```
 
 <a name="changelog"></a>
 
@@ -1398,6 +1498,8 @@ You are encouraged to specify explicitly the version in your dependency tools, e
     pip install pnp==0.10.0
 
 **0.12.0**
+* Adds `push.Pushbullet` to send message via the `pushbullet` service
+* Adds `push.Dropbox` to upload files to a `dropbox` account/app
 * Adds feature to use complex lists and/or dictionary constructs in selector expressions
 * Adds `pull.gpio.Watcher` (extra `gpio`) to watch gpio pins for state changes. Only works on raspberry
 * Adds `push.simple.Execute` to run commands in a shell
