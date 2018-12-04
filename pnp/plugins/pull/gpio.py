@@ -44,6 +44,7 @@ class Watcher(PullBase):
             self._pins = _without_duplicate
 
     def _universal_callback(self, gpio_pin, event):
+        self.logger.info("[{self.name}] GPIO '{gpio_pin}' raised event '{event}'".format(**locals()))
         self.notify(dict(gpio_pin=gpio_pin, event=event))
 
     def pull(self):
