@@ -13,7 +13,9 @@ ENV = {
     'ZWAY_USER': 'foo',
     'ZWAY_PASSWORD': 'bar',
     'OPENWEATHER_API_KEY': 'baz',
-    'MESSAGE': 'Hello World'
+    'MESSAGE': 'Hello World',
+    'DROPBOX_API_KEY': 'blub',
+    'PUSHBULLET_API_KEY': 'bla'
 }
 
 

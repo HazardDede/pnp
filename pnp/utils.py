@@ -241,12 +241,19 @@ def safe_eval(source, **context):
         except NameError:
             return snippet
 
-    def e(snippet):
-        return safe_eval(snippet, **context)
+    def e(snippet, is_key=False):
+        res = safe_eval(snippet, **context)
+        if is_key:
+            try:
+                hash(res)
+            except:
+                return snippet
+        return res
 
     whitelist = {
         "abs": abs,
         "bool": bool,
+        "basename": os.path.basename,
         "dict": dict,
         "float": float,
         "getattr": getattr,
@@ -269,7 +276,7 @@ def safe_eval(source, **context):
     whitelist.update(context)
     try:
         if isinstance(source, dict):
-            return {e(k): e(v) for k, v in source.items()}
+            return {e(k, True): e(v) for k, v in source.items()}
         if isinstance(source, list):
             return [e(i) for i in source]
         return eval_snippet(str(source))
@@ -470,6 +477,38 @@ def get_first_existing_file(*file_list):
         if isinstance(fp, str) and os.path.isfile(fp):
             return fp
     return None
+
+
+def get_bytes(stream_or_file):
+    """
+    Returns the bytes of the given stream or file argument. If it is a file, it will be opened in binary mode.
+    Examples:
+        >>> import tempfile
+        >>> tmp = tempfile.NamedTemporaryFile()
+        >>> print(get_bytes(tmp.name))
+        b''
+        >>> with open(tmp.name, 'rb') as stream:
+        ...     get_bytes(stream)
+        b''
+        >>> get_bytes('thatonedoesnotexist')
+        Traceback (most recent call last):
+            ...
+        ValueError: Argument 'stream_or_file' is neither a stream nor a file
+
+    Args:
+        stream_or_file: Stream or file to read the bytes from.
+
+    Returns:
+        Bytes of ``stream_or_file``
+    """
+    if getattr(stream_or_file, 'read', None):
+        return stream_or_file.read()
+    from pathlib import Path
+    if Path(stream_or_file).is_file():
+        with open(stream_or_file, 'rb') as file:
+            return file.read()
+
+    raise ValueError("Argument 'stream_or_file' is neither a stream nor a file")
 
 
 DurationLiteral = Union[str, int]

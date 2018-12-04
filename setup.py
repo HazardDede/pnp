@@ -66,7 +66,9 @@ setup(
         'fswatcher': ['watchdog>=0.8.3'],
         'faceR': ['image>=1.5.24', 'face-recognition>=1.2.2'],
         'http-server': ['Flask>=1.0.2', 'gevent>=1.3.4'],
-        'gpio': ['RPi.GPIO>=0.6.5']
+        'gpio': ['RPi.GPIO>=0.6.5'],
+        'dropbox': ['dropbox>=9.0.0', 'urllib3>=1.20'],
+        'pushbullet': ['pushbullet.py>=0.10.0', 'urllib3>=1.20']
     },
     dependency_links=[
         "git+https://github.com/adafruit/Adafruit_Python_DHT.git#egg=Adafruit_DHT-1.3.2"
