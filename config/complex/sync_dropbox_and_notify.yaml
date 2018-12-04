@@ -1,0 +1,21 @@
+# Make sure that you provided DROPBOX_API_KEY as an environment variable
+# Make sure that you provided PUSHBULETT_API_KEY as an environment variable
+
+- name: dropbox_sync_notify
+  pull:
+    plugin: pnp.plugins.pull.fs.FileSystemWatcher
+    args:
+      path: "/tmp"
+      ignore_directories: True
+      events:
+        - created
+        - modified
+      load_file: False
+  push:
+    - plugin: pnp.plugins.push.storage.Dropbox
+      selector:
+        data: data.source  # Absolute path to file
+        target_file_name: basename(data.source)  # File name only
+      deps:
+        - plugin: pnp.plugins.push.notify.Pushbullet
+          selector: data.raw_link
