@@ -16,7 +16,10 @@ __Arguments__
     the topic from the envelope will overrule the __init__ one.<br/>
 **retain (bool, optional)**: If set to True will mark the message as retained. Default is False.
     See the mosquitto man page for further guidance
-    [https://mosquitto.org/man/mqtt-7.html](https://mosquitto.org/man/mqtt-7.html).
+    [https://mosquitto.org/man/mqtt-7.html](https://mosquitto.org/man/mqtt-7.html).<br/>
+**multi (bool, optional)**: If set to True the payload is expected to be a dictionary. Each item of that dictionary will
+be sent individually to the broker. The key of the item will be appended to the configured topic. The value of the item
+is the actual payload. Default is False.
 
 __Result__
 
@@ -27,3 +30,5 @@ __Examples__
 !INCLUDECODE "docs/plugins/push/mqtt_push/example1.yaml" (yaml)
 
 !INCLUDECODE "docs/plugins/push/mqtt_push/example2.yaml" (yaml)
+
+!INCLUDECODE "docs/plugins/push/mqtt_push/example3.yaml" (yaml)

@@ -16,7 +16,10 @@ __Arguments__
     the topic from the envelope will overrule the __init__ one.<br/>
 **retain (bool, optional)**: If set to True will mark the message as retained. Default is False.
     See the mosquitto man page for further guidance
-    [https://mosquitto.org/man/mqtt-7.html](https://mosquitto.org/man/mqtt-7.html).
+    [https://mosquitto.org/man/mqtt-7.html](https://mosquitto.org/man/mqtt-7.html).<br/>
+**multi (bool, optional)**: If set to True the payload is expected to be a dictionary. Each item of that dictionary will
+be sent individually to the broker. The key of the item will be appended to the configured topic. The value of the item
+is the actual payload. Default is False.
 
 __Result__
 
@@ -50,4 +53,26 @@ __Examples__
     args:
       host: localhost
       port: 1883
+```
+
+```yaml
+- name: mqtt
+  pull:
+    # Periodically gets metrics about your system
+    plugin: pnp.plugins.pull.monitor.Stats
+    args:
+      instant_run: True
+      interval: 10s
+  push:
+    # Push them to the mqtt
+    plugin: pnp.plugins.push.mqtt.MQTTPush
+    args:
+      host: localhost
+      topic: devices/localhost/
+      port: 1883
+      retain: True
+      # Each item of the payload-dict (cpu_count, cpu_usage, ...) will be pushed to the broker as multiple items.
+      # The key of the item will be appended to the topic, e.g. `devices/localhost/cpu_count`.
+      # The value of the item is the actual payload.
+      multi: True
 ```

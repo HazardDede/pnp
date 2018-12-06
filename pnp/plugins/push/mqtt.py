@@ -35,7 +35,8 @@ class MQTTPush(PushBase):
     """
     __prefix__ = 'mqtt'
 
-    def __init__(self, host, topic=None, port=1883, retain=False, user=None, password=None, qos=0, **kwargs):
+    def __init__(self, host, topic=None, port=1883, retain=False, user=None, password=None, qos=0,
+                 multi=False, **kwargs):
         super().__init__(**kwargs)
         self.host = str(host)
         self.topic = self._parse_topic(topic)
@@ -44,6 +45,7 @@ class MQTTPush(PushBase):
         self.user = user and str(user)
         self.password = password and str(password)
         self.qos = self._parse_qos(qos)
+        self.multi = bool(multi)
 
     def _parse_retain(self, val):
         return try_parse_bool(val, default=False)
@@ -64,20 +66,9 @@ class MQTTPush(PushBase):
             return 2
         return pval
 
-    def push(self, payload):
+    def _publish(self, auth, qos, real_payload, retain, topic):
         import paho.mqtt.publish as publish
 
-        envelope, real_payload = self.envelope_payload(payload)
-        topic = self._parse_envelope_value('topic', envelope)  # Override topic via envelope
-        retain = self._parse_envelope_value('retain', envelope)  # Override retain via envelope
-        qos = self._parse_envelope_value('qos', envelope)  # Override qos via envelope
-
-        if topic is None:
-            raise ValueError("Topic was not defined either by the __init__ nor by the envelope")
-
-        auth = None
-        if self.user:
-            auth = dict(username=self.user, password=self.password)
         publish.single(
             topic=topic,
             payload=real_payload,
@@ -89,4 +80,38 @@ class MQTTPush(PushBase):
         )
         self.logger.debug("[{self.name}] Published message on '{topic}' @ {self.host}:{self.port} with qos={qos}. "
                           "Payload='{real_payload}'".format(**locals()))
+
+    @staticmethod
+    def _topic_concat(t1, t2):
+        if str(t1).endswith('/'):
+            return t1 + t2
+        return t1 + '/' + t2
+
+    def push(self, payload):
+        envelope, real_payload = self.envelope_payload(payload)
+        topic = self._parse_envelope_value('topic', envelope)  # Override topic via envelope
+        retain = self._parse_envelope_value('retain', envelope)  # Override retain via envelope
+        qos = self._parse_envelope_value('qos', envelope)  # Override qos via envelope
+
+        if topic is None:
+            raise ValueError("Topic was not defined either by the __init__ nor by the envelope")
+
+        auth = None
+        if self.user:
+            auth = dict(username=self.user, password=self.password)
+        if not self.multi:
+            self._publish(auth, qos, real_payload, retain, topic)
+        else:
+            if not isinstance(real_payload, dict):
+                raise TypeError("In multi mode the payload is required to be a dictionary")
+            for k, v in real_payload.items():
+                key_topic = self._topic_concat(topic, k)
+                try:
+                    self._publish(auth, qos, v, retain, key_topic)
+                except:
+                    import traceback
+                    ex = traceback.format_exc()
+                    self.logger.error("[{self.name}] Publishing failed for message on '{key_topic}' @ "
+                                      "{self.host}:{self.port} with qos={qos}. Payload='{v}'\n{ex}".format(**locals()))
+
         return payload  # Payload as is. With envelope (if any).
