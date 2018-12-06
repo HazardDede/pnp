@@ -6,6 +6,8 @@ set to False, then directories will be reported as well.
 Per default will recursively report any file that is touched, changed or deleted in the given path. The
 directory itself or subdirectories will be object to reporting too, if `ignore_directories` is set to False.
 
+Requires extra `fswatcher`.
+
 __Arguments__
 
 **path (str)**: The path to track for file / directory changes.<br/>

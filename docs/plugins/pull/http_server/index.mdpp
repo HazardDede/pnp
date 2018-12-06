@@ -6,6 +6,8 @@ the data will be passed as is. See sections `Result` for specific payload and ex
 
 Remark: You will not able to make requests to the endpoint DELETE `/_shutdown` because it is used internally.
 
+Requires extra `http-server`.
+
 __Arguments__
 
 **port (int, optional)**: The port the rest server should listen to for requests. Default is 5000.<br/>

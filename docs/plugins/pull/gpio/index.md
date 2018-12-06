@@ -2,6 +2,16 @@
 
 Listens for low/high state changes on the configured gpio pins.
 
+In more detail the plugin can raise events when one of the following situations occur:
+
+* rising (high) of a gpio pin - multiple events may occur in a short period of time
+* falling (low) of a gpio pin - multiple events may occur in a short period of time
+* switch of gpio pin - will suppress multiple events a defined period of time (bounce time)
+* motion of gpio pin - will raise the event `motion_on` if the pin rises and set a timer with a configurable amount of
+time. Any other gpio rising events will reset the timer. When the timer expires the `motion_off` event is raised.
+
+Requires extra `gpio`.
+
 __Arguments__
 
 **pins (list)**: The gpio pins to observe for state changes. Please see the examples section on how to configure it.<br/>

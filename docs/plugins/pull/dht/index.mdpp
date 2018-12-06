@@ -3,6 +3,8 @@
 Periodically polls a dht11 or dht22 (aka am2302) for temperature and humidity readings.
 Polling interval is controlled by `interval`.
 
+Requires extra `dht`.
+
 __Arguments__
 
 **device (str, optional)**: The device to poll (one of dht22, dht11, am2302). Default is 'dht22'.<br/>

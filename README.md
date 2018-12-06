@@ -31,20 +31,21 @@ Pulls data from sources and pushes it to sinks.
 6.2\.  [pnp.plugins.pull.sensor.DHT](#pnp.plugins.pull.sensor.dht)  
 6.3\.  [pnp.plugins.pull.fs.FileSystemWatcher](#pnp.plugins.pull.fs.filesystemwatcher)  
 6.4\.  [pnp.plugins.pull.gpio.Watcher](#pnp.plugins.pull.gpio.watcher)  
-6.5\.  [pnp.plugins.pull.mqtt.MQTTPull](#pnp.plugins.pull.mqtt.mqttpull)  
-6.6\.  [pnp.plugins.pull.simple.Repeat](#pnp.plugins.pull.simple.repeat)  
-6.7\.  [pnp.plugins.pull.http.Server](#pnp.plugins.pull.http.server)  
-6.8\.  [pnp.plugins.pull.ZwayPoll](#pnp.plugins.pull.zwaypoll)  
-6.9\.  [pnp.plugins.pull.ZwayReceiver](#pnp.plugins.pull.zwayreceiver)  
-6.10\.  [pnp.plugins.push.storage.Dropbox](#pnp.plugins.push.storage.dropbox)  
-6.11\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
-6.12\.  [pnp.plugins.push.simple.Execute](#pnp.plugins.push.simple.execute)  
-6.13\.  [pnp.plugins.push.ml.FaceR](#pnp.plugins.push.ml.facer)  
-6.14\.  [pnp.plugins.push.fs.FileDump](#pnp.plugins.push.fs.filedump)  
-6.15\.  [pnp.plugins.push.http.Call](#pnp.plugins.push.http.call)  
-6.16\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
-6.17\.  [pnp.plugins.push.mqtt.MQTTPush](#pnp.plugins.push.mqtt.mqttpush)  
-6.18\.  [pnp.plugins.push.notify.Pushbullet](#pnp.plugins.push.notify.pushbullet)  
+6.5\.  [pnp.plugins.pull.http.Server](#pnp.plugins.pull.http.server)  
+6.6\.  [pnp.plugins.pull.mqtt.MQTTPull](#pnp.plugins.pull.mqtt.mqttpull)  
+6.7\.  [pnp.plugins.pull.simple.Repeat](#pnp.plugins.pull.simple.repeat)  
+6.8\.  [pnp.plugins.pull.simple.Count](#pnp.plugins.pull.simple.count-1)  
+6.9\.  [pnp.plugins.pull.ZwayPoll](#pnp.plugins.pull.zwaypoll)  
+6.10\.  [pnp.plugins.pull.ZwayReceiver](#pnp.plugins.pull.zwayreceiver)  
+6.11\.  [pnp.plugins.push.storage.Dropbox](#pnp.plugins.push.storage.dropbox)  
+6.12\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
+6.13\.  [pnp.plugins.push.simple.Execute](#pnp.plugins.push.simple.execute)  
+6.14\.  [pnp.plugins.push.ml.FaceR](#pnp.plugins.push.ml.facer)  
+6.15\.  [pnp.plugins.push.fs.FileDump](#pnp.plugins.push.fs.filedump)  
+6.16\.  [pnp.plugins.push.http.Call](#pnp.plugins.push.http.call)  
+6.17\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
+6.18\.  [pnp.plugins.push.mqtt.MQTTPush](#pnp.plugins.push.mqtt.mqttpush)  
+6.19\.  [pnp.plugins.push.notify.Pushbullet](#pnp.plugins.push.notify.pushbullet)  
 7\.  [Changelog](#changelog)  
 
 <a name="installation"></a>
@@ -578,6 +579,8 @@ __Examples__
 Periodically polls a dht11 or dht22 (aka am2302) for temperature and humidity readings.
 Polling interval is controlled by `interval`.
 
+Requires extra `dht`.
+
 __Arguments__
 
 **device (str, optional)**: The device to poll (one of dht22, dht11, am2302). Default is 'dht22'.<br/>
@@ -621,6 +624,8 @@ set to False, then directories will be reported as well.
 
 Per default will recursively report any file that is touched, changed or deleted in the given path. The
 directory itself or subdirectories will be object to reporting too, if `ignore_directories` is set to False.
+
+Requires extra `fswatcher`.
 
 __Arguments__
 
@@ -685,6 +690,16 @@ __Examples__
 
 Listens for low/high state changes on the configured gpio pins.
 
+In more detail the plugin can raise events when one of the following situations occur:
+
+* rising (high) of a gpio pin - multiple events may occur in a short period of time
+* falling (low) of a gpio pin - multiple events may occur in a short period of time
+* switch of gpio pin - will suppress multiple events a defined period of time (bounce time)
+* motion of gpio pin - will raise the event `motion_on` if the pin rises and set a timer with a configurable amount of
+time. Any other gpio rising events will reset the timer. When the timer expires the `motion_off` event is raised.
+
+Requires extra `gpio`.
+
 __Arguments__
 
 **pins (list)**: The gpio pins to observe for state changes. Please see the examples section on how to configure it.<br/>
@@ -720,82 +735,17 @@ __Examples__
   push:
     - plugin: pnp.plugins.push.simple.Echo
 ```
-<a name="pnp.plugins.pull.mqtt.mqttpull"></a>
-
-### 6.5\. pnp.plugins.pull.mqtt.MQTTPull
-
-Pulls messages from the specified topic from the given mosquitto mqtt broker (identified by host and port).
-
-__Arguments__
-
-**host (str)**: Host where the mosquitto broker is running.<br/>
-**port (int)**: Port where the mosquitto broker is listening.<br/>
-**topic (str)**: Topic to pull messages from.
-    You can listen to multiple topics by using the #-wildcard (e.g. `test/#` will listen to all topics underneath test).
-
-All arguments can be automatically injected via environment variables with `MQTT` prefix (e.g. MQTT_HOST).
-
-__Result__
-
-The emitted message will look like this:
-```yaml
-{
-    'topic': 'test/device/device1',
-    'levels': ['test', 'device', 'device1']
-    'payload': 'The actual event message'
-}
-```
-
-__Examples__
-
-```yaml
-- name: mqtt
-  pull:
-    plugin: pnp.plugins.pull.mqtt.MQTTPull
-    args:
-      host: localhost
-      port: 1883
-      topic: test/#
-  push:
-    plugin: pnp.plugins.push.simple.Echo
-```
-
-<a name="pnp.plugins.pull.simple.repeat"></a>
-
-### 6.6\. pnp.plugins.pull.simple.Repeat
-
-Emits every `wait` seconds the same `repeat`.
-
-__Arguments__
-
-**wait (int)**: Wait the amount of seconds before emitting the next repeat.<br/>
-**repeat (any)**: The object to emit.
-
-__Result__
-
-Emits the `repeat`-object as it is.
-
-__Examples__
-
-```yaml
-- name: repeat
-  pull:
-    plugin: pnp.plugins.pull.simple.Repeat
-    args:
-      repeat: "Hello World"  # Repeats 'Hello World'
-      wait: 1  # Every second
-  push:
-    plugin: pnp.plugins.push.simple.Echo
-```
 <a name="pnp.plugins.pull.http.server"></a>
 
-### 6.7\. pnp.plugins.pull.http.Server
+### 6.5\. pnp.plugins.pull.http.Server
 
 Listens on the specified `port` for requests to any endpoint.
 Any data passed to the endpoint will be tried to be parsed to a dictionary (json). If this is not possible
 the data will be passed as is. See sections `Result` for specific payload and examples.
 
 Remark: You will not able to make requests to the endpoint DELETE `/_shutdown` because it is used internally.
+
+Requires extra `http-server`.
 
 __Arguments__
 
@@ -847,9 +797,111 @@ __Examples__
   push:
     plugin: pnp.plugins.push.simple.Echo
 ```
+<a name="pnp.plugins.pull.mqtt.mqttpull"></a>
+
+### 6.6\. pnp.plugins.pull.mqtt.MQTTPull
+
+Pulls messages from the specified topic from the given mosquitto mqtt broker (identified by host and port).
+
+__Arguments__
+
+**host (str)**: Host where the mosquitto broker is running.<br/>
+**port (int)**: Port where the mosquitto broker is listening.<br/>
+**topic (str)**: Topic to pull messages from.
+    You can listen to multiple topics by using the #-wildcard (e.g. `test/#` will listen to all topics underneath test).
+
+All arguments can be automatically injected via environment variables with `MQTT` prefix (e.g. MQTT_HOST).
+
+__Result__
+
+The emitted message will look like this:
+```yaml
+{
+    'topic': 'test/device/device1',
+    'levels': ['test', 'device', 'device1']
+    'payload': 'The actual event message'
+}
+```
+
+__Examples__
+
+```yaml
+- name: mqtt
+  pull:
+    plugin: pnp.plugins.pull.mqtt.MQTTPull
+    args:
+      host: localhost
+      port: 1883
+      topic: test/#
+  push:
+    plugin: pnp.plugins.push.simple.Echo
+```
+
+<a name="pnp.plugins.pull.simple.repeat"></a>
+
+### 6.7\. pnp.plugins.pull.simple.Repeat
+
+Emits every `wait` seconds the same `repeat`.
+
+__Arguments__
+
+**wait (int)**: Wait the amount of seconds before emitting the next repeat.<br/>
+**repeat (any)**: The object to emit.
+
+__Result__
+
+Emits the `repeat`-object as it is.
+
+__Examples__
+
+```yaml
+- name: repeat
+  pull:
+    plugin: pnp.plugins.pull.simple.Repeat
+    args:
+      repeat: "Hello World"  # Repeats 'Hello World'
+      wait: 1  # Every second
+  push:
+    plugin: pnp.plugins.push.simple.Echo
+```
+<a name="pnp.plugins.pull.simple.count-1"></a>
+
+### 6.8\. pnp.plugins.pull.simple.Count
+
+Emits every `interval` various metrics / statistics about the host system. Please see the 'Result' section for available metrics.
+
+__Result__
+
+```yaml
+{
+	'cpu_count': 4,
+	'cpu_freq': 700,  # in Mhz
+	'cpu_use': 6.6,  # in %
+	'cpu_temp': 52.6,  # in °C (might not be available on all systems, e.g. MacOS)
+	'memory_use': 56.0,  # in %
+	'swap_use': 23.2,  # in %
+	'disk_use': 69.8,  # in %  (of your root)
+	'load_1m': 1.81591796875,  # CPU queue length last minute
+	'load_5m': 2.06689453125,  # CPU queue length last 5 minutes
+	'load_15m': 2.15478515625  # CPU queue length last 15 minutes
+}
+```
+
+__Examples__
+
+```yaml
+- name: stats
+  pull:
+    plugin: pnp.plugins.pull.monitor.Stats
+    args:
+      interval: 10s
+      instant_run: True
+  push:
+    plugin: pnp.plugins.push.simple.Echo
+```
 <a name="pnp.plugins.pull.zwaypoll"></a>
 
-### 6.8\. pnp.plugins.pull.ZwayPoll
+### 6.9\. pnp.plugins.pull.ZwayPoll
 
 Pulls the specified json content from the zway rest api. The content is specified by the url, e.g.
 `http://<host>:8083/ZWaveAPI/Run/devices` will pull all devices and serve the result as a json.
@@ -923,7 +975,7 @@ Below are some common selector examples to fetch various metrics from various de
 
 <a name="pnp.plugins.pull.zwayreceiver"></a>
 
-### 6.9\. pnp.plugins.pull.ZwayReceiver
+### 6.10\. pnp.plugins.pull.ZwayReceiver
 
 Setups a http server to process incoming GET-requests from the Zway-App [`HttpGet`](https://github.com/hplato/Zway-HTTPGet/blob/master/index.js).
 
@@ -1001,7 +1053,7 @@ __Examples__
 
 <a name="pnp.plugins.push.storage.dropbox"></a>
 
-### 6.10\. pnp.plugins.push.storage.Dropbox
+### 6.11\. pnp.plugins.push.storage.Dropbox
 
 Uploads provided file to the specified dropbox account.
 
@@ -1011,6 +1063,8 @@ __Arguments__
 **target_file_name (str, optional)**: The file path on the server where to upload the file to.
 If not specified you have to specify this argument during push time by setting it in the envelope.<br/>
 **create_shared_link (bool, optional)**: If set to True, the push will create a publicly available link to your uploaded file. Default is `True`.
+
+Requires extra `dropbox`.
 
 __Result__
 
@@ -1058,7 +1112,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.simple.echo"></a>
 
-### 6.11\. pnp.plugins.push.simple.Echo
+### 6.12\. pnp.plugins.push.simple.Echo
 
 Simply log the passed payload to the default logging instance.
 
@@ -1085,7 +1139,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.simple.execute"></a>
 
-### 6.12\. pnp.plugins.push.simple.Execute
+### 6.13\. pnp.plugins.push.simple.Execute
 
 Executes a command with given arguments in a shell of the operating system.
 
@@ -1138,7 +1192,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.ml.facer"></a>
 
-### 6.13\. pnp.plugins.push.ml.FaceR
+### 6.14\. pnp.plugins.push.ml.FaceR
 
 FaceR (short one for face recognition) tags known faces in images. Output is the image with all faces tagged whether
 with the known name or an `unknown_label`. Default for unknown ones is 'Unknown'.
@@ -1195,7 +1249,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.fs.filedump"></a>
 
-### 6.14\. pnp.plugins.push.fs.FileDump
+### 6.15\. pnp.plugins.push.fs.FileDump
 
 This push dumps the given `payload` to a file to the specified `directory`.
 If argument `file_name` is None, a name will be generated based on the current datetime (%Y%m%d-%H%M%S).
@@ -1258,7 +1312,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.http.call"></a>
 
-### 6.15\. pnp.plugins.push.http.Call
+### 6.16\. pnp.plugins.push.http.Call
 
 Makes a request to a http resource.
 
@@ -1344,7 +1398,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.timedb.influxpush"></a>
 
-### 6.16\. pnp.plugins.push.timedb.InfluxPush
+### 6.17\. pnp.plugins.push.timedb.InfluxPush
 
 Pushes the given `payload` to an influx database using the line `protocol`.
 You have to specify `host`, `port`, `user`, `password` and the `database`.
@@ -1392,7 +1446,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.mqtt.mqttpush"></a>
 
-### 6.17\. pnp.plugins.push.mqtt.MQTTPush
+### 6.18\. pnp.plugins.push.mqtt.MQTTPush
 
 Will push the given `payload` to a mqtt broker (in this case mosquitto).
 The broker is specified by `host` and `port`. In addition a topic needs to be specified were the payload
@@ -1410,7 +1464,10 @@ __Arguments__
     the topic from the envelope will overrule the __init__ one.<br/>
 **retain (bool, optional)**: If set to True will mark the message as retained. Default is False.
     See the mosquitto man page for further guidance
-    [https://mosquitto.org/man/mqtt-7.html](https://mosquitto.org/man/mqtt-7.html).
+    [https://mosquitto.org/man/mqtt-7.html](https://mosquitto.org/man/mqtt-7.html).<br/>
+**multi (bool, optional)**: If set to True the payload is expected to be a dictionary. Each item of that dictionary will
+be sent individually to the broker. The key of the item will be appended to the configured topic. The value of the item
+is the actual payload. Default is False.
 
 __Result__
 
@@ -1445,9 +1502,31 @@ __Examples__
       host: localhost
       port: 1883
 ```
+
+```yaml
+- name: mqtt
+  pull:
+    # Periodically gets metrics about your system
+    plugin: pnp.plugins.pull.monitor.Stats
+    args:
+      instant_run: True
+      interval: 10s
+  push:
+    # Push them to the mqtt
+    plugin: pnp.plugins.push.mqtt.MQTTPush
+    args:
+      host: localhost
+      topic: devices/localhost/
+      port: 1883
+      retain: True
+      # Each item of the payload-dict (cpu_count, cpu_usage, ...) will be pushed to the broker as multiple items.
+      # The key of the item will be appended to the topic, e.g. `devices/localhost/cpu_count`.
+      # The value of the item is the actual payload.
+      multi: True
+```
 <a name="pnp.plugins.push.notify.pushbullet"></a>
 
-### 6.18\. pnp.plugins.push.notify.Pushbullet
+### 6.19\. pnp.plugins.push.notify.Pushbullet
 
 Sends a message to the [Pushbullet](http://www.pushbullet.com) service.
 The type of the message will guessed:
@@ -1455,6 +1534,8 @@ The type of the message will guessed:
 * `push_link` for a single http link
 * `push_file` if the link is directed to a file (mimetype will be guessed)
 * `push_note` for everything else (converted to `str`)
+
+Requires extra `pushbullet`.
 
 __Arguments__
 
@@ -1498,11 +1579,14 @@ You are encouraged to specify explicitly the version in your dependency tools, e
     pip install pnp==0.10.0
 
 **0.12.0**
-* Adds `push.Pushbullet` to send message via the `pushbullet` service
-* Adds `push.Dropbox` to upload files to a `dropbox` account/app
+* Adds additional argument `multi` (default False) to `push.mqtt.MQTTPush` to send multiple messages to the broker if
+the payload is a dictionary (see plugin docs for reference)
+* Adds plugin `pull.monitor.Stats` to periodically emit stats about the host system
+* Adds plugin `push.notify.Pushbullet` to send message via the `pushbullet` service
+* Adds plugin `push.storage.Dropbox` to upload files to a `dropbox` account/app
 * Adds feature to use complex lists and/or dictionary constructs in selector expressions
-* Adds `pull.gpio.Watcher` (extra `gpio`) to watch gpio pins for state changes. Only works on raspberry
-* Adds `push.simple.Execute` to run commands in a shell
+* Adds plugin `pull.gpio.Watcher` (extra `gpio`) to watch gpio pins for state changes. Only works on raspberry
+* Adds plugin `push.simple.Execute` to run commands in a shell
 * Adds extra `http-server` to optionally install `flask` and `gevent` when needed
 * Adds utility method to check for installed extras
 * Adds `-v | --verbose` flag to pnp runner to switch logging level to `DEBUG`. No matter what...

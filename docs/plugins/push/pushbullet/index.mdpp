@@ -7,6 +7,8 @@ The type of the message will guessed:
 * `push_file` if the link is directed to a file (mimetype will be guessed)
 * `push_note` for everything else (converted to `str`)
 
+Requires extra `pushbullet`.
+
 __Arguments__
 
 **api_key (str)**: The api key to your pushbullet account.<br/>

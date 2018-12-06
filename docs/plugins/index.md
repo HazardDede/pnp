@@ -33,6 +33,8 @@ __Examples__
 Periodically polls a dht11 or dht22 (aka am2302) for temperature and humidity readings.
 Polling interval is controlled by `interval`.
 
+Requires extra `dht`.
+
 __Arguments__
 
 **device (str, optional)**: The device to poll (one of dht22, dht11, am2302). Default is 'dht22'.<br/>
@@ -74,6 +76,8 @@ set to False, then directories will be reported as well.
 
 Per default will recursively report any file that is touched, changed or deleted in the given path. The
 directory itself or subdirectories will be object to reporting too, if `ignore_directories` is set to False.
+
+Requires extra `fswatcher`.
 
 __Arguments__
 
@@ -136,6 +140,16 @@ __Examples__
 
 Listens for low/high state changes on the configured gpio pins.
 
+In more detail the plugin can raise events when one of the following situations occur:
+
+* rising (high) of a gpio pin - multiple events may occur in a short period of time
+* falling (low) of a gpio pin - multiple events may occur in a short period of time
+* switch of gpio pin - will suppress multiple events a defined period of time (bounce time)
+* motion of gpio pin - will raise the event `motion_on` if the pin rises and set a timer with a configurable amount of
+time. Any other gpio rising events will reset the timer. When the timer expires the `motion_off` event is raised.
+
+Requires extra `gpio`.
+
 __Arguments__
 
 **pins (list)**: The gpio pins to observe for state changes. Please see the examples section on how to configure it.<br/>
@@ -170,6 +184,66 @@ __Examples__
         - 9:motion(1m)    # Specify delay (default is 30 seconds)
   push:
     - plugin: pnp.plugins.push.simple.Echo
+```
+## pnp.plugins.pull.http.Server
+
+Listens on the specified `port` for requests to any endpoint.
+Any data passed to the endpoint will be tried to be parsed to a dictionary (json). If this is not possible
+the data will be passed as is. See sections `Result` for specific payload and examples.
+
+Remark: You will not able to make requests to the endpoint DELETE `/_shutdown` because it is used internally.
+
+Requires extra `http-server`.
+
+__Arguments__
+
+**port (int, optional)**: The port the rest server should listen to for requests. Default is 5000.<br/>
+**allowed_methods (str or list, optional)**: List of http methods that are allowed. Default is 'GET'.<br/>
+**server_impl (str, optional)**: Choose the implementation of the WSGI-Server (wraps the flask-app).
+    Possible values are: [flask, gevent]. `flask` uses the internal Flask Development server. Not recommended for
+    production use. `gevent` uses [gevent](http://www.gevent.org/). Default is `gevent`.
+
+__Result__
+
+```shell
+curl -X GET 'http://localhost:5000/resource/endpoint?foo=bar&bar=baz' --data '{"baz": "bar"}'
+```
+
+```yaml
+{
+    'endpoint': 'resource/endpoint,
+    'method': 'GET',
+    'query': {'foo': 'bar', 'bar': 'baz'},
+    'data': {'baz': 'bar'},
+    'is_json': True
+}
+```
+
+```shell
+curl -X GET 'http://localhost:5000/resource/endpoint' --data 'no json obviously'
+```
+
+```yaml
+{
+    'endpoint': 'resource/endpoint,
+    'method': 'GET',
+    'query': {},
+    'data': b'no json obviously',
+    'is_json': False
+}
+```
+
+__Examples__
+
+```yaml
+- name: rest
+  pull:
+    plugin: pnp.plugins.pull.http.Server
+    args:
+      port: 5000
+      allowed_methods: [GET, POST]
+  push:
+    plugin: pnp.plugins.push.simple.Echo
 ```
 ## pnp.plugins.pull.mqtt.MQTTPull
 
@@ -234,61 +308,36 @@ __Examples__
   push:
     plugin: pnp.plugins.push.simple.Echo
 ```
-## pnp.plugins.pull.http.Server
+## pnp.plugins.pull.simple.Count
 
-Listens on the specified `port` for requests to any endpoint.
-Any data passed to the endpoint will be tried to be parsed to a dictionary (json). If this is not possible
-the data will be passed as is. See sections `Result` for specific payload and examples.
-
-Remark: You will not able to make requests to the endpoint DELETE `/_shutdown` because it is used internally.
-
-__Arguments__
-
-**port (int, optional)**: The port the rest server should listen to for requests. Default is 5000.<br/>
-**allowed_methods (str or list, optional)**: List of http methods that are allowed. Default is 'GET'.<br/>
-**server_impl (str, optional)**: Choose the implementation of the WSGI-Server (wraps the flask-app).
-    Possible values are: [flask, gevent]. `flask` uses the internal Flask Development server. Not recommended for
-    production use. `gevent` uses [gevent](http://www.gevent.org/). Default is `gevent`.
+Emits every `interval` various metrics / statistics about the host system. Please see the 'Result' section for available metrics.
 
 __Result__
 
-```shell
-curl -X GET 'http://localhost:5000/resource/endpoint?foo=bar&bar=baz' --data '{"baz": "bar"}'
-```
-
 ```yaml
 {
-    'endpoint': 'resource/endpoint,
-    'method': 'GET',
-    'query': {'foo': 'bar', 'bar': 'baz'},
-    'data': {'baz': 'bar'},
-    'is_json': True
-}
-```
-
-```shell
-curl -X GET 'http://localhost:5000/resource/endpoint' --data 'no json obviously'
-```
-
-```yaml
-{
-    'endpoint': 'resource/endpoint,
-    'method': 'GET',
-    'query': {},
-    'data': b'no json obviously',
-    'is_json': False
+	'cpu_count': 4,
+	'cpu_freq': 700,  # in Mhz
+	'cpu_use': 6.6,  # in %
+	'cpu_temp': 52.6,  # in °C (might not be available on all systems, e.g. MacOS)
+	'memory_use': 56.0,  # in %
+	'swap_use': 23.2,  # in %
+	'disk_use': 69.8,  # in %  (of your root)
+	'load_1m': 1.81591796875,  # CPU queue length last minute
+	'load_5m': 2.06689453125,  # CPU queue length last 5 minutes
+	'load_15m': 2.15478515625  # CPU queue length last 15 minutes
 }
 ```
 
 __Examples__
 
 ```yaml
-- name: rest
+- name: stats
   pull:
-    plugin: pnp.plugins.pull.http.Server
+    plugin: pnp.plugins.pull.monitor.Stats
     args:
-      port: 5000
-      allowed_methods: [GET, POST]
+      interval: 10s
+      instant_run: True
   push:
     plugin: pnp.plugins.push.simple.Echo
 ```
@@ -450,6 +499,8 @@ __Arguments__
 **target_file_name (str, optional)**: The file path on the server where to upload the file to.
 If not specified you have to specify this argument during push time by setting it in the envelope.<br/>
 **create_shared_link (bool, optional)**: If set to True, the push will create a publicly available link to your uploaded file. Default is `True`.
+
+Requires extra `dropbox`.
 
 __Result__
 
@@ -835,7 +886,10 @@ __Arguments__
     the topic from the envelope will overrule the __init__ one.<br/>
 **retain (bool, optional)**: If set to True will mark the message as retained. Default is False.
     See the mosquitto man page for further guidance
-    [https://mosquitto.org/man/mqtt-7.html](https://mosquitto.org/man/mqtt-7.html).
+    [https://mosquitto.org/man/mqtt-7.html](https://mosquitto.org/man/mqtt-7.html).<br/>
+**multi (bool, optional)**: If set to True the payload is expected to be a dictionary. Each item of that dictionary will
+be sent individually to the broker. The key of the item will be appended to the configured topic. The value of the item
+is the actual payload. Default is False.
 
 __Result__
 
@@ -870,6 +924,28 @@ __Examples__
       host: localhost
       port: 1883
 ```
+
+```yaml
+- name: mqtt
+  pull:
+    # Periodically gets metrics about your system
+    plugin: pnp.plugins.pull.monitor.Stats
+    args:
+      instant_run: True
+      interval: 10s
+  push:
+    # Push them to the mqtt
+    plugin: pnp.plugins.push.mqtt.MQTTPush
+    args:
+      host: localhost
+      topic: devices/localhost/
+      port: 1883
+      retain: True
+      # Each item of the payload-dict (cpu_count, cpu_usage, ...) will be pushed to the broker as multiple items.
+      # The key of the item will be appended to the topic, e.g. `devices/localhost/cpu_count`.
+      # The value of the item is the actual payload.
+      multi: True
+```
 ## pnp.plugins.push.notify.Pushbullet
 
 Sends a message to the [Pushbullet](http://www.pushbullet.com) service.
@@ -878,6 +954,8 @@ The type of the message will guessed:
 * `push_link` for a single http link
 * `push_file` if the link is directed to a file (mimetype will be guessed)
 * `push_note` for everything else (converted to `str`)
+
+Requires extra `pushbullet`.
 
 __Arguments__
 

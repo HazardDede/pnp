@@ -9,6 +9,8 @@ __Arguments__
 If not specified you have to specify this argument during push time by setting it in the envelope.<br/>
 **create_shared_link (bool, optional)**: If set to True, the push will create a publicly available link to your uploaded file. Default is `True`.
 
+Requires extra `dropbox`.
+
 __Result__
 
 Returns a dictionary that contains metadata information about your uploaded file. If you uploaded a file named `42.txt`,

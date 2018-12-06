@@ -274,11 +274,14 @@ You are encouraged to specify explicitly the version in your dependency tools, e
     pip install pnp==0.10.0
 
 **0.12.0**
-* Adds `push.Pushbullet` to send message via the `pushbullet` service
-* Adds `push.Dropbox` to upload files to a `dropbox` account/app
+* Adds additional argument `multi` (default False) to `push.mqtt.MQTTPush` to send multiple messages to the broker if
+the payload is a dictionary (see plugin docs for reference)
+* Adds plugin `pull.monitor.Stats` to periodically emit stats about the host system
+* Adds plugin `push.notify.Pushbullet` to send message via the `pushbullet` service
+* Adds plugin `push.storage.Dropbox` to upload files to a `dropbox` account/app
 * Adds feature to use complex lists and/or dictionary constructs in selector expressions
-* Adds `pull.gpio.Watcher` (extra `gpio`) to watch gpio pins for state changes. Only works on raspberry
-* Adds `push.simple.Execute` to run commands in a shell
+* Adds plugin `pull.gpio.Watcher` (extra `gpio`) to watch gpio pins for state changes. Only works on raspberry
+* Adds plugin `push.simple.Execute` to run commands in a shell
 * Adds extra `http-server` to optionally install `flask` and `gevent` when needed
 * Adds utility method to check for installed extras
 * Adds `-v | --verbose` flag to pnp runner to switch logging level to `DEBUG`. No matter what...
