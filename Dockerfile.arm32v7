@@ -15,7 +15,11 @@ RUN mkdir -p ${WORKDIR} && \
 COPY . ${WORKDIR}
 
 RUN cd ${WORKDIR} && \
-    pip3 install --process-dependency-links .[dht,dropbox,fswatcher,gpio,http-server,pushbullet]
+    pip3 install \
+    --process-dependency-links \
+    .[dht,dropbox,fswatcher,gpio,http-server,pushbullet]
+
+# --extra-index-url https://www.piwheels.hostedpi.com/simple
 
 VOLUME ${CONFDIR}
 VOLUME ${LOGDIR}
