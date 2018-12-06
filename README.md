@@ -41,7 +41,7 @@ Pulls data from sources and pushes it to sinks.
 6.12\.  [pnp.plugins.push.fs.FileDump](#pnp.plugins.push.fs.filedump)  
 6.13\.  [pnp.plugins.push.http.Call](#pnp.plugins.push.http.call)  
 6.14\.  [pnp.plugins.push.ml.FaceR](#pnp.plugins.push.ml.facer)  
-6.15\.  [pnp.plugins.push.mqtt.MQTTPush](#pnp.plugins.push.mqtt.mqttpush)  
+6.15\.  [pnp.plugins.push.mqtt.Publish](#pnp.plugins.push.mqtt.publish)  
 6.16\.  [pnp.plugins.push.notify.Pushbullet](#pnp.plugins.push.notify.pushbullet)  
 6.17\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
 6.18\.  [pnp.plugins.push.simple.Execute](#pnp.plugins.push.simple.execute)  
@@ -1355,9 +1355,9 @@ __Examples__
       known_faces_dir: "/tmp/faces"
       unknown_label: "don't know him"
 ```
-<a name="pnp.plugins.push.mqtt.mqttpush"></a>
+<a name="pnp.plugins.push.mqtt.publish"></a>
 
-### 6.15\. pnp.plugins.push.mqtt.MQTTPush
+### 6.15\. pnp.plugins.push.mqtt.Publish
 
 Will push the given `payload` to a mqtt broker (in this case mosquitto).
 The broker is specified by `host` and `port`. In addition a topic needs to be specified were the payload
@@ -1392,7 +1392,7 @@ __Examples__
     plugin: pnp.plugins.pull.simple.Count
   push:
     # Will push the counter to the 'home/counter/state' topic
-    plugin: pnp.plugins.push.mqtt.MQTTPush
+    plugin: pnp.plugins.push.mqtt.Publish
     args:
       host: localhost
       topic: home/counter/state
@@ -1405,7 +1405,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
   push:
-    plugin: pnp.plugins.push.mqtt.MQTTPush
+    plugin: pnp.plugins.push.mqtt.Publish
     # Lets override the topic via envelope mechanism
     # Will publish even counts on topic 'even' and uneven counts on 'uneven'
     selector: "{'data': data, 'topic': 'even' if int(data) % 2 == 0 else 'uneven'}"
@@ -1424,7 +1424,7 @@ __Examples__
       interval: 10s
   push:
     # Push them to the mqtt
-    plugin: pnp.plugins.push.mqtt.MQTTPush
+    plugin: pnp.plugins.push.mqtt.Publish
     args:
       host: localhost
       topic: devices/localhost/

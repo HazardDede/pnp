@@ -14,7 +14,7 @@
       base64: True
 
   push:
-    plugin: pnp.plugins.push.mqtt.MQTTPush
+    plugin: pnp.plugins.push.mqtt.Publish
     selector: payload.file.content
     args:
       host: localhost

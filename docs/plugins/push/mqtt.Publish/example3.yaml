@@ -7,7 +7,7 @@
       interval: 10s
   push:
     # Push them to the mqtt
-    plugin: pnp.plugins.push.mqtt.MQTTPush
+    plugin: pnp.plugins.push.mqtt.Publish
     args:
       host: localhost
       topic: devices/localhost/

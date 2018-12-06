@@ -1,4 +1,4 @@
-# pnp.plugins.push.mqtt.MQTTPush
+# pnp.plugins.push.mqtt.Publish
 
 Will push the given `payload` to a mqtt broker (in this case mosquitto).
 The broker is specified by `host` and `port`. In addition a topic needs to be specified were the payload
@@ -27,8 +27,8 @@ For chaining of pushes the payload is simply returned as is.
 
 __Examples__
 
-!INCLUDECODE "docs/plugins/push/mqtt.MQTTPush/example1.yaml" (yaml)
+!INCLUDECODE "docs/plugins/push/mqtt.Publish/example1.yaml" (yaml)
 
-!INCLUDECODE "docs/plugins/push/mqtt.MQTTPush/example2.yaml" (yaml)
+!INCLUDECODE "docs/plugins/push/mqtt.Publish/example2.yaml" (yaml)
 
-!INCLUDECODE "docs/plugins/push/mqtt.MQTTPush/example3.yaml" (yaml)
+!INCLUDECODE "docs/plugins/push/mqtt.Publish/example3.yaml" (yaml)

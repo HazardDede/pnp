@@ -2,7 +2,7 @@ from . import PushBase
 from ...utils import try_parse_bool, try_parse_int
 
 
-class MQTTPush(PushBase):
+class Publish(PushBase):
     """
     This push will push the given `payload` to a mqtt broker (in this case mosquitto).
     The broker is specified by `host` and `port`. In addition a topic needs to be specified were the payload
@@ -115,3 +115,6 @@ class MQTTPush(PushBase):
                                       "{self.host}:{self.port} with qos={qos}. Payload='{v}'\n{ex}".format(**locals()))
 
         return payload  # Payload as is. With envelope (if any).
+
+
+MQTTPush = Publish

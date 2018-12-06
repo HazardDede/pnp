@@ -15,7 +15,7 @@
 !INCLUDE "docs/plugins/push/fs.FileDump/index.md", 1
 !INCLUDE "docs/plugins/push/http.Call/index.md", 1
 !INCLUDE "docs/plugins/push/ml.FaceR/index.md", 1
-!INCLUDE "docs/plugins/push/mqtt.MQTTPush/index.md", 1
+!INCLUDE "docs/plugins/push/mqtt.Publish/index.md", 1
 !INCLUDE "docs/plugins/push/notify.Pushbullet/index.md", 1
 !INCLUDE "docs/plugins/push/simple.Echo/index.md", 1
 !INCLUDE "docs/plugins/push/simple.Execute/index.md", 1

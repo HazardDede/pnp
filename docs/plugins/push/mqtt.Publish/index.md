@@ -1,4 +1,4 @@
-# pnp.plugins.push.mqtt.MQTTPush
+# pnp.plugins.push.mqtt.Publish
 
 Will push the given `payload` to a mqtt broker (in this case mosquitto).
 The broker is specified by `host` and `port`. In addition a topic needs to be specified were the payload
@@ -33,7 +33,7 @@ __Examples__
     plugin: pnp.plugins.pull.simple.Count
   push:
     # Will push the counter to the 'home/counter/state' topic
-    plugin: pnp.plugins.push.mqtt.MQTTPush
+    plugin: pnp.plugins.push.mqtt.Publish
     args:
       host: localhost
       topic: home/counter/state
@@ -46,7 +46,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
   push:
-    plugin: pnp.plugins.push.mqtt.MQTTPush
+    plugin: pnp.plugins.push.mqtt.Publish
     # Lets override the topic via envelope mechanism
     # Will publish even counts on topic 'even' and uneven counts on 'uneven'
     selector: "{'data': data, 'topic': 'even' if int(data) % 2 == 0 else 'uneven'}"
@@ -65,7 +65,7 @@ __Examples__
       interval: 10s
   push:
     # Push them to the mqtt
-    plugin: pnp.plugins.push.mqtt.MQTTPush
+    plugin: pnp.plugins.push.mqtt.Publish
     args:
       host: localhost
       topic: devices/localhost/
