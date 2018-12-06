@@ -85,10 +85,10 @@ class Repeat(PullBase):
 class Infinite(PullBase):
     """Just for demonstration purposes. DO NOT USE!"""
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs):  # pragma: no cover
         super().__init__(**kwargs)
 
-    def pull(self):
+    def pull(self):  # pragma: no cover
         while True:
             try:
                 time.sleep(0.5)
