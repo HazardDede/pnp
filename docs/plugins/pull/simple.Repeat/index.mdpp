@@ -1,0 +1,16 @@
+# pnp.plugins.pull.simple.Repeat
+
+Emits every `wait` seconds the same `repeat`.
+
+__Arguments__
+
+**wait (int)**: Wait the amount of seconds before emitting the next repeat.<br/>
+**repeat (any)**: The object to emit.
+
+__Result__
+
+Emits the `repeat`-object as it is.
+
+__Examples__
+
+!INCLUDECODE "docs/plugins/pull/simple.Repeat/example.yaml" (yaml)

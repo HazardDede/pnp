@@ -1,0 +1,15 @@
+# pnp.plugins.push.simple.Echo
+
+Simply log the passed payload to the default logging instance.
+
+__Arguments__
+
+None.
+
+__Result__
+
+Will return the payload as it is for easy chaining of dependencies.
+
+__Examples__
+
+!INCLUDECODE "docs/plugins/push/simple.Echo/example.yaml" (yaml)
