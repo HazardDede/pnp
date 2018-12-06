@@ -1,0 +1,8 @@
+- name: stats
+  pull:
+    plugin: pnp.plugins.pull.monitor.Stats
+    args:
+      interval: 10s
+      instant_run: True
+  push:
+    plugin: pnp.plugins.push.simple.Echo

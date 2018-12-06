@@ -51,6 +51,7 @@ setup(
         'binaryornot>=0.4.4',
         'dictmentor>=0.1.0',
         'docopt>=0.6.2',
+        'psutil>=5.4.8',
         'python-box>=3.2.0',
         'pytz>=2018.4',
         'influxdb>=5.0.0',
