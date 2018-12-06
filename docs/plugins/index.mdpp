@@ -4,7 +4,7 @@
 !INCLUDE "docs/plugins/pull/gpio.Watcher/index.md", 1
 !INCLUDE "docs/plugins/pull/http.Server/index.md", 1
 !INCLUDE "docs/plugins/pull/monitor.Stats/index.md", 1
-!INCLUDE "docs/plugins/pull/mqtt.MQTTPull/index.md", 1
+!INCLUDE "docs/plugins/pull/mqtt.Subscribe/index.md", 1
 !INCLUDE "docs/plugins/pull/sensor.DHT/index.md", 1
 !INCLUDE "docs/plugins/pull/sensor.OpenWeather/index.md", 1
 !INCLUDE "docs/plugins/pull/simple.Count/index.md", 1

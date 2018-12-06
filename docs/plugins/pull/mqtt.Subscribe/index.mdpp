@@ -1,4 +1,4 @@
-# pnp.plugins.pull.mqtt.MQTTPull
+# pnp.plugins.pull.mqtt.Subscribe
 
 Pulls messages from the specified topic from the given mosquitto mqtt broker (identified by host and port).
 
@@ -24,5 +24,5 @@ The emitted message will look like this:
 
 __Examples__
 
-!INCLUDECODE "docs/plugins/pull/mqtt.MQTTPull/example.yaml" (yaml)
+!INCLUDECODE "docs/plugins/pull/mqtt.Subscribe/example.yaml" (yaml)
 

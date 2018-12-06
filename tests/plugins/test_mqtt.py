@@ -4,7 +4,7 @@ import paho.mqtt.publish
 import pytest
 from mock import patch
 
-from pnp.plugins.pull.mqtt import MQTTPull
+from pnp.plugins.pull.mqtt import Subscribe
 from pnp.plugins.push.mqtt import Publish
 from tests.plugins.helper import make_runner, MqttMessage, start_runner, dummy_callback
 
@@ -18,7 +18,7 @@ def test_mqtt_pull(mock_client):
         assert payload['topic'] == "test/device1/temperature"
         assert payload['levels'] == ["test", "device1", "temperature"]
 
-    dut = MQTTPull(name='pytest', host='youneverknow', topic='test/#', port=1883)
+    dut = Subscribe(name='pytest', host='youneverknow', topic='test/#', port=1883)
     runner = make_runner(dut, callback)
     with start_runner(runner):
         time.sleep(0.5)
@@ -36,11 +36,11 @@ def test_mqtt_pull(mock_client):
 
 @patch('paho.mqtt.client.Client')
 def test_mqtt_pull_credentials(mock_client):
-    dut = MQTTPull(name='pytest', host='youneverknow', topic='test/#', port=1883)
+    dut = Subscribe(name='pytest', host='youneverknow', topic='test/#', port=1883)
     assert dut.user is None
     assert dut.password is None
 
-    dut = MQTTPull(name='pytest', host='youneverknow', topic='test/#', port=1883, user="foo", password="bar")
+    dut = Subscribe(name='pytest', host='youneverknow', topic='test/#', port=1883, user="foo", password="bar")
     assert dut.user == "foo"
     assert dut.password == "bar"
 

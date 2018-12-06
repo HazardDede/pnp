@@ -31,7 +31,7 @@ Pulls data from sources and pushes it to sinks.
 6.2\.  [pnp.plugins.pull.gpio.Watcher](#pnp.plugins.pull.gpio.watcher)  
 6.3\.  [pnp.plugins.pull.http.Server](#pnp.plugins.pull.http.server)  
 6.4\.  [pnp.plugins.pull.monitor.Stats](#pnp.plugins.pull.monitor.stats)  
-6.5\.  [pnp.plugins.pull.mqtt.MQTTPull](#pnp.plugins.pull.mqtt.mqttpull)  
+6.5\.  [pnp.plugins.pull.mqtt.Subscribe](#pnp.plugins.pull.mqtt.subscribe)  
 6.6\.  [pnp.plugins.pull.sensor.DHT](#pnp.plugins.pull.sensor.dht)  
 6.7\.  [pnp.plugins.pull.sensor.OpenWeather](#pnp.plugins.pull.sensor.openweather)  
 6.8\.  [pnp.plugins.pull.simple.Count](#pnp.plugins.pull.simple.count)  
@@ -141,7 +141,7 @@ and the argument that should be passed.
 ```yaml
 - name: example
   pull:
-    plugin: pnp.plugins.pull.mqtt.MQTTPull
+    plugin: pnp.plugins.pull.mqtt.Subscribe
     args:
       host: localhost
       port: 1883
@@ -166,7 +166,7 @@ to influx or dump a file to the file system.
 ```yaml
 - name: example
   pull:
-    plugin: pnp.plugins.pull.mqtt.MQTTPull
+    plugin: pnp.plugins.pull.mqtt.Subscribe
     args:
       host: localhost
       port: 1883
@@ -193,7 +193,7 @@ rescue. Given our input we decide to just dump the payload and print out the fir
 ```yaml
 - name: example
   pull:
-    plugin: pnp.plugins.pull.mqtt.MQTTPull
+    plugin: pnp.plugins.pull.mqtt.Subscribe
     args:
       host: localhost
       port: 1883
@@ -224,7 +224,7 @@ Back to our example let's assume we want to print out the path to the created fi
 ```yaml
 - name: example
   pull:
-    plugin: pnp.plugins.pull.mqtt.MQTTPull
+    plugin: pnp.plugins.pull.mqtt.Subscribe
     args:
       host: localhost
       port: 1883
@@ -760,9 +760,9 @@ __Examples__
   push:
     plugin: pnp.plugins.push.simple.Echo
 ```
-<a name="pnp.plugins.pull.mqtt.mqttpull"></a>
+<a name="pnp.plugins.pull.mqtt.subscribe"></a>
 
-### 6.5\. pnp.plugins.pull.mqtt.MQTTPull
+### 6.5\. pnp.plugins.pull.mqtt.Subscribe
 
 Pulls messages from the specified topic from the given mosquitto mqtt broker (identified by host and port).
 
@@ -791,7 +791,7 @@ __Examples__
 ```yaml
 - name: mqtt
   pull:
-    plugin: pnp.plugins.pull.mqtt.MQTTPull
+    plugin: pnp.plugins.pull.mqtt.Subscribe
     args:
       host: localhost
       port: 1883

@@ -4,7 +4,7 @@ from datetime import datetime
 import pytest
 from mock import patch
 
-from pnp.plugins.pull.mqtt import MQTTPull
+from pnp.plugins.pull.mqtt import Subscribe
 from pnp.plugins.pull.http import Server
 from pnp.plugins.pull.simple import Count, Repeat, CustomPolling
 from .helper import make_runner, start_runner
@@ -14,7 +14,7 @@ from .helper import make_runner, start_runner
 @pytest.mark.parametrize("dut", [
     (Count(name='pytest', from_cnt=0, to_cnt=None, wait=10)),
     (Repeat(name='pytest', repeat='hello', wait=10)),
-    (MQTTPull(name='pytest', host='youneverknow', topic='test/#', port=1883)),
+    (Subscribe(name='pytest', host='youneverknow', topic='test/#', port=1883)),
     (CustomPolling(name='pytest', scheduled_callable=lambda: True, interval='1m')),
     # (Server(name='pytest'))
 ])

@@ -22,7 +22,7 @@
 
 - name: image_processor
   pull:
-    plugin: pnp.plugins.pull.mqtt.MQTTPull
+    plugin: pnp.plugins.pull.mqtt.Subscribe
     args:
       host: localhost
       topic: camera/images

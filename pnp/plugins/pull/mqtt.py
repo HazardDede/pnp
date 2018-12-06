@@ -1,7 +1,7 @@
 from . import PullBase
 
 
-class MQTTPull(PullBase):
+class Subscribe(PullBase):
     """
     Pulls messages from the specified topic from the given mosquitto mqtt broker (identified by host and port).
 
@@ -92,3 +92,7 @@ class MQTTPull(PullBase):
 
         self._client.connect(self.host, self.port, 60)
         self._client.loop_forever(retry_first_connection=True)
+
+
+# For backwards compat
+MQTTPull = Subscribe

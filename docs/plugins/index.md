@@ -209,7 +209,7 @@ __Examples__
   push:
     plugin: pnp.plugins.push.simple.Echo
 ```
-## pnp.plugins.pull.mqtt.MQTTPull
+## pnp.plugins.pull.mqtt.Subscribe
 
 Pulls messages from the specified topic from the given mosquitto mqtt broker (identified by host and port).
 
@@ -238,7 +238,7 @@ __Examples__
 ```yaml
 - name: mqtt
   pull:
-    plugin: pnp.plugins.pull.mqtt.MQTTPull
+    plugin: pnp.plugins.pull.mqtt.Subscribe
     args:
       host: localhost
       port: 1883

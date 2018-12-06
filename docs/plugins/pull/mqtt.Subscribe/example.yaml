@@ -1,6 +1,6 @@
 - name: mqtt
   pull:
-    plugin: pnp.plugins.pull.mqtt.MQTTPull
+    plugin: pnp.plugins.pull.mqtt.Subscribe
     args:
       host: localhost
       port: 1883
