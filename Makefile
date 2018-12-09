@@ -82,8 +82,8 @@ accept-version:
 		git push && git push --tags
 
 revoke-version:
-		git reset --hard HEAD~1                        # rollback the commit
 		git tag -d `git describe --tags --abbrev=0`    # delete the tag
+		git reset --hard HEAD~1                        # rollback the commit
 
 sdist:
 		rm -f dist/*
