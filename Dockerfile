@@ -6,7 +6,8 @@ ENV PNP_LOG_CONF=${CONFDIR}/logging.yaml
 ENV LOGDIR=/logs
 
 RUN apt-get update -yy && \
-    apt-get install -yy git
+    apt-get install -yy gcc \
+                        git
 
 RUN mkdir -p ${WORKDIR} && \
     mkdir -p ${CONFDIR} && \
