@@ -1,5 +1,3 @@
---extra-index-url https://www.piwheels.hostedpi.com/simple
-
 -e .[dropbox,fswatcher,http-server,pushbullet]
 
 bumpversion

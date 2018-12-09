@@ -1,4 +1,4 @@
-FROM arm32v7/python:3.6-stretch
+FROM arm32v7/python:3.5-stretch
 
 ENV WORKDIR=/pnp
 ENV CONFDIR=/config
@@ -18,8 +18,6 @@ RUN cd ${WORKDIR} && \
     pip3 install \
     --process-dependency-links \
     .[dht,dropbox,fswatcher,gpio,http-server,pushbullet]
-
-# --extra-index-url https://www.piwheels.hostedpi.com/simple
 
 VOLUME ${CONFDIR}
 VOLUME ${LOGDIR}
