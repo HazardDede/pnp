@@ -17,6 +17,7 @@ COPY . ${WORKDIR}
 RUN cd ${WORKDIR} && \
     pip3 install \
     --process-dependency-links \
+    --extra-index-url https://www.piwheels.hostedpi.com/simple \
     .[dht,dropbox,fswatcher,gpio,http-server,pushbullet]
 
 VOLUME ${CONFDIR}
