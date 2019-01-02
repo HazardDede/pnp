@@ -1,3 +1,5 @@
+import os
+
 from .config import load_config
 from .engines import Engine, AdvancedRetryHandler
 from .engines.thread import ThreadEngine
@@ -21,8 +23,9 @@ class Application(Loggable):
     @classmethod
     def from_file(cls, file_path: str):
         engine, task_cfg = load_config(file_path)
+        base_path = os.path.dirname(file_path)
         tasks = {
-            task.name: Task.from_dict(task) for task in task_cfg
+            task.name: Task.from_dict(task, base_path) for task in task_cfg
         }
         if engine is None:
             # Backward compatibility

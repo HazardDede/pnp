@@ -2,7 +2,7 @@ from importlib import import_module
 
 from argresolver import EnvironmentResolver
 
-from ..utils import Loggable, auto_str
+from ..utils import Loggable, auto_str, auto_str_ignore
 from ..validator import Validator
 
 
@@ -27,10 +27,21 @@ class PluginMeta(type):
 
 
 @auto_str(__repr__=True)
+@auto_str_ignore(['_base_path'])
 class Plugin(Loggable, metaclass=PluginMeta):
-    def __init__(self, name, **kwargs):
+    def __init__(self, name, base_path=None, **kwargs):
         super().__init__()
         self.name = str(name)
+        self._base_path = base_path and str(base_path)
+
+    @property
+    def base_path(self):
+        # Base path is whether injected (most probably were the loaded config is located
+        if self._base_path is None:
+            # ... or the current working directory
+            import os
+            return os.getcwd()
+        return self._base_path
 
 
 class ClassNotFoundError(Exception):
