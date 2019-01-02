@@ -62,6 +62,52 @@ def make_list(item_or_items):
     return [item_or_items]
 
 
+def camel_to_snake(name):
+    """
+    Converts camelCase to snake_case.
+    https://stackoverflow.com/questions/1175208/elegant-python-function-to-convert-camelcase-to-snake-case
+
+    >>> camel_to_snake('CamelCase')
+    'camel_case'
+    >>> camel_to_snake('CamelCamelCase')
+    'camel_camel_case'
+    >>> camel_to_snake('Camel2Camel2Case')
+    'camel2_camel2_case'
+    >>> camel_to_snake('getHTTPResponseCode')
+    'get_http_response_code'
+    >>> camel_to_snake('get2HTTPResponseCode')
+    'get2_http_response_code'
+    >>> camel_to_snake('HTTPResponseCode')
+    'http_response_code'
+    >>> camel_to_snake('HTTPResponseCodeXYZ')
+    'http_response_code_xyz'
+
+    """
+    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+
+
+def transform_dict_items(dct, keys_fun=None, vals_fun=None):
+    """
+    Transforms keys and/or values of the given dictionary by applying the given function.
+
+    >>> dct = {"CamelCase": "gnaaa", "foo_oool": 42}
+    >>> transform_dict_items(dct, keys_fun=camel_to_snake) == {"camel_case": "gnaaa", "foo_oool": 42}
+    True
+    >>> transform_dict_items(dct, vals_fun=str) == {"CamelCase": "gnaaa", "foo_oool": "42"}
+    True
+    >>> transform_dict_items(dct, keys_fun=camel_to_snake, vals_fun=str) == {"camel_case": "gnaaa", "foo_oool": "42"}
+    True
+    """
+    if not keys_fun and not vals_fun:
+        return dct
+
+    def apply(kv, fun):
+        return kv if not fun else fun(kv)
+
+    return {apply(k, keys_fun): apply(v, vals_fun) for k, v in dct.items()}
+
+
 def is_iterable_but_no_str(candidate):
     """
     Checks if the given candidate is an iterable but not a str instance
@@ -238,7 +284,7 @@ def safe_eval(source, **context):
     def eval_snippet(snippet):
         try:
             return eval(str(snippet), {'__builtins__': {}}, whitelist)
-        except NameError:
+        except:
             return snippet
 
     def e(snippet, is_key=False):
