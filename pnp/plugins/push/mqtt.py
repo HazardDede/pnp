@@ -1,3 +1,5 @@
+import json
+
 from . import PushBase
 from ...utils import try_parse_bool, try_parse_int
 
@@ -36,7 +38,7 @@ class Publish(PushBase):
     __prefix__ = 'mqtt'
 
     def __init__(self, host, topic=None, port=1883, retain=False, user=None, password=None, qos=0,
-                 multi=False, **kwargs):
+                 multi=False, list_item_push=False, **kwargs):
         super().__init__(**kwargs)
         self.host = str(host)
         self.topic = self._parse_topic(topic)
@@ -46,6 +48,7 @@ class Publish(PushBase):
         self.password = password and str(password)
         self.qos = self._parse_qos(qos)
         self.multi = bool(multi)
+        self.list_item_push = bool(list_item_push)
 
     def _parse_retain(self, val):
         return try_parse_bool(val, default=False)
@@ -69,6 +72,9 @@ class Publish(PushBase):
     def _publish(self, auth, qos, real_payload, retain, topic):
         import paho.mqtt.publish as publish
 
+        if isinstance(real_payload, (dict, list, tuple)):
+            real_payload = json.dumps(real_payload)
+
         publish.single(
             topic=topic,
             payload=real_payload,
@@ -87,7 +93,7 @@ class Publish(PushBase):
             return t1 + t2
         return t1 + '/' + t2
 
-    def push(self, payload):
+    def _push_single(self, payload):
         envelope, real_payload = self.envelope_payload(payload)
         topic = self._parse_envelope_value('topic', envelope)  # Override topic via envelope
         retain = self._parse_envelope_value('retain', envelope)  # Override retain via envelope
@@ -113,6 +119,15 @@ class Publish(PushBase):
                     ex = traceback.format_exc()
                     self.logger.error("[{self.name}] Publishing failed for message on '{key_topic}' @ "
                                       "{self.host}:{self.port} with qos={qos}. Payload='{v}'\n{ex}".format(**locals()))
+
+    def push(self, payload):
+        if self.list_item_push:
+            if not isinstance(payload, list):
+                raise TypeError("In multi_push mode the payload is required to be a list")
+            for msg in payload:
+                self._push_single(msg)
+        else:
+            self._push_single(payload)
 
         return payload  # Payload as is. With envelope (if any).
 
