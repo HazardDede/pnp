@@ -9,7 +9,7 @@ from .plugins.push import PushBase
 
 Task = namedtuple("Task", ["name", "pull", "pushes"])
 Pull = namedtuple("Pull", ["instance"])
-Push = namedtuple("Push", ["instance", "selector", "deps"])
+Push = namedtuple("Push", ["instance", "selector", "unwrap", "deps"])
 
 TaskName = str
 TaskCfg = Box
@@ -26,9 +26,11 @@ def _mk_push(task: TaskCfg, **extra) -> List[Push]:
         for i, push in enumerate(pushlist):
             push_name = '{prefix}_{i}'.format(**locals())
             args = {'name': push_name, **extra, **push.args}
+            unwrap = getattr(push, 'unwrap', False)
             yield Push(
                 instance=load_plugin(push.plugin, PushBase, **args),
                 selector=push.selector,
+                unwrap=unwrap,
                 deps=list(_many(push.deps, push_name))
             )
     return list(_many(task.pushes, "{task.name}_push".format(**locals())))

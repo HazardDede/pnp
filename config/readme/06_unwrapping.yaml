@@ -1,0 +1,12 @@
+- name: unwrapping
+  pull:
+    plugin: pnp.plugins.pull.simple.Repeat
+    args:
+      wait: 1
+      repeat:
+        - 1
+        - 2
+        - 3
+  push:
+    - plugin: pnp.plugins.push.simple.Echo
+      unwrap: True

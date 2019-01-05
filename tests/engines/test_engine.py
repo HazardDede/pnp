@@ -19,6 +19,6 @@ def test_engine_for_smoke(engine):
     tasks = {'pytest': Task(
         name="pytest",
         pull=Pull(instance=Count(name='count', from_cnt=0, wait=0.5)),
-        pushes=[Push(instance=Echo(name='echo'), selector=None, deps=[])]
+        pushes=[Push(instance=Echo(name='echo'), selector=None, deps=[], unwrap=False)]
     )}
     run_engine(engine, tasks)

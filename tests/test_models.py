@@ -77,6 +77,6 @@ def test_task_to_str_for_smoke():
         Task(
             name="pytest",
             pull=Pull(instance=Repeat(name='pytest_pul', repeat='hello')),
-            pushes=[Push(instance=Echo(name='pytest_push'), selector=None, deps=[])]
+            pushes=[Push(instance=Echo(name='pytest_push'), selector=None, deps=[], unwrap=False)]
         )
     })

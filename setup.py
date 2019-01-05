@@ -49,7 +49,7 @@ setup(
     install_requires=[
         'argresolver>=0.3.2',
         'binaryornot>=0.4.4',
-        'dictmentor>=0.1.0',
+        'dictmentor>=0.2.0',
         'docopt>=0.6.2',
         'psutil>=5.4.8',
         'python-box>=3.2.0',
@@ -64,6 +64,7 @@ setup(
     ],
     extras_require={
         'dht': ['Adafruit_DHT==1.3.2'],
+        'fitbit': ['fitbit>=0.3.0'],
         'fswatcher': ['watchdog>=0.8.3'],
         'faceR': ['image>=1.5.24', 'face-recognition>=1.2.2'],
         'http-server': ['Flask>=1.0.2', 'gevent>=1.3.4'],
