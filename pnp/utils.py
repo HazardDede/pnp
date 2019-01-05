@@ -5,6 +5,8 @@ import re
 import time
 from base64 import b64encode
 from collections import OrderedDict
+from concurrent.futures import ThreadPoolExecutor
+from functools import partial
 from threading import Timer
 from typing import Union
 
@@ -16,6 +18,9 @@ from .validator import Validator
 FILE_MODES = ['binary', 'text', 'auto']
 
 HTTP_METHODS = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH']
+
+
+logger = logging.getLogger(__name__)
 
 
 class EvaluationError(Exception):
@@ -961,3 +966,225 @@ class Singleton(object):
         without any arguments.
         """
         return cls.__new__(cls)
+
+
+class FileLock(object):
+    """
+    A file locking mechanism that has context-manager support so you can use it within a with statement.
+    This implementation should be relatively cross-platform compatible cause it doesn't rely on msvcrt or fcntl
+    for the locking.
+    You can nest calls to ``acquire`` it will only lock the file once and release it with the last call to ``release``.
+    Examples:
+        >>> import tempfile
+        >>> tmp = tempfile.NamedTemporaryFile()
+        >>> # Basic usage with context manager
+        >>> with FileLock(tmp.name) as l:
+        ...     # Do something nice with the file
+        ...     print(l.locked)
+        True
+        >>> # Basic usage w/o context manager
+        >>> l = FileLock(tmp.name)
+        >>> l.locked
+        False
+        >>> l.acquire()
+        >>> try:
+        ...     # Do something nice with the file
+        ...     print(l.locked)
+        ... finally:
+        ...     l.release()
+        True
+        >>> print(l.locked)
+        False
+        >>> # Lock counter
+        >>> l = FileLock(tmp.name)
+        >>> with l:
+        ...     print(l.lock_counter)
+        ...     with l:
+        ...         print(l.lock_counter)
+        ...     print((l.lock_counter, l.locked))
+        1
+        2
+        (1, True)
+        >>> print((l.lock_counter, l.locked))
+        (0, False)
+        >>> # Blocking
+        >>> with FileLock(tmp.name) as l1:
+        ...     with FileLock(tmp.name, timeout=1) as l2:
+        ...         pass
+        Traceback (most recent call last):
+        ...
+        pnp.utils.FileLock.TimeoutError: Timeout occurred
+    """
+
+    class TimeoutError(Exception):
+        pass
+
+    def __init__(self, file_name, timeout=10, delay=.05):
+        """
+        Prepare the file locker. Specify the file to lock and optionally the maximum timeout (seconds) and the delay
+        between each attempt to lock.
+        Args:
+            file_name: The file to lock exclusively.
+            timeout: If the file is already locked by another process, this instance tries to acquire the lock
+                for a maximum of `timeout` seconds.
+            delay:
+        """
+        self.lock_counter = 0
+        self.lockfile = os.path.join(os.getcwd(), "%s.lock" % file_name)
+        self.file_name = file_name
+        self.timeout = timeout
+        self.delay = delay
+        self.fd = None
+
+    def acquire(self):
+        """
+        Acquires the lock, if possible. If the file is already locked, the algorithm tries to acquire the lock until
+        it either gets the lock or the timeout threshold is exceeded. In case of a timeout an error is raised.
+        Returns:
+            None
+        """
+        if self.lock_counter > 0:
+            # Dude, you already locked the file...
+            self.lock_counter += 1
+            return
+
+        start_time = time.time()
+        while True:
+            try:
+                self.fd = os.open(self.lockfile, os.O_CREAT | os.O_EXCL | os.O_RDWR)
+                self.lock_counter += 1
+                break
+            except OSError as e:
+                import errno
+                if e.errno != errno.EEXIST:
+                    raise
+                if (time.time() - start_time) >= self.timeout:
+                    raise FileLock.TimeoutError("Timeout occurred")
+                time.sleep(self.delay)
+
+    def release(self):
+        """
+        Unlocks the file when the exclusive lock is no longer needed.
+        Returns:
+            None
+        """
+        if self.lock_counter <= 0:
+            # Dude, there is no lock...
+            return
+
+        self.lock_counter -= 1
+        if self.lock_counter == 0:
+            os.close(self.fd)
+            os.unlink(self.lockfile)
+
+    @property
+    def locked(self):
+        """
+        Checks whether the file is currently locked by any process.
+        Returns: True if the file is currently locked (by any process, not just this one); otherwise False.
+        """
+        return os.path.isfile(self.lockfile)
+
+    def __enter__(self):
+        """
+        Context manager acquire lock.
+        Returns:
+            Self
+        """
+        self.acquire()
+        return self
+
+    def __exit__(self, type, value, traceback):
+        """
+        Context manager release.
+        Args:
+            type: unused
+            value: unused
+            traceback: unused
+        Returns:
+            None
+        """
+        self.release()
+
+    def __del__(self):
+        """
+        Make sure that this instance doesn't leave a lockfile lying around when garbage collected.
+        Returns:
+            None
+        """
+        self.release()
+
+
+class Parallel:
+    """
+    Provides an interface to easily execute functions in parallel.
+
+    Examples:
+
+        >>> def long_fun(r):
+        ...     return r
+        >>> p = Parallel(workers=2)
+        >>> p(long_fun, 1, fun_key=1)
+        >>> p(long_fun, 2, fun_key=2)
+        >>> p(long_fun, 3, fun_key=3)
+        >>> p.run_until_complete()
+        ['finished', 'finished', 'finished']
+        >>> p.results == {1: 1, 2: 2, 3: 3}
+        True
+        >>> p(long_fun, 4, fun_key=4)
+        >>> p.run_until_complete()
+        ['finished', 'finished', 'finished', 'finished']
+        >>> p.results == {1: 1, 2: 2, 3: 3, 4: 4}
+        True
+
+        >>> memory = set()
+        >>> p = Parallel(workers=2)
+        >>> p(long_fun, 1, callback=lambda res: memory.add(res()))
+        >>> p(long_fun, 2, callback=lambda res: memory.add(res()))
+        >>> p(long_fun, 3, callback=lambda res: memory.add(res()))
+        >>> p.run_until_complete()
+        ['finished', 'finished', 'finished']
+        >>> memory == {1, 2, 3}
+        True
+    """
+    def __init__(self, workers=2):
+        self.funcs = []
+        self.workers = int(workers)
+        if self.workers <= 0:
+            self.workers = 1
+        self._results = {}
+
+    @property
+    def results(self):
+        import copy
+        return copy.copy(self._results)
+
+    def __call__(self, fun, *args, callback=None, fun_key=None, **kwargs):
+        Validator.is_function(fun=fun)
+        Validator.is_function(allow_none=True, callback=callback)
+        self.funcs.append((fun, callback, fun_key, args, kwargs))
+
+    def _intercept(self, future, callback, fun_key):
+        if fun_key:
+            try:
+                self._results[fun_key] = future.result()
+            except:
+                import traceback
+                logger.warning("Parallel result raised an error\n{}".format(traceback.format_exc()))
+        if callback:
+            try:
+                callback(future.result)
+            except:
+                import traceback
+                logger.warning("Parallel callback raised an error\n{}".format(traceback.format_exc()))
+
+    def run_until_complete(self):
+        self._results.clear()
+        futures = []
+        with ThreadPoolExecutor(max_workers=self.workers) as executor:
+            for fun, cb, fun_key, args, kwargs in self.funcs:
+                future = executor.submit(fun, *args, **kwargs)
+                future.add_done_callback(partial(self._intercept, callback=cb, fun_key=fun_key))
+                futures.append(future)
+
+        return ['finished' if f.exception() is None else 'error' for f in futures]
