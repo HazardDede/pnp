@@ -4,6 +4,10 @@
 VERSION=0.12.0
 SOURCE_PATH=./pnp
 TEST_PATH=./tests
+DOCKER_REPO=hazard
+IMAGE_NAME=$(DOCKER_REPO)/pnp
+FULL_IMAGE_NAME=$(IMAGE_NAME):$(VERSION)
+FULL_IMAGE_NAME_ARM=$(IMAGE_NAME):$(VERSION)-arm
 
 # Environment overrides
 VERSION_PART?=patch
@@ -62,10 +66,20 @@ doctest:
 		pytest --verbose --color=yes --doctest-modules $(SOURCE_PATH)
 
 docker:
-		docker build -t pnp:$(VERSION) -f Dockerfile .
+		docker build -t $(FULL_IMAGE_NAME) -f Dockerfile .
 
 docker-arm:
-		docker build -t pnp:$(VERSION)-arm -f Dockerfile.arm32v7 .
+		docker build -t $(FULL_IMAGE_NAME_ARM) -f Dockerfile.arm32v7 .
+
+docker-push: docker
+	docker push $(FULL_IMAGE_NAME)
+	docker tag $(FULL_IMAGE_NAME) $(IMAGE_NAME):latest
+	docker push $(IMAGE_NAME):latest
+
+docker-push-arm: docker-arm
+	docker push $(FULL_IMAGE_NAME_ARM)
+	docker tag $(FULL_IMAGE_NAME_ARM) $(IMAGE_NAME):latest-arm
+	docker push $(IMAGE_NAME):latest-arm
 
 version:
 		@echo $(VERSION)
