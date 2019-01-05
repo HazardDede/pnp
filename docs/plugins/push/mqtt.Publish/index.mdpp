@@ -18,7 +18,7 @@ __Arguments__
     See the mosquitto man page for further guidance
     [https://mosquitto.org/man/mqtt-7.html](https://mosquitto.org/man/mqtt-7.html).<br/>
 **multi (bool, optional)**: If set to True the payload is expected to be a dictionary. Each item of that dictionary will
-be sent individually to the broker. The key of the item will be appended to the configured topic. The value of the item
+be send individually to the broker. The key of the item will be appended to the configured topic. The value of the item
 is the actual payload. Default is False.
 
 __Result__

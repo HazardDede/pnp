@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 
-Pulls data from sources and pushes it to sinks.
+> Pulls data from sources and pushes it to sinks.
 
 !TOC
 
@@ -168,6 +168,20 @@ into a dictionary inside the 'payload' or 'data' key via selector.
         plugin: pnp.plugins.push.simple.Echo
         selector: "{'data': data}"
 
+### Payload unwrapping
+
+By default any payload that is provided to a push will be "as-is". If the payload is an iterable, it is possible
+to `unwrap` each individual item of the iterable and providing that item to the push instead of the whole list. Yes, now
+you can perform for each loops for pushes.
+
+!INCLUDECODE "config/readme/06_unwrapping.yaml" (yaml)
+
+Hint: Selector expressions are applied after unwrapping. So the selector is applied to each individual item.
+If you need the selector to augment your list, use a `push.simple.Nop` with `unwrap = False` and a dependent push.
+
+
+!INCLUDECODE "config/readme/07_unwrapping_nop.yaml" (yaml)
+
 
 ### Engines (>= 0.10.0)
 
@@ -272,6 +286,11 @@ intended or by accident. Nevertheless we try to list breaking changes in the cha
 You are encouraged to specify explicitly the version in your dependency tools, e.g.:
 
     pip install pnp==0.10.0
+
+**0.13.0**
+* Adds `pull.fitbit.Current`, `pull.fitbit.Devices`, `pull.fitbit.Goal` plugins to request data from fitbit api
+* Adds `push.mqtt.Discovery` to create mqtt discovery enabled devices for home assistant. [Reference](https://www.home-assistant.io/docs/mqtt/discovery/)
+* Adds `unwrapping`-feature to pushes
 
 **0.12.0**
 * Adds additional argument `multi` (default False) to `push.mqtt.MQTTPush` to send multiple messages to the broker if

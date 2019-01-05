@@ -1,0 +1,17 @@
+# pnp.plugins.push.mqtt.Discovery
+
+TBD
+
+[https://www.home-assistant.io/docs/mqtt/discovery/](https://www.home-assistant.io/docs/mqtt/discovery/)
+
+__Arguments__
+
+TBD
+
+__Result__
+
+For chaining of pushes the payload is simply returned as is.
+
+__Examples__
+
+!INCLUDECODE "docs/plugins/push/mqtt.Discovery/example.yaml" (yaml)

@@ -28,7 +28,7 @@ __Examples__
 ```yaml
 - name: mqtt_pull
   pull:
-    plugin: pnp.plugins.pull.mqtt.MQTTPull
+    plugin: pnp.plugins.pull.mqtt.Subscribe
     args:
       host: mqtt
       topic: home/#
