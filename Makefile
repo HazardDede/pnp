@@ -1,7 +1,7 @@
 .PHONY: clean-pyc clean-build clean docs lint test doctest version
 
 # Setup
-VERSION=0.12.0
+VERSION=0.13.0
 SOURCE_PATH=./pnp
 TEST_PATH=./tests
 DOCKER_REPO=hazard
