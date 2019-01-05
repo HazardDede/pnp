@@ -1,4 +1,4 @@
-FROM python:3.6-slim-stretch
+FROM python:3.5-slim-stretch
 
 ENV WORKDIR=/pnp
 ENV CONFDIR=/config
@@ -6,8 +6,7 @@ ENV PNP_LOG_CONF=${CONFDIR}/logging.yaml
 ENV LOGDIR=/logs
 
 RUN apt-get update -yy && \
-    apt-get install -yy gcc \
-                        git
+    apt-get install -yy gcc
 
 RUN mkdir -p ${WORKDIR} && \
     mkdir -p ${CONFDIR} && \
@@ -16,7 +15,9 @@ RUN mkdir -p ${WORKDIR} && \
 COPY . ${WORKDIR}
 
 RUN cd ${WORKDIR} && \
-    pip3 install --process-dependency-links .[dropbox,fswatcher,http-server,pushbullet]
+    pip3 install \
+        --process-dependency-links \
+        .[dropbox,fitbit,fswatcher,http-server,pushbullet]
 
 VOLUME ${CONFDIR}
 VOLUME ${LOGDIR}
