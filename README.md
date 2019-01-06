@@ -581,12 +581,11 @@ The first one is more readable, isn't it?
 ### 5.5\. Docker images
 
 ```bash
-make docker  # OR: make docker-arm  for raspberry image
 # Mount the task and logging configuration when starting up the container
-docker run -it --rm \
+docker run --rm \
     -v /path/to/pnp/config/01_hello_world.yaml:/config/config.yaml \
     -v /path/to/logging/config/file.logging:/config/logging.yaml \
-    pnp:0.10.0
+    hazard/pnp:latest
 ```
 
 
