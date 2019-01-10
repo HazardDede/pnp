@@ -259,7 +259,7 @@ The configuration below will repeat `{'hello': 'Hello', 'words': ['World', 'Moon
   push:
     - plugin: pnp.plugins.push.simple.Echo
       selector:
-        hello: payload.split(' ')[0]
+        hello: "lambda payload: payload.split(' ')[0]"
         words:
           - "lambda payload: payload.split(' ')[1]"
           - "lambda payload: payload.split(' ')[2]"

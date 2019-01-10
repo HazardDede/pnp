@@ -574,7 +574,7 @@ The configuration below will repeat `{'hello': 'Hello', 'words': ['World', 'Moon
   push:
     - plugin: pnp.plugins.push.simple.Echo
       selector:
-        hello: payload.split(' ')[0]
+        hello: "lambda payload: payload.split(' ')[0]"
         words:
           - "lambda payload: payload.split(' ')[1]"
           - "lambda payload: payload.split(' ')[2]"
@@ -588,12 +588,6 @@ The first one is more readable, isn't it?
 Additional example:
 
 ```yaml
-# Define selectors to parse / tailor your pulled data. Each selector is bound to a push that controls which input
-# is ingested.
-
-# This example yields the string 'Hello World' every second. The first push gets 'Hello' and prints it out.
-# The second one gets 'World' and prints it out.
-
 - name: selector
   pull:
     plugin: pnp.plugins.pull.simple.Repeat
