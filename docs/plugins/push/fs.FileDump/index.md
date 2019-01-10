@@ -50,7 +50,10 @@ __Examples__
     plugin: pnp.plugins.push.fs.FileDump
     # Override `file_name` and `extension` via envelope.
     # Instead of an auto generated file, the file '/tmp/hello-world.hello' will be dumped.
-    selector: '{"payload": payload, "file_name": "hello-world", "extension": ".hello"}'
+    selector:
+      data: "lambda data: data"
+      file_name: hello-world
+      extension: .hello
     args:
       directory: "/tmp"
       file_name: null  # Auto-generated file (timestamp)

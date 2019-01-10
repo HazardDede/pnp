@@ -1,0 +1,27 @@
+# Define selectors to parse / tailor your pulled data. Each selector is bound to a push that controls which input
+# is ingested.
+
+# This example yields the string 'Hello World' every second. The first push gets 'Hello' and prints it out.
+# The second one gets 'World' and prints it out.
+
+- name: selector
+  pull:
+    plugin: pnp.plugins.pull.simple.Repeat
+    args:
+      wait: 1
+      repeat: "Hello World"
+  push:
+    - plugin: pnp.plugins.push.simple.Echo
+      # Returns: 'World'
+      selector: "str(payload.split(' ')[0])"  # no complex structure. Evaluator assumes that this is an expression -> you do not need a lambda
+    - plugin: pnp.plugins.push.simple.Echo
+      selector:  # Returns {'header': 'this is a header', 'data': 'World', 'Hello': 'World'}
+        header: this is a header  # Just string literals
+        data: "lambda data: data.split(' ')[1]"  # Value is lambda and therefore evaluated
+        "lambda data: str(data.split(' ')[0])": "lambda data: data.split(' ')[1]"  # Both are lambdas and therefore evaluated
+    - plugin: pnp.plugins.push.simple.Echo
+      selector:  # Returns ['foo', 'bar', 'Hello', 'World']
+        - foo  # String literal
+        - bar  # String literal
+        - "lambda d: d.split(' ')[0]"  # Lambda -> evaluate the expression
+        - "lambda d: d.split(' ')[1]"  # Lambda -> evaluate the expression

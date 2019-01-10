@@ -51,7 +51,7 @@ docs:
 		python ./scripts/process_docs.py
 
 lint:
-		flake8 --exclude=.tox --max-line-length 120 --ignore=E722 $(SOURCE_PATH)
+		flake8 --exclude=.tox --max-line-length 120 --ignore=E722,E731 $(SOURCE_PATH)
 
 test:
 		pytest --verbose --color=yes \

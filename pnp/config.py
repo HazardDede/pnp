@@ -9,6 +9,8 @@ from .engines import Engine, RetryHandler
 from .plugins import load_plugin
 from .utils import make_list
 
+_MISSING = object()
+
 
 class OrOverride(Or):
     """
@@ -72,9 +74,18 @@ tasks = Schema(Or(And(task_entity_schema, Use(make_list)), task_list_schema))  #
 
 engine_schema = Engine
 
+udfs_schema = Schema([{
+    "name": Use(str),
+    "plugin": Use(str),
+    Optional("args", default=_MISSING): Or({
+        str: object
+    }, _MISSING, None)
+}])
+
 tasks_settings_schema = Schema({
     Optional(Or("anchors", "anchor", "ref", "refs", "alias", "aliases")): object,
     Optional("engine", default=None): engine_schema,
+    Optional("udfs", default=None): udfs_schema,
     'tasks': tasks
 })
 
@@ -134,4 +145,9 @@ def load_config(config_path):
         for push in pull['pushes']:
             push['deps'] = list(validate_push_deps(push))
     b = Box(validated)
-    return b.engine if 'engine' in b else None, b.tasks
+
+    return (
+        b.udfs if 'udfs' in b else None,
+        b.engine if 'engine' in b else None,
+        b.tasks
+    )

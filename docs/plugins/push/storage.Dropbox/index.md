@@ -51,7 +51,7 @@ __Examples__
       args:
         create_shared_link: True  # Create a publicly available link
       selector:
-        data: data.source  # Absolute path to file
-        target_file_name: basename(data.source)  # File name only
+        data: "lambda data: data.source"  # Absolute path to file
+        target_file_name: "lambda data: basename(data.source)"  # File name only
 
 ```

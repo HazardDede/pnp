@@ -60,7 +60,7 @@ class PluginTypeError(Exception):
     pass
 
 
-def load_plugin(plugin_path, plugin_type, **kwargs):
+def load_plugin(plugin_path, plugin_type, instantiate=True, **kwargs):
     """
     Loads a plugin by using a fully qualified identifier (<module_path>.<class_name>,
     e.g. pnp.plugins.pull.simple.Repeat).
@@ -68,6 +68,8 @@ def load_plugin(plugin_path, plugin_type, **kwargs):
     Args:
         plugin_path: Fully qualified path to plugin path.
         plugin_type: Base class the plugin has to extend / inherit from.
+        instantiate: If True the class will be instantiated by passing the given **kwargs. Otherwise the class (not
+            an object) is returned.
         **kwargs: Plugin arguments.
 
     Returns:
@@ -79,21 +81,33 @@ def load_plugin(plugin_path, plugin_type, **kwargs):
         - Wrong plugin base type (PluginTypeError)
     """
     Validator.is_instance(str, plugin_path=plugin_path)
-    Validator.is_instance(type, plugin_type=plugin_type)
+    Validator.is_instance(type, str, plugin_type=plugin_type)
+    if isinstance(plugin_type, str) and plugin_type != 'callable':
+        raise ValueError("When 'plugin_type' is str, the only allowed value is callable")
 
     k = plugin_path.rfind('.')
-    # Namespace = everything before the last '.'
-    namespace = plugin_path[:k]
-    # Class name = everything after the last '.'
-    clazz_name = plugin_path[k + 1:]
+    if k > -1:
+        # Namespace = everything before the last '.'
+        namespace = plugin_path[:k]
+        # Class name = everything after the last '.'
+        clazz_name = plugin_path[k + 1:]
+    else:
+        namespace = 'builtins'
+        clazz_name = plugin_path
 
     try:
         loaded_module = import_module(namespace)
         clazz = getattr(loaded_module, clazz_name)
-        if not issubclass(clazz, plugin_type):
-            raise PluginTypeError("The plugin is requested to inherit from '{}', but it does not.".format(plugin_type))
 
-        return clazz(**kwargs)
+        if isinstance(plugin_type, str) and plugin_type == 'callable':
+            if not callable(clazz):
+                raise PluginTypeError("The plugin is requested to be a callable, but it is not.")
+        else:
+            if not issubclass(clazz, plugin_type):
+                raise PluginTypeError("The plugin is requested to inherit from '{}', but it does not."
+                                      .format(plugin_type))
+
+        return clazz(**kwargs) if instantiate else clazz
     except AttributeError:
         raise ClassNotFoundError('Class {} was not found in namespace {}'.format(clazz_name, namespace))
     except ImportError:

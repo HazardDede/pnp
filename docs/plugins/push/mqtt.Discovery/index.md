@@ -48,8 +48,8 @@ __Examples__
   push:
     - plugin: pnp.plugins.push.mqtt.Discovery
       selector:
-        data: data.get('battery_level')
-        object_id: "'fb_{}_battery'.format(data.get('device_version', '').replace(' ', '_').lower())"
+        data: "lambda data: data.get('battery_level')"
+        object_id: "lambda data: 'fb_{}_battery'.format(data.get('device_version', '').replace(' ', '_').lower())"
       unwrap: True
       args:
         host: localhost
@@ -61,8 +61,8 @@ __Examples__
           unit_of_measurement: "%"
     - plugin: pnp.plugins.push.mqtt.Discovery
       selector:
-        data: data.get('last_sync_time')
-        object_id: "'fb_{}_lastsync'.format(data.get('device_version', '').replace(' ', '_').lower())"
+        data: "lambda data: data.get('last_sync_time')"
+        object_id: "lambda data: 'fb_{}_lastsync'.format(data.get('device_version', '').replace(' ', '_').lower())"
       unwrap: True
       args:
         host: localhost

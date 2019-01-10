@@ -42,7 +42,10 @@ __Examples__
       wait: 5
   push:
     plugin: pnp.plugins.push.http.Call
-    selector: "dict(data=dict(counter=payload), method='POST' if int(payload) % 2 == 0 else 'GET')"
+    selector:
+      data:
+        counter: "lambda data: data"
+      method: "lambda data: 'POST' if int(data) % 2 == 0 else 'GET'"
     args:
       url: http://localhost:5000/
 - name: rest_server

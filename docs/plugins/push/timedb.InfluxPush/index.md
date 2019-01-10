@@ -34,7 +34,8 @@ __Examples__
       topic: home/#
   push:
     plugin: pnp.plugins.push.timedb.InfluxPush
-    selector: "{'data': payload}"
+    selector:
+      data: "lambda data: data"
     args:
       host: influxdb
       port: 8086

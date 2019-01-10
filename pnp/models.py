@@ -1,11 +1,13 @@
 from collections import namedtuple
 from typing import Dict, List, Optional
 
+import attr
 from box import Box
 
 from .plugins import load_plugin
 from .plugins.pull import PullBase
 from .plugins.push import PushBase
+from .plugins.udf import UserDefinedFunction
 
 Task = namedtuple("Task", ["name", "pull", "pushes"])
 Pull = namedtuple("Pull", ["instance"])
@@ -14,6 +16,22 @@ Push = namedtuple("Push", ["instance", "selector", "unwrap", "deps"])
 TaskName = str
 TaskCfg = Box
 TaskSet = Dict[str, Task]
+
+
+@attr.s
+class UDFModel:
+    name = attr.ib(converter=str)
+    callable = attr.ib(validator=lambda i, a, v: callable(v))
+
+    @classmethod
+    def from_config(cls, dct):
+        from .config import _MISSING
+        for udf in dct:
+            udf_type = 'callable' if udf.args is _MISSING else UserDefinedFunction
+            instantiate = not (udf.args is _MISSING)
+            kwargs = dict() if udf.args is _MISSING or udf.args is None else udf.args
+            fun = load_plugin(udf.plugin, udf_type, instantiate, **{'name': udf.name, **kwargs})
+            yield cls(name=udf.name, callable=fun)
 
 
 def _mk_pull(task: TaskCfg, **extra) -> Pull:

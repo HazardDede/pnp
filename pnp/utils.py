@@ -319,24 +319,15 @@ def safe_eval(source, **context):
     Examples:
 
         >>> payload = {'foo': {'bar': 1, 'baz': 2}}
-        >>> safe_eval("str(payload['foo']['bar'])", payload=payload)  # We pass some context the eval has access to
+        >>> safe_eval("str(payload['foo']['bar'])", payload=payload, str=str)  # We pass some ctx the eval has access to
         '1'
         >>> import os
         >>> safe_eval("os.system('echo 0')")  # Try to access os
-        "os.system('echo 0')"
+        Traceback (most recent call last):
+        ...
+        pnp.utils.EvaluationError: Failed to evaluate 'os.system('echo 0')'
         >>> safe_eval("os.system('echo 0')", os=os)  # The caller can pass the os module... if he really wants to...
         0
-
-        >>> safe_eval({
-        ...     "payload['foo']['bar']": 'baz',
-        ...     "foo": "payload['foo']['baz']",
-        ...     "payload['foo']['baz']": "payload['foo']['bar']"
-        ... }, payload=payload) == {1: 'baz', 'foo': 2, 2: 1}
-        True
-
-        >>> safe_eval(["payload['foo']['bar']", "payload['foo']['baz']",
-        ...     {"payload['foo']['bar']": "payload['foo']['baz']"}], payload=payload)
-        [1, 2, {1: 2}]
 
     Args:
         source: The source to execute.
@@ -345,51 +336,8 @@ def safe_eval(source, **context):
     Returns:
         Return the result of the eval. If something went wrong it raises an error.
     """
-    def eval_snippet(snippet):
-        try:
-            return eval(str(snippet), {'__builtins__': {}}, whitelist)
-        except:
-            return snippet
-
-    def e(snippet, is_key=False):
-        res = safe_eval(snippet, **context)
-        if is_key:
-            try:
-                hash(res)
-            except:
-                return snippet
-        return res
-
-    whitelist = {
-        "abs": abs,
-        "bool": bool,
-        "basename": os.path.basename,
-        "dict": dict,
-        "float": float,
-        "getattr": getattr,
-        "hasattr": hasattr,
-        "hash": hash,
-        "int": int,
-        "isinstance": isinstance,
-        "len": len,
-        "list": list,
-        "max": max,
-        "min": min,
-        "ord": ord,
-        "pow": pow,
-        "reversed": reversed,
-        "round": round,
-        "sorted": sorted,
-        "str": str,
-        "zip": zip
-    }
-    whitelist.update(context)
     try:
-        if isinstance(source, dict):
-            return {e(k, True): e(v) for k, v in source.items()}
-        if isinstance(source, list):
-            return [e(i) for i in source]
-        return eval_snippet(str(source))
+        return eval(str(source), {'__builtins__': {}}, context)
     except Exception as exc:
         raise EvaluationError("Failed to evaluate '{source}'".format(**locals())) from exc
 

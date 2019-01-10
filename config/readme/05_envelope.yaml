@@ -5,7 +5,10 @@
       wait: 1
   push:
     plugin: pnp.plugins.push.fs.FileDump
-    selector: '{"file_name": str(data), "extension": ".cnt", "data": data}'
+    selector:
+      file_name: "lambda data: str(data)"
+      extension: ".cnt"
+      data: "lambda data: data"
     args:
       directory: "/tmp/counter"
       file_name: "counter"  # Overridden by envelope

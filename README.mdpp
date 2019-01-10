@@ -167,7 +167,8 @@ into a dictionary inside the 'payload' or 'data' key via selector.
           topic: test/counter
       push:
         plugin: pnp.plugins.push.simple.Echo
-        selector: "{'data': data}"
+        selector:
+          data: "lambda data: data"
 
 ### Payload unwrapping
 
@@ -243,7 +244,10 @@ Example:
 ### Advanced selector expressions (>= 0.12.0)
 
 Instead of string-only selector expressions, you may now use complex dictionary and/or list constructs in your yaml
-to define a selector expression. The configuration below will repeat `{'hello': 'Hello', 'words': ['World', 'Moon', 'Mars']}`.
+to define a selector expression. If you use a dictionary or a list make sure to provide "real" selectors as a
+lambda expression, so the evaluator can decide if this is a string literal or an expression to evaluate.
+
+The configuration below will repeat `{'hello': 'Hello', 'words': ['World', 'Moon', 'Mars']}`.
 
 ```yaml
 - name: selector
@@ -257,14 +261,18 @@ to define a selector expression. The configuration below will repeat `{'hello': 
       selector:
         hello: payload.split(' ')[0]
         words:
-          - payload.split(' ')[1]
-          - payload.split(' ')[2]
-          - payload.split(' ')[3]
+          - "lambda payload: payload.split(' ')[1]"
+          - "lambda payload: payload.split(' ')[2]"
+          - "lambda payload: payload.split(' ')[3]"
 ```
 
 Before the advanced selector feature your epxressions would have probably looked similiar to this:
 `dict(hello=payload.split(' ')[0], words=[payload.split(' ')[1], payload.split(' ')[2], payload.split(' ')[3]])`.
 The first one is more readable, isn't it?
+
+Additional example:
+
+!INCLUDECODE "config/03_lambda_selector.yaml" (yaml)
 
 ### Docker images
 

@@ -270,7 +270,10 @@ Given the example ...
       wait: 1
   push:
     plugin: pnp.plugins.push.fs.FileDump
-    selector: '{"file_name": str(data), "extension": ".cnt", "data": data}'
+    selector:
+      file_name: "lambda data: str(data)"
+      extension: ".cnt"
+      data: "lambda data: data"
     args:
       directory: "/tmp/counter"
       file_name: "counter"  # Overridden by envelope
@@ -312,7 +315,8 @@ into a dictionary inside the 'payload' or 'data' key via selector.
           topic: test/counter
       push:
         plugin: pnp.plugins.push.simple.Echo
-        selector: "{'data': data}"
+        selector:
+          data: "lambda data: data"
 
 <a name="payloadunwrapping"></a>
 
@@ -555,7 +559,10 @@ plugin: pnp.plugins.push.simple.Nop
 ### 5.4\. Advanced selector expressions (>= 0.12.0)
 
 Instead of string-only selector expressions, you may now use complex dictionary and/or list constructs in your yaml
-to define a selector expression. The configuration below will repeat `{'hello': 'Hello', 'words': ['World', 'Moon', 'Mars']}`.
+to define a selector expression. If you use a dictionary or a list make sure to provide "real" selectors as a
+lambda expression, so the evaluator can decide if this is a string literal or an expression to evaluate.
+
+The configuration below will repeat `{'hello': 'Hello', 'words': ['World', 'Moon', 'Mars']}`.
 
 ```yaml
 - name: selector
@@ -569,14 +576,46 @@ to define a selector expression. The configuration below will repeat `{'hello': 
       selector:
         hello: payload.split(' ')[0]
         words:
-          - payload.split(' ')[1]
-          - payload.split(' ')[2]
-          - payload.split(' ')[3]
+          - "lambda payload: payload.split(' ')[1]"
+          - "lambda payload: payload.split(' ')[2]"
+          - "lambda payload: payload.split(' ')[3]"
 ```
 
 Before the advanced selector feature your epxressions would have probably looked similiar to this:
 `dict(hello=payload.split(' ')[0], words=[payload.split(' ')[1], payload.split(' ')[2], payload.split(' ')[3]])`.
 The first one is more readable, isn't it?
+
+Additional example:
+
+```yaml
+# Define selectors to parse / tailor your pulled data. Each selector is bound to a push that controls which input
+# is ingested.
+
+# This example yields the string 'Hello World' every second. The first push gets 'Hello' and prints it out.
+# The second one gets 'World' and prints it out.
+
+- name: selector
+  pull:
+    plugin: pnp.plugins.pull.simple.Repeat
+    args:
+      wait: 1
+      repeat: "Hello World"
+  push:
+    - plugin: pnp.plugins.push.simple.Echo
+      # Returns: 'World'
+      selector: "str(payload.split(' ')[0])"  # no complex structure. Evaluator assumes that this is an expression -> you do not need a lambda
+    - plugin: pnp.plugins.push.simple.Echo
+      selector:  # Returns {'header': 'this is a header', 'data': 'World', 'Hello': 'World'}
+        header: this is a header  # Just string literals
+        data: "lambda data: data.split(' ')[1]"  # Value is lambda and therefore evaluated
+        "lambda data: str(data.split(' ')[0])": "lambda data: data.split(' ')[1]"  # Both are lambdas and therefore evaluated
+    - plugin: pnp.plugins.push.simple.Echo
+      selector:  # Returns ['foo', 'bar', 'Hello', 'World']
+        - foo  # String literal
+        - bar  # String literal
+        - "lambda d: d.split(' ')[0]"  # Lambda -> evaluate the expression
+        - "lambda d: d.split(' ')[1]"  # Lambda -> evaluate the expression
+```
 
 <a name="dockerimages"></a>
 
@@ -1313,6 +1352,7 @@ __Examples__
       interval: 5m  # Polls the readings every 5 minutes
       humidity_offset: -5.0  # Subtracts 5% from the humidity reading
       temp_offset: 1.0  # Adds 1 °C to the temperature reading
+      instant_run: True
   push:
     - plugin: pnp.plugins.push.simple.Echo
       selector: payload.temperature  # Temperature reading
@@ -1679,7 +1719,10 @@ __Examples__
     plugin: pnp.plugins.push.fs.FileDump
     # Override `file_name` and `extension` via envelope.
     # Instead of an auto generated file, the file '/tmp/hello-world.hello' will be dumped.
-    selector: '{"payload": payload, "file_name": "hello-world", "extension": ".hello"}'
+    selector:
+      data: "lambda data: data"
+      file_name: hello-world
+      extension: .hello
     args:
       directory: "/tmp"
       file_name: null  # Auto-generated file (timestamp)
@@ -1734,7 +1777,10 @@ __Examples__
       wait: 5
   push:
     plugin: pnp.plugins.push.http.Call
-    selector: "dict(data=dict(counter=payload), method='POST' if int(payload) % 2 == 0 else 'GET')"
+    selector:
+      data:
+        counter: "lambda data: data"
+      method: "lambda data: 'POST' if int(data) % 2 == 0 else 'GET'"
     args:
       url: http://localhost:5000/
 - name: rest_server
@@ -1883,8 +1929,8 @@ __Examples__
   push:
     - plugin: pnp.plugins.push.mqtt.Discovery
       selector:
-        data: data.get('battery_level')
-        object_id: "'fb_{}_battery'.format(data.get('device_version', '').replace(' ', '_').lower())"
+        data: "lambda data: data.get('battery_level')"
+        object_id: "lambda data: 'fb_{}_battery'.format(data.get('device_version', '').replace(' ', '_').lower())"
       unwrap: True
       args:
         host: localhost
@@ -1896,8 +1942,8 @@ __Examples__
           unit_of_measurement: "%"
     - plugin: pnp.plugins.push.mqtt.Discovery
       selector:
-        data: data.get('last_sync_time')
-        object_id: "'fb_{}_lastsync'.format(data.get('device_version', '').replace(' ', '_').lower())"
+        data: "lambda data: data.get('last_sync_time')"
+        object_id: "lambda data: 'fb_{}_lastsync'.format(data.get('device_version', '').replace(' ', '_').lower())"
       unwrap: True
       args:
         host: localhost
@@ -1956,11 +2002,15 @@ __Examples__
 - name: mqtt
   pull:
     plugin: pnp.plugins.pull.simple.Count
+    args:
+      wait: 1
   push:
     plugin: pnp.plugins.push.mqtt.Publish
     # Lets override the topic via envelope mechanism
     # Will publish even counts on topic 'even' and uneven counts on 'uneven'
-    selector: "{'data': data, 'topic': 'even' if int(data) % 2 == 0 else 'uneven'}"
+    selector:
+      data: "lambda data: data"
+      topic: "lambda data: 'test/even' if int(data) % 2 == 0 else 'test/uneven'"
     args:
       host: localhost
       port: 1883
@@ -2165,8 +2215,8 @@ __Examples__
       args:
         create_shared_link: True  # Create a publicly available link
       selector:
-        data: data.source  # Absolute path to file
-        target_file_name: basename(data.source)  # File name only
+        data: "lambda data: data.source"  # Absolute path to file
+        target_file_name: "lambda data: basename(data.source)"  # File name only
 
 ```
 <a name="pnp.plugins.push.timedb.influxpush"></a>
@@ -2207,7 +2257,8 @@ __Examples__
       topic: home/#
   push:
     plugin: pnp.plugins.push.timedb.InfluxPush
-    selector: "{'data': payload}"
+    selector:
+      data: "lambda data: data"
     args:
       host: influxdb
       port: 8086

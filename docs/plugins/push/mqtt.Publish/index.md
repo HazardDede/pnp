@@ -45,11 +45,15 @@ __Examples__
 - name: mqtt
   pull:
     plugin: pnp.plugins.pull.simple.Count
+    args:
+      wait: 1
   push:
     plugin: pnp.plugins.push.mqtt.Publish
     # Lets override the topic via envelope mechanism
     # Will publish even counts on topic 'even' and uneven counts on 'uneven'
-    selector: "{'data': data, 'topic': 'even' if int(data) % 2 == 0 else 'uneven'}"
+    selector:
+      data: "lambda data: data"
+      topic: "lambda data: 'test/even' if int(data) % 2 == 0 else 'test/uneven'"
     args:
       host: localhost
       port: 1883
