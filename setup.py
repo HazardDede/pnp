@@ -48,6 +48,8 @@ setup(
     packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
     install_requires=[
         'argresolver>=0.3.2',
+        'asyncio>=3.4.0',
+        'asyncws>=0.1',
         'binaryornot>=0.4.4',
         'dictmentor>=0.2.0',
         'docopt>=0.6.2',

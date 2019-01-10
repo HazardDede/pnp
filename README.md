@@ -34,25 +34,26 @@
 6.3\.  [pnp.plugins.pull.fitbit.Goal](#pnp.plugins.pull.fitbit.goal)  
 6.4\.  [pnp.plugins.pull.fs.FileSystemWatcher](#pnp.plugins.pull.fs.filesystemwatcher)  
 6.5\.  [pnp.plugins.pull.gpio.Watcher](#pnp.plugins.pull.gpio.watcher)  
-6.6\.  [pnp.plugins.pull.http.Server](#pnp.plugins.pull.http.server)  
-6.7\.  [pnp.plugins.pull.monitor.Stats](#pnp.plugins.pull.monitor.stats)  
-6.8\.  [pnp.plugins.pull.mqtt.Subscribe](#pnp.plugins.pull.mqtt.subscribe)  
-6.9\.  [pnp.plugins.pull.sensor.DHT](#pnp.plugins.pull.sensor.dht)  
-6.10\.  [pnp.plugins.pull.sensor.OpenWeather](#pnp.plugins.pull.sensor.openweather)  
-6.11\.  [pnp.plugins.pull.simple.Count](#pnp.plugins.pull.simple.count)  
-6.12\.  [pnp.plugins.pull.simple.Repeat](#pnp.plugins.pull.simple.repeat)  
-6.13\.  [pnp.plugins.pull.zway.ZwayPoll](#pnp.plugins.pull.zway.zwaypoll)  
-6.14\.  [pnp.plugins.pull.zway.ZwayReceiver](#pnp.plugins.pull.zway.zwayreceiver)  
-6.15\.  [pnp.plugins.push.fs.FileDump](#pnp.plugins.push.fs.filedump)  
-6.16\.  [pnp.plugins.push.http.Call](#pnp.plugins.push.http.call)  
-6.17\.  [pnp.plugins.push.ml.FaceR](#pnp.plugins.push.ml.facer)  
-6.18\.  [pnp.plugins.push.mqtt.Discovery](#pnp.plugins.push.mqtt.discovery)  
-6.19\.  [pnp.plugins.push.mqtt.Publish](#pnp.plugins.push.mqtt.publish)  
-6.20\.  [pnp.plugins.push.notify.Pushbullet](#pnp.plugins.push.notify.pushbullet)  
-6.21\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
-6.22\.  [pnp.plugins.push.simple.Execute](#pnp.plugins.push.simple.execute)  
-6.23\.  [pnp.plugins.push.storage.Dropbox](#pnp.plugins.push.storage.dropbox)  
-6.24\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
+6.6\.  [pnp.plugins.pull.hass.State](#pnp.plugins.pull.hass.state)  
+6.7\.  [pnp.plugins.pull.http.Server](#pnp.plugins.pull.http.server)  
+6.8\.  [pnp.plugins.pull.monitor.Stats](#pnp.plugins.pull.monitor.stats)  
+6.9\.  [pnp.plugins.pull.mqtt.Subscribe](#pnp.plugins.pull.mqtt.subscribe)  
+6.10\.  [pnp.plugins.pull.sensor.DHT](#pnp.plugins.pull.sensor.dht)  
+6.11\.  [pnp.plugins.pull.sensor.OpenWeather](#pnp.plugins.pull.sensor.openweather)  
+6.12\.  [pnp.plugins.pull.simple.Count](#pnp.plugins.pull.simple.count)  
+6.13\.  [pnp.plugins.pull.simple.Repeat](#pnp.plugins.pull.simple.repeat)  
+6.14\.  [pnp.plugins.pull.zway.ZwayPoll](#pnp.plugins.pull.zway.zwaypoll)  
+6.15\.  [pnp.plugins.pull.zway.ZwayReceiver](#pnp.plugins.pull.zway.zwayreceiver)  
+6.16\.  [pnp.plugins.push.fs.FileDump](#pnp.plugins.push.fs.filedump)  
+6.17\.  [pnp.plugins.push.http.Call](#pnp.plugins.push.http.call)  
+6.18\.  [pnp.plugins.push.ml.FaceR](#pnp.plugins.push.ml.facer)  
+6.19\.  [pnp.plugins.push.mqtt.Discovery](#pnp.plugins.push.mqtt.discovery)  
+6.20\.  [pnp.plugins.push.mqtt.Publish](#pnp.plugins.push.mqtt.publish)  
+6.21\.  [pnp.plugins.push.notify.Pushbullet](#pnp.plugins.push.notify.pushbullet)  
+6.22\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
+6.23\.  [pnp.plugins.push.simple.Execute](#pnp.plugins.push.simple.execute)  
+6.24\.  [pnp.plugins.push.storage.Dropbox](#pnp.plugins.push.storage.dropbox)  
+6.25\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
 7\.  [Changelog](#changelog)  
 
 <a name="installation"></a>
@@ -1076,9 +1077,71 @@ __Examples__
   push:
     - plugin: pnp.plugins.push.simple.Echo
 ```
+<a name="pnp.plugins.pull.hass.state"></a>
+
+### 6.6\. pnp.plugins.pull.hass.State
+
+Connects to the `home assistant` websocket api and listens for state changes. If no `include` or `exclude` is defined
+it will report all state changes. If `include` is defined only entities that match one of the specified patterns will
+be emitted. If `exclude` if defined entities that match at least one of the specified patterns will be ignored. `exclude`
+patterns overrides `include` patterns.
+
+
+__Arguments__
+
+**host (str)**: Url to your `home assistant` instance (e.g. http://my-hass:8123)<br/>
+**token (str)**: Your long lived access token to access the websocket api. See below for further instructions<br/>
+**include (str or list[str])**: Patterns of entity state changes to include. All state changes that do not match the
+defined patterns will be ignored</br>
+**exclude (str or list[str]**:Patterns of entity state changes to exclude. All state changes that do match the defined
+patterns will be ignored
+
+Hints:
+* `include` and `exclude` support wildcards (e.g `*` and `?`)
+* `exclude` overrides `include`. So you can `include` everything from a domain (`sensor.*`) but exclude individual entities.
+* Create a long lived access token: [Home Assistant documentation](https://developers.home-assistant.io/docs/en/auth_api.html#long-lived-access-token)
+
+__Result__
+
+The emitted result always contains the `entity_id`, `new_state` and `old_state`:
+
+```yaml
+{
+	'entity_id': 'light.bedroom_lamp',
+	'old_state': {
+		'state': 'off',
+		'attributes': {},
+		'last_changed': '2019-01-08T18:24:42.087195+00:00',
+		'last_updated': '2019-01-08T18:40:40.011459+00:00'
+	},
+	'new_state': {
+		'state': 'on',
+		'attributes': {},
+		'last_changed': '2019-01-08T18:41:06.329699+00:00',
+		'last_updated': '2019-01-08T18:41:06.329699+00:00'
+	}
+}
+```
+
+__Examples__
+
+```yaml
+- name: hass_state
+  pull:
+    plugin: pnp.plugins.pull.hass.State
+    args:
+      url: http://localhost:8123
+      token: "{{env::HA_TOKEN}}"
+      exclude:
+        - light.lamp
+      include:
+        - light.*
+  push:
+    - plugin: pnp.plugins.push.simple.Echo
+```
 <a name="pnp.plugins.pull.http.server"></a>
 
-### 6.6\. pnp.plugins.pull.http.Server
+### 6.7\. pnp.plugins.pull.http.Server
 
 Listens on the specified `port` for requests to any endpoint.
 Any data passed to the endpoint will be tried to be parsed to a dictionary (json). If this is not possible
@@ -1140,7 +1203,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.monitor.stats"></a>
 
-### 6.7\. pnp.plugins.pull.monitor.Stats
+### 6.8\. pnp.plugins.pull.monitor.Stats
 
 Emits every `interval` various metrics / statistics about the host system. Please see the 'Result' section for available metrics.
 
@@ -1175,7 +1238,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.mqtt.subscribe"></a>
 
-### 6.8\. pnp.plugins.pull.mqtt.Subscribe
+### 6.9\. pnp.plugins.pull.mqtt.Subscribe
 
 Pulls messages from the specified topic from the given mosquitto mqtt broker (identified by host and port).
 
@@ -1215,7 +1278,7 @@ __Examples__
 
 <a name="pnp.plugins.pull.sensor.dht"></a>
 
-### 6.9\. pnp.plugins.pull.sensor.DHT
+### 6.10\. pnp.plugins.pull.sensor.DHT
 
 Periodically polls a dht11 or dht22 (aka am2302) for temperature and humidity readings.
 Polling interval is controlled by `interval`.
@@ -1258,7 +1321,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.sensor.openweather"></a>
 
-### 6.10\. pnp.plugins.pull.sensor.OpenWeather
+### 6.11\. pnp.plugins.pull.sensor.OpenWeather
 
 Periodically polls weather data from the `OpenWeatherMap` api.
 
@@ -1355,7 +1418,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.simple.count"></a>
 
-### 6.11\. pnp.plugins.pull.simple.Count
+### 6.12\. pnp.plugins.pull.simple.Count
 
 Emits every `wait` seconds a counting value which runs from `from_cnt` to `to_cnt`.
 If `to_cnt` is None the counter will count to infinity.
@@ -1385,7 +1448,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.simple.repeat"></a>
 
-### 6.12\. pnp.plugins.pull.simple.Repeat
+### 6.13\. pnp.plugins.pull.simple.Repeat
 
 Emits every `wait` seconds the same `repeat`.
 
@@ -1412,7 +1475,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.zway.zwaypoll"></a>
 
-### 6.13\. pnp.plugins.pull.zway.ZwayPoll
+### 6.14\. pnp.plugins.pull.zway.ZwayPoll
 
 Pulls the specified json content from the zway rest api. The content is specified by the url, e.g.
 `http://<host>:8083/ZWaveAPI/Run/devices` will pull all devices and serve the result as a json.
@@ -1486,7 +1549,7 @@ Below are some common selector examples to fetch various metrics from various de
 
 <a name="pnp.plugins.pull.zway.zwayreceiver"></a>
 
-### 6.14\. pnp.plugins.pull.zway.ZwayReceiver
+### 6.15\. pnp.plugins.pull.zway.ZwayReceiver
 
 Setups a http server to process incoming GET-requests from the Zway-App [`HttpGet`](https://github.com/hplato/Zway-HTTPGet/blob/master/index.js).
 
@@ -1564,7 +1627,7 @@ __Examples__
 
 <a name="pnp.plugins.push.fs.filedump"></a>
 
-### 6.15\. pnp.plugins.push.fs.FileDump
+### 6.16\. pnp.plugins.push.fs.FileDump
 
 This push dumps the given `payload` to a file to the specified `directory`.
 If argument `file_name` is None, a name will be generated based on the current datetime (%Y%m%d-%H%M%S).
@@ -1627,7 +1690,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.http.call"></a>
 
-### 6.16\. pnp.plugins.push.http.Call
+### 6.17\. pnp.plugins.push.http.Call
 
 Makes a request to a http resource.
 
@@ -1713,7 +1776,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.ml.facer"></a>
 
-### 6.17\. pnp.plugins.push.ml.FaceR
+### 6.18\. pnp.plugins.push.ml.FaceR
 
 FaceR (short one for face recognition) tags known faces in images. Output is the image with all faces tagged whether
 with the known name or an `unknown_label`. Default for unknown ones is 'Unknown'.
@@ -1770,7 +1833,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.mqtt.discovery"></a>
 
-### 6.18\. pnp.plugins.push.mqtt.Discovery
+### 6.19\. pnp.plugins.push.mqtt.Discovery
 
 TBD
 
@@ -1846,7 +1909,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.mqtt.publish"></a>
 
-### 6.19\. pnp.plugins.push.mqtt.Publish
+### 6.20\. pnp.plugins.push.mqtt.Publish
 
 Will push the given `payload` to a mqtt broker (in this case mosquitto).
 The broker is specified by `host` and `port`. In addition a topic needs to be specified were the payload
@@ -1926,7 +1989,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.notify.pushbullet"></a>
 
-### 6.20\. pnp.plugins.push.notify.Pushbullet
+### 6.21\. pnp.plugins.push.notify.Pushbullet
 
 Sends a message to the [Pushbullet](http://www.pushbullet.com) service.
 The type of the message will guessed:
@@ -1969,7 +2032,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.simple.echo"></a>
 
-### 6.21\. pnp.plugins.push.simple.Echo
+### 6.22\. pnp.plugins.push.simple.Echo
 
 Simply log the passed payload to the default logging instance.
 
@@ -1996,7 +2059,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.simple.execute"></a>
 
-### 6.22\. pnp.plugins.push.simple.Execute
+### 6.23\. pnp.plugins.push.simple.Execute
 
 Executes a command with given arguments in a shell of the operating system.
 
@@ -2049,7 +2112,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.storage.dropbox"></a>
 
-### 6.23\. pnp.plugins.push.storage.Dropbox
+### 6.24\. pnp.plugins.push.storage.Dropbox
 
 Uploads provided file to the specified dropbox account.
 
@@ -2108,7 +2171,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.timedb.influxpush"></a>
 
-### 6.24\. pnp.plugins.push.timedb.InfluxPush
+### 6.25\. pnp.plugins.push.timedb.InfluxPush
 
 Pushes the given `payload` to an influx database using the line `protocol`.
 You have to specify `host`, `port`, `user`, `password` and the `database`.

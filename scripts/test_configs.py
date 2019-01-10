@@ -18,7 +18,8 @@ ENV = {
     'MESSAGE': 'Hello World',
     'DROPBOX_API_KEY': 'blub',
     'PUSHBULLET_API_KEY': 'bla',
-    'FITBIT_AUTH': FITBIT_AUTH_PATH
+    'FITBIT_AUTH': FITBIT_AUTH_PATH,
+    'HA_TOKEN': 'abcdefg'
 }
 
 

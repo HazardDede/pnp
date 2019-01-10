@@ -3,7 +3,7 @@
 bumpversion
 flake8
 mock
-pytest
+pytest>=3.6
 pytest-cov
 setuptools
 twine

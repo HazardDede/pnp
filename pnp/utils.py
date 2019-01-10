@@ -92,6 +92,65 @@ def camel_to_snake(name):
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
 
+def wildcards_to_regex(wildcard_patterns):
+    """
+    Examples:
+
+        >>> import fnmatch, re
+        >>> (wildcards_to_regex(['sensor.*', 'sensor.lamp'])
+        ...     == [re.compile(fnmatch.translate('sensor.*')), re.compile(fnmatch.translate('sensor.lamp'))])
+        True
+        >>> wildcards_to_regex('sensor.lamp') == re.compile(fnmatch.translate('sensor.lamp'))
+        True
+        >>> print(wildcards_to_regex(None))
+        None
+        >>> wildcards_to_regex([])
+        []
+    """
+
+    if not wildcard_patterns:
+        return wildcard_patterns
+    import fnmatch
+    import re
+    if is_iterable_but_no_str(wildcard_patterns):
+        return [re.compile(fnmatch.translate(item)) for item in wildcard_patterns]
+    Validator.is_instance(str, wildcard_patterns=wildcard_patterns)
+    return re.compile(fnmatch.translate(wildcard_patterns))
+
+
+def include_or_exclude(item, include_regex=None, exclude_regex=None):
+    """
+
+    Returns:
+        True if the item should be included; False if the item should be excluded.
+
+    Examples:
+        >>> re_all = wildcards_to_regex('sensor.*')
+        >>> re1 = wildcards_to_regex('sensor.light1')
+        >>> re2 = wildcards_to_regex('sensor.light2')
+
+        >>> include_or_exclude('sensor.light1', [re1, re2])
+        True
+        >>> include_or_exclude('sensor.light1', [re1, re2], [re_all])
+        False
+        >>> include_or_exclude('sensor.light1', None, [re1])
+        False
+        >>> include_or_exclude('sensor.light2', None, [re1])
+        True
+        >>> include_or_exclude('sensor.light2', [re1], None)
+        False
+
+    """
+    for regex in exclude_regex or []:
+        if regex.match(item):
+            return False
+    for regex in include_regex or []:
+        if regex.match(item):
+            return True
+
+    return include_regex is None
+
+
 def transform_dict_items(dct, keys_fun=None, vals_fun=None):
     """
     Transforms keys and/or values of the given dictionary by applying the given function.
