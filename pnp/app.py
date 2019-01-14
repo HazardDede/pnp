@@ -3,7 +3,7 @@ import os
 from .config import load_config
 from .engines import Engine, AdvancedRetryHandler
 from .engines.thread import ThreadEngine
-from .models import TaskSet, Task, UDFModel, tasks_to_str
+from .models import TaskSet, TaskModel, UDFModel, tasks_to_str
 from .selector import PayloadSelector
 from .utils import Loggable
 from .validator import Validator
@@ -26,13 +26,13 @@ class Application(Loggable):
         udfs, engine, task_cfg = load_config(file_path)
         base_path = os.path.dirname(file_path)
         tasks = {
-            task.name: Task.from_dict(task, base_path) for task in task_cfg
+            task.name: TaskModel.from_dict(task, base_path) for task in task_cfg
         }
         if engine is None:
             # Backward compatibility
             engine = ThreadEngine(queue_worker=3, retry_handler=AdvancedRetryHandler())
         if udfs is not None:
-            udfs = list(UDFModel.from_config(udfs))
+            udfs = [UDFModel.from_config(udf) for udf in udfs]
             PayloadSelector.instance.register_udfs(udfs)
 
         from pprint import pformat

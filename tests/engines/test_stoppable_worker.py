@@ -20,10 +20,10 @@ class PushMock(push.PushBase):
 def test_worker_for_smoke():
     queue = Queue()
     push_instance = PushMock(name='pytest_push')
-    task = models.Task(
+    task = models.TaskModel(
         name='pytest_task',
-        pull=models.Pull(instance=pull_simple.Count(name='pytest_pull', wait=0.2)),
-        pushes=[models.Push(instance=push_instance, selector=None, unwrap=False, deps=[])]
+        pull=models.PullModel(instance=pull_simple.Count(name='pytest_pull', wait=0.2)),
+        pushes=[models.PushModel(instance=push_instance, selector=None, unwrap=False, deps=[])]
     )
     # Worker
     stop_item = object()

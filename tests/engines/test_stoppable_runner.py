@@ -30,10 +30,10 @@ class NopPullMock(pull.PullBase):
 
 def test_runner_for_smoke():
     queue = Queue()
-    task = models.Task(
+    task = models.TaskModel(
         name='pytest_task',
-        pull=models.Pull(instance=pull_simpe.Count(name='pytest_pull', wait=0.5)),
-        pushes=[models.Push(instance=push_simple.Echo(name='pytest_push'), selector=None, unwrap=False, deps=[])]
+        pull=models.PullModel(instance=pull_simpe.Count(name='pytest_pull', wait=0.5)),
+        pushes=[models.PushModel(instance=push_simple.Echo(name='pytest_push'), selector=None, unwrap=False, deps=[])]
     )
     dut = te.StoppableRunner(task, queue, SimpleRetryHandler())
     dut.daemon = True
@@ -50,10 +50,10 @@ def test_runner_for_smoke():
 def test_runner_for_retries_on_error():
     def helper_runner(pull, sleep, max_retries):
         queue = Queue()
-        task = models.Task(
+        task = models.TaskModel(
             name='pytest_task',
-            pull=models.Pull(instance=pull),
-            pushes=[models.Push(instance=push_simple.Echo(name='pytest_push'), selector=None, unwrap=False, deps=[])]
+            pull=models.PullModel(instance=pull),
+            pushes=[models.PushModel(instance=push_simple.Echo(name='pytest_push'), selector=None, unwrap=False, deps=[])]
         )
         dut = te.StoppableRunner(task, queue, AdvancedRetryHandler(retry_wait=1, max_retries=max_retries))
         dut.daemon = True

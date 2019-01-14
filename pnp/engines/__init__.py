@@ -4,7 +4,7 @@ from collections import namedtuple
 from datetime import datetime
 from typing import Any, Callable, Optional
 
-from ..models import TaskSet, Push
+from ..models import TaskSet, PushModel
 from ..selector import PayloadSelector
 from ..utils import Loggable, Singleton, parse_duration_literal, DurationLiteral, auto_str, interruptible_sleep, \
     StopCycleError, is_iterable_but_no_str
@@ -141,14 +141,14 @@ class PushExecutor(Loggable, Singleton):
         >>> payload = dict(a="This is the payload", b="another ignored key by selector")
         >>> from pnp.plugins.push.simple import Nop
         >>> push_instance = Nop(name='doctest')
-        >>> push = Push(instance=push_instance, selector='data.a', deps=[], unwrap=False)
+        >>> push = PushModel(instance=push_instance, selector='data.a', deps=[], unwrap=False)
         >>> PushExecutor().execute("doctest", payload, push)
         >>> push_instance.last_payload
         'This is the payload'
 
     """
 
-    def _execute_internal(self, id: str, payload: Any, push: Push, result_callback: Callable = None) -> None:
+    def _execute_internal(self, id: str, payload: Any, push: PushModel, result_callback: Callable = None) -> None:
         self.logger.debug("[{id}] Selector: Applying '{push.selector}' to '{payload}'".format(**locals()))
         # If selector is None -> returns a dot accessable dictionary if applicable
         # If selector is not None -> returns the evaluated expression (as a dot accessable dictionary
@@ -177,7 +177,7 @@ class PushExecutor(Loggable, Singleton):
         else:
             self.logger.debug("[{id}] Selector evaluated to suppress literal. Skipping the push".format(**locals()))
 
-    def execute(self, id: str, payload: Any, push: Push, result_callback: Callable = None) -> None:
+    def execute(self, id: str, payload: Any, push: PushModel, result_callback: Callable = None) -> None:
         """
         Executes the given push by passing the specified payload.
         In concurrent environments there might be multiple executions in parallel. You may specify an `id` argument
@@ -195,7 +195,7 @@ class PushExecutor(Loggable, Singleton):
         Returns:
             None.
         """
-        Validator.is_instance(Push, push=push)
+        Validator.is_instance(PushModel, push=push)
 
         if result_callback and not callable(result_callback):
             self.logger.warning("Result callback is given, but is not a callable. Callback will be ignored.")

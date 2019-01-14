@@ -9,8 +9,6 @@ from .engines import Engine, RetryHandler
 from .plugins import load_plugin
 from .utils import make_list
 
-_MISSING = object()
-
 
 class OrOverride(Or):
     """
@@ -77,9 +75,9 @@ engine_schema = Engine
 udfs_schema = Schema([{
     "name": Use(str),
     "plugin": Use(str),
-    Optional("args", default=_MISSING): Or({
+    Optional("args"): Or({
         str: object
-    }, _MISSING, None)
+    }, None)
 }])
 
 tasks_settings_schema = Schema({

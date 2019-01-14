@@ -5,7 +5,7 @@ import time
 from queue import Queue
 
 from . import RetryHandler, PushExecutor, Engine, SimpleRetryHandler
-from ..models import Task, TaskSet
+from ..models import TaskModel, TaskSet
 from ..utils import Loggable, StopCycleError, interruptible_sleep, auto_str, auto_str_ignore
 from ..validator import Validator
 
@@ -34,7 +34,7 @@ class StoppableRunner(Loggable):
             queue: Queue to use for communication between runner and worker. Should provide `put(item)` method.
             retry_handler: Retry handler.
         """
-        Validator.is_instance(Task, task=task)
+        Validator.is_instance(TaskModel, task=task)
         self.task = task
         self.queue = queue
         self.stopped = self._make_shutdown_event()
@@ -287,7 +287,7 @@ class ParallelEngine(Engine):
 
     def _run(self, tasks: TaskSet):
         for _, t in tasks.items():
-            if not isinstance(t, Task):
+            if not isinstance(t, TaskModel):
                 raise TypeError("All items of argument 'tasks' are expected to be a 'Task' instance")
 
         self._run_queue_worker()
