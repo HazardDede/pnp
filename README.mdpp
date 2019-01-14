@@ -295,6 +295,13 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 
     pip install pnp==0.10.0
 
+**0.14.0**
+* Adds UDF (user defined functions)
+* Adds UDF `udf.hass.State` to request the current state of an entity (or one of it's attributes) from home assistant
+* Makes selector expressions in complex structures (dicts / lists) more explicit using lambda expressions with mandatory payload argument.
+  This will probably break configs that use complex expressions containing lists and/or dictionaries
+* Adds `pull.hass.State` to listen to state changes in home assistant
+
 **0.13.0**
 * Adds `pull.fitbit.Current`, `pull.fitbit.Devices`, `pull.fitbit.Goal` plugins to request data from fitbit api
 * Adds `push.mqtt.Discovery` to create mqtt discovery enabled devices for home assistant. [Reference](https://www.home-assistant.io/docs/mqtt/discovery/)

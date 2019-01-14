@@ -1,0 +1,15 @@
+# pnp.plugins.udf.simple.Counter
+
+Memories a counter value which is increased everytime you call the udf.
+
+__Arguments__
+
+**init (Optional[int])**: The initialization value of the counter. Default is 0.
+
+__Result__
+
+Returns the current counter.
+
+__Examples__
+
+!INCLUDECODE "docs/plugins/udf/simple.Counter/example.yaml" (yaml)

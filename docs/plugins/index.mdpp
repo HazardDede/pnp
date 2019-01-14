@@ -26,3 +26,6 @@
 !INCLUDE "docs/plugins/push/simple.Execute/index.md", 1
 !INCLUDE "docs/plugins/push/storage.Dropbox/index.md", 1
 !INCLUDE "docs/plugins/push/timedb.InfluxPush/index.md", 1
+
+!INCLUDE "docs/plugins/udf/simple.Counter/index.md", 1
+!INCLUDE "docs/plugins/udf/hass.State/index.md", 1
