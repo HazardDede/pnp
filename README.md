@@ -2366,6 +2366,7 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 * Makes selector expressions in complex structures (dicts / lists) more explicit using lambda expressions with mandatory payload argument.
   This will probably break configs that use complex expressions containing lists and/or dictionaries
 * Adds `pull.hass.State` to listen to state changes in home assistant
+* Fixes bug in `pull.fitbit.Goal` when fetching weekly goals (so far daily goals were fetched too)
 
 **0.13.0**
 * Adds `pull.fitbit.Current`, `pull.fitbit.Devices`, `pull.fitbit.Goal` plugins to request data from fitbit api

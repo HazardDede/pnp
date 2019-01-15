@@ -81,10 +81,11 @@ class _FitbitBase(Polling):
             with open(self._config, 'w') as fp:
                 yaml.dump(new_config, fp, default_flow_style=False)
             self._tokens_tstamp = pathlib.Path(self._config).stat().st_mtime
+            self._tokens = new_config
             self.logger.debug("[{self.name}] Saving tokens to {self._config}: Lock released".format(**locals()))
 
     def poll(self):
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover
 
 
 class Devices(_FitbitBase):
@@ -128,7 +129,7 @@ class Goal(_FitbitBase):
     def _get_weekly_activity_goal(self, goal):
         single_goal = goal.split('/')[-1]
         conv = float if single_goal == 'distance' else int
-        return conv(self.client.activities_daily_goal().get('goals', {}).get(single_goal))
+        return conv(self.client.activities_weekly_goal().get('goals', {}).get(single_goal))
 
     def _call(self, goal):
         return self._goals_map.get(goal)(goal)
@@ -190,7 +191,7 @@ class Current(_FitbitBase):
         resp = self.client.time_series(resource, period='7d')
         first_key = next(iter(resp.values()))
         if first_key is None:
-            return None
+            return None  # pragma: no cover
         return first_key[-1].get('value')
 
     def _call(self, resource):
