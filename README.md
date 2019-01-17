@@ -54,8 +54,9 @@
 6.23\.  [pnp.plugins.push.simple.Execute](#pnp.plugins.push.simple.execute)  
 6.24\.  [pnp.plugins.push.storage.Dropbox](#pnp.plugins.push.storage.dropbox)  
 6.25\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
-6.26\.  [pnp.plugins.udf.simple.Counter](#pnp.plugins.udf.simple.counter)  
-6.27\.  [pnp.plugins.udf.hass.State](#pnp.plugins.udf.hass.state)  
+6.26\.  [pnp.plugins.udf.hass.State](#pnp.plugins.udf.hass.state)  
+6.27\.  [pnp.plugins.udf.simple.Counter](#pnp.plugins.udf.simple.counter)  
+6.28\.  [pnp.plugins.udf.simple.Memory](#pnp.plugins.udf.simple.memory)  
 7\.  [Changelog](#changelog)  
 
 <a name="installation"></a>
@@ -2265,45 +2266,9 @@ __Examples__
 
 ```
 
-<a name="pnp.plugins.udf.simple.counter"></a>
-
-### 6.26\. pnp.plugins.udf.simple.Counter
-
-Memories a counter value which is increased everytime you call the udf.
-
-__Arguments__
-
-**init (Optional[int])**: The initialization value of the counter. Default is 0.
-
-__Result__
-
-Returns the current counter.
-
-__Examples__
-
-```yaml
-udfs:
-  # Defines the udf. name is the actual alias you can call in selector expressions.
-  - name: counter
-    plugin: pnp.plugins.udf.simple.Counter
-    args:
-      init: 1
-tasks:
-  - name: countme
-    pull:
-      plugin: pnp.plugins.pull.simple.Repeat
-      args:
-        repeat: "Hello World"  # Repeats 'Hello World'
-        wait: 1  # Every second
-    push:
-      - plugin: pnp.plugins.push.simple.Echo
-        selector:
-          data: "lambda data: data"
-          count: "lambda data: counter()"  # Calls the udf
-```
 <a name="pnp.plugins.udf.hass.state"></a>
 
-### 6.27\. pnp.plugins.udf.hass.State
+### 6.26\. pnp.plugins.udf.hass.State
 
 Fetches the state of an entity from home assistant by a rest-api request.
 
@@ -2348,6 +2313,81 @@ tasks:
       - plugin: pnp.plugins.push.simple.Echo
         # Will only print the data when the state of the sun component is above 'above_horizon'
         selector: "'above_horizon' if hass_state('sun.sun') == 'above_horizon' else SUPPRESS"
+```
+<a name="pnp.plugins.udf.simple.counter"></a>
+
+### 6.27\. pnp.plugins.udf.simple.Counter
+
+Memories a counter value which is increased everytime you call the udf.
+
+__Arguments__
+
+**init (Optional[int])**: The initialization value of the counter. Default is 0.
+
+__Result__
+
+Returns the current counter.
+
+__Examples__
+
+```yaml
+udfs:
+  # Defines the udf. name is the actual alias you can call in selector expressions.
+  - name: counter
+    plugin: pnp.plugins.udf.simple.Counter
+    args:
+      init: 1
+tasks:
+  - name: countme
+    pull:
+      plugin: pnp.plugins.pull.simple.Repeat
+      args:
+        repeat: "Hello World"  # Repeats 'Hello World'
+        wait: 1  # Every second
+    push:
+      - plugin: pnp.plugins.push.simple.Echo
+        selector:
+          data: "lambda data: data"
+          count: "lambda data: counter()"  # Calls the udf
+```
+<a name="pnp.plugins.udf.simple.memory"></a>
+
+### 6.28\. pnp.plugins.udf.simple.Memory
+
+Returns a previously memorized value when called.
+
+__Arguments__
+
+**init (any, optional)**: The initial memory of the plugin. Default is None.
+
+__Call Arguments__
+
+**new_memory (any, optional)**: After emitting the current memorized value the current memory is overwritten by this value.
+Will only be overwritten if the parameter is specified.
+
+__Result__
+
+Returns the memorized value.
+
+__Examples__
+
+```yaml
+udfs:
+  - name: mem
+    plugin: pnp.plugins.udf.simple.Memory
+    args:
+      init: 1
+tasks:
+  - name: countme
+    pull:
+      plugin: pnp.plugins.pull.simple.Count
+      args:
+        from_cnt: 1
+        wait: 1  # Every second
+    push:
+      - plugin: pnp.plugins.push.simple.Echo
+        # Will memorize every uneven count
+        selector: "mem() if data % 2 == 0 else mem(new_memory=data)"
 ```
 
 <a name="changelog"></a>

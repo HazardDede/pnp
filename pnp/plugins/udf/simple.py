@@ -29,3 +29,25 @@ class Counter(UserDefinedFunction):
             return self.cnt
         finally:
             self.cnt += 1
+
+
+class Memory(UserDefinedFunction):
+    """
+    Example:
+
+        >>> dut = Memory(name='doctest', init='foo')
+        >>> dut(), dut(new_memory='baz'), dut()
+        ('foo', 'foo', 'baz')
+    """
+    _MISSING = object()
+
+    def __init__(self, init=None, **kwargs):
+        super().__init__(**kwargs)
+        self.init = init
+
+    def action(self, new_memory=_MISSING):
+        try:
+            return self.init
+        finally:
+            if new_memory is not self._MISSING:
+                self.init = new_memory
