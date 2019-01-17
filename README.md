@@ -2407,6 +2407,7 @@ You are encouraged to specify explicitly the version in your dependency tools, e
   This will probably break configs that use complex expressions containing lists and/or dictionaries
 * Adds `pull.hass.State` to listen to state changes in home assistant
 * Fixes bug in `pull.fitbit.Goal` when fetching weekly goals (so far daily goals were fetched too)
+* Adds UDF `udf.simple.Memory` to memorize values to access them later
 
 **0.13.0**
 * Adds `pull.fitbit.Current`, `pull.fitbit.Devices`, `pull.fitbit.Goal` plugins to request data from fitbit api
