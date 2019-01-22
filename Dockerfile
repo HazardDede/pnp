@@ -17,7 +17,7 @@ COPY . ${WORKDIR}
 RUN cd ${WORKDIR} && \
     pip3 install \
         --process-dependency-links \
-        .[dropbox,fitbit,fswatcher,http-server,pushbullet]
+        .[dropbox,fitbit,fswatcher,gmail,http-server,pushbullet]
 
 VOLUME ${CONFDIR}
 VOLUME ${LOGDIR}

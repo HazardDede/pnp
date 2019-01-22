@@ -67,12 +67,13 @@ setup(
     ],
     extras_require={
         'dht': ['Adafruit_DHT==1.3.2'],
+        'dropbox': ['dropbox>=9.0.0', 'urllib3>=1.20'],
         'fitbit': ['fitbit>=0.3.0'],
         'fswatcher': ['watchdog>=0.8.3'],
         'faceR': ['image>=1.5.24', 'face-recognition>=1.2.2'],
-        'http-server': ['Flask>=1.0.2', 'gevent>=1.3.4'],
+        'gmail': ['google-api-python-client>=1.7.7', 'google-auth-httplib2>=0.0.3', 'google-auth-oauthlib>=0.2.0'],
         'gpio': ['RPi.GPIO>=0.6.5'],
-        'dropbox': ['dropbox>=9.0.0', 'urllib3>=1.20'],
+        'http-server': ['Flask>=1.0.2', 'gevent>=1.3.4'],
         'pushbullet': ['pushbullet.py>=0.10.0', 'urllib3>=1.20']
     },
     dependency_links=[
@@ -83,6 +84,7 @@ setup(
     entry_points={
         'console_scripts': [
             'pnp=pnp.runner.pnp:main',
+            'pnp_gmail_tokens=pnp.runner.pnp_gmail_tokens:main'
         ],
     },
 )

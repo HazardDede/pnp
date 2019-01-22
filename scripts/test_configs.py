@@ -10,6 +10,7 @@ from pnp.app import Application
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), '../config')
 DOCS_PATH = os.path.join(os.path.dirname(__file__), '../docs')
 FITBIT_AUTH_PATH = '/tmp/fitbit.conf'
+GMAIL_AUTH_PATH = '/tmp/gmail.conf'
 
 ENV = {
     'ZWAY_USER': 'foo',
@@ -19,7 +20,9 @@ ENV = {
     'DROPBOX_API_KEY': 'blub',
     'PUSHBULLET_API_KEY': 'bla',
     'FITBIT_AUTH': FITBIT_AUTH_PATH,
-    'HA_TOKEN': 'abcdefg'
+    'HA_TOKEN': 'abcdefg',
+    'GMAIL_TOKEN_FILE': GMAIL_AUTH_PATH,
+    'GMAIL_RECIPIENT': 'somebody@somehost.net'
 }
 
 
@@ -40,10 +43,12 @@ def setup():
     os.makedirs("/tmp/camera", exist_ok=True)
     os.makedirs("/tmp/faces", exist_ok=True)
     os.makedirs("/tmp/counter", exist_ok=True)
-    auth = dict(access_token='<access_token>', refresh_token='refresh_token', client_id='<client_id>',
-                client_secret='<client_secret>', expires_at=12345678)
+    fitbit_auth = dict(access_token='<access_token>', refresh_token='refresh_token', client_id='<client_id>',
+                       client_secret='<client_secret>', expires_at=12345678)
     with open(FITBIT_AUTH_PATH, 'w') as fp:
-        yaml.dump(auth, fp)
+        yaml.dump(fitbit_auth, fp)
+    with open(GMAIL_AUTH_PATH, 'w') as fp:
+        fp.write("")
 
 
 @pytest.mark.parametrize("config_file", get_files())

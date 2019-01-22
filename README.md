@@ -46,17 +46,18 @@
 6.15\.  [pnp.plugins.pull.zway.ZwayReceiver](#pnp.plugins.pull.zway.zwayreceiver)  
 6.16\.  [pnp.plugins.push.fs.FileDump](#pnp.plugins.push.fs.filedump)  
 6.17\.  [pnp.plugins.push.http.Call](#pnp.plugins.push.http.call)  
-6.18\.  [pnp.plugins.push.ml.FaceR](#pnp.plugins.push.ml.facer)  
-6.19\.  [pnp.plugins.push.mqtt.Discovery](#pnp.plugins.push.mqtt.discovery)  
-6.20\.  [pnp.plugins.push.mqtt.Publish](#pnp.plugins.push.mqtt.publish)  
-6.21\.  [pnp.plugins.push.notify.Pushbullet](#pnp.plugins.push.notify.pushbullet)  
-6.22\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
-6.23\.  [pnp.plugins.push.simple.Execute](#pnp.plugins.push.simple.execute)  
-6.24\.  [pnp.plugins.push.storage.Dropbox](#pnp.plugins.push.storage.dropbox)  
-6.25\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
-6.26\.  [pnp.plugins.udf.hass.State](#pnp.plugins.udf.hass.state)  
-6.27\.  [pnp.plugins.udf.simple.Counter](#pnp.plugins.udf.simple.counter)  
-6.28\.  [pnp.plugins.udf.simple.Memory](#pnp.plugins.udf.simple.memory)  
+6.18\.  [pnp.plugins.push.mail.GMail](#pnp.plugins.push.mail.gmail)  
+6.19\.  [pnp.plugins.push.ml.FaceR](#pnp.plugins.push.ml.facer)  
+6.20\.  [pnp.plugins.push.mqtt.Discovery](#pnp.plugins.push.mqtt.discovery)  
+6.21\.  [pnp.plugins.push.mqtt.Publish](#pnp.plugins.push.mqtt.publish)  
+6.22\.  [pnp.plugins.push.notify.Pushbullet](#pnp.plugins.push.notify.pushbullet)  
+6.23\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
+6.24\.  [pnp.plugins.push.simple.Execute](#pnp.plugins.push.simple.execute)  
+6.25\.  [pnp.plugins.push.storage.Dropbox](#pnp.plugins.push.storage.dropbox)  
+6.26\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
+6.27\.  [pnp.plugins.udf.hass.State](#pnp.plugins.udf.hass.state)  
+6.28\.  [pnp.plugins.udf.simple.Counter](#pnp.plugins.udf.simple.counter)  
+6.29\.  [pnp.plugins.udf.simple.Memory](#pnp.plugins.udf.simple.memory)  
 7\.  [Changelog](#changelog)  
 
 <a name="installation"></a>
@@ -1817,9 +1818,69 @@ __Examples__
   push:
     plugin: pnp.plugins.push.simple.Nop
 ```
+<a name="pnp.plugins.push.mail.gmail"></a>
+
+### 6.18\. pnp.plugins.push.mail.GMail
+
+Sends an e-mail via the `gmail api`.
+
+__Arguments__
+
+**token_file (str)**: The file that contains your tokens. See below for further details<br/>
+**recipient (str or List[str])**: The recipient (to) of the e-mail. Optionally you can pass a list for multiple recipients.
+    Can be overridden via envelope.<br/>
+**subject (str, optional)**: Sets the subject of the e-mail. Default is None, which means the subject is expected
+    to be set by the envelope. Can be overridden by the envelope.<br/>
+**sender (str, optional)**: Sets the sender of the e-mail. Default is 'pnp'. Can be overridden by the envelope.<br/>
+**attachment (str, optional)**: Can be set by the envelope. If set the `attachment` should point to a valid file to
+    attach to the e-mail. Default is None which means not to attach a file.
+
+__Tokens__
+
+Goto [https://console.developers.google.com](https://console.developers.google.com) and create a new project.
+Goto `Dashboard` and click `Enable API's and Services`. Search `gmail` and enable the api.
+Goto `Credentials`, then `OAuth consent screen` and set the `Application Name`. Save the form.
+Goto `Credentials` and select `Create credentials` and `OAuth client id`. Select `Other` and name it as you wish.
+Afterwards download your credentials as a json file.
+Run `pnp_gmail_tokens <credentials.json> <out_tokens.pickle>`.
+You will be requested to login to your GMail account and accept the requested scopes (sending mails on your behalf).
+If this went well, the tokens for your previously downloaded credentials will be created.
+The `<out_tokens.pickle>` is the file you have to pass as the `token_file` to this component.
+
+__Result__
+
+Will return the payload as it is for easy chaining of dependencies.
+
+__Examples__
+
+```yaml
+### Pull triggers when a file is created in the specified directory
+### The GMail push will send an e-mail to a specific recipient with the created file attached
+- name: gmail
+  pull:
+    plugin: pnp.plugins.pull.fs.FileSystemWatcher
+    args:
+      path: "/tmp"
+      ignore_directories: True
+      events:
+        - created
+      load_file: False
+  push:
+    plugin: pnp.plugins.push.mail.GMail
+    selector:
+      subject: "lambda p: basename(p.source)"  # basename(p.source) = file name
+      data: # Message body -> None -> Just the attachment
+      attachment: "lambda p: p.source"  # Attachment -> p.source = absolute path
+    args:
+      token_file: "{{env::GMAIL_TOKEN_FILE}}"
+      recipient: "{{env::GMAIL_RECIPIENT}}"  # Overridable with envelope
+      subject: "Override me"  # Overridable with envelope
+      sender: "pnp"  # Overridable with envelope
+
+```
 <a name="pnp.plugins.push.ml.facer"></a>
 
-### 6.18\. pnp.plugins.push.ml.FaceR
+### 6.19\. pnp.plugins.push.ml.FaceR
 
 FaceR (short one for face recognition) tags known faces in images. Output is the image with all faces tagged whether
 with the known name or an `unknown_label`. Default for unknown ones is 'Unknown'.
@@ -1876,7 +1937,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.mqtt.discovery"></a>
 
-### 6.19\. pnp.plugins.push.mqtt.Discovery
+### 6.20\. pnp.plugins.push.mqtt.Discovery
 
 TBD
 
@@ -1952,7 +2013,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.mqtt.publish"></a>
 
-### 6.20\. pnp.plugins.push.mqtt.Publish
+### 6.21\. pnp.plugins.push.mqtt.Publish
 
 Will push the given `payload` to a mqtt broker (in this case mosquitto).
 The broker is specified by `host` and `port`. In addition a topic needs to be specified were the payload
@@ -2036,7 +2097,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.notify.pushbullet"></a>
 
-### 6.21\. pnp.plugins.push.notify.Pushbullet
+### 6.22\. pnp.plugins.push.notify.Pushbullet
 
 Sends a message to the [Pushbullet](http://www.pushbullet.com) service.
 The type of the message will guessed:
@@ -2079,7 +2140,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.simple.echo"></a>
 
-### 6.22\. pnp.plugins.push.simple.Echo
+### 6.23\. pnp.plugins.push.simple.Echo
 
 Simply log the passed payload to the default logging instance.
 
@@ -2106,7 +2167,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.simple.execute"></a>
 
-### 6.23\. pnp.plugins.push.simple.Execute
+### 6.24\. pnp.plugins.push.simple.Execute
 
 Executes a command with given arguments in a shell of the operating system.
 
@@ -2159,7 +2220,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.storage.dropbox"></a>
 
-### 6.24\. pnp.plugins.push.storage.Dropbox
+### 6.25\. pnp.plugins.push.storage.Dropbox
 
 Uploads provided file to the specified dropbox account.
 
@@ -2218,7 +2279,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.timedb.influxpush"></a>
 
-### 6.25\. pnp.plugins.push.timedb.InfluxPush
+### 6.26\. pnp.plugins.push.timedb.InfluxPush
 
 Pushes the given `payload` to an influx database using the line `protocol`.
 You have to specify `host`, `port`, `user`, `password` and the `database`.
@@ -2268,7 +2329,7 @@ __Examples__
 
 <a name="pnp.plugins.udf.hass.state"></a>
 
-### 6.26\. pnp.plugins.udf.hass.State
+### 6.27\. pnp.plugins.udf.hass.State
 
 Fetches the state of an entity from home assistant by a rest-api request.
 
@@ -2316,7 +2377,7 @@ tasks:
 ```
 <a name="pnp.plugins.udf.simple.counter"></a>
 
-### 6.27\. pnp.plugins.udf.simple.Counter
+### 6.28\. pnp.plugins.udf.simple.Counter
 
 Memories a counter value which is increased everytime you call the udf.
 
@@ -2352,7 +2413,7 @@ tasks:
 ```
 <a name="pnp.plugins.udf.simple.memory"></a>
 
-### 6.28\. pnp.plugins.udf.simple.Memory
+### 6.29\. pnp.plugins.udf.simple.Memory
 
 Returns a previously memorized value when called.
 
