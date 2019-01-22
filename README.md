@@ -2461,6 +2461,9 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 
     pip install pnp==0.10.0
 
+**0.15.0**
+* Adds `push.mail.GMail` to send e-mails via the gmail api
+
 **0.14.0**
 * Adds UDF (user defined functions)
 * Adds UDF `udf.hass.State` to request the current state of an entity (or one of it's attributes) from home assistant
