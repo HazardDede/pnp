@@ -31,11 +31,18 @@ class Stats (Polling):
         except FileNotFoundError:  # pragma: no cover
             return 0.0
 
+    @staticmethod
+    def _cpu_freq():
+        freq = psutil.cpu_freq()
+        if not freq:
+            return 0
+        return freq.current
+
     def poll(self):
         l1m, l5m, l15m = os.getloadavg()
         return {
             'cpu_count': psutil.cpu_count(),
-            'cpu_freq': psutil.cpu_freq().current,
+            'cpu_freq': self._cpu_freq(),
             'cpu_use': psutil.cpu_percent(),
             'cpu_temp': self._cpu_temp(),
             'memory_use': psutil.virtual_memory().percent,
