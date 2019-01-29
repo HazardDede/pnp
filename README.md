@@ -27,7 +27,8 @@
 5.2\.  [Logging (>= 0.11.0)](#logging>=0.11.0)  
 5.3\.  [dictmentor (>= 0.11.0)](#dictmentor>=0.11.0)  
 5.4\.  [Advanced selector expressions (>= 0.12.0)](#advancedselectorexpressions>=0.12.0)  
-5.5\.  [Docker images](#dockerimages)  
+5.5\.  [UDF Throttle (>= 0.15.0)](#udfthrottle>=0.15.0)  
+5.6\.  [Docker images](#dockerimages)  
 6\.  [Plugins](#plugins)  
 6.1\.  [pnp.plugins.pull.fitbit.Current](#pnp.plugins.pull.fitbit.current)  
 6.2\.  [pnp.plugins.pull.fitbit.Devices](#pnp.plugins.pull.fitbit.devices)  
@@ -615,9 +616,45 @@ Additional example:
         - "lambda d: d.split(' ')[1]"  # Lambda -> evaluate the expression
 ```
 
+<a name="udfthrottle>=0.15.0"></a>
+
+### 5.5\. UDF Throttle (>= 0.15.0)
+
+Consider the following situation: You have a selector that uses a udf to fetch a state from an external system.
+The state won't change so often, but your selector will fetch the state every time a pull transports a payload to
+the push. You want to decrease the load on the external system and you want to increase throughput. `Throttle` to the
+rescue. Specifying `throttle` when instantiating your `udf` will manage that your `udf` will only call the external
+system once and cache the result. Subsequent calls will either return the cached result or call the external system again
+when a specified time has passed since the last call that actually fetched a result from the external system.
+
+Example:
+
+```yaml
+udfs:
+  - name: count  # Instantiate a Counter user defined function
+    plugin: pnp.plugins.udf.simple.Counter
+    args:  # The presence of args tells pnp to instantiate a Counter - important because it has a state (the actual count)
+      init: 1
+      # Will only call the counter if 10 seconds passed between current call and last call.
+      # In the meantime a cached result will be returned.
+      throttle: 5s
+tasks:
+  - name: hello-world
+    pull:
+      plugin: pnp.plugins.pull.simple.Repeat
+      args:
+        wait: 1
+        repeat: "Hello World"
+    push:
+      - plugin: pnp.plugins.push.simple.Echo
+        selector:
+          counter: "lambda d: count()"
+```
+
+
 <a name="dockerimages"></a>
 
-### 5.5\. Docker images
+### 5.6\. Docker images
 
 ```bash
 # Mount the task and logging configuration when starting up the container
@@ -2463,6 +2500,7 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 
 **0.15.0**
 * Adds `push.mail.GMail` to send e-mails via the gmail api
+* Adds `throttle`-feature to user defined functions via base class
 
 **0.14.0**
 * Adds UDF (user defined functions)
