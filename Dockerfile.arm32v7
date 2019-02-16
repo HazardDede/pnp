@@ -6,7 +6,10 @@ ENV PNP_LOG_CONF=${CONFDIR}/logging.yaml
 ENV LOGDIR=/logs
 
 RUN apt-get update -yy && \
-    apt-get install -yy gcc
+    apt-get install -yy \
+        alsa-utils \
+        gcc \
+        portaudio19-dev
 
 RUN mkdir -p ${WORKDIR} && \
     mkdir -p ${CONFDIR} && \
@@ -18,7 +21,7 @@ RUN cd ${WORKDIR} && \
     pip3 install \
         --process-dependency-links \
         --extra-index-url https://www.piwheels.hostedpi.com/simple \
-        .[dht,dropbox,fitbit,fswatcher,gmail,gpio,http-server,pushbullet]
+        .[dht,dropbox,fitbit,fswatcher,gmail,gpio,http-server,pushbullet,sound]
 
 VOLUME ${CONFDIR}
 VOLUME ${LOGDIR}

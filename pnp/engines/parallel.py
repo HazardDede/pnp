@@ -104,7 +104,7 @@ class StoppableRunner(Loggable):
                         thread=self.get_ident(),
                         pull=self.task.pull.instance,
                     ))
-            except KeyboardInterrupt:
+            except KeyboardInterrupt:  # pragma: no cover
                 self.logger.debug("[Task-{thread}] Pulling of '{pull}' hit a keyboard interrupt".format(
                     thread=self.get_ident(),
                     pull=self.task.pull.instance
@@ -213,9 +213,9 @@ class StoppableWorker(Loggable):
                 finally:
                     # self.queue.task_done()
                     pass
-            except KeyboardInterrupt:
+            except KeyboardInterrupt:  # pragma: no cover
                 pass
-            except:  # pylint: disable=broad-except
+            except Exception:  # pragma: no cover
                 import traceback
                 self.logger.error("\n{}".format(traceback.format_exc()))
 
@@ -295,7 +295,7 @@ class ParallelEngine(Engine):
         try:
             while not self.shutdown.is_set():
                 time.sleep(1)
-        except KeyboardInterrupt:
+        except KeyboardInterrupt:  # pragma: no cover
             pass
         self.logger.debug("Exited control loop. Stopping all threads gracefully")
         self._stop_all()

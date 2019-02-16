@@ -72,3 +72,30 @@ class GPIOMock:  # pragma: no cover
         for cb, cb_mode in cls.CALLBACKS[channel]:
             if mode == cb_mode or cb_mode == cls.BOTH:
                 cb(channel)
+
+
+class PyAudioMock:  # pragma: no cover
+    class StreamMock:
+        def __init__(self, wav_file):
+            self.wav_file = wav_file
+            self.fh = open(self.wav_file, 'rb')
+
+        def read(self, chunk_size):
+            res = self.fh.read()
+            self.fh.seek(0)
+            return res
+
+        def close(self):
+            self.fh.close()
+
+    def __init__(self, mock_wav):
+        self.mock_wav = str(mock_wav)
+
+    def __call__(self):
+        return self
+
+    def open(self, **kwargs):
+        return self.StreamMock(self.mock_wav)
+
+    def terminate(self):
+        pass

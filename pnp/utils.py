@@ -6,7 +6,9 @@ import time
 from base64 import b64encode
 from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timedelta
 from functools import partial
+from functools import wraps
 from threading import Timer
 from typing import Union
 
@@ -1195,3 +1197,39 @@ class Parallel:
                 futures.append(future)
 
         return ['finished' if f.exception() is None else 'error' for f in futures]
+
+
+class Throttle:
+    """
+    Decorator that prevents a function from being called more than once every
+    time period.
+
+    Example:
+        >>> @Throttle(timedelta(seconds=1))
+        ... def my_fun():
+        ...     return "Called"
+        >>> my_fun()
+        'Called'
+        >>> my_fun(), my_fun()
+        (None, None)
+        >>> time.sleep(1)
+        >>> my_fun()
+        'Called'
+
+    """
+    def __init__(self, delta):
+        self.throttle_period = delta
+        Validator.is_instance(timedelta, delta=delta)
+        self.time_of_last_call = datetime.min
+
+    def __call__(self, fn):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            now = datetime.now()
+            time_since_last_call = now - self.time_of_last_call
+
+            if time_since_last_call > self.throttle_period:
+                self.time_of_last_call = now
+                return fn(*args, **kwargs)
+
+        return wrapper

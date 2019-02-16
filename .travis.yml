@@ -3,6 +3,9 @@ python:
   - 3.5
   - 3.6
   - nightly
+before_install:
+  - sudo apt-get install -yy gcc
+  - sudo apt-get install -yy portaudio19-dev
 install:
   - ./.travis/install.sh
 script:

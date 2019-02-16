@@ -1,4 +1,4 @@
--e .[dropbox,fitbit,fswatcher,gmail,http-server,pushbullet]
+-e .[dropbox,fitbit,fswatcher,gmail,http-server,pushbullet,sound]
 
 bumpversion
 flake8

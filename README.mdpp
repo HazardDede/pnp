@@ -312,6 +312,7 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 **0.15.0**
 * Adds `push.mail.GMail` to send e-mails via the gmail api
 * Adds `throttle`-feature to user defined functions via base class
+* Adds `pull.sensor.Sound` to listen to the microphone's sound stream for occurrence of a specified sound
 
 **0.14.0**
 * Adds UDF (user defined functions)

@@ -41,24 +41,25 @@
 6.9\.  [pnp.plugins.pull.mqtt.Subscribe](#pnp.plugins.pull.mqtt.subscribe)  
 6.10\.  [pnp.plugins.pull.sensor.DHT](#pnp.plugins.pull.sensor.dht)  
 6.11\.  [pnp.plugins.pull.sensor.OpenWeather](#pnp.plugins.pull.sensor.openweather)  
-6.12\.  [pnp.plugins.pull.simple.Count](#pnp.plugins.pull.simple.count)  
-6.13\.  [pnp.plugins.pull.simple.Repeat](#pnp.plugins.pull.simple.repeat)  
-6.14\.  [pnp.plugins.pull.zway.ZwayPoll](#pnp.plugins.pull.zway.zwaypoll)  
-6.15\.  [pnp.plugins.pull.zway.ZwayReceiver](#pnp.plugins.pull.zway.zwayreceiver)  
-6.16\.  [pnp.plugins.push.fs.FileDump](#pnp.plugins.push.fs.filedump)  
-6.17\.  [pnp.plugins.push.http.Call](#pnp.plugins.push.http.call)  
-6.18\.  [pnp.plugins.push.mail.GMail](#pnp.plugins.push.mail.gmail)  
-6.19\.  [pnp.plugins.push.ml.FaceR](#pnp.plugins.push.ml.facer)  
-6.20\.  [pnp.plugins.push.mqtt.Discovery](#pnp.plugins.push.mqtt.discovery)  
-6.21\.  [pnp.plugins.push.mqtt.Publish](#pnp.plugins.push.mqtt.publish)  
-6.22\.  [pnp.plugins.push.notify.Pushbullet](#pnp.plugins.push.notify.pushbullet)  
-6.23\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
-6.24\.  [pnp.plugins.push.simple.Execute](#pnp.plugins.push.simple.execute)  
-6.25\.  [pnp.plugins.push.storage.Dropbox](#pnp.plugins.push.storage.dropbox)  
-6.26\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
-6.27\.  [pnp.plugins.udf.hass.State](#pnp.plugins.udf.hass.state)  
-6.28\.  [pnp.plugins.udf.simple.Counter](#pnp.plugins.udf.simple.counter)  
-6.29\.  [pnp.plugins.udf.simple.Memory](#pnp.plugins.udf.simple.memory)  
+6.12\.  [pnp.plugins.pull.sensor.Sound](#pnp.plugins.pull.sensor.sound)  
+6.13\.  [pnp.plugins.pull.simple.Count](#pnp.plugins.pull.simple.count)  
+6.14\.  [pnp.plugins.pull.simple.Repeat](#pnp.plugins.pull.simple.repeat)  
+6.15\.  [pnp.plugins.pull.zway.ZwayPoll](#pnp.plugins.pull.zway.zwaypoll)  
+6.16\.  [pnp.plugins.pull.zway.ZwayReceiver](#pnp.plugins.pull.zway.zwayreceiver)  
+6.17\.  [pnp.plugins.push.fs.FileDump](#pnp.plugins.push.fs.filedump)  
+6.18\.  [pnp.plugins.push.http.Call](#pnp.plugins.push.http.call)  
+6.19\.  [pnp.plugins.push.mail.GMail](#pnp.plugins.push.mail.gmail)  
+6.20\.  [pnp.plugins.push.ml.FaceR](#pnp.plugins.push.ml.facer)  
+6.21\.  [pnp.plugins.push.mqtt.Discovery](#pnp.plugins.push.mqtt.discovery)  
+6.22\.  [pnp.plugins.push.mqtt.Publish](#pnp.plugins.push.mqtt.publish)  
+6.23\.  [pnp.plugins.push.notify.Pushbullet](#pnp.plugins.push.notify.pushbullet)  
+6.24\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
+6.25\.  [pnp.plugins.push.simple.Execute](#pnp.plugins.push.simple.execute)  
+6.26\.  [pnp.plugins.push.storage.Dropbox](#pnp.plugins.push.storage.dropbox)  
+6.27\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
+6.28\.  [pnp.plugins.udf.hass.State](#pnp.plugins.udf.hass.state)  
+6.29\.  [pnp.plugins.udf.simple.Counter](#pnp.plugins.udf.simple.counter)  
+6.30\.  [pnp.plugins.udf.simple.Memory](#pnp.plugins.udf.simple.memory)  
 7\.  [Changelog](#changelog)  
 
 <a name="installation"></a>
@@ -1491,9 +1492,74 @@ __Examples__
   push:
     plugin: pnp.plugins.push.simple.Echo
 ```
+<a name="pnp.plugins.pull.sensor.sound"></a>
+
+### 6.12\. pnp.plugins.pull.sensor.Sound
+
+Listens to the microphone in realtime and searches the stream for a specific sound pattern.
+Practical example: I use this plugin to recognize my doorbell without tampering with the electrical device ;-)
+
+Requires extra `sound`.
+
+__Arguments__
+
+**wav_file (str/filepath)**: The file that contains the original sound pattern to listen for.<br/>
+**device_index (int, optional)**: The index of the microphone device. Run `pnp_record_sound --list` to get the index.
+If not specified pyAudio will try to find a capable device.</br>
+**mode (Union[pearson,std], optional)**: Correlation/similarity method. Default is pearson.</br>
+**sensitivity_offset (float, optional)**: Adjusts sensitivity for similarity.
+Positive means less sensitive; negative is more sensitive. You should try out 0.1 steps. Default is 0.0.<br/>
+**cool_down (duration literal, optional)**: Prevents the pull to emit more than one sound detection event per
+cool down duration. Default is 10 seconds.
+
+Hints:
+* You can list your available input devices: `pnp_record_sound --list`
+* You can record a wav file from an input device: `pnp_record_sound <out.wav> <seconds_to_record> --index=<idx>`
+
+
+__Result__
+
+Will only emit the event below when the correlation coefficient is above or equal the threshold.
+
+```yaml
+{
+    "data": ding,  # Name of the wav_file without path and extension
+    "corrcoef": 0.82,  # Correlation coefficient probably between [-1;+1] for pearson
+    "threshold": 0.6  # Threshold influenced by sensitivity_offset
+}
+```
+
+__Examples__
+
+```yaml
+- name: sound_detector
+  pull:
+    plugin: pnp.plugins.pull.sensor.Sound
+    args:
+      wav_file: ding.wav  # The file to compare for similarity
+      device_index: # The index of the microphone devices. If not specified pyAudio will try to find a capable device
+      mode: pearson  # Use pearson correlation coefficient [pearson, std]
+      sensitivity_offset: 0.1  # Adjust sensitivity. Positive means less sensitive; negative is more sensitive
+      cool_down: 3s  # Prevents the pull to emit more than one sound detection event every 3 seconds
+  push:
+    - plugin: pnp.plugins.push.simple.Echo
+
+```
+
+__Docker__
+
+To use a microphone the docker container needs more permissions:
+
+```
+docker run -ti --rm \
+    --device /dev/snd:/dev/snd:r \
+    --privileged \
+    --cap-add=SYS_RAWIO
+    hazard/pnp
+```
 <a name="pnp.plugins.pull.simple.count"></a>
 
-### 6.12\. pnp.plugins.pull.simple.Count
+### 6.13\. pnp.plugins.pull.simple.Count
 
 Emits every `wait` seconds a counting value which runs from `from_cnt` to `to_cnt`.
 If `to_cnt` is None the counter will count to infinity.
@@ -1523,7 +1589,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.simple.repeat"></a>
 
-### 6.13\. pnp.plugins.pull.simple.Repeat
+### 6.14\. pnp.plugins.pull.simple.Repeat
 
 Emits every `wait` seconds the same `repeat`.
 
@@ -1550,7 +1616,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.zway.zwaypoll"></a>
 
-### 6.14\. pnp.plugins.pull.zway.ZwayPoll
+### 6.15\. pnp.plugins.pull.zway.ZwayPoll
 
 Pulls the specified json content from the zway rest api. The content is specified by the url, e.g.
 `http://<host>:8083/ZWaveAPI/Run/devices` will pull all devices and serve the result as a json.
@@ -1624,7 +1690,7 @@ Below are some common selector examples to fetch various metrics from various de
 
 <a name="pnp.plugins.pull.zway.zwayreceiver"></a>
 
-### 6.15\. pnp.plugins.pull.zway.ZwayReceiver
+### 6.16\. pnp.plugins.pull.zway.ZwayReceiver
 
 Setups a http server to process incoming GET-requests from the Zway-App [`HttpGet`](https://github.com/hplato/Zway-HTTPGet/blob/master/index.js).
 
@@ -1702,7 +1768,7 @@ __Examples__
 
 <a name="pnp.plugins.push.fs.filedump"></a>
 
-### 6.16\. pnp.plugins.push.fs.FileDump
+### 6.17\. pnp.plugins.push.fs.FileDump
 
 This push dumps the given `payload` to a file to the specified `directory`.
 If argument `file_name` is None, a name will be generated based on the current datetime (%Y%m%d-%H%M%S).
@@ -1768,7 +1834,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.http.call"></a>
 
-### 6.17\. pnp.plugins.push.http.Call
+### 6.18\. pnp.plugins.push.http.Call
 
 Makes a request to a http resource.
 
@@ -1857,7 +1923,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.mail.gmail"></a>
 
-### 6.18\. pnp.plugins.push.mail.GMail
+### 6.19\. pnp.plugins.push.mail.GMail
 
 Sends an e-mail via the `gmail api`.
 
@@ -1917,7 +1983,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.ml.facer"></a>
 
-### 6.19\. pnp.plugins.push.ml.FaceR
+### 6.20\. pnp.plugins.push.ml.FaceR
 
 FaceR (short one for face recognition) tags known faces in images. Output is the image with all faces tagged whether
 with the known name or an `unknown_label`. Default for unknown ones is 'Unknown'.
@@ -1974,7 +2040,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.mqtt.discovery"></a>
 
-### 6.20\. pnp.plugins.push.mqtt.Discovery
+### 6.21\. pnp.plugins.push.mqtt.Discovery
 
 TBD
 
@@ -2050,7 +2116,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.mqtt.publish"></a>
 
-### 6.21\. pnp.plugins.push.mqtt.Publish
+### 6.22\. pnp.plugins.push.mqtt.Publish
 
 Will push the given `payload` to a mqtt broker (in this case mosquitto).
 The broker is specified by `host` and `port`. In addition a topic needs to be specified were the payload
@@ -2134,7 +2200,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.notify.pushbullet"></a>
 
-### 6.22\. pnp.plugins.push.notify.Pushbullet
+### 6.23\. pnp.plugins.push.notify.Pushbullet
 
 Sends a message to the [Pushbullet](http://www.pushbullet.com) service.
 The type of the message will guessed:
@@ -2177,7 +2243,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.simple.echo"></a>
 
-### 6.23\. pnp.plugins.push.simple.Echo
+### 6.24\. pnp.plugins.push.simple.Echo
 
 Simply log the passed payload to the default logging instance.
 
@@ -2204,7 +2270,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.simple.execute"></a>
 
-### 6.24\. pnp.plugins.push.simple.Execute
+### 6.25\. pnp.plugins.push.simple.Execute
 
 Executes a command with given arguments in a shell of the operating system.
 
@@ -2257,7 +2323,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.storage.dropbox"></a>
 
-### 6.25\. pnp.plugins.push.storage.Dropbox
+### 6.26\. pnp.plugins.push.storage.Dropbox
 
 Uploads provided file to the specified dropbox account.
 
@@ -2316,7 +2382,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.timedb.influxpush"></a>
 
-### 6.26\. pnp.plugins.push.timedb.InfluxPush
+### 6.27\. pnp.plugins.push.timedb.InfluxPush
 
 Pushes the given `payload` to an influx database using the line `protocol`.
 You have to specify `host`, `port`, `user`, `password` and the `database`.
@@ -2366,7 +2432,7 @@ __Examples__
 
 <a name="pnp.plugins.udf.hass.state"></a>
 
-### 6.27\. pnp.plugins.udf.hass.State
+### 6.28\. pnp.plugins.udf.hass.State
 
 Fetches the state of an entity from home assistant by a rest-api request.
 
@@ -2414,7 +2480,7 @@ tasks:
 ```
 <a name="pnp.plugins.udf.simple.counter"></a>
 
-### 6.28\. pnp.plugins.udf.simple.Counter
+### 6.29\. pnp.plugins.udf.simple.Counter
 
 Memories a counter value which is increased everytime you call the udf.
 
@@ -2450,7 +2516,7 @@ tasks:
 ```
 <a name="pnp.plugins.udf.simple.memory"></a>
 
-### 6.29\. pnp.plugins.udf.simple.Memory
+### 6.30\. pnp.plugins.udf.simple.Memory
 
 Returns a previously memorized value when called.
 
@@ -2501,6 +2567,7 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 **0.15.0**
 * Adds `push.mail.GMail` to send e-mails via the gmail api
 * Adds `throttle`-feature to user defined functions via base class
+* Adds `pull.sensor.Sound` to listen to the microphone's sound stream for occurrence of a specified sound
 
 **0.14.0**
 * Adds UDF (user defined functions)

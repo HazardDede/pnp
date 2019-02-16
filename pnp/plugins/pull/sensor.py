@@ -1,10 +1,12 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
+import os
 import requests
 
-from . import Polling, PollingError
-from ...utils import safe_get, auto_str_ignore
+from . import PullBase, Polling, PollingError
+from .. import load_optional_module
+from ...utils import safe_get, auto_str_ignore, parse_duration_literal, Throttle
 from ...validator import Validator
 
 logger = logging.getLogger(__name__)
@@ -144,3 +146,108 @@ class OpenWeather(Polling):
         else:
             url += "&lat={self.lat}&lon={self.lon}"
         return url.format(**locals())
+
+
+@auto_str_ignore(ignore_list=['cool_down_secs', 'notify', 'signal_fft', 'signal_length'])
+class Sound(PullBase):
+    EXTRA = 'sound'
+
+    MODE_PEARSON = 'pearson'
+    MODE_STD = 'std'
+    ALLOWED_MODES = [MODE_PEARSON, MODE_STD]
+    RATE = 44100
+    CHUNK_SIZE = 1024 * 4
+    PEARSON_THRESHOLD = 0.5
+    STD_THRESHOLD = 1.4
+
+    def __init__(self, wav_file, device_index=None, mode='pearson',
+                 sensitivity_offset=0.0, cool_down="10s", **kwargs):
+        super().__init__(**kwargs)
+        self.wav_file = str(wav_file)
+        if not os.path.isabs(self.wav_file):
+            self.wav_file = os.path.join(self.base_path, self.wav_file)
+        Validator.is_file(wav_file=self.wav_file)
+        self.device_index = device_index and int(device_index)
+        self.wav_file_name = os.path.basename(os.path.splitext(self.wav_file)[0])
+        self.signal_length, self.signal_fft = self._load_wav_fft()
+        self.mode = str(mode)
+        Validator.one_of(self.ALLOWED_MODES, mode=self.mode)
+        self.sensitivity_offset = float(sensitivity_offset)
+        self.cool_down = cool_down
+        self.cool_down_secs = cool_down and parse_duration_literal(cool_down)  # Might be None
+        # Override notify with a throttled version
+        self.notify = Throttle(timedelta(seconds=self.cool_down_secs or 0))(self.notify)
+
+    def _load_wav_fft(self):
+        wavfile = load_optional_module('scipy.io.wavfile', self.EXTRA)
+        self.logger.debug("[{self.name}] Loading wav file from '{self.wav_file}'".format(**locals()))
+        sample_rate, signal = wavfile.read(self.wav_file)
+        N, secs, signal_fft = self._perform_fft(signal, sample_rate)
+        self.logger.debug("[{self.name}] Loaded {secs} seconds wav file @ {sample_rate} hz".format(**locals()))
+        return N, signal_fft
+
+    def _perform_fft(self, signal, rate, add_zeros=True):
+        np = load_optional_module('numpy', self.EXTRA)
+        scipy = load_optional_module('scipy', self.EXTRA)
+
+        chn = len(signal.shape)
+        if chn >= 2:  # Make mono channel
+            signal = signal.sum(axis=1) / 2
+        N = int(signal.shape[0])
+        secs = N / float(rate)
+        # Ts = 1 / rate
+        if add_zeros:
+            signal = np.concatenate((signal, np.zeros(len(signal))), axis=None)
+        trans_fft = abs(scipy.fft(signal))
+
+        return N, secs, trans_fft
+
+    def _similarity(self, buffer):
+        _, _, current_fft = self._perform_fft(buffer[:self.signal_length], self.RATE, True)
+        if self.mode == self.MODE_PEARSON:
+            pearsonr = load_optional_module('scipy.stats.stats', self.EXTRA).pearsonr
+            corrcoef = pearsonr(self.signal_fft, current_fft)[0]
+            threshold = self.PEARSON_THRESHOLD + self.sensitivity_offset
+        else:
+            np = load_optional_module('numpy', self.EXTRA)
+            corrcoef = np.correlate(
+                self.signal_fft / self.signal_fft.std(),
+                current_fft / current_fft.std()
+            )[0] / len(self.signal_fft)
+            threshold = self.STD_THRESHOLD + self.sensitivity_offset
+
+        return corrcoef >= threshold, corrcoef, threshold
+
+    def pull(self):
+        np = load_optional_module('numpy', self.EXTRA)
+        pyaudio = load_optional_module('pyaudio', self.EXTRA)
+
+        pa = pyaudio.PyAudio()
+        stream = pa.open(
+            format=pyaudio.paInt16,
+            input_device_index=self.device_index,
+            channels=1,
+            rate=self.RATE,
+            input=True,
+            frames_per_buffer=self.CHUNK_SIZE
+        )
+        try:
+            buffer = None
+            N = self.signal_length
+            while not self.stopped:
+                data = np.fromstring(stream.read(self.CHUNK_SIZE), dtype=np.int16)
+                buffer = data if buffer is None else np.concatenate((buffer, data), axis=None)
+                lbuf = len(buffer)
+                if lbuf >= N:
+                    self.logger.debug("[{self.name}] Buffer ({lbuf}) >= size of wav file ({N})".format(**locals()))
+                    flag, corrcoef, threshold = self._similarity(buffer)
+                    self.logger.debug("[{self.name}] Correlation: {corrcoef} >= {threshold} = {flag}".format(
+                        **locals()))
+                    if flag:
+                        self.notify({'data': self.wav_file_name, 'corrcoef': corrcoef, 'threshold': threshold})
+                        buffer = None
+                    else:
+                        buffer = buffer[int(len(buffer) * 0.75):]
+        finally:
+            stream.close()
+            pa.terminate()

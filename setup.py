@@ -74,7 +74,8 @@ setup(
         'gmail': ['google-api-python-client>=1.7.7', 'google-auth-httplib2>=0.0.3', 'google-auth-oauthlib>=0.2.0'],
         'gpio': ['RPi.GPIO>=0.6.5'],
         'http-server': ['Flask>=1.0.2', 'gevent>=1.3.4'],
-        'pushbullet': ['pushbullet.py>=0.10.0', 'urllib3>=1.20']
+        'pushbullet': ['pushbullet.py>=0.10.0', 'urllib3>=1.20'],
+        'sound': ['PyAudio>=0.2.11', 'scipy>=1.2.0']
     },
     dependency_links=[
         "git+https://github.com/adafruit/Adafruit_Python_DHT.git#egg=Adafruit_DHT-1.3.2"
@@ -84,7 +85,8 @@ setup(
     entry_points={
         'console_scripts': [
             'pnp=pnp.runner.pnp:main',
-            'pnp_gmail_tokens=pnp.runner.pnp_gmail_tokens:main'
+            'pnp_gmail_tokens=pnp.runner.pnp_gmail_tokens:main',
+            'pnp_record_sound=pnp.runner.pnp_record_sound:main'
         ],
     },
 )
