@@ -1510,7 +1510,9 @@ If not specified pyAudio will try to find a capable device.</br>
 **sensitivity_offset (float, optional)**: Adjusts sensitivity for similarity.
 Positive means less sensitive; negative is more sensitive. You should try out 0.1 steps. Default is 0.0.<br/>
 **cool_down (duration literal, optional)**: Prevents the pull to emit more than one sound detection event per
-cool down duration. Default is 10 seconds.
+cool down duration. Default is 10 seconds.<br/>
+**ignore_overflow (bool, optional)**: If set to True any buffer overflows due to slow realtime processing will be ignored.
+    Otherwise an exception will be thrown.
 
 Hints:
 * You can list your available input devices: `pnp_record_sound --list`
@@ -1541,6 +1543,7 @@ __Examples__
       mode: pearson  # Use pearson correlation coefficient [pearson, std]
       sensitivity_offset: 0.1  # Adjust sensitivity. Positive means less sensitive; negative is more sensitive
       cool_down: 3s  # Prevents the pull to emit more than one sound detection event every 3 seconds
+      ignore_overflow: True  # Some devices might be too slow to process the stream in realtime. Ignore any buffer overflow errors.
   push:
     - plugin: pnp.plugins.push.simple.Echo
 
@@ -2563,6 +2566,10 @@ intended or by accident. Nevertheless we try to list breaking changes in the cha
 You are encouraged to specify explicitly the version in your dependency tools, e.g.:
 
     pip install pnp==0.10.0
+
+**unreleased**
+* Adds `ignore_overflow` argument to `pull.sensor.Sound` to ignore buffer overflows errors on slow devices
+* Adds additional packages to docker image to make `pull.sensor.Sound` correctly inside docker
 
 **0.15.0**
 * Adds `push.mail.GMail` to send e-mails via the gmail api

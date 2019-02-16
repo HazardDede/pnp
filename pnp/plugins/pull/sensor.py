@@ -161,7 +161,7 @@ class Sound(PullBase):
     STD_THRESHOLD = 1.4
 
     def __init__(self, wav_file, device_index=None, mode='pearson',
-                 sensitivity_offset=0.0, cool_down="10s", **kwargs):
+                 sensitivity_offset=0.0, cool_down="10s", ignore_overflow=False, **kwargs):
         super().__init__(**kwargs)
         self.wav_file = str(wav_file)
         if not os.path.isabs(self.wav_file):
@@ -175,6 +175,7 @@ class Sound(PullBase):
         self.sensitivity_offset = float(sensitivity_offset)
         self.cool_down = cool_down
         self.cool_down_secs = cool_down and parse_duration_literal(cool_down)  # Might be None
+        self.ignore_overflow = bool(ignore_overflow)
         # Override notify with a throttled version
         self.notify = Throttle(timedelta(seconds=self.cool_down_secs or 0))(self.notify)
 
@@ -235,7 +236,10 @@ class Sound(PullBase):
             buffer = None
             N = self.signal_length
             while not self.stopped:
-                data = np.fromstring(stream.read(self.CHUNK_SIZE, exception_on_overflow=False), dtype=np.int16)
+                data = np.fromstring(stream.read(
+                    self.CHUNK_SIZE,
+                    exception_on_overflow=self.ignore_overflow
+                ), dtype=np.int16)
                 buffer = data if buffer is None else np.concatenate((buffer, data), axis=None)
                 lbuf = len(buffer)
                 if lbuf >= N:

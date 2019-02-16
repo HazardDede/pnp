@@ -80,7 +80,7 @@ class PyAudioMock:  # pragma: no cover
             self.wav_file = wav_file
             self.fh = open(self.wav_file, 'rb')
 
-        def read(self, chunk_size):
+        def read(self, chunk_size, exception_on_overflow):
             res = self.fh.read()
             self.fh.seek(0)
             return res

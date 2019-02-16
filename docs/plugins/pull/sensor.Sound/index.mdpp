@@ -14,7 +14,9 @@ If not specified pyAudio will try to find a capable device.</br>
 **sensitivity_offset (float, optional)**: Adjusts sensitivity for similarity.
 Positive means less sensitive; negative is more sensitive. You should try out 0.1 steps. Default is 0.0.<br/>
 **cool_down (duration literal, optional)**: Prevents the pull to emit more than one sound detection event per
-cool down duration. Default is 10 seconds.
+cool down duration. Default is 10 seconds.<br/>
+**ignore_overflow (bool, optional)**: If set to True any buffer overflows due to slow realtime processing will be ignored.
+    Otherwise an exception will be thrown.
 
 Hints:
 * You can list your available input devices: `pnp_record_sound --list`

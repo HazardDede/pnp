@@ -5,11 +5,18 @@ ENV CONFDIR=/config
 ENV PNP_LOG_CONF=${CONFDIR}/logging.yaml
 ENV LOGDIR=/logs
 
+# alsa-utils:         To use the microphone correctly (if any)
+# gcc:                Some stuff needs to be compiled (c-source)
+# libatlas-base-dev:  piwheels numpy uses this
+# portaudio19-dev:    Necessary for pyAudio
+# python3-numpy:      piwheels numpy uses this
 RUN apt-get update -yy && \
     apt-get install -yy \
         alsa-utils \
         gcc \
-        portaudio19-dev
+        libatlas-base-dev \
+        portaudio19-dev \
+        python3-numpy
 
 RUN mkdir -p ${WORKDIR} && \
     mkdir -p ${CONFDIR} && \

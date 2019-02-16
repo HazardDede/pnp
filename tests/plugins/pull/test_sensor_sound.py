@@ -24,7 +24,7 @@ def test_for_smoke():
 
     runner = make_runner(dut, callback)
     with warnings.catch_warnings():
-        warnings.filterwarnings("ignore",category=DeprecationWarning)
+        warnings.filterwarnings("ignore", category=DeprecationWarning)
         with start_runner(runner):
             time.sleep(0.5)
 
