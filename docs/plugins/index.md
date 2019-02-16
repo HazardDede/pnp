@@ -842,7 +842,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.sensor.Sound
     args:
-      wav_file: ding.wav  # The file to compare for similarity
+      wav_file: doorbell.wav  # The file to compare for similarity
       device_index: # The index of the microphone devices. If not specified pyAudio will try to find a capable device
       mode: pearson  # Use pearson correlation coefficient [pearson, std]
       sensitivity_offset: 0.1  # Adjust sensitivity. Positive means less sensitive; negative is more sensitive
