@@ -7,7 +7,7 @@ import pytest
 from mock import patch
 
 from pnp.plugins.pull.fitbit import Current, Goal, Devices
-from ..helper import make_runner, start_runner
+from . import make_runner, start_runner
 
 
 @pytest.yield_fixture(scope='function')

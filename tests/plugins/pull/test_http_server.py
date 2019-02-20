@@ -5,7 +5,7 @@ import time
 import requests
 
 from pnp.plugins.pull.http import Server
-from tests.plugins.helper import make_runner, start_runner
+from . import make_runner, start_runner
 
 
 def get_free_tcp_port():

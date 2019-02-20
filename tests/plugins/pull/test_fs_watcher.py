@@ -6,7 +6,7 @@ from functools import partial
 import pytest
 
 from pnp.plugins.pull.fs import FileSystemWatcher
-from tests.plugins.helper import make_runner, start_runner
+from . import make_runner, start_runner
 
 
 def _required_packages_installed():

@@ -1,11 +1,10 @@
+import math
 import time
 
-import math
 from mock import patch, mock_open
 
 from pnp.plugins.pull.monitor import Stats
-
-from .helper import start_runner, make_runner
+from . import start_runner, make_runner
 
 
 def configure_mocks(mock_psutil, mock_os):

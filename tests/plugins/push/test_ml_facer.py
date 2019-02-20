@@ -2,7 +2,9 @@ import os
 
 import pytest
 
-from ..conftest import path_to_faces
+
+def path_to_faces():
+    return os.path.join(os.path.dirname(__file__), '../../resources/faces')
 
 
 def _package_installed():

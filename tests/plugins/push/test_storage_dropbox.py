@@ -1,7 +1,7 @@
-import pytest
+from tempfile import NamedTemporaryFile
+
 from box import Box
 from mock import patch
-from tempfile import NamedTemporaryFile
 
 from pnp.plugins.push.storage import Dropbox
 

@@ -1,14 +1,13 @@
 import sys
-import types
-
 import time
+import types
 
 import pytest
 
 import pnp.plugins.pull.gpio as gpio
-from pnp.utils import parse_duration_literal
-from tests.plugins.helper import make_runner, start_runner
 from pnp.mocking import GPIOMock
+from pnp.utils import parse_duration_literal
+from . import make_runner, start_runner
 
 
 @pytest.yield_fixture(scope='function')

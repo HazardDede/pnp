@@ -5,7 +5,7 @@ import pytest
 import requests
 
 from pnp.plugins.pull.sensor import OpenWeather
-from .helper import make_runner, start_runner
+from . import make_runner, start_runner
 
 
 VALID_RESPONSE = '{"coord":{"lon":9.65,"lat":53.75},"weather":[{"id":802,"main":"Clouds","description":"Überwiegend bewölkt","icon":"03d"}],"base":"stations","main":{"temp":13,"pressure":1018,"humidity":58,"temp_min":13,"temp_max":13},"visibility":10000,"wind":{"speed":10.3,"deg":320},"clouds":{"all":40},"dt":1538560200,"sys":{"type":1,"id":4883,"message":0.0027,"country":"DE","sunrise":1538544435,"sunset":1538585543},"id":2930821,"name":"Elmshorn","cod":200}'

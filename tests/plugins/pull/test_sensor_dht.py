@@ -6,7 +6,7 @@ import types
 from mock import Mock
 
 from pnp.plugins.pull.sensor import DHT
-from tests.plugins.helper import make_runner, start_runner
+from . import make_runner, start_runner
 
 # Mock the whole Adafruit Module - that one isn't even available on non-arm architectures
 module_name = 'Adafruit_DHT'

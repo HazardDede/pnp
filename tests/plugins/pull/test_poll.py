@@ -3,7 +3,7 @@ from datetime import datetime
 
 from pnp.plugins.pull import StopPollingError
 from pnp.plugins.pull.simple import CustomPolling
-from tests.plugins.helper import make_runner, start_runner
+from . import make_runner, start_runner
 
 
 def test_poll():

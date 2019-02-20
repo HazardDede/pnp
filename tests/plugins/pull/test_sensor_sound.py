@@ -1,14 +1,13 @@
 import os
 import time
-
 import warnings
+
 from mock import patch
 
 from pnp.mocking import PyAudioMock
 from pnp.plugins.pull.sensor import Sound
 from tests.conftest import resource_path
-from tests.plugins.helper import start_runner, make_runner
-
+from . import start_runner, make_runner
 
 ding_sound = os.path.join(resource_path('sounds'), 'ding.wav')
 mock = PyAudioMock(ding_sound)
