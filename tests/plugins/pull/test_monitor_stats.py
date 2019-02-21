@@ -7,7 +7,7 @@ from pnp.plugins.pull.monitor import Stats
 from . import start_runner, make_runner
 
 
-def configure_mocks(mock_psutil, mock_os):
+def configure_mocks(mock_psutil, mock_os, mock_subprocess):
     mock_psutil.cpu_count.return_value = 8
     mock_psutil.cpu_freq.return_value.current = 700
     mock_psutil.cpu_percent.return_value = 56.7
@@ -18,11 +18,14 @@ def configure_mocks(mock_psutil, mock_os):
 
     mock_os.getloadavg.return_value = (0.5, 0.75, 1.0)
 
+    mock_subprocess.run.return_value.stdout = b"throttled=0x70005"
+
 
 @patch("pnp.plugins.pull.monitor.psutil")
 @patch("pnp.plugins.pull.monitor.os")
-def test_stats_pull_for_smoke(mock_os, mock_psutil):
-    configure_mocks(mock_psutil, mock_os)
+@patch("pnp.plugins.pull.monitor.subprocess")
+def test_stats_pull_for_smoke(mock_subprocess, mock_os, mock_psutil):
+    configure_mocks(mock_psutil, mock_os, mock_subprocess)
 
     events = []
     def callback(plugin, payload):
@@ -47,3 +50,7 @@ def test_stats_pull_for_smoke(mock_os, mock_psutil):
     assert math.isclose(evt['load_1m'], 0.5)
     assert math.isclose(evt['load_5m'], 0.75)
     assert math.isclose(evt['load_15m'], 1.0)
+    assert evt['rpi_cpu_freq_capped'] == 0
+    assert evt['rpi_temp_limit_throttle'] == 0
+    assert evt['rpi_throttle'] == 1
+    assert evt['rpi_under_voltage'] == 1

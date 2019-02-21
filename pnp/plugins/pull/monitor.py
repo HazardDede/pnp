@@ -1,5 +1,6 @@
 import os
 import psutil
+import subprocess
 
 from . import Polling
 
@@ -38,17 +39,43 @@ class Stats (Polling):
             return 0
         return freq.current
 
+    @staticmethod
+    def _throttled():
+        # Raspberry only
+        try:
+            mask1 = 1  # under voltage
+            mask2 = 2  # arm frequency capped
+            mask4 = 4  # throttled
+            mask8 = 8  # soft temperature limit throttle (pi3 b+)
+
+            out = subprocess.run(['vcgencmd', 'get_throttled'], stdout=subprocess.PIPE).stdout.decode('utf-8')
+            hex_num = int(out[out.find('=') + 1:], 16)
+
+            return (
+                int(bool(hex_num & mask1)),
+                int(bool(hex_num & mask2)),
+                int(bool(hex_num & mask4)),
+                int(bool(hex_num & mask8)),
+            )
+        except FileNotFoundError:
+            return 0, 0, 0, 0
+
     def poll(self):
         l1m, l5m, l15m = os.getloadavg()
+        uv, fc, throttled, temp_limit = self._throttled()
         return {
             'cpu_count': psutil.cpu_count(),
             'cpu_freq': self._cpu_freq(),
-            'cpu_use': psutil.cpu_percent(),
             'cpu_temp': self._cpu_temp(),
-            'memory_use': psutil.virtual_memory().percent,
-            'swap_use': psutil.swap_memory().percent,
+            'cpu_use': psutil.cpu_percent(),
             'disk_use': self._disk_usage(),
             'load_1m': l1m,
             'load_5m': l5m,
-            'load_15m': l15m
+            'load_15m': l15m,
+            'memory_use': psutil.virtual_memory().percent,
+            'rpi_cpu_freq_capped': fc,
+            'rpi_temp_limit_throttle': temp_limit,
+            'rpi_throttle': throttled,
+            'rpi_under_voltage': uv,
+            'swap_use': psutil.swap_memory().percent
         }

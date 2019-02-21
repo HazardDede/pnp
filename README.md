@@ -1287,15 +1287,19 @@ __Result__
 ```yaml
 {
 	'cpu_count': 4,
-	'cpu_freq': 700,  # in Mhz
-	'cpu_use': 6.6,  # in %
-	'cpu_temp': 52.6,  # in °C (might not be available on all systems, e.g. MacOS)
-	'memory_use': 56.0,  # in %
-	'swap_use': 23.2,  # in %
-	'disk_use': 69.8,  # in %  (of your root)
-	'load_1m': 1.81591796875,  # CPU queue length last minute
-	'load_5m': 2.06689453125,  # CPU queue length last 5 minutes
-	'load_15m': 2.15478515625  # CPU queue length last 15 minutes
+	'cpu_freq': 2700,
+	'cpu_temp': 0.0,
+	'cpu_use': 80.0,
+	'disk_use': 75.1,
+	'load_1m': 2.01171875,
+	'load_5m': 1.89501953125,
+	'load_15m': 1.94189453125,
+	'memory_use': 67.0,
+	'rpi_cpu_freq_capped': 0,
+	'rpi_temp_limit_throttle': 0,
+	'rpi_throttle': 0,
+	'rpi_under_voltage': 0,
+	'swap_use': 36.1
 }
 ```
 
@@ -2570,6 +2574,7 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 **unreleased**
 * Adds `ignore_overflow` argument to `pull.sensor.Sound` to ignore buffer overflows errors on slow devices
 * Adds additional packages to docker image to make `pull.sensor.Sound` correctly inside docker
+* Adds raspberrypi specific stats (under voltage, throttle, ...) to `pull.monitor.stats`
 
 **0.15.0**
 * Adds `push.mail.GMail` to send e-mails via the gmail api
