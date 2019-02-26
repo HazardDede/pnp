@@ -7,9 +7,9 @@ Requires extra `fitbit`.
 
 __Arguments__
 
-**config (str)**: The configuration file that keeps your initial and refreshed authentication tokens (see below for detailed information).<br/>
-**system (str, optional)**: The metric system to use based on your localisation (de_DE, en_US, ...). Default is your configured metric system in your fitbit account<br/>
-**resources (str or list[str])**: The resources to request (see below for detailed information)
+- **config (str)**: The configuration file that keeps your initial and refreshed authentication tokens (see below for detailed information).
+- **system (str, optional)**: The metric system to use based on your localisation (de_DE, en_US, ...). Default is your configured metric system in your fitbit account
+- **resources (str or list[str])**: The resources to request (see below for detailed information)
 
 Available resources are:
 
@@ -44,30 +44,30 @@ Emits a map that contains the requested resources and their associated values:
 
 ```yaml
 {
-	'activities/calories': 1216,
-	'activities/caloriesBMR': 781,
-	'activities/steps': 4048,
-	'activities/distance': 3.02385,
-	'activities/floors': 4,
-	'activities/elevation': 12,
-	'activities/minutes_sedentary': 127,
-	'activities/minutes_lightly_active': 61,
-	'activities/minutes_fairly_active': 8,
-	'activities/minutes_very_active': 24,
-	'activities/activity_calories': 484,
-	'body/bmi': 23.086421966552734,
-	'body/fat': 0.0,
-	'body/weight': 74.8,
-	'foods/log/calories_in': 0,
-	'foods/log/water': 0.0,
-	'sleep/awakenings_count': 0,
-	'sleep/efficiency': 84,
-	'sleep/minutes_after_wakeup': 0,
-	'sleep/minutes_asleep': 369,
-	'sleep/minutes_awake': 69,
-	'sleep/minutes_to_fall_asleep': 0,
-	'sleep/start_time': '21:50',
-	'sleep/time_in_bed': 438
+  'activities/calories': 1216,
+  'activities/caloriesBMR': 781,
+  'activities/steps': 4048,
+  'activities/distance': 3.02385,
+  'activities/floors': 4,
+  'activities/elevation': 12,
+  'activities/minutes_sedentary': 127,
+  'activities/minutes_lightly_active': 61,
+  'activities/minutes_fairly_active': 8,
+  'activities/minutes_very_active': 24,
+  'activities/activity_calories': 484,
+  'body/bmi': 23.086421966552734,
+  'body/fat': 0.0,
+  'body/weight': 74.8,
+  'foods/log/calories_in': 0,
+  'foods/log/water': 0.0,
+  'sleep/awakenings_count': 0,
+  'sleep/efficiency': 84,
+  'sleep/minutes_after_wakeup': 0,
+  'sleep/minutes_asleep': 369,
+  'sleep/minutes_awake': 69,
+  'sleep/minutes_to_fall_asleep': 0,
+  'sleep/start_time': '21:50',
+  'sleep/time_in_bed': 438
 }
 ```
 

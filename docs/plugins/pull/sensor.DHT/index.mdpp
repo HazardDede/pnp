@@ -7,10 +7,10 @@ Requires extra `dht`.
 
 __Arguments__
 
-**device (str, optional)**: The device to poll (one of dht22, dht11, am2302). Default is 'dht22'.<br/>
-**data_gpio (int, optional)**: The data gpio port where the device operates on. Default is 17.</br>
-**humidity_offset (float, optional)**: Positive/Negative offset for humidity. Default is 0.0.</br>
-**temp_offset (float, optional)**: Positive/Negative offset for temperature. Default is 0.0.
+- **device (str, optional)**: The device to poll (one of dht22, dht11, am2302). Default is 'dht22'.
+- **data_gpio (int, optional)**: The data gpio port where the device operates on. Default is 17.</br>
+- **humidity_offset (float, optional)**: Positive/Negative offset for humidity. Default is 0.0.</br>
+- **temp_offset (float, optional)**: Positive/Negative offset for temperature. Default is 0.0.
 
 __Result__
 

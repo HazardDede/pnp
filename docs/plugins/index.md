@@ -9,9 +9,9 @@ Requires extra `fitbit`.
 
 __Arguments__
 
-**config (str)**: The configuration file that keeps your initial and refreshed authentication tokens (see below for detailed information).<br/>
-**system (str, optional)**: The metric system to use based on your localisation (de_DE, en_US, ...). Default is your configured metric system in your fitbit account<br/>
-**resources (str or list[str])**: The resources to request (see below for detailed information)
+- **config (str)**: The configuration file that keeps your initial and refreshed authentication tokens (see below for detailed information).
+- **system (str, optional)**: The metric system to use based on your localisation (de_DE, en_US, ...). Default is your configured metric system in your fitbit account
+- **resources (str or list[str])**: The resources to request (see below for detailed information)
 
 Available resources are:
 
@@ -46,30 +46,30 @@ Emits a map that contains the requested resources and their associated values:
 
 ```yaml
 {
-	'activities/calories': 1216,
-	'activities/caloriesBMR': 781,
-	'activities/steps': 4048,
-	'activities/distance': 3.02385,
-	'activities/floors': 4,
-	'activities/elevation': 12,
-	'activities/minutes_sedentary': 127,
-	'activities/minutes_lightly_active': 61,
-	'activities/minutes_fairly_active': 8,
-	'activities/minutes_very_active': 24,
-	'activities/activity_calories': 484,
-	'body/bmi': 23.086421966552734,
-	'body/fat': 0.0,
-	'body/weight': 74.8,
-	'foods/log/calories_in': 0,
-	'foods/log/water': 0.0,
-	'sleep/awakenings_count': 0,
-	'sleep/efficiency': 84,
-	'sleep/minutes_after_wakeup': 0,
-	'sleep/minutes_asleep': 369,
-	'sleep/minutes_awake': 69,
-	'sleep/minutes_to_fall_asleep': 0,
-	'sleep/start_time': '21:50',
-	'sleep/time_in_bed': 438
+  'activities/calories': 1216,
+  'activities/caloriesBMR': 781,
+  'activities/steps': 4048,
+  'activities/distance': 3.02385,
+  'activities/floors': 4,
+  'activities/elevation': 12,
+  'activities/minutes_sedentary': 127,
+  'activities/minutes_lightly_active': 61,
+  'activities/minutes_fairly_active': 8,
+  'activities/minutes_very_active': 24,
+  'activities/activity_calories': 484,
+  'body/bmi': 23.086421966552734,
+  'body/fat': 0.0,
+  'body/weight': 74.8,
+  'foods/log/calories_in': 0,
+  'foods/log/water': 0.0,
+  'sleep/awakenings_count': 0,
+  'sleep/efficiency': 84,
+  'sleep/minutes_after_wakeup': 0,
+  'sleep/minutes_asleep': 369,
+  'sleep/minutes_awake': 69,
+  'sleep/minutes_to_fall_asleep': 0,
+  'sleep/start_time': '21:50',
+  'sleep/time_in_bed': 438
 }
 ```
 
@@ -160,8 +160,8 @@ Requires extra `fitbit`.
 
 __Arguments__
 
-**config (str)**: The configuration file that keeps your initial and refreshed authentication tokens (see below for detailed information).<br/>
-**system (str, optional)**: The metric system to use based on your localisation (de_DE, en_US, ...). Default is your configured metric system in your fitbit account<br/>
+- **config (str)**: The configuration file that keeps your initial and refreshed authentication tokens (see below for detailed information).
+- **system (str, optional)**: The metric system to use based on your localisation (de_DE, en_US, ...). Default is your configured metric system in your fitbit account
 
 __Result__
 
@@ -169,23 +169,23 @@ Emits a list that contains your available trackers and/or devices and their asso
 
 ```yaml
 [{
-	'battery': 'Empty',
-	'battery_level': 10,
-	'device_version': 'Charge 2',
-	'features': [],
-	'id': 'abc',
-	'last_sync_time': '2018-12-23T10:47:40.000',
-	'mac': 'AAAAAAAAAAAA',
-	'type': 'TRACKER'
+  'battery': 'Empty',
+  'battery_level': 10,
+  'device_version': 'Charge 2',
+  'features': [],
+  'id': 'abc',
+  'last_sync_time': '2018-12-23T10:47:40.000',
+  'mac': 'AAAAAAAAAAAA',
+  'type': 'TRACKER'
 }, {
-	'battery': 'High',
-	'battery_level': 95,
-	'device_version': 'Blaze',
-	'features': [],
-	'id': 'xyz',
-	'last_sync_time': '2019-01-02T10:48:39.000',
-	'mac': 'FFFFFFFFFFFF',
-	'type': 'TRACKER'
+  'battery': 'High',
+  'battery_level': 95,
+  'device_version': 'Blaze',
+  'features': [],
+  'id': 'xyz',
+  'last_sync_time': '2019-01-02T10:48:39.000',
+  'mac': 'FFFFFFFFFFFF',
+  'type': 'TRACKER'
 }]
 ```
 
@@ -250,9 +250,9 @@ Requires extra `fitbit`.
 
 __Arguments__
 
-**config (str)**: The configuration file that keeps your initial and refreshed authentication tokens (see below for detailed information).<br/>
-**system (str, optional)**: The metric system to use based on your localisation (de_DE, en_US, ...). Default is your configured metric system in your fitbit account<br/>
-**goals (str, list[str])**: The goals to request (see below for detailed information)
+- **config (str)**: The configuration file that keeps your initial and refreshed authentication tokens (see below for detailed information).
+- **system (str, optional)**: The metric system to use based on your localisation (de_DE, en_US, ...). Default is your configured metric system in your fitbit account
+- **goals (str, list[str])**: The goals to request (see below for detailed information)
 
 Available goals are:
 
@@ -275,18 +275,18 @@ Emits a dictionary structure that consists of the requested goals:
 
 ```yaml
 {
-	'body/fat': 15.0,
-	'body/weight': 70.0,
-	'activities/daily/active_minutes': 30,
-	'activities/daily/calories_out': 2100,
-	'activities/daily/distance': 5.0,
-	'activities/daily/floors': 10,
-	'activities/daily/steps': 6000,
-	'activities/weekly/distance': 5.0,
-	'activities/weekly/floors': 10.0,
-	'activities/weekly/steps': 6000.0,
-	'foods/calories': 2220,
-	'foods/water': 1893
+  'body/fat': 15.0,
+  'body/weight': 70.0,
+  'activities/daily/active_minutes': 30,
+  'activities/daily/calories_out': 2100,
+  'activities/daily/distance': 5.0,
+  'activities/daily/floors': 10,
+  'activities/daily/steps': 6000,
+  'activities/weekly/distance': 5.0,
+  'activities/weekly/floors': 10.0,
+  'activities/weekly/steps': 6000.0,
+  'foods/calories': 2220,
+  'foods/water': 1893
 }
 ```
 
@@ -368,25 +368,25 @@ Requires extra `fswatcher`.
 
 __Arguments__
 
-**path (str)**: The path to track for file / directory changes.<br/>
-**recursive (bool, optional)**: If set to True, any subfolders of the given path will be tracked too.
-    Default is True.<br/>
-**patterns (str or list, optional)**: Any file pattern (e.g. *.txt or [*.txt, *.md].
-    If set to None no filter is applied. Default is None.<br/>
-**ignore_patterns (str or list, optional)**: Any patterns to ignore (specify like argument `patterns`).
-    If set to None, nothing will be ignored. Default is None.<br/>
-**ignore_directories (str, optional)**: If set to True will send events for directories when file change.
-    Default is False.<br/>
-**case_sensitive (bool, optional)**: If set to True, any pattern is case_sensitive, otherwise it is case insensitive.
-    Default is False.<br/>
-**events (str or list, optional)**: The events to track. One or multiple of 'moved', 'deleted', 'created'
-    and/or 'modified'. If set to None all events will be reported. Default is None.<br/>
-**load_file (bool, optional)**: If set to True the file contents will be loaded into the result. Default is False.<br/>
-**mode (str, optional)**: Open mode of the file (only necessary when load_file is True). Can be text, binary or auto
-    (guessing). Default is auto.<br/>
-**base64 (bool, optional)**: If set to True the loaded file contents will be converted to base64 (only applicable when
-    load_file is True). Argument `mode` will be automatically set to 'binary'. Default is False.<br/>
-**defer_modified (float, optional)**: If set greater than 0, it will defer the sending of modified events for that
+- **path (str)**: The path to track for file / directory changes.
+- **recursive (bool, optional)**: If set to True, any subfolders of the given path will be tracked too.
+    Default is True.
+- **patterns (str or list, optional)**: Any file pattern (e.g. *.txt or [*.txt, *.md].
+    If set to None no filter is applied. Default is None.
+- **ignore_patterns (str or list, optional)**: Any patterns to ignore (specify like argument `patterns`).
+    If set to None, nothing will be ignored. Default is None.
+- **ignore_directories (str, optional)**: If set to True will send events for directories when file change.
+    Default is False.
+- **case_sensitive (bool, optional)**: If set to True, any pattern is case_sensitive, otherwise it is case insensitive.
+    Default is False.
+- **events (str or list, optional)**: The events to track. One or multiple of 'moved', 'deleted', 'created'
+    and/or 'modified'. If set to None all events will be reported. Default is None.
+- **load_file (bool, optional)**: If set to True the file contents will be loaded into the result. Default is False.
+- **mode (str, optional)**: Open mode of the file (only necessary when load_file is True). Can be text, binary or auto
+    (guessing). Default is auto.
+- **base64 (bool, optional)**: If set to True the loaded file contents will be converted to base64 (only applicable when
+    load_file is True). Argument `mode` will be automatically set to 'binary'. Default is False.
+- **defer_modified (float, optional)**: If set greater than 0, it will defer the sending of modified events for that
     amount of time (seconds). There might be multiple flushes of a file before it is written completely to disk.
     Without defer_modified each flush will raise a modified event. Default is 0.5.
 
@@ -439,8 +439,8 @@ Requires extra `gpio`.
 
 __Arguments__
 
-**pins (list)**: The gpio pins to observe for state changes. Please see the examples section on how to configure it.<br/>
-**default (on of [rising, falling, switch, motion]**: The default edge that is applied when not configured. Please see the examples section for further details.
+- **pins (list)**: The gpio pins to observe for state changes. Please see the examples section on how to configure it.
+- **default (on of [rising, falling, switch, motion]**: The default edge that is applied when not configured. Please see the examples section for further details.
 
 __Result__
 
@@ -482,11 +482,11 @@ patterns overrides `include` patterns.
 
 __Arguments__
 
-**host (str)**: Url to your `home assistant` instance (e.g. http://my-hass:8123)<br/>
-**token (str)**: Your long lived access token to access the websocket api. See below for further instructions<br/>
-**include (str or list[str])**: Patterns of entity state changes to include. All state changes that do not match the
+- **host (str)**: Url to your `home assistant` instance (e.g. http://my-hass:8123)
+- **token (str)**: Your long lived access token to access the websocket api. See below for further instructions
+- **include (str or list[str])**: Patterns of entity state changes to include. All state changes that do not match the
 defined patterns will be ignored</br>
-**exclude (str or list[str]**:Patterns of entity state changes to exclude. All state changes that do match the defined
+- **exclude (str or list[str]**:Patterns of entity state changes to exclude. All state changes that do match the defined
 patterns will be ignored
 
 Hints:
@@ -500,19 +500,19 @@ The emitted result always contains the `entity_id`, `new_state` and `old_state`:
 
 ```yaml
 {
-	'entity_id': 'light.bedroom_lamp',
-	'old_state': {
-		'state': 'off',
-		'attributes': {},
-		'last_changed': '2019-01-08T18:24:42.087195+00:00',
-		'last_updated': '2019-01-08T18:40:40.011459+00:00'
-	},
-	'new_state': {
-		'state': 'on',
-		'attributes': {},
-		'last_changed': '2019-01-08T18:41:06.329699+00:00',
-		'last_updated': '2019-01-08T18:41:06.329699+00:00'
-	}
+  'entity_id': 'light.bedroom_lamp',
+  'old_state': {
+    'state': 'off',
+    'attributes': {},
+    'last_changed': '2019-01-08T18:24:42.087195+00:00',
+    'last_updated': '2019-01-08T18:40:40.011459+00:00'
+  },
+  'new_state': {
+    'state': 'on',
+    'attributes': {},
+    'last_changed': '2019-01-08T18:41:06.329699+00:00',
+    'last_updated': '2019-01-08T18:41:06.329699+00:00'
+  }
 }
 ```
 
@@ -544,9 +544,9 @@ Requires extra `http-server`.
 
 __Arguments__
 
-**port (int, optional)**: The port the rest server should listen to for requests. Default is 5000.<br/>
-**allowed_methods (str or list, optional)**: List of http methods that are allowed. Default is 'GET'.<br/>
-**server_impl (str, optional)**: Choose the implementation of the WSGI-Server (wraps the flask-app).
+- **port (int, optional)**: The port the rest server should listen to for requests. Default is 5000.
+- **allowed_methods (str or list, optional)**: List of http methods that are allowed. Default is 'GET'.
+- **server_impl (str, optional)**: Choose the implementation of the WSGI-Server (wraps the flask-app).
     Possible values are: [flask, gevent]. `flask` uses the internal Flask Development server. Not recommended for
     production use. `gevent` uses [gevent](http://www.gevent.org/). Default is `gevent`.
 
@@ -600,20 +600,20 @@ __Result__
 
 ```yaml
 {
-	'cpu_count': 4,
-	'cpu_freq': 2700,
-	'cpu_temp': 0.0,
-	'cpu_use': 80.0,
-	'disk_use': 75.1,
-	'load_1m': 2.01171875,
-	'load_5m': 1.89501953125,
-	'load_15m': 1.94189453125,
-	'memory_use': 67.0,
-	'rpi_cpu_freq_capped': 0,
-	'rpi_temp_limit_throttle': 0,
-	'rpi_throttle': 0,
-	'rpi_under_voltage': 0,
-	'swap_use': 36.1
+  'cpu_count': 4,
+  'cpu_freq': 2700,
+  'cpu_temp': 0.0,
+  'cpu_use': 80.0,
+  'disk_use': 75.1,
+  'load_1m': 2.01171875,
+  'load_5m': 1.89501953125,
+  'load_15m': 1.94189453125,
+  'memory_use': 67.0,
+  'rpi_cpu_freq_capped': 0,
+  'rpi_temp_limit_throttle': 0,
+  'rpi_throttle': 0,
+  'rpi_under_voltage': 0,
+  'swap_use': 36.1
 }
 ```
 
@@ -635,9 +635,9 @@ Pulls messages from the specified topic from the given mosquitto mqtt broker (id
 
 __Arguments__
 
-**host (str)**: Host where the mosquitto broker is running.<br/>
-**port (int)**: Port where the mosquitto broker is listening.<br/>
-**topic (str)**: Topic to pull messages from.
+- **host (str)**: Host where the mosquitto broker is running.
+- **port (int)**: Port where the mosquitto broker is listening.
+- **topic (str)**: Topic to pull messages from.
     You can listen to multiple topics by using the #-wildcard (e.g. `test/#` will listen to all topics underneath test).
 
 All arguments can be automatically injected via environment variables with `MQTT` prefix (e.g. MQTT_HOST).
@@ -676,10 +676,10 @@ Requires extra `dht`.
 
 __Arguments__
 
-**device (str, optional)**: The device to poll (one of dht22, dht11, am2302). Default is 'dht22'.<br/>
-**data_gpio (int, optional)**: The data gpio port where the device operates on. Default is 17.</br>
-**humidity_offset (float, optional)**: Positive/Negative offset for humidity. Default is 0.0.</br>
-**temp_offset (float, optional)**: Positive/Negative offset for temperature. Default is 0.0.
+- **device (str, optional)**: The device to poll (one of dht22, dht11, am2302). Default is 'dht22'.
+- **data_gpio (int, optional)**: The data gpio port where the device operates on. Default is 17.</br>
+- **humidity_offset (float, optional)**: Positive/Negative offset for humidity. Default is 0.0.</br>
+- **temp_offset (float, optional)**: Positive/Negative offset for temperature. Default is 0.0.
 
 __Result__
 
@@ -715,14 +715,14 @@ Periodically polls weather data from the `OpenWeatherMap` api.
 
 __Arguments__
 
-**api_key (str):** The api_key you got from OpenWeatherMap after registration.<br/>
-**lat (float):** Latitude. If you pass `lat`, you have to pass `lon` as well.<br/>
-**lon (float):** Longitude. If you pass `lon`, you have to pass `lat` as well.<br/>
-**city_name (str):** The name of your city. To minimize ambiguity use lat/lon or your country as a suffix,
-e.g. London,GB.<br/>
-**units (str on of (metric, imperial, kelvin))**: Specify units for temperature and speed.<br/>
-imperial = fahrenheit + miles/hour, metric = celsius + m/secs, kelvin = kelvin + m/secs. Default is metric.<br/>
-**tz (str, optional)**: Time zone to use for current time and last updated time. Default is your local timezone.
+- **api_key (str):** The api_key you got from OpenWeatherMap after registration.
+- **lat (float):** Latitude. If you pass `lat`, you have to pass `lon` as well.
+- **lon (float):** Longitude. If you pass `lon`, you have to pass `lat` as well.
+- **city_name (str):** The name of your city. To minimize ambiguity use lat/lon or your country as a suffix,
+e.g. London,GB.
+- **units (str on of (metric, imperial, kelvin))**: Specify units for temperature and speed.
+imperial = fahrenheit + miles/hour, metric = celsius + m/secs, kelvin = kelvin + m/secs. Default is metric.
+- **tz (str, optional)**: Time zone to use for current time and last updated time. Default is your local timezone.
 
 Remark: You have to pass whether `city_name` or `lat/lon`.
 
@@ -813,15 +813,15 @@ Requires extra `sound`.
 
 __Arguments__
 
-**wav_file (str/filepath)**: The file that contains the original sound pattern to listen for.<br/>
-**device_index (int, optional)**: The index of the microphone device. Run `pnp_record_sound --list` to get the index.
+- **wav_file (str/filepath)**: The file that contains the original sound pattern to listen for.
+- **device_index (int, optional)**: The index of the microphone device. Run `pnp_record_sound --list` to get the index.
 If not specified pyAudio will try to find a capable device.</br>
-**mode (Union[pearson,std], optional)**: Correlation/similarity method. Default is pearson.</br>
-**sensitivity_offset (float, optional)**: Adjusts sensitivity for similarity.
-Positive means less sensitive; negative is more sensitive. You should try out 0.1 steps. Default is 0.0.<br/>
-**cool_down (duration literal, optional)**: Prevents the pull to emit more than one sound detection event per
-cool down duration. Default is 10 seconds.<br/>
-**ignore_overflow (bool, optional)**: If set to True any buffer overflows due to slow realtime processing will be ignored.
+- **mode (Union[pearson,std], optional)**: Correlation/similarity method. Default is pearson.</br>
+- **sensitivity_offset (float, optional)**: Adjusts sensitivity for similarity.
+Positive means less sensitive; negative is more sensitive. You should try out 0.1 steps. Default is 0.0.
+- **cool_down (duration literal, optional)**: Prevents the pull to emit more than one sound detection event per
+cool down duration. Default is 10 seconds.
+- **ignore_overflow (bool, optional)**: If set to True any buffer overflows due to slow realtime processing will be ignored.
     Otherwise an exception will be thrown.
 
 Hints:
@@ -866,9 +866,9 @@ If `to_cnt` is None the counter will count to infinity.
 
 __Arguments__
 
-**wait (int)**: Wait the amount of seconds before emitting the next counter.<br/>
-**from_cnt (int)**: Starting value of the counter.<br/>
-**to_cnt (int, optional)**: End value of the counter. If not passed set to "infinity" (precise: int.max).
+- **wait (int)**: Wait the amount of seconds before emitting the next counter.
+- **from_cnt (int)**: Starting value of the counter.
+- **to_cnt (int, optional)**: End value of the counter. If not passed set to "infinity" (precise: int.max).
 
 __Result__
 
@@ -893,8 +893,8 @@ Emits every `wait` seconds the same `repeat`.
 
 __Arguments__
 
-**wait (int)**: Wait the amount of seconds before emitting the next repeat.<br/>
-**repeat (any)**: The object to emit.
+- **wait (int)**: Wait the amount of seconds before emitting the next repeat.
+- **repeat (any)**: The object to emit.
 
 __Result__
 
@@ -925,10 +925,10 @@ the examples section for guidance).
 
 __Arguments__
 
-**url (str)**: The url to poll periodically.<br/>
-**user (str)**: Authentication user name.<br/>
-**password (str)**: Authentication password.<br/>
-**interval (polling literal, optional)**: Polling interval (default: 1m).
+- **url (str)**: The url to poll periodically.
+- **user (str)**: Authentication user name.
+- **password (str)**: Authentication password.
+- **interval (polling literal, optional)**: Polling interval (default: 1m).
 
 All arguments (`url`, `user` and `password`) can be automatically injected via environment variables.
 * ZWAY_URL
@@ -966,21 +966,21 @@ __Appendix__
 
 Below are some common selector examples to fetch various metrics from various devices
 
-**Fibaro Motion Sensor**
+- **Fibaro Motion Sensor**
 * Temperature
 `payload[deviceid].instances[0].commandClasses[49].data[1].val.value`
 * Luminescence
 `payload[deviceid].instances[0].commandClasses[49].data[3].val.value`
 
-**fibaro Wallplug**
+- **fibaro Wallplug**
 * Meter
 `payload[deviceid].instances[0].commandClasses[50].data[0].val.value`
 
-**Thermostat (Danfoss / other should work as well)**
+- **Thermostat (Danfoss / other should work as well)**
 * Setpoint
 `payload[deviceid].instances[0].commandClasses[67].data[1].val.value`
 
-**Battery operated devices**
+- **Battery operated devices**
 * Battery level
 `payload[deviceid].instances[0].commandClasses[128].data.last.value`
 
@@ -990,18 +990,18 @@ Setups a http server to process incoming GET-requests from the Zway-App [`HttpGe
 
 __Arguments__
 
-**url_format (str)**: The url_format that is configured in your HttpGet App. If you configured
+- **url_format (str)**: The url_format that is configured in your HttpGet App. If you configured
 `http://<ip>:<port>/set?device=%DEVICE%&state=%VALUE%` (default of the App), you basically have to copy the path
-component `set?device=%DEVICE%&state=%VALUE%` to be your `url_format`.<br/>
-**mode ([mapping, auto, both])**: If set to `mapping` (default) you should provide the `device_mapping` to manually map your virtual devices.
+component `set?device=%DEVICE%&state=%VALUE%` to be your `url_format`.
+- **mode ([mapping, auto, both])**: If set to `mapping` (default) you should provide the `device_mapping` to manually map your virtual devices.
 If set to `auto` the plugin will try to determine the device_id, command class, mode and the type on it's own. If set to `both` the plugin
 will first try the `device_mapping` and then perform the auto-magic.</br>
-**device_mapping (Or(Dict[Str, Str], Dict[Str, Dict]), optional)**: A mapping to map the somewhat cryptic virtual device names to
+- **device_mapping (Or(Dict[Str, Str], Dict[Str, Dict]), optional)**: A mapping to map the somewhat cryptic virtual device names to
 human readable ones. Default is None, which means that no mapping will be performed. Two ways possible:
 1. Ordinary mapping from virtual device name -> alias.
-2. Enhanced mapping from virtual device name to dictionary with additional properties. One property has to be alias.<br/>
-**ignore_unknown_devices (bool, optional)**: If set to True all incoming requests that are associated with an device
-that is not part of the mapping or - when mode = [auto, both] - cannot be auto mapped will be ignored. Default is False.<br/>
+2. Enhanced mapping from virtual device name to dictionary with additional properties. One property has to be alias.
+- **ignore_unknown_devices (bool, optional)**: If set to True all incoming requests that are associated with an device
+that is not part of the mapping or - when mode = [auto, both] - cannot be auto mapped will be ignored. Default is False.
 
 Additionally the component will accept any arguments that `pnp.plugins.pull.http.Server` would accept.
 
@@ -1070,13 +1070,13 @@ Argument `binary_mode` controls whether the dump is binary (mode=wb) or text (mo
 
 __Arguments__
 
-**directory (str, optional)**: The target directory to store the dumps. Default is '.' (current directory).<br/>
-**file_name (str, optional)**: The name of the file to dump. If set to None a file name will be automatically
+- **directory (str, optional)**: The target directory to store the dumps. Default is '.' (current directory).
+- **file_name (str, optional)**: The name of the file to dump. If set to None a file name will be automatically
     generated. You can specify the file_name via the envelope, too. Envelope will override __init__ file name.
-    Default is None.<br/>
-**extension (str, optional)**: The extension to use when the file name is automatically generated. Can be overridden by
-    envelope. Default is '.dump'.<br/>
-**binary_mode (bool, optional)**: If set to True the file will be written in binary mode ('wb');
+    Default is None.
+- **extension (str, optional)**: The extension to use when the file name is automatically generated. Can be overridden by
+    envelope. Default is '.dump'.
+- **binary_mode (bool, optional)**: If set to True the file will be written in binary mode ('wb');
     otherwise in text mode ('w'). Default is False.
 
 __Result__
@@ -1130,13 +1130,13 @@ Makes a request to a http resource.
 
 __Arguments__
 
-**url (str)**: Request url. Can be overridden via envelope.<br/>
-**method (str, optional)**: The http method to use for the request. Must be a valid http method (GET, POST, ...).
-    Default is 'GET'. Can be overridden via envelope.<br/>
-**fail_on_error (bool, optional)**: If True the push will fail on a http status code <> 2xx. This leads to an error
+- **url (str)**: Request url. Can be overridden via envelope.
+- **method (str, optional)**: The http method to use for the request. Must be a valid http method (GET, POST, ...).
+    Default is 'GET'. Can be overridden via envelope.
+- **fail_on_error (bool, optional)**: If True the push will fail on a http status code <> 2xx. This leads to an error
     message recorded into the logs and no further execution of any dependencies. Default is False. Can be overridden
-    by the envelope.<br/>
-**provide_response (bool, optional)**: If True the push will _not_ return the payload as it is, but instead provide the
+    by the envelope.
+- **provide_response (bool, optional)**: If True the push will _not_ return the payload as it is, but instead provide the
     response status_code, fetched url content and a flag if the url content is a json response. This is useful for
     other push instances in the dependency chain. Default is False.
 
@@ -1217,13 +1217,13 @@ Sends an e-mail via the `gmail api`.
 
 __Arguments__
 
-**token_file (str)**: The file that contains your tokens. See below for further details<br/>
-**recipient (str or List[str])**: The recipient (to) of the e-mail. Optionally you can pass a list for multiple recipients.
-    Can be overridden via envelope.<br/>
-**subject (str, optional)**: Sets the subject of the e-mail. Default is None, which means the subject is expected
-    to be set by the envelope. Can be overridden by the envelope.<br/>
-**sender (str, optional)**: Sets the sender of the e-mail. Default is 'pnp'. Can be overridden by the envelope.<br/>
-**attachment (str, optional)**: Can be set by the envelope. If set the `attachment` should point to a valid file to
+- **token_file (str)**: The file that contains your tokens. See below for further details
+- **recipient (str or List[str])**: The recipient (to) of the e-mail. Optionally you can pass a list for multiple recipients.
+    Can be overridden via envelope.
+- **subject (str, optional)**: Sets the subject of the e-mail. Default is None, which means the subject is expected
+    to be set by the envelope. Can be overridden by the envelope.
+- **sender (str, optional)**: Sets the sender of the e-mail. Default is 'pnp'. Can be overridden by the envelope.
+- **attachment (str, optional)**: Can be set by the envelope. If set the `attachment` should point to a valid file to
     attach to the e-mail. Default is None which means not to attach a file.
 
 __Tokens__
@@ -1283,11 +1283,11 @@ Hint: This one is _not_ pre-installed when using the docker image. Would be grat
 
 __Arguments__
 
-**known_faces (dict<str, file_path as str>, optional)**: Mapping of a person's name to a list of images that contain
-    the person's face. Default is None.<br/>
-**known_faces_dir (str, optional)**: A directory containing images with known persons (file_name -> person's name).
-    Default is None.<br/>
-**unknown_label (str, optional)**: Tag label of unknown faces. Default is 'Unknown'.
+- **known_faces (dict<str, file_path as str>, optional)**: Mapping of a person's name to a list of images that contain
+    the person's face. Default is None.
+- **known_faces_dir (str, optional)**: A directory containing images with known persons (file_name -> person's name).
+    Default is None.
+- **unknown_label (str, optional)**: Tag label of unknown faces. Default is 'Unknown'.
 
 You have to specify either `known_faces` or `known_faces_dir`. If both are unsupplied the push will fail.
 
@@ -1411,15 +1411,15 @@ selector.
 
 __Arguments__
 
-**host (str)**: The host where the mosquitto broker is running.<br/>
-**port (int, optional)**: The port where the mosquitto broker is listening. Default is 1883.<br/>
-**topic (str, optional)**: The topic to subscribe to. If set to None the envelope of the
+- **host (str)**: The host where the mosquitto broker is running.
+- **port (int, optional)**: The port where the mosquitto broker is listening. Default is 1883.
+- **topic (str, optional)**: The topic to subscribe to. If set to None the envelope of the
     payload has to contain a 'topic' key or the push will fail (default is None). If both exists
-    the topic from the envelope will overrule the __init__ one.<br/>
-**retain (bool, optional)**: If set to True will mark the message as retained. Default is False.
+    the topic from the envelope will overrule the __init__ one.
+- **retain (bool, optional)**: If set to True will mark the message as retained. Default is False.
     See the mosquitto man page for further guidance
-    [https://mosquitto.org/man/mqtt-7.html](https://mosquitto.org/man/mqtt-7.html).<br/>
-**multi (bool, optional)**: If set to True the payload is expected to be a dictionary. Each item of that dictionary will
+    [https://mosquitto.org/man/mqtt-7.html](https://mosquitto.org/man/mqtt-7.html).
+- **multi (bool, optional)**: If set to True the payload is expected to be a dictionary. Each item of that dictionary will
 be send individually to the broker. The key of the item will be appended to the configured topic. The value of the item
 is the actual payload. Default is False.
 
@@ -1495,8 +1495,8 @@ Requires extra `pushbullet`.
 
 __Arguments__
 
-**api_key (str)**: The api key to your pushbullet account.<br/>
-**title (str, optional)**: The title to use for your messages. Defaults to `pnp`</br>
+- **api_key (str)**: The api key to your pushbullet account.
+- **title (str, optional)**: The title to use for your messages. Defaults to `pnp`</br>
 
 __Result__
 
@@ -1556,11 +1556,11 @@ Will return the exit code of the command and optionally the output from stdout a
 
 __Arguments__
 
-**command (str)**: The command to execute.<br/>
-**args (str or iterable, optional)**: The arguments to pass to the command. Default is no arguments.<br/>
-**cwd (str, optional)**: Specifies where to execute the command (working directory). Default is current working directory.<br/>
-**timeout (duration literal, optional)**: Specifies how long the worker should wait for the command to finish.</br>
-**capture (bool, optional)**: If True stdout and stderr output is captured, otherwise not.
+- **command (str)**: The command to execute.
+- **args (str or iterable, optional)**: The arguments to pass to the command. Default is no arguments.
+- **cwd (str, optional)**: Specifies where to execute the command (working directory). Default is current working directory.
+- **timeout (duration literal, optional)**: Specifies how long the worker should wait for the command to finish.</br>
+- **capture (bool, optional)**: If True stdout and stderr output is captured, otherwise not.
 
 __Result__
 
@@ -1605,10 +1605,10 @@ Uploads provided file to the specified dropbox account.
 
 __Arguments__
 
-**api_key (str)**: The api key to your dropbox account/app.<br/>
-**target_file_name (str, optional)**: The file path on the server where to upload the file to.
-If not specified you have to specify this argument during push time by setting it in the envelope.<br/>
-**create_shared_link (bool, optional)**: If set to True, the push will create a publicly available link to your uploaded file. Default is `True`.
+- **api_key (str)**: The api key to your dropbox account/app.
+- **target_file_name (str, optional)**: The file path on the server where to upload the file to.
+If not specified you have to specify this argument during push time by setting it in the envelope.
+- **create_shared_link (bool, optional)**: If set to True, the push will create a publicly available link to your uploaded file. Default is `True`.
 
 Requires extra `dropbox`.
 
@@ -1668,12 +1668,12 @@ See [https://docs.influxdata.com/influxdb/v1.5/write_protocols/line_protocol_tut
 
 __Arguments__
 
-**host (str)**: The host where the influxdb is running.<br/>
-**port (int)**: The port where the influxdb service is listening on.<br/>
-**user (str)**: Username to use for authentication.<br/>
-**password (str)**: Related password.<br/>
-**database (str)**: The database to write to.<br/>
-**protocol (str)**: Line protocol template (augmented with payload-data).
+- **host (str)**: The host where the influxdb is running.
+- **port (int)**: The port where the influxdb service is listening on.
+- **user (str)**: Username to use for authentication.
+- **password (str)**: Related password.
+- **database (str)**: The database to write to.
+- **protocol (str)**: Line protocol template (augmented with payload-data).
 
 All arguments can be automatically injected via environment variables with `INFLUX` prefix (e.g. `INFLUX_HOST`).
 
@@ -1710,14 +1710,14 @@ Fetches the state of an entity from home assistant by a rest-api request.
 
 __Arguments__
 
-**url (str)**: The url to your home assistant instance (e.g. http://hass:8123)<br/>
-**token (str)**: The love live access token to get access to home assistant<br/>
-**timeout (Optional[int])**: Tell the request to stop waiting for a reponse after given number of seconds. Default is 5 seconds.
+- **url (str)**: The url to your home assistant instance (e.g. http://hass:8123)
+- **token (str)**: The love live access token to get access to home assistant
+- **timeout (Optional[int])**: Tell the request to stop waiting for a reponse after given number of seconds. Default is 5 seconds.
 
 __Call Arguments__
 
-**entity_id (str)**: The entity to fetch the state<br>
-**attribute (Optional[str])**: Optionally you can fetch the state of one of the entities attributes.
+- **entity_id (str)**: The entity to fetch the state<br>
+- **attribute (Optional[str])**: Optionally you can fetch the state of one of the entities attributes.
 Default is None (which means to fetch the state of the entity)
 
 __Result__
@@ -1756,7 +1756,7 @@ Memories a counter value which is increased everytime you call the udf.
 
 __Arguments__
 
-**init (Optional[int])**: The initialization value of the counter. Default is 0.
+- **init (Optional[int])**: The initialization value of the counter. Default is 0.
 
 __Result__
 
@@ -1790,11 +1790,11 @@ Returns a previously memorized value when called.
 
 __Arguments__
 
-**init (any, optional)**: The initial memory of the plugin. Default is None.
+- **init (any, optional)**: The initial memory of the plugin. Default is None.
 
 __Call Arguments__
 
-**new_memory (any, optional)**: After emitting the current memorized value the current memory is overwritten by this value.
+- **new_memory (any, optional)**: After emitting the current memorized value the current memory is overwritten by this value.
 Will only be overwritten if the parameter is specified.
 
 __Result__

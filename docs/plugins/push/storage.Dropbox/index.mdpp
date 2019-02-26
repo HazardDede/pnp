@@ -4,10 +4,10 @@ Uploads provided file to the specified dropbox account.
 
 __Arguments__
 
-**api_key (str)**: The api key to your dropbox account/app.<br/>
-**target_file_name (str, optional)**: The file path on the server where to upload the file to.
-If not specified you have to specify this argument during push time by setting it in the envelope.<br/>
-**create_shared_link (bool, optional)**: If set to True, the push will create a publicly available link to your uploaded file. Default is `True`.
+- **api_key (str)**: The api key to your dropbox account/app.
+- **target_file_name (str, optional)**: The file path on the server where to upload the file to.
+If not specified you have to specify this argument during push time by setting it in the envelope.
+- **create_shared_link (bool, optional)**: If set to True, the push will create a publicly available link to your uploaded file. Default is `True`.
 
 Requires extra `dropbox`.
 

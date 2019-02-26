@@ -6,9 +6,9 @@ Requires extra `fitbit`.
 
 __Arguments__
 
-**config (str)**: The configuration file that keeps your initial and refreshed authentication tokens (see below for detailed information).<br/>
-**system (str, optional)**: The metric system to use based on your localisation (de_DE, en_US, ...). Default is your configured metric system in your fitbit account<br/>
-**goals (str, list[str])**: The goals to request (see below for detailed information)
+- **config (str)**: The configuration file that keeps your initial and refreshed authentication tokens (see below for detailed information).
+- **system (str, optional)**: The metric system to use based on your localisation (de_DE, en_US, ...). Default is your configured metric system in your fitbit account
+- **goals (str, list[str])**: The goals to request (see below for detailed information)
 
 Available goals are:
 
@@ -31,18 +31,18 @@ Emits a dictionary structure that consists of the requested goals:
 
 ```yaml
 {
-	'body/fat': 15.0,
-	'body/weight': 70.0,
-	'activities/daily/active_minutes': 30,
-	'activities/daily/calories_out': 2100,
-	'activities/daily/distance': 5.0,
-	'activities/daily/floors': 10,
-	'activities/daily/steps': 6000,
-	'activities/weekly/distance': 5.0,
-	'activities/weekly/floors': 10.0,
-	'activities/weekly/steps': 6000.0,
-	'foods/calories': 2220,
-	'foods/water': 1893
+  'body/fat': 15.0,
+  'body/weight': 70.0,
+  'activities/daily/active_minutes': 30,
+  'activities/daily/calories_out': 2100,
+  'activities/daily/distance': 5.0,
+  'activities/daily/floors': 10,
+  'activities/daily/steps': 6000,
+  'activities/weekly/distance': 5.0,
+  'activities/weekly/floors': 10.0,
+  'activities/weekly/steps': 6000.0,
+  'foods/calories': 2220,
+  'foods/water': 1893
 }
 ```
 

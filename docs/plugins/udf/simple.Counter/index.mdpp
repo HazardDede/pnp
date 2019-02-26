@@ -4,7 +4,7 @@ Memories a counter value which is increased everytime you call the udf.
 
 __Arguments__
 
-**init (Optional[int])**: The initialization value of the counter. Default is 0.
+- **init (Optional[int])**: The initialization value of the counter. Default is 0.
 
 __Result__
 

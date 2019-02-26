@@ -11,10 +11,10 @@ the examples section for guidance).
 
 __Arguments__
 
-**url (str)**: The url to poll periodically.<br/>
-**user (str)**: Authentication user name.<br/>
-**password (str)**: Authentication password.<br/>
-**interval (polling literal, optional)**: Polling interval (default: 1m).
+- **url (str)**: The url to poll periodically.
+- **user (str)**: Authentication user name.
+- **password (str)**: Authentication password.
+- **interval (polling literal, optional)**: Polling interval (default: 1m).
 
 All arguments (`url`, `user` and `password`) can be automatically injected via environment variables.
 * ZWAY_URL
@@ -52,21 +52,21 @@ __Appendix__
 
 Below are some common selector examples to fetch various metrics from various devices
 
-**Fibaro Motion Sensor**
+- **Fibaro Motion Sensor**
 * Temperature
 `payload[deviceid].instances[0].commandClasses[49].data[1].val.value`
 * Luminescence
 `payload[deviceid].instances[0].commandClasses[49].data[3].val.value`
 
-**fibaro Wallplug**
+- **fibaro Wallplug**
 * Meter
 `payload[deviceid].instances[0].commandClasses[50].data[0].val.value`
 
-**Thermostat (Danfoss / other should work as well)**
+- **Thermostat (Danfoss / other should work as well)**
 * Setpoint
 `payload[deviceid].instances[0].commandClasses[67].data[1].val.value`
 
-**Battery operated devices**
+- **Battery operated devices**
 * Battery level
 `payload[deviceid].instances[0].commandClasses[128].data.last.value`
 

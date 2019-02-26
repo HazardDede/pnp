@@ -14,8 +14,8 @@ Requires extra `gpio`.
 
 __Arguments__
 
-**pins (list)**: The gpio pins to observe for state changes. Please see the examples section on how to configure it.<br/>
-**default (on of [rising, falling, switch, motion]**: The default edge that is applied when not configured. Please see the examples section for further details.
+- **pins (list)**: The gpio pins to observe for state changes. Please see the examples section on how to configure it.
+- **default (on of [rising, falling, switch, motion]**: The default edge that is applied when not configured. Please see the examples section for further details.
 
 __Result__
 

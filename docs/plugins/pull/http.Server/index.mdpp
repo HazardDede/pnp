@@ -10,9 +10,9 @@ Requires extra `http-server`.
 
 __Arguments__
 
-**port (int, optional)**: The port the rest server should listen to for requests. Default is 5000.<br/>
-**allowed_methods (str or list, optional)**: List of http methods that are allowed. Default is 'GET'.<br/>
-**server_impl (str, optional)**: Choose the implementation of the WSGI-Server (wraps the flask-app).
+- **port (int, optional)**: The port the rest server should listen to for requests. Default is 5000.
+- **allowed_methods (str or list, optional)**: List of http methods that are allowed. Default is 'GET'.
+- **server_impl (str, optional)**: Choose the implementation of the WSGI-Server (wraps the flask-app).
     Possible values are: [flask, gevent]. `flask` uses the internal Flask Development server. Not recommended for
     production use. `gevent` uses [gevent](http://www.gevent.org/). Default is `gevent`.
 

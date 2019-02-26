@@ -6,11 +6,11 @@ Will return the exit code of the command and optionally the output from stdout a
 
 __Arguments__
 
-**command (str)**: The command to execute.<br/>
-**args (str or iterable, optional)**: The arguments to pass to the command. Default is no arguments.<br/>
-**cwd (str, optional)**: Specifies where to execute the command (working directory). Default is current working directory.<br/>
-**timeout (duration literal, optional)**: Specifies how long the worker should wait for the command to finish.</br>
-**capture (bool, optional)**: If True stdout and stderr output is captured, otherwise not.
+- **command (str)**: The command to execute.
+- **args (str or iterable, optional)**: The arguments to pass to the command. Default is no arguments.
+- **cwd (str, optional)**: Specifies where to execute the command (working directory). Default is current working directory.
+- **timeout (duration literal, optional)**: Specifies how long the worker should wait for the command to finish.</br>
+- **capture (bool, optional)**: If True stdout and stderr output is captured, otherwise not.
 
 __Result__
 

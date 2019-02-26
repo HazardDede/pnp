@@ -9,15 +9,15 @@ selector.
 
 __Arguments__
 
-**host (str)**: The host where the mosquitto broker is running.<br/>
-**port (int, optional)**: The port where the mosquitto broker is listening. Default is 1883.<br/>
-**topic (str, optional)**: The topic to subscribe to. If set to None the envelope of the
+- **host (str)**: The host where the mosquitto broker is running.
+- **port (int, optional)**: The port where the mosquitto broker is listening. Default is 1883.
+- **topic (str, optional)**: The topic to subscribe to. If set to None the envelope of the
     payload has to contain a 'topic' key or the push will fail (default is None). If both exists
-    the topic from the envelope will overrule the __init__ one.<br/>
-**retain (bool, optional)**: If set to True will mark the message as retained. Default is False.
+    the topic from the envelope will overrule the __init__ one.
+- **retain (bool, optional)**: If set to True will mark the message as retained. Default is False.
     See the mosquitto man page for further guidance
-    [https://mosquitto.org/man/mqtt-7.html](https://mosquitto.org/man/mqtt-7.html).<br/>
-**multi (bool, optional)**: If set to True the payload is expected to be a dictionary. Each item of that dictionary will
+    [https://mosquitto.org/man/mqtt-7.html](https://mosquitto.org/man/mqtt-7.html).
+- **multi (bool, optional)**: If set to True the payload is expected to be a dictionary. Each item of that dictionary will
 be send individually to the broker. The key of the item will be appended to the configured topic. The value of the item
 is the actual payload. Default is False.
 

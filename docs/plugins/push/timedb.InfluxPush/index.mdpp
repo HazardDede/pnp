@@ -10,12 +10,12 @@ See [https://docs.influxdata.com/influxdb/v1.5/write_protocols/line_protocol_tut
 
 __Arguments__
 
-**host (str)**: The host where the influxdb is running.<br/>
-**port (int)**: The port where the influxdb service is listening on.<br/>
-**user (str)**: Username to use for authentication.<br/>
-**password (str)**: Related password.<br/>
-**database (str)**: The database to write to.<br/>
-**protocol (str)**: Line protocol template (augmented with payload-data).
+- **host (str)**: The host where the influxdb is running.
+- **port (int)**: The port where the influxdb service is listening on.
+- **user (str)**: Username to use for authentication.
+- **password (str)**: Related password.
+- **database (str)**: The database to write to.
+- **protocol (str)**: Line protocol template (augmented with payload-data).
 
 All arguments can be automatically injected via environment variables with `INFLUX` prefix (e.g. `INFLUX_HOST`).
 

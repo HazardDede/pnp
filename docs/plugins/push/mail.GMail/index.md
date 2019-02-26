@@ -4,13 +4,13 @@ Sends an e-mail via the `gmail api`.
 
 __Arguments__
 
-**token_file (str)**: The file that contains your tokens. See below for further details<br/>
-**recipient (str or List[str])**: The recipient (to) of the e-mail. Optionally you can pass a list for multiple recipients.
-    Can be overridden via envelope.<br/>
-**subject (str, optional)**: Sets the subject of the e-mail. Default is None, which means the subject is expected
-    to be set by the envelope. Can be overridden by the envelope.<br/>
-**sender (str, optional)**: Sets the sender of the e-mail. Default is 'pnp'. Can be overridden by the envelope.<br/>
-**attachment (str, optional)**: Can be set by the envelope. If set the `attachment` should point to a valid file to
+- **token_file (str)**: The file that contains your tokens. See below for further details
+- **recipient (str or List[str])**: The recipient (to) of the e-mail. Optionally you can pass a list for multiple recipients.
+    Can be overridden via envelope.
+- **subject (str, optional)**: Sets the subject of the e-mail. Default is None, which means the subject is expected
+    to be set by the envelope. Can be overridden by the envelope.
+- **sender (str, optional)**: Sets the sender of the e-mail. Default is 'pnp'. Can be overridden by the envelope.
+- **attachment (str, optional)**: Can be set by the envelope. If set the `attachment` should point to a valid file to
     attach to the e-mail. Default is None which means not to attach a file.
 
 __Tokens__

@@ -4,14 +4,14 @@ Periodically polls weather data from the `OpenWeatherMap` api.
 
 __Arguments__
 
-**api_key (str):** The api_key you got from OpenWeatherMap after registration.<br/>
-**lat (float):** Latitude. If you pass `lat`, you have to pass `lon` as well.<br/>
-**lon (float):** Longitude. If you pass `lon`, you have to pass `lat` as well.<br/>
-**city_name (str):** The name of your city. To minimize ambiguity use lat/lon or your country as a suffix,
-e.g. London,GB.<br/>
-**units (str on of (metric, imperial, kelvin))**: Specify units for temperature and speed.<br/>
-imperial = fahrenheit + miles/hour, metric = celsius + m/secs, kelvin = kelvin + m/secs. Default is metric.<br/>
-**tz (str, optional)**: Time zone to use for current time and last updated time. Default is your local timezone.
+- **api_key (str):** The api_key you got from OpenWeatherMap after registration.
+- **lat (float):** Latitude. If you pass `lat`, you have to pass `lon` as well.
+- **lon (float):** Longitude. If you pass `lon`, you have to pass `lat` as well.
+- **city_name (str):** The name of your city. To minimize ambiguity use lat/lon or your country as a suffix,
+e.g. London,GB.
+- **units (str on of (metric, imperial, kelvin))**: Specify units for temperature and speed.
+imperial = fahrenheit + miles/hour, metric = celsius + m/secs, kelvin = kelvin + m/secs. Default is metric.
+- **tz (str, optional)**: Time zone to use for current time and last updated time. Default is your local timezone.
 
 Remark: You have to pass whether `city_name` or `lat/lon`.
 

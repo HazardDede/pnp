@@ -4,18 +4,18 @@ Setups a http server to process incoming GET-requests from the Zway-App [`HttpGe
 
 __Arguments__
 
-**url_format (str)**: The url_format that is configured in your HttpGet App. If you configured
+- **url_format (str)**: The url_format that is configured in your HttpGet App. If you configured
 `http://<ip>:<port>/set?device=%DEVICE%&state=%VALUE%` (default of the App), you basically have to copy the path
-component `set?device=%DEVICE%&state=%VALUE%` to be your `url_format`.<br/>
-**mode ([mapping, auto, both])**: If set to `mapping` (default) you should provide the `device_mapping` to manually map your virtual devices.
+component `set?device=%DEVICE%&state=%VALUE%` to be your `url_format`.
+- **mode ([mapping, auto, both])**: If set to `mapping` (default) you should provide the `device_mapping` to manually map your virtual devices.
 If set to `auto` the plugin will try to determine the device_id, command class, mode and the type on it's own. If set to `both` the plugin
 will first try the `device_mapping` and then perform the auto-magic.</br>
-**device_mapping (Or(Dict[Str, Str], Dict[Str, Dict]), optional)**: A mapping to map the somewhat cryptic virtual device names to
+- **device_mapping (Or(Dict[Str, Str], Dict[Str, Dict]), optional)**: A mapping to map the somewhat cryptic virtual device names to
 human readable ones. Default is None, which means that no mapping will be performed. Two ways possible:
 1. Ordinary mapping from virtual device name -> alias.
-2. Enhanced mapping from virtual device name to dictionary with additional properties. One property has to be alias.<br/>
-**ignore_unknown_devices (bool, optional)**: If set to True all incoming requests that are associated with an device
-that is not part of the mapping or - when mode = [auto, both] - cannot be auto mapped will be ignored. Default is False.<br/>
+2. Enhanced mapping from virtual device name to dictionary with additional properties. One property has to be alias.
+- **ignore_unknown_devices (bool, optional)**: If set to True all incoming requests that are associated with an device
+that is not part of the mapping or - when mode = [auto, both] - cannot be auto mapped will be ignored. Default is False.
 
 Additionally the component will accept any arguments that `pnp.plugins.pull.http.Server` would accept.
 

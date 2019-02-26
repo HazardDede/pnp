@@ -4,13 +4,13 @@ Makes a request to a http resource.
 
 __Arguments__
 
-**url (str)**: Request url. Can be overridden via envelope.<br/>
-**method (str, optional)**: The http method to use for the request. Must be a valid http method (GET, POST, ...).
-    Default is 'GET'. Can be overridden via envelope.<br/>
-**fail_on_error (bool, optional)**: If True the push will fail on a http status code <> 2xx. This leads to an error
+- **url (str)**: Request url. Can be overridden via envelope.
+- **method (str, optional)**: The http method to use for the request. Must be a valid http method (GET, POST, ...).
+    Default is 'GET'. Can be overridden via envelope.
+- **fail_on_error (bool, optional)**: If True the push will fail on a http status code <> 2xx. This leads to an error
     message recorded into the logs and no further execution of any dependencies. Default is False. Can be overridden
-    by the envelope.<br/>
-**provide_response (bool, optional)**: If True the push will _not_ return the payload as it is, but instead provide the
+    by the envelope.
+- **provide_response (bool, optional)**: If True the push will _not_ return the payload as it is, but instead provide the
     response status_code, fetched url content and a flag if the url content is a json response. This is useful for
     other push instances in the dependency chain. Default is False.
 

@@ -7,15 +7,15 @@ Requires extra `sound`.
 
 __Arguments__
 
-**wav_file (str/filepath)**: The file that contains the original sound pattern to listen for.<br/>
-**device_index (int, optional)**: The index of the microphone device. Run `pnp_record_sound --list` to get the index.
+- **wav_file (str/filepath)**: The file that contains the original sound pattern to listen for.
+- **device_index (int, optional)**: The index of the microphone device. Run `pnp_record_sound --list` to get the index.
 If not specified pyAudio will try to find a capable device.</br>
-**mode (Union[pearson,std], optional)**: Correlation/similarity method. Default is pearson.</br>
-**sensitivity_offset (float, optional)**: Adjusts sensitivity for similarity.
-Positive means less sensitive; negative is more sensitive. You should try out 0.1 steps. Default is 0.0.<br/>
-**cool_down (duration literal, optional)**: Prevents the pull to emit more than one sound detection event per
-cool down duration. Default is 10 seconds.<br/>
-**ignore_overflow (bool, optional)**: If set to True any buffer overflows due to slow realtime processing will be ignored.
+- **mode (Union[pearson,std], optional)**: Correlation/similarity method. Default is pearson.</br>
+- **sensitivity_offset (float, optional)**: Adjusts sensitivity for similarity.
+Positive means less sensitive; negative is more sensitive. You should try out 0.1 steps. Default is 0.0.
+- **cool_down (duration literal, optional)**: Prevents the pull to emit more than one sound detection event per
+cool down duration. Default is 10 seconds.
+- **ignore_overflow (bool, optional)**: If set to True any buffer overflows due to slow realtime processing will be ignored.
     Otherwise an exception will be thrown.
 
 Hints:

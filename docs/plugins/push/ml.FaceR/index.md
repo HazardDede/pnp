@@ -12,11 +12,11 @@ Hint: This one is _not_ pre-installed when using the docker image. Would be grat
 
 __Arguments__
 
-**known_faces (dict<str, file_path as str>, optional)**: Mapping of a person's name to a list of images that contain
-    the person's face. Default is None.<br/>
-**known_faces_dir (str, optional)**: A directory containing images with known persons (file_name -> person's name).
-    Default is None.<br/>
-**unknown_label (str, optional)**: Tag label of unknown faces. Default is 'Unknown'.
+- **known_faces (dict<str, file_path as str>, optional)**: Mapping of a person's name to a list of images that contain
+    the person's face. Default is None.
+- **known_faces_dir (str, optional)**: A directory containing images with known persons (file_name -> person's name).
+    Default is None.
+- **unknown_label (str, optional)**: Tag label of unknown faces. Default is 'Unknown'.
 
 You have to specify either `known_faces` or `known_faces_dir`. If both are unsupplied the push will fail.
 

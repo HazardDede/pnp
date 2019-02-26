@@ -4,11 +4,11 @@ Returns a previously memorized value when called.
 
 __Arguments__
 
-**init (any, optional)**: The initial memory of the plugin. Default is None.
+- **init (any, optional)**: The initial memory of the plugin. Default is None.
 
 __Call Arguments__
 
-**new_memory (any, optional)**: After emitting the current memorized value the current memory is overwritten by this value.
+- **new_memory (any, optional)**: After emitting the current memorized value the current memory is overwritten by this value.
 Will only be overwritten if the parameter is specified.
 
 __Result__

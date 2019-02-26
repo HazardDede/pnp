@@ -4,8 +4,8 @@ Emits every `wait` seconds the same `repeat`.
 
 __Arguments__
 
-**wait (int)**: Wait the amount of seconds before emitting the next repeat.<br/>
-**repeat (any)**: The object to emit.
+- **wait (int)**: Wait the amount of seconds before emitting the next repeat.
+- **repeat (any)**: The object to emit.
 
 __Result__
 

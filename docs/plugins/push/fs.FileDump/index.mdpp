@@ -8,13 +8,13 @@ Argument `binary_mode` controls whether the dump is binary (mode=wb) or text (mo
 
 __Arguments__
 
-**directory (str, optional)**: The target directory to store the dumps. Default is '.' (current directory).<br/>
-**file_name (str, optional)**: The name of the file to dump. If set to None a file name will be automatically
+- **directory (str, optional)**: The target directory to store the dumps. Default is '.' (current directory).
+- **file_name (str, optional)**: The name of the file to dump. If set to None a file name will be automatically
     generated. You can specify the file_name via the envelope, too. Envelope will override __init__ file name.
-    Default is None.<br/>
-**extension (str, optional)**: The extension to use when the file name is automatically generated. Can be overridden by
-    envelope. Default is '.dump'.<br/>
-**binary_mode (bool, optional)**: If set to True the file will be written in binary mode ('wb');
+    Default is None.
+- **extension (str, optional)**: The extension to use when the file name is automatically generated. Can be overridden by
+    envelope. Default is '.dump'.
+- **binary_mode (bool, optional)**: If set to True the file will be written in binary mode ('wb');
     otherwise in text mode ('w'). Default is False.
 
 __Result__

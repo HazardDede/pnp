@@ -7,8 +7,8 @@ Requires extra `fitbit`.
 
 __Arguments__
 
-**config (str)**: The configuration file that keeps your initial and refreshed authentication tokens (see below for detailed information).<br/>
-**system (str, optional)**: The metric system to use based on your localisation (de_DE, en_US, ...). Default is your configured metric system in your fitbit account<br/>
+- **config (str)**: The configuration file that keeps your initial and refreshed authentication tokens (see below for detailed information).
+- **system (str, optional)**: The metric system to use based on your localisation (de_DE, en_US, ...). Default is your configured metric system in your fitbit account
 
 __Result__
 
@@ -16,23 +16,23 @@ Emits a list that contains your available trackers and/or devices and their asso
 
 ```yaml
 [{
-	'battery': 'Empty',
-	'battery_level': 10,
-	'device_version': 'Charge 2',
-	'features': [],
-	'id': 'abc',
-	'last_sync_time': '2018-12-23T10:47:40.000',
-	'mac': 'AAAAAAAAAAAA',
-	'type': 'TRACKER'
+  'battery': 'Empty',
+  'battery_level': 10,
+  'device_version': 'Charge 2',
+  'features': [],
+  'id': 'abc',
+  'last_sync_time': '2018-12-23T10:47:40.000',
+  'mac': 'AAAAAAAAAAAA',
+  'type': 'TRACKER'
 }, {
-	'battery': 'High',
-	'battery_level': 95,
-	'device_version': 'Blaze',
-	'features': [],
-	'id': 'xyz',
-	'last_sync_time': '2019-01-02T10:48:39.000',
-	'mac': 'FFFFFFFFFFFF',
-	'type': 'TRACKER'
+  'battery': 'High',
+  'battery_level': 95,
+  'device_version': 'Blaze',
+  'features': [],
+  'id': 'xyz',
+  'last_sync_time': '2019-01-02T10:48:39.000',
+  'mac': 'FFFFFFFFFFFF',
+  'type': 'TRACKER'
 }]
 ```
 

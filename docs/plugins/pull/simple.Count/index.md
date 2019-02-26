@@ -5,9 +5,9 @@ If `to_cnt` is None the counter will count to infinity.
 
 __Arguments__
 
-**wait (int)**: Wait the amount of seconds before emitting the next counter.<br/>
-**from_cnt (int)**: Starting value of the counter.<br/>
-**to_cnt (int, optional)**: End value of the counter. If not passed set to "infinity" (precise: int.max).
+- **wait (int)**: Wait the amount of seconds before emitting the next counter.
+- **from_cnt (int)**: Starting value of the counter.
+- **to_cnt (int, optional)**: End value of the counter. If not passed set to "infinity" (precise: int.max).
 
 __Result__
 

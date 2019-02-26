@@ -4,14 +4,14 @@ Fetches the state of an entity from home assistant by a rest-api request.
 
 __Arguments__
 
-**url (str)**: The url to your home assistant instance (e.g. http://hass:8123)<br/>
-**token (str)**: The love live access token to get access to home assistant<br/>
-**timeout (Optional[int])**: Tell the request to stop waiting for a reponse after given number of seconds. Default is 5 seconds.
+- **url (str)**: The url to your home assistant instance (e.g. http://hass:8123)
+- **token (str)**: The love live access token to get access to home assistant
+- **timeout (Optional[int])**: Tell the request to stop waiting for a reponse after given number of seconds. Default is 5 seconds.
 
 __Call Arguments__
 
-**entity_id (str)**: The entity to fetch the state<br>
-**attribute (Optional[str])**: Optionally you can fetch the state of one of the entities attributes.
+- **entity_id (str)**: The entity to fetch the state<br>
+- **attribute (Optional[str])**: Optionally you can fetch the state of one of the entities attributes.
 Default is None (which means to fetch the state of the entity)
 
 __Result__

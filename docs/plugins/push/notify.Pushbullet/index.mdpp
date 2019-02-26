@@ -11,8 +11,8 @@ Requires extra `pushbullet`.
 
 __Arguments__
 
-**api_key (str)**: The api key to your pushbullet account.<br/>
-**title (str, optional)**: The title to use for your messages. Defaults to `pnp`</br>
+- **api_key (str)**: The api key to your pushbullet account.
+- **title (str, optional)**: The title to use for your messages. Defaults to `pnp`</br>
 
 __Result__
 
