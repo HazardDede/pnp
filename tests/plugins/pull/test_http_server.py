@@ -17,7 +17,7 @@ def get_free_tcp_port():
 
 
 def _run_test(url, data, assertion_fun, method=requests.get, allowed_methods='GET', status_code=200,
-              server_impl='gevent'):
+              server_impl='flask'):
     output = None
     def callback(plugin, payload):
         nonlocal output

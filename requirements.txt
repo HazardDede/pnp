@@ -1,10 +1,2 @@
 -e .[dropbox,fitbit,fswatcher,gmail,http-server,pushbullet,sound]
-
-bumpversion
-flake8
-mock
-pytest>=3.6
-pytest-cov
-setuptools
-twine
-MarkdownPP==1.4
+-r requirements.dev

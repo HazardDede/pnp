@@ -66,7 +66,7 @@ setup(
         'tzlocal>=1.5.0'
     ],
     extras_require={
-        'dht': ['Adafruit_DHT==1.3.2'],
+        'dht': ['Adafruit_DHT>=1.3.2'],
         'dropbox': ['dropbox>=9.0.0', 'urllib3>=1.20'],
         'fitbit': ['fitbit>=0.3.0'],
         'fswatcher': ['watchdog>=0.8.3'],
@@ -77,9 +77,6 @@ setup(
         'pushbullet': ['pushbullet.py>=0.10.0', 'urllib3>=1.20'],
         'sound': ['PyAudio>=0.2.11', 'scipy>=1.2.0']
     },
-    dependency_links=[
-        "git+https://github.com/adafruit/Adafruit_Python_DHT.git#egg=Adafruit_DHT-1.3.2"
-    ],
     python_requires='>=3.5',
     include_package_data=True,
     entry_points={

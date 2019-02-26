@@ -1,0 +1,33 @@
+#!/bin/bash
+
+#
+# NOTICE: Keep in sync with setup_prereqs
+#
+
+# Stop on errors
+set -e
+
+# Required debian packages for running pnp plugins
+PACKAGES=(
+    build-essential
+    # Some stuff needs to be compiled (c-source)
+    gcc
+)
+
+# Required debian packages for building dependencies
+PACKAGES_DEV=(
+)
+
+apt-get update -yy
+apt-get install -yy --no-install-recommends ${PACKAGES[@]} ${PACKAGES_DEV[@]}
+
+# Remove packages
+apt-get remove -y --purge ${PACKAGES_DEV[@]}
+apt-get -y --purge autoremove
+
+# Cleanup
+apt-get clean
+rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/src/app/build/
+
+# Update pip to latest
+pip3 install --upgrade --no-cache-dir pip setuptools wheel

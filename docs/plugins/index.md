@@ -827,6 +827,7 @@ cool down duration. Default is 10 seconds.<br/>
 Hints:
 * You can list your available input devices: `pnp_record_sound --list`
 * You can record a wav file from an input device: `pnp_record_sound <out.wav> <seconds_to_record> --index=<idx>`
+* This one is _not_ pre-installed when using the docker image. Would be grateful if anyone can integrate it
 
 
 __Result__
@@ -857,18 +858,6 @@ __Examples__
   push:
     - plugin: pnp.plugins.push.simple.Echo
 
-```
-
-__Docker__
-
-To use a microphone the docker container needs more permissions:
-
-```
-docker run -ti --rm \
-    --device /dev/snd:/dev/snd:r \
-    --privileged \
-    --cap-add=SYS_RAWIO
-    hazard/pnp
 ```
 ## pnp.plugins.pull.simple.Count
 
@@ -1289,6 +1278,8 @@ Known faces can be ingested either by a directory of known faces (`known_faces_d
 (dictionary: name -> [list of face files]).
 
 The `payload` passed to the `push` method is expected to be a valid byte array that represents an image in memory.
+
+Hint: This one is _not_ pre-installed when using the docker image. Would be grateful if anyone can integrate it
 
 __Arguments__
 

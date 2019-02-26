@@ -1,31 +1,50 @@
+#
+# Notice: Keep this file in sync with Dockerfile.arm32v7
+#
+
 FROM python:3.5-slim-stretch
 
-ENV WORKDIR=/pnp
-ENV CONFDIR=/config
-ENV PNP_LOG_CONF=${CONFDIR}/logging.yaml
-ENV LOGDIR=/logs
+LABEL maintainer="Dennis Muth <d.muth@gmx.net>"
 
-# alsa-utils:        To use the microphone correctly (if any)
-# gcc:               Some stuff needs to be compiled (c-source)
-# portaudio19-dev:   Necessary for pyAudio
-RUN apt-get update -yy && \
-    apt-get install -yy \
-        alsa-utils \
-        gcc \
-        portaudio19-dev
+# See below for BUILD ARG 'INSTALL_DEV_PACKAGES'
+# ARG INSTALL_DEV_PACKAGES="no"
 
+ENV CONFDIR=/config \
+    DEBIAN_FRONTEND="noninteractive" \
+    LOGDIR=/logs \
+    PNP_LOG_CONF=${CONFDIR}/logging.yaml \
+    PYTHONPATH=${WORKDIR} \
+    WORKDIR=/pnp
+
+# Volumes
+VOLUME ${CONFDIR}
+VOLUME ${LOGDIR}
+
+# Create directory structure
 RUN mkdir -p ${WORKDIR} && \
     mkdir -p ${CONFDIR} && \
     mkdir -p ${LOGDIR}
 
-COPY . ${WORKDIR}
+WORKDIR ${WORKDIR}
 
-RUN cd ${WORKDIR} && \
-    pip3 install \
-        --process-dependency-links \
-        .[dropbox,fitbit,fswatcher,gmail,http-server,pushbullet,sound]
+# Copy build scripts
+COPY docker/ docker/
+RUN docker/setup_prereqs
 
-VOLUME ${CONFDIR}
-VOLUME ${LOGDIR}
+# Copy setup.py and dependants
+COPY README.md setup.py ./
+
+RUN pip3 install \
+    --no-cache-dir \
+    .[dropbox,fitbit,fswatcher,gmail,http-server,pushbullet]
+
+COPY . .
+
+# Changing 'INSTALL_DEV_PACKAGES' has no effect on previous layers, but will force a recreation
+# Use the build arg in the last possible moment
+ARG INSTALL_DEV_PACKAGES="no"
+RUN test "${INSTALL_DEV_PACKAGES}" = "yes" \
+    && pip3 install --no-cache-dir -r requirements.dev \
+    || rm -rf tests/ requirements.dev docker
 
 CMD ["pnp", "/config/config.yaml"]

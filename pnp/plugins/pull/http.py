@@ -85,9 +85,8 @@ class Server(PullBase):
         super().stop()
         if self.server_impl == 'flask':
             requests.delete('http://localhost:{port}/_shutdown'.format(port=str(self.port)))
-        elif self.server_impl == 'gevent':
-            if self.server:
-                self.server.stop()
+        elif self.server_impl == 'gevent' and self.server:
+            self.server.stop()
 
     def _create_app(self):
         that = self

@@ -10,7 +10,7 @@ docs
 htmlcov
 pnp.egg-info
 scripts
-tests
+# tests
 venv
 
 .bumpversion.cfg

@@ -8,6 +8,8 @@ Known faces can be ingested either by a directory of known faces (`known_faces_d
 
 The `payload` passed to the `push` method is expected to be a valid byte array that represents an image in memory.
 
+Hint: This one is _not_ pre-installed when using the docker image. Would be grateful if anyone can integrate it
+
 __Arguments__
 
 **known_faces (dict<str, file_path as str>, optional)**: Mapping of a person's name to a list of images that contain

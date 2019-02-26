@@ -1,4 +1,4 @@
-.PHONY: clean-pyc clean-build clean docs lint test doctest version
+.PHONY: clean-pyc clean-build clean docs docker docker-arm lint test doctest version
 
 # Setup
 VERSION=0.15.0
@@ -66,10 +66,26 @@ doctest:
 		pytest --verbose --color=yes --doctest-modules $(SOURCE_PATH)
 
 docker:
-		docker build -t $(FULL_IMAGE_NAME) -f Dockerfile .
+	docker build \
+		--build-arg INSTALL_DEV_PACKAGES=yes \
+		-t $(FULL_IMAGE_NAME) \
+		-f Dockerfile .
+	docker run --rm $(FULL_IMAGE_NAME) pytest tests
+	docker build \
+		--build-arg INSTALL_DEV_PACKAGES=no \
+		-t $(FULL_IMAGE_NAME) \
+		-f Dockerfile .
 
 docker-arm:
-		docker build -t $(FULL_IMAGE_NAME_ARM) -f Dockerfile.arm32v7 .
+	docker build \
+		--build-arg INSTALL_DEV_PACKAGES=yes \
+		-t $(FULL_IMAGE_NAME_ARM) \
+		-f Dockerfile.arm32v7 .
+	docker run --rm $(FULL_IMAGE_NAME_ARM) pytest tests
+	docker build \
+		--build-arg INSTALL_DEV_PACKAGES=no \
+		-t $(FULL_IMAGE_NAME_ARM) \
+		-f Dockerfile.arm32v7 .
 
 docker-push: docker
 	docker push $(FULL_IMAGE_NAME)
