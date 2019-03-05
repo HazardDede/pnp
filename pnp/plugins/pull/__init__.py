@@ -60,7 +60,7 @@ class Polling(PullBase):
 
     def pull(self):
         self._scheduler = Scheduler()
-        self._scheduler.every(self._interval).seconds.do(self.run_schedule)
+        self._configure_scheduler(self._scheduler, self.run_schedule)
 
         if self._instant_run:
             self._scheduler.run_all()
@@ -72,12 +72,16 @@ class Polling(PullBase):
     def run_schedule(self):
         try:
             payload = self.poll()
-            self.notify(payload)
+            if payload is not None:
+                self.notify(payload)
         except StopPollingError:
             self.stop()
         except:  # pragma: no cover
             import traceback
             self.logger.error("[{name}]\n{error}".format(name=self.name, error=traceback.format_exc()))
+
+    def _configure_scheduler(self, scheduler, callback):
+        scheduler.every(self._interval).seconds.do(callback)
 
     @abstractmethod
     def poll(self):
