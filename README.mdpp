@@ -314,6 +314,7 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 * Adds raspberrypi specific stats (under voltage, throttle, ...) to `pull.monitor.stats`
 * Professionalizes docker image build process / Testing the container
 * Documentation cosmetics
+* Adds cron-like pull `pull.simple.Cron`
 
 **0.15.0**
 * Adds `push.mail.GMail` to send e-mails via the gmail api
