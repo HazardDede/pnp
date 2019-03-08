@@ -316,6 +316,7 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 * Documentation cosmetics
 * Adds cron-like pull `pull.simple.Cron`
 * Adds `pull.camera.MotionEyeWatcher` to watch a MotionEye directory to emit events
+* Adds `push.hass.Service` to call home assistant services by rest-api
 
 **0.15.0**
 * Adds `push.mail.GMail` to send e-mails via the gmail api

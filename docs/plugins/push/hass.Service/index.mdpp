@@ -1,0 +1,21 @@
+# pnp.plugins.push.hass.Service
+
+Calls a home assistant service providing the payload as service-data.
+
+__Arguments__
+
+- **url (str)**: The url to your home assistant instance (e.g. http://hass:8123)
+- **token (str)**: The love live access token to get access to home assistant
+- **domain (str)**: The domain the service.
+- **service (str)**: The name of the service.
+- **timeout (Optional[int])**: Tell the request to stop waiting for a reponse after given number of seconds. Default is 5 seconds.
+
+__Result__
+
+Returns the payload as-is for better chaining (this plugin can't add any useful information).
+
+__Examples__
+
+!INCLUDECODE "docs/plugins/push/hass.Service/example.yaml" (yaml)
+
+!INCLUDECODE "docs/plugins/push/hass.Service/example2.yaml" (yaml)

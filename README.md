@@ -49,19 +49,20 @@
 6.17\.  [pnp.plugins.pull.zway.ZwayPoll](#pnp.plugins.pull.zway.zwaypoll)  
 6.18\.  [pnp.plugins.pull.zway.ZwayReceiver](#pnp.plugins.pull.zway.zwayreceiver)  
 6.19\.  [pnp.plugins.push.fs.FileDump](#pnp.plugins.push.fs.filedump)  
-6.20\.  [pnp.plugins.push.http.Call](#pnp.plugins.push.http.call)  
-6.21\.  [pnp.plugins.push.mail.GMail](#pnp.plugins.push.mail.gmail)  
-6.22\.  [pnp.plugins.push.ml.FaceR](#pnp.plugins.push.ml.facer)  
-6.23\.  [pnp.plugins.push.mqtt.Discovery](#pnp.plugins.push.mqtt.discovery)  
-6.24\.  [pnp.plugins.push.mqtt.Publish](#pnp.plugins.push.mqtt.publish)  
-6.25\.  [pnp.plugins.push.notify.Pushbullet](#pnp.plugins.push.notify.pushbullet)  
-6.26\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
-6.27\.  [pnp.plugins.push.simple.Execute](#pnp.plugins.push.simple.execute)  
-6.28\.  [pnp.plugins.push.storage.Dropbox](#pnp.plugins.push.storage.dropbox)  
-6.29\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
-6.30\.  [pnp.plugins.udf.hass.State](#pnp.plugins.udf.hass.state)  
-6.31\.  [pnp.plugins.udf.simple.Counter](#pnp.plugins.udf.simple.counter)  
-6.32\.  [pnp.plugins.udf.simple.Memory](#pnp.plugins.udf.simple.memory)  
+6.20\.  [pnp.plugins.push.hass.Service](#pnp.plugins.push.hass.service)  
+6.21\.  [pnp.plugins.push.http.Call](#pnp.plugins.push.http.call)  
+6.22\.  [pnp.plugins.push.mail.GMail](#pnp.plugins.push.mail.gmail)  
+6.23\.  [pnp.plugins.push.ml.FaceR](#pnp.plugins.push.ml.facer)  
+6.24\.  [pnp.plugins.push.mqtt.Discovery](#pnp.plugins.push.mqtt.discovery)  
+6.25\.  [pnp.plugins.push.mqtt.Publish](#pnp.plugins.push.mqtt.publish)  
+6.26\.  [pnp.plugins.push.notify.Pushbullet](#pnp.plugins.push.notify.pushbullet)  
+6.27\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
+6.28\.  [pnp.plugins.push.simple.Execute](#pnp.plugins.push.simple.execute)  
+6.29\.  [pnp.plugins.push.storage.Dropbox](#pnp.plugins.push.storage.dropbox)  
+6.30\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
+6.31\.  [pnp.plugins.udf.hass.State](#pnp.plugins.udf.hass.state)  
+6.32\.  [pnp.plugins.udf.simple.Counter](#pnp.plugins.udf.simple.counter)  
+6.33\.  [pnp.plugins.udf.simple.Memory](#pnp.plugins.udf.simple.memory)  
 7\.  [Changelog](#changelog)  
 
 <a name="installation"></a>
@@ -1992,9 +1993,68 @@ __Examples__
     deps:
       - plugin: pnp.plugins.push.simple.Echo
 ```
+<a name="pnp.plugins.push.hass.service"></a>
+
+### 6.20\. pnp.plugins.push.hass.Service
+
+Calls a home assistant service providing the payload as service-data.
+
+__Arguments__
+
+- **url (str)**: The url to your home assistant instance (e.g. http://hass:8123)
+- **token (str)**: The love live access token to get access to home assistant
+- **domain (str)**: The domain the service.
+- **service (str)**: The name of the service.
+- **timeout (Optional[int])**: Tell the request to stop waiting for a reponse after given number of seconds. Default is 5 seconds.
+
+__Result__
+
+Returns the payload as-is for better chaining (this plugin can't add any useful information).
+
+__Examples__
+
+```yaml
+###
+### Calls the frontend.set_theme service to oscillate between a "light" and a "dark" theme
+###
+- name: hass_service
+  pull:
+    plugin: pnp.plugins.pull.simple.Count
+    args:
+      wait: 10
+  push:
+    plugin: pnp.plugins.push.hass.Service
+    selector:
+      name: "lambda i: 'clear' if i % 2 == 0 else 'dark'"
+    args:
+      url: http://localhost:8123
+      token: "{{env::HA_TOKEN}}"
+      domain: frontend
+      service: set_theme
+```
+
+```yaml
+###
+### Calls the notify.pushbullet service to send a message with the actual counter
+###
+- name: hass_service
+  pull:
+    plugin: pnp.plugins.pull.simple.Count
+    args:
+      wait: 10
+  push:
+    plugin: pnp.plugins.push.hass.Service
+    selector:
+      message: "lambda i: 'Counter: ' + str(i)"
+    args:
+      url: http://localhost:8123
+      token: "{{env::HA_TOKEN}}"
+      domain: notify
+      service: pushbullet
+```
 <a name="pnp.plugins.push.http.call"></a>
 
-### 6.20\. pnp.plugins.push.http.Call
+### 6.21\. pnp.plugins.push.http.Call
 
 Makes a request to a http resource.
 
@@ -2083,7 +2143,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.mail.gmail"></a>
 
-### 6.21\. pnp.plugins.push.mail.GMail
+### 6.22\. pnp.plugins.push.mail.GMail
 
 Sends an e-mail via the `gmail api`.
 
@@ -2143,7 +2203,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.ml.facer"></a>
 
-### 6.22\. pnp.plugins.push.ml.FaceR
+### 6.23\. pnp.plugins.push.ml.FaceR
 
 FaceR (short one for face recognition) tags known faces in images. Output is the image with all faces tagged whether
 with the known name or an `unknown_label`. Default for unknown ones is 'Unknown'.
@@ -2202,7 +2262,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.mqtt.discovery"></a>
 
-### 6.23\. pnp.plugins.push.mqtt.Discovery
+### 6.24\. pnp.plugins.push.mqtt.Discovery
 
 TBD
 
@@ -2278,7 +2338,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.mqtt.publish"></a>
 
-### 6.24\. pnp.plugins.push.mqtt.Publish
+### 6.25\. pnp.plugins.push.mqtt.Publish
 
 Will push the given `payload` to a mqtt broker (in this case mosquitto).
 The broker is specified by `host` and `port`. In addition a topic needs to be specified were the payload
@@ -2362,7 +2422,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.notify.pushbullet"></a>
 
-### 6.25\. pnp.plugins.push.notify.Pushbullet
+### 6.26\. pnp.plugins.push.notify.Pushbullet
 
 Sends a message to the [Pushbullet](http://www.pushbullet.com) service.
 The type of the message will guessed:
@@ -2405,7 +2465,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.simple.echo"></a>
 
-### 6.26\. pnp.plugins.push.simple.Echo
+### 6.27\. pnp.plugins.push.simple.Echo
 
 Simply log the passed payload to the default logging instance.
 
@@ -2432,7 +2492,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.simple.execute"></a>
 
-### 6.27\. pnp.plugins.push.simple.Execute
+### 6.28\. pnp.plugins.push.simple.Execute
 
 Executes a command with given arguments in a shell of the operating system.
 
@@ -2485,7 +2545,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.storage.dropbox"></a>
 
-### 6.28\. pnp.plugins.push.storage.Dropbox
+### 6.29\. pnp.plugins.push.storage.Dropbox
 
 Uploads provided file to the specified dropbox account.
 
@@ -2544,7 +2604,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.timedb.influxpush"></a>
 
-### 6.29\. pnp.plugins.push.timedb.InfluxPush
+### 6.30\. pnp.plugins.push.timedb.InfluxPush
 
 Pushes the given `payload` to an influx database using the line `protocol`.
 You have to specify `host`, `port`, `user`, `password` and the `database`.
@@ -2594,7 +2654,7 @@ __Examples__
 
 <a name="pnp.plugins.udf.hass.state"></a>
 
-### 6.30\. pnp.plugins.udf.hass.State
+### 6.31\. pnp.plugins.udf.hass.State
 
 Fetches the state of an entity from home assistant by a rest-api request.
 
@@ -2642,7 +2702,7 @@ tasks:
 ```
 <a name="pnp.plugins.udf.simple.counter"></a>
 
-### 6.31\. pnp.plugins.udf.simple.Counter
+### 6.32\. pnp.plugins.udf.simple.Counter
 
 Memories a counter value which is increased everytime you call the udf.
 
@@ -2678,7 +2738,7 @@ tasks:
 ```
 <a name="pnp.plugins.udf.simple.memory"></a>
 
-### 6.32\. pnp.plugins.udf.simple.Memory
+### 6.33\. pnp.plugins.udf.simple.Memory
 
 Returns a previously memorized value when called.
 
@@ -2733,6 +2793,7 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 * Documentation cosmetics
 * Adds cron-like pull `pull.simple.Cron`
 * Adds `pull.camera.MotionEyeWatcher` to watch a MotionEye directory to emit events
+* Adds `push.hass.Service` to call home assistant services by rest-api
 
 **0.15.0**
 * Adds `push.mail.GMail` to send e-mails via the gmail api
