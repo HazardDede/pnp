@@ -1,5 +1,6 @@
 # Plugins
 
+!INCLUDE "docs/plugins/pull/camera.MotionEyeWatcher/index.md", 1
 !INCLUDE "docs/plugins/pull/fitbit.Current/index.md", 1
 !INCLUDE "docs/plugins/pull/fitbit.Devices/index.md", 1
 !INCLUDE "docs/plugins/pull/fitbit.Goal/index.md", 1

@@ -315,6 +315,7 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 * Professionalizes docker image build process / Testing the container
 * Documentation cosmetics
 * Adds cron-like pull `pull.simple.Cron`
+* Adds `pull.camera.MotionEyeWatcher` to watch a MotionEye directory to emit events
 
 **0.15.0**
 * Adds `push.mail.GMail` to send e-mails via the gmail api

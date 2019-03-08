@@ -1,0 +1,55 @@
+# pnp.plugins.pull.camera.MotionEyeWatcher
+
+Watches a motioneye directory (where the images and the movies get persisted from motioneye) to trigger some useful events
+based on new / modified files. The motion event only works, when the camera is configured to persist images / movies
+only when motion is triggered and not 24/7.
+
+For example I use this plugin to publish a binary motion sensor via mqtt discovery to home assistant and upload the
+images and videos to dropbox and notify me via pushbullet.
+
+Requires extra `fswatcher`.
+
+__Arguments__
+
+- **path (str)**: The motioneye media directory to watch.
+- **image_ext (Optional[str])**: The file extension of your image files. Default is 'jpg'. Deactivate with None.
+- **movie_ext (Optional[str])**: The file extension of your movie files. Default is 'mp4'. Deactivate with None.
+- **motion_cool_down (Optional[bool])**: Based on created/modified files a motion event might be triggered. After the specified time without motion, the `motion off` event will be triggered.
+- **defer_modified (float, optional)**: If set greater than 0, it will defer the sending of modified events for that
+    amount of time (seconds). There might be multiple flushes of a file before it is written completely to disk.
+    Without defer_modified each flush will raise a modified event. Default is 0.5.
+
+__Result__
+
+Example of a new movie file:
+
+```yaml
+{
+  event: "movie",
+  source: "abs/path/to/the/movie/file.mp4"
+}
+```
+
+Example of a new image file:
+
+```yaml
+{
+  event: "image",
+  source: "abs/path/to/the/image/file.mp4"
+}
+```
+
+Example of a new motion on/off event:
+
+```yaml
+{
+  event: "motion",
+  state: "on"  # or "off"
+}
+```
+
+__Examples__
+
+!INCLUDECODE "docs/plugins/pull/camera.MotionEyeWatcher/example.yaml" (yaml)
+
+!INCLUDECODE "docs/plugins/pull/camera.MotionEyeWatcher/example2.yaml" (yaml)

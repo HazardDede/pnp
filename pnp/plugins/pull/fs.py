@@ -19,7 +19,7 @@ class FileSystemWatcher(PullBase):
         recursive (bool): If set to True, any subfolders of the given path will be tracked too.
         patterns (str or list): Any file pattern (e.g. *.txt or [*.txt, *.md].
         ignore_patterns (str or list): Any patterns to ignore (specify like argument patterns).
-        ignore_directories (str): If set to True will send events for directories when file change.
+        ignore_directories (bool): If set to True will send events for directories when file change.
         case_sensitive (bool): If set to True, any pattern is case_sensitive, otherwise it is case insensitive.
         events (str or list): The events to track. One or multiple of 'moved', 'deleted', 'created' and/or 'modified'.
         load_file (bool): If set to True the file will be loaded to the result.

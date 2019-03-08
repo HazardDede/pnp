@@ -1,0 +1,51 @@
+# Publishes a binary motion sensor to home assistant via mqtt discovery  ...
+# ... and uploads images and movies to dropbox when nobody is home and motion is detected
+
+# Make sure to set the following env vars correctly:
+# - MOTIONEYE_MEDIA_PATH: The path where motioneye puts the media files
+# - HA_TOKEN: Your home assistant long lived access token
+# - DROPBOX_API_KEY: Your dropbox api key
+# - PUSHBULLET_API_KEY: Your pushbullet api key
+
+udfs:
+- name: hass_state
+  plugin: pnp.plugins.udf.hass.State
+  args:
+    url: http://services:8123
+    token: "{{env::HA_TOKEN}}"
+tasks:
+- name: motioneye_watcher
+  pull:
+    plugin: pnp.plugins.pull.camera.MotionEyeWatcher
+    args:
+      path: "{{env::MOTIONEYE_MEDIA_PATH}}"
+      image_ext: jpg
+      movie_ext: mp4
+      motion_cool_down: 30s
+      defer_modified: 5
+  push:
+  - plugin: pnp.plugins.push.simple.Nop
+    selector: "data.state if data.event == 'motion' else SUPPRESS"
+    deps:
+    - plugin: pnp.plugins.push.mqtt.Discovery
+      selector:
+        data: "lambda data: data"
+        object_id: "motion01_motion"
+      args:
+        host: services
+        discovery_prefix: homeassistant
+        component: binary_sensor
+        config:
+          name: "{{var::object_id}}"
+          device_class: "motion"
+          payload_on: "on"
+          payload_off: "off"
+  - plugin: pnp.plugins.push.storage.Dropbox
+    selector: "dict(data=data.source, target_file_name=basename(data.source)) if data.event in ['image', 'movie'] and hass_state('group.all_devices') == 'not_home' else SUPPRESS"
+    args:
+      api_key: "{{env::DROPBOX_API_KEY}}"
+    deps:
+    - plugin: pnp.plugins.push.notify.Pushbullet
+      selector: data.raw_link
+      args:
+        api_key: "{{env::PUSHBULLET_API_KEY}}"
