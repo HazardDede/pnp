@@ -53,3 +53,5 @@ __Examples__
 !INCLUDECODE "docs/plugins/pull/camera.MotionEyeWatcher/example.yaml" (yaml)
 
 !INCLUDECODE "docs/plugins/pull/camera.MotionEyeWatcher/example2.yaml" (yaml)
+
+!INCLUDECODE "docs/plugins/pull/camera.MotionEyeWatcher/push_camera.sh" (bash)

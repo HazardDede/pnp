@@ -4,7 +4,7 @@
   pull:
     plugin: pnp.plugins.pull.camera.MotionEyeWatcher
     args:
-      path: "/tmp"
+      path: "{{env::MOTIONEYE_MEDIA_PATH}}"
       image_ext: jpg
       movie_ext: mp4
       motion_cool_down: 30s
