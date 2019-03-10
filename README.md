@@ -2502,7 +2502,9 @@ __Arguments__
 
 - **command (str)**: The command to execute.
 - **args (str or iterable, optional)**: The arguments to pass to the command. Default is no arguments.
-- **cwd (str, optional)**: Specifies where to execute the command (working directory). Default is current working directory.
+May be overridden by envelope key `args`. See example in the Examples section.
+- **cwd (str, optional)**: Specifies where to execute the command (working directory).
+Default is the folder where the invoked pnp-configuration is located.
 - **timeout (duration literal, optional)**: Specifies how long the worker should wait for the command to finish.</br>
 - **capture (bool, optional)**: If True stdout and stderr output is captured, otherwise not.
 
@@ -2538,7 +2540,30 @@ __Examples__
         - "-1d"
         - "+%Y-%m-%d"
       timeout: 2s
-      cwd:  # None -> current directory
+      cwd:  # None -> pnp-configuration directory
+      capture: True  # Capture stdout and stderr
+    deps:
+      - plugin: pnp.plugins.push.simple.Echo
+```
+
+```yaml
+- name: execute
+  pull:
+    plugin: pnp.plugins.pull.simple.Count
+    args:
+      wait: 1
+      from_cnt: 1
+      to_cnt: 10
+  push:
+    plugin: pnp.plugins.push.simple.Execute
+    selector:
+      data:
+      args:
+        - "lambda data: str(data)"  # The actual count as first argument
+    args:
+      command: echo  # The command to execute
+      timeout: 2s
+      cwd:  # None -> pnp-configuration directory
       capture: True  # Capture stdout and stderr
     deps:
       - plugin: pnp.plugins.push.simple.Echo
@@ -2788,12 +2813,13 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 
 **unreleased**
 * Adds `ignore_overflow` argument to `pull.sensor.Sound` to ignore buffer overflows errors on slow devices
-* Adds raspberrypi specific stats (under voltage, throttle, ...) to `pull.monitor.stats`
+* Possible breaking: Adds raspberrypi specific stats (under voltage, throttle, ...) to `pull.monitor.stats`
 * Professionalizes docker image build process / Testing the container
 * Documentation cosmetics
 * Adds cron-like pull `pull.simple.Cron`
 * Adds `pull.camera.MotionEyeWatcher` to watch a MotionEye directory to emit events
 * Adds `push.hass.Service` to call home assistant services by rest-api
+* Breaking: New default value of `cwd` argument of `push.simple.Execute` is now the folder where the invoked pnp-configuration is located and not the current working directory anymore
 
 **0.15.0**
 * Adds `push.mail.GMail` to send e-mails via the gmail api

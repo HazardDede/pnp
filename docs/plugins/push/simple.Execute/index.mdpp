@@ -8,7 +8,9 @@ __Arguments__
 
 - **command (str)**: The command to execute.
 - **args (str or iterable, optional)**: The arguments to pass to the command. Default is no arguments.
-- **cwd (str, optional)**: Specifies where to execute the command (working directory). Default is current working directory.
+May be overridden by envelope key `args`. See example in the Examples section.
+- **cwd (str, optional)**: Specifies where to execute the command (working directory).
+Default is the folder where the invoked pnp-configuration is located.
 - **timeout (duration literal, optional)**: Specifies how long the worker should wait for the command to finish.</br>
 - **capture (bool, optional)**: If True stdout and stderr output is captured, otherwise not.
 
@@ -28,3 +30,5 @@ Returns a dictionary that contains the `return_code` and optionally the output f
 __Examples__
 
 !INCLUDECODE "docs/plugins/push/simple.Execute/example.yaml" (yaml)
+
+!INCLUDECODE "docs/plugins/push/simple.Execute/example2.yaml" (yaml)

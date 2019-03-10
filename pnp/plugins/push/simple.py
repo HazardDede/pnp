@@ -50,12 +50,15 @@ class Execute(PushBase):
     Executes a command with given arguments in a shell of the operating system.
 
     Will return the exit code of the command and optionally the output from stdout and stderr.
+
+    See Also:
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/simple.Execute/index.md
     """
     def __init__(self, command, args=None, cwd=None, capture=True, timeout="5s", **kwargs):
         super().__init__(**kwargs)
         self._command = str(command) if command else None
         self._args = self._parse_args(args)
-        self._cwd = str(cwd) if cwd else None
+        self._cwd = str(cwd) if cwd else self.base_path
         Validator.is_directory(allow_none=True, cwd=self._cwd)
         self._capture = bool(capture)
         self._timeout = timeout and parse_duration_literal(timeout)

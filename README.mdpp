@@ -311,12 +311,13 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 
 **unreleased**
 * Adds `ignore_overflow` argument to `pull.sensor.Sound` to ignore buffer overflows errors on slow devices
-* Adds raspberrypi specific stats (under voltage, throttle, ...) to `pull.monitor.stats`
+* Possible breaking: Adds raspberrypi specific stats (under voltage, throttle, ...) to `pull.monitor.stats`
 * Professionalizes docker image build process / Testing the container
 * Documentation cosmetics
 * Adds cron-like pull `pull.simple.Cron`
 * Adds `pull.camera.MotionEyeWatcher` to watch a MotionEye directory to emit events
 * Adds `push.hass.Service` to call home assistant services by rest-api
+* Breaking: New default value of `cwd` argument of `push.simple.Execute` is now the folder where the invoked pnp-configuration is located and not the current working directory anymore
 
 **0.15.0**
 * Adds `push.mail.GMail` to send e-mails via the gmail api

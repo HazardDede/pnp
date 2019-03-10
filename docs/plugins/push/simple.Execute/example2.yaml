@@ -7,12 +7,12 @@
       to_cnt: 10
   push:
     plugin: pnp.plugins.push.simple.Execute
+    selector:
+      data:
+      args:
+        - "lambda data: str(data)"  # The actual count as first argument
     args:
-      command: date  # The command to execute
-      args:  # Argument passed to the command
-        - "-v"
-        - "-1d"
-        - "+%Y-%m-%d"
+      command: echo  # The command to execute
       timeout: 2s
       cwd:  # None -> pnp-configuration directory
       capture: True  # Capture stdout and stderr
