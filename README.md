@@ -712,7 +712,7 @@ Example of a new image file:
 ```yaml
 {
   event: "image",
-  source: "abs/path/to/the/image/file.mp4"
+  source: "abs/path/to/the/image/file.jpg"
 }
 ```
 

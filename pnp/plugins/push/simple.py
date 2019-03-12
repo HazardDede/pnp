@@ -1,4 +1,7 @@
+import warnings
+
 from . import PushBase
+from ...shared.exc import TemplateError
 from ...utils import is_iterable_but_no_str, parse_duration_literal
 from ...validator import Validator
 
@@ -45,14 +48,16 @@ class Nop(PushBase):
         return payload
 
 
-class Execute(PushBase):
+class TemplatedExecute(PushBase):
     """
     Executes a command with given arguments in a shell of the operating system.
+    Both `command` and `args` may include placeholders (e.g. `{{placeholder}}`) which are injected at runtime
+    by passing the specified payload after selector transformation. Please see the Examples section for further details.
 
     Will return the exit code of the command and optionally the output from stdout and stderr.
 
     See Also:
-        https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/simple.Execute/index.md
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/simple.TemplatedExecute/index.md
     """
     def __init__(self, command, args=None, cwd=None, capture=True, timeout="5s", **kwargs):
         super().__init__(**kwargs)
@@ -63,6 +68,17 @@ class Execute(PushBase):
         self._capture = bool(capture)
         self._timeout = timeout and parse_duration_literal(timeout)
 
+    @staticmethod
+    def _render_jinja_template(template, **kwargs):
+        from jinja2 import StrictUndefined
+        from jinja2 import Template
+        from jinja2.exceptions import UndefinedError
+        try:
+            tpl = Template(template, undefined=StrictUndefined)
+            return tpl.render(**kwargs)
+        except UndefinedError as exc:
+            raise TemplateError('Error when rendering template in TemplatedExecute') from exc
+
     def _parse_args(self, val):
         if not val:
             return None
@@ -71,20 +87,14 @@ class Execute(PushBase):
             return " ".join(val)
         return str(val)
 
-    def _execute(self, args):
+    def _execute(self, command_str):
         def _output(br):
             return [line.strip('\n\r') for line in br]
 
-        def _command_str():
-            if not args:
-                return self._command
-            return "{self._command} {args}".format(**locals())
-
         import subprocess
-        cmd_str = _command_str()
-        self.logger.info("[{self.name}] Running command in shell: {cmd_str}".format(**locals()))
+        self.logger.info("[{self.name}] Running command in shell: {command_str}".format(**locals()))
         p = subprocess.Popen(
-            args=cmd_str,
+            args=command_str,
             shell=True,
             cwd=self._cwd,
             universal_newlines=True,
@@ -93,7 +103,7 @@ class Execute(PushBase):
         )
         try:
             if self._timeout:
-                p.wait(timeout=self._timeout)
+                p.wait(timeout=int(self._timeout))
 
             res = dict(return_code=p.returncode)
             if self._capture:
@@ -105,7 +115,46 @@ class Execute(PushBase):
             p.stderr.close()
 
     def push(self, payload):
+        if isinstance(payload, dict):
+            command_str = self._render_jinja_template(self._command, **payload)
+            if self._args:
+                args = self._render_jinja_template(self._args, **payload)
+                command_str = "{command_str} {args}".format(**locals())
+        else:
+            command_str = "{self._command}".format(**locals())
+            if self._args:
+                command_str = "{command_str} {self._args}".format(**locals())
+
+        return self._execute(command_str)
+
+
+class Execute(TemplatedExecute):
+    """
+    Executes a command with given arguments in a shell of the operating system.
+
+    Will return the exit code of the command and optionally the output from stdout and stderr.
+
+    See Also:
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/simple.Execute/index.md
+    """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        warnings.simplefilter('always', DeprecationWarning)
+        warnings.warn(
+            "Plugin `pnp.plugins.push.simple.Execute` is deprecated."
+            " Please use `pnp.plugins.push.simple.TemplatedExecute`."
+            " In the near future `Execute` will be replaced by `TemplatedExecute`.",
+            category=DeprecationWarning,
+            stacklevel=2
+        )
+        warnings.simplefilter('default', DeprecationWarning)
+
+    def push(self, payload):
         envelope, real_payload = self.envelope_payload(payload)
         args = self._parse_envelope_value('args', envelope)  # Override args via envelope
 
-        return self._execute(args)
+        command_str = self._command
+        if args:
+            command_str = "{command_str} {args}".format(**locals())
+
+        return self._execute(command_str)
