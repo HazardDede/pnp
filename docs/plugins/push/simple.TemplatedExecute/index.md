@@ -58,3 +58,26 @@ __Examples__
     deps:
       - plugin: pnp.plugins.push.simple.Echo
 ```
+
+```yaml
+- name: templated_execute
+  pull:
+    plugin: pnp.plugins.pull.simple.Count
+    args:
+      wait: 1
+      from_cnt: 1
+  push:
+    plugin: pnp.plugins.push.simple.TemplatedExecute
+    selector:
+      command: echo
+      salutation: "\"hello you\""
+    args:
+      command: "{{command}}"  # The command to execute (passed by selector)
+      args:
+        - "{{salutation}}"
+      timeout: 2s
+      cwd:  # None -> pnp-configuration directory
+      capture: True  # Capture stdout and stderr
+    deps:
+      - plugin: pnp.plugins.push.simple.Echo
+```

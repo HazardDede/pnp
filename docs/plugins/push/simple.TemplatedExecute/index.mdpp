@@ -32,3 +32,5 @@ Returns a dictionary that contains the `return_code` and optionally the output f
 __Examples__
 
 !INCLUDECODE "docs/plugins/push/simple.TemplatedExecute/example1.yaml" (yaml)
+
+!INCLUDECODE "docs/plugins/push/simple.TemplatedExecute/example2.yaml" (yaml)

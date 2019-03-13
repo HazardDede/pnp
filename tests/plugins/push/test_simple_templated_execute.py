@@ -40,7 +40,8 @@ def test_execute_push_with_args(mock_popen):
     dut = TemplatedExecute(command="echo", args='-e "hello\nyou"', name='pytest')
     res = dut.push(None)
 
-    mock_popen.assert_called_with(args='echo -e "hello\nyou"', cwd=dut.base_path, shell=True, stderr=-1, stdout=-1, universal_newlines=True)
+    mock_popen.assert_called_with(args='echo "-e \\\"hello\nyou\\\""', cwd=dut.base_path, shell=True, stderr=-1,
+                                  stdout=-1, universal_newlines=True)
     assert isinstance(res, dict)
     assert {'return_code', 'stdout', 'stderr'} == set(res.keys())
     assert res['return_code'] == 0
@@ -49,7 +50,8 @@ def test_execute_push_with_args(mock_popen):
 
     dut = TemplatedExecute(command="echo", args=['-e', '"hello\nyou"'], name='pytest', cwd="/tmp")
     dut.push(None)
-    mock_popen.assert_called_with(args='echo -e "hello\nyou"', cwd="/tmp", shell=True, stderr=-1, stdout=-1, universal_newlines=True)
+    mock_popen.assert_called_with(args='echo "-e" "\\\"hello\nyou\\\""', cwd="/tmp", shell=True, stderr=-1, stdout=-1,
+                                  universal_newlines=True)
 
 
 @mock.patch('subprocess.Popen')
@@ -77,7 +79,7 @@ def test_execute_push_with_args_and_payload(mock_popen):
     dut = TemplatedExecute(command="{{command}}", args=['hello', '{{name}}', '!'], capture=True, name='pytest')
     res = dut.push(dict(command='echo', name='dude'))
 
-    mock_popen.assert_called_with(args='echo hello dude !', cwd=dut.base_path, shell=True, stderr=-1, stdout=-1, universal_newlines=True)
+    mock_popen.assert_called_with(args='echo "hello" "dude" "!"', cwd=dut.base_path, shell=True, stderr=-1, stdout=-1, universal_newlines=True)
     assert isinstance(res, dict)
     assert {'return_code', 'stdout', 'stderr'} == set(res.keys())
     assert res['return_code'] == 0
@@ -98,7 +100,7 @@ def test_execute_push_with_unused_template_var(mock_popen):
     dut = TemplatedExecute(command="{{command}}", args=['hello', '{{name}}', '!'], capture=True, name='pytest')
 
     dut.push(dict(command='echo', name="you", toomuch="I am not used"))
-    mock_popen.assert_called_with(args='echo hello you !', cwd=dut.base_path, shell=True, stderr=-1, stdout=-1,
+    mock_popen.assert_called_with(args='echo "hello" "you" "!"', cwd=dut.base_path, shell=True, stderr=-1, stdout=-1,
                                   universal_newlines=True)
 
 
@@ -107,5 +109,27 @@ def test_execute_push_with_dict_in_dict_referencing(mock_popen):
     dut = TemplatedExecute(command="{{command}}", args=['hello', '{{label.name}}', '!'], capture=True, name='pytest')
 
     dut.push(dict(command='echo', label=dict(name="you")))
-    mock_popen.assert_called_with(args='echo hello you !', cwd=dut.base_path, shell=True, stderr=-1, stdout=-1,
+    mock_popen.assert_called_with(args='echo "hello" "you" "!"', cwd=dut.base_path, shell=True, stderr=-1, stdout=-1,
+                                  universal_newlines=True)
+
+
+@mock.patch('subprocess.Popen')
+def test_execute_push_with_empty_and_none_args(mock_popen):
+    dut = TemplatedExecute(command="{{command}}", args=['hello', '{{label.name}}', '!'], capture=True, name='pytest')
+
+    dut.push(dict(command='echo', label=dict(name="")))
+    mock_popen.assert_called_with(args='echo "hello" "!"', cwd=dut.base_path, shell=True, stderr=-1, stdout=-1,
+                                  universal_newlines=True)
+
+    dut.push(dict(command='echo', label=dict(name=None)))
+    mock_popen.assert_called_with(args='echo "hello" "!"', cwd=dut.base_path, shell=True, stderr=-1, stdout=-1,
+                                  universal_newlines=True)
+
+
+@mock.patch('subprocess.Popen')
+def test_execute_push_with_no_dict_as_args(mock_popen):
+    dut = TemplatedExecute(command="echo", args=['hello', '{{payload}}', '!'], capture=True, name='pytest')
+
+    dut.push("no dict")
+    mock_popen.assert_called_with(args='echo "hello" "no dict" "!"', cwd=dut.base_path, shell=True, stderr=-1, stdout=-1,
                                   universal_newlines=True)

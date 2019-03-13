@@ -1,8 +1,9 @@
 import warnings
+from functools import partial
 
 from . import PushBase
 from ...shared.exc import TemplateError
-from ...utils import is_iterable_but_no_str, parse_duration_literal
+from ...utils import parse_duration_literal, make_list
 from ...validator import Validator
 
 
@@ -69,23 +70,40 @@ class TemplatedExecute(PushBase):
         self._timeout = timeout and parse_duration_literal(timeout)
 
     @staticmethod
-    def _render_jinja_template(template, **kwargs):
+    def _render_jinja_template(template, subs):
         from jinja2 import StrictUndefined
         from jinja2 import Template
         from jinja2.exceptions import UndefinedError
         try:
             tpl = Template(template, undefined=StrictUndefined)
-            return tpl.render(**kwargs)
+            return tpl.render(**(subs or {}))
         except UndefinedError as exc:
             raise TemplateError('Error when rendering template in TemplatedExecute') from exc
 
     def _parse_args(self, val):
-        if not val:
+        args = make_list(val)
+        if args:
+            return [str(arg) for arg in args]
+
+    def _serialize_args(self, transform_fun=None, add_quotes=True):
+        def escape_fun(arg):
+            return str(arg).replace('"', '\\"')
+
+        def quotes_fun(arg):
+            if arg is None or len(str(arg)) == 0 or str(arg).strip() == 'None':
+                return ''
+            return '"{}"'.format(escape_fun(arg)) if add_quotes else str(arg)
+
+        args = self._args
+        if not args:
             return None
-        # Check for list type
-        if is_iterable_but_no_str(val):
-            return " ".join(val)
-        return str(val)
+        if transform_fun:
+            args = [transform_fun(arg) for arg in args]
+        # Do argument quoting
+        args = [quotes_fun(arg) for arg in args]
+        # Remove empty args
+        args = [arg for arg in args if arg != '']
+        return " ".join(args)
 
     def _execute(self, command_str):
         def _output(br):
@@ -116,14 +134,17 @@ class TemplatedExecute(PushBase):
 
     def push(self, payload):
         if isinstance(payload, dict):
-            command_str = self._render_jinja_template(self._command, **payload)
-            if self._args:
-                args = self._render_jinja_template(self._args, **payload)
-                command_str = "{command_str} {args}".format(**locals())
+            subs = payload
         else:
-            command_str = "{self._command}".format(**locals())
-            if self._args:
-                command_str = "{command_str} {self._args}".format(**locals())
+            subs = dict(data=payload, payload=payload)
+
+        command_str = self._render_jinja_template(self._command, subs=subs)
+        if self._args:
+            args = self._serialize_args(
+                transform_fun=partial(self._render_jinja_template, subs=subs),
+                add_quotes=True
+            )
+            command_str = "{command_str} {args}".format(**locals())
 
         return self._execute(command_str)
 
@@ -155,6 +176,10 @@ class Execute(TemplatedExecute):
 
         command_str = self._command
         if args:
+            args = self._serialize_args(
+                transform_fun=None,
+                add_quotes=False
+            )
             command_str = "{command_str} {args}".format(**locals())
 
         return self._execute(command_str)

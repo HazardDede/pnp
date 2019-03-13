@@ -55,6 +55,7 @@ setup(
         'cronex>=0.1.3',
         'dictmentor>=0.2.0',
         'docopt>=0.6.2',
+        'Jinja2>=2.0',
         'psutil>=5.4.8',
         'python-box>=3.2.0',
         'pytz>=2018.4',
