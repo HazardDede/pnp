@@ -23,6 +23,7 @@ ENV = {
     'FITBIT_AUTH': FITBIT_AUTH_PATH,
     'HA_TOKEN': 'abcdefg',
     'HA_URL': 'http://localhost:8123',
+    'MQTT_HOST': 'localhost',
     'GMAIL_TOKEN_FILE': GMAIL_AUTH_PATH,
     'GMAIL_RECIPIENT': 'somebody@somehost.net',
     'MOTIONEYE_MEDIA_PATH': MOTIONEYE_MEDIA_PATH
