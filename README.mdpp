@@ -319,6 +319,7 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 * Adds `push.hass.Service` to call home assistant services by rest-api
 * Breaking: New default value of `cwd` argument of `push.simple.Execute` is now the folder where the invoked pnp-configuration is located and not the current working directory anymore
 * Adds `push.simple.TemplatedExecute` as a replacement for `push.simple.Execute`
+* Adds cron-expressions to polling base class
 
 **0.15.0**
 * Adds `push.mail.GMail` to send e-mails via the gmail api
