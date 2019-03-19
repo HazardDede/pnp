@@ -1,0 +1,8 @@
+- name: interval_stats
+  pull:
+    plugin: pnp.plugins.pull.monitor.Stats
+    args:
+      interval: "*/1 * * * *"  # Run every minute: Using cron ensures execution @ :00 (more or less)
+      instant_run: True
+  push:
+    - plugin: pnp.plugins.push.simple.Echo

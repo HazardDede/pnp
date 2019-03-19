@@ -14,7 +14,10 @@ def test_poll():
     def poll():
         return datetime.now()
 
-    runner = make_runner(CustomPolling(name='pytest', interval="1s", scheduled_callable=poll), callback)
+    dut = CustomPolling(name='pytest', interval="1s", scheduled_callable=poll)
+    assert not dut.is_cron
+    assert dut._interval == 1
+    runner = make_runner(dut, callback)
     with start_runner(runner):
         time.sleep(3)
 
@@ -34,3 +37,15 @@ def test_poll_for_aborting():
         time.sleep(1)
 
     assert len(events) == 0
+
+
+def test_poll_with_cron_expression():
+    from cronex import CronExpression
+
+    def poll():
+        pass
+
+    dut = CustomPolling(name='pytest', interval="*/1 * * * *", scheduled_callable=poll)
+    assert dut.is_cron
+    assert isinstance(dut._interval, CronExpression)
+    assert dut._interval.string_tab == ['*/1', '*', '*', '*', '*']

@@ -1,3 +1,5 @@
+"""Simple pull plugins"""
+
 import sys
 import time
 from datetime import datetime
@@ -12,26 +14,8 @@ class Count(PullBase):
     Emits every `wait` seconds a counting value which runs from `from_cnt` to `to_cnt`.
     If `to_cnt` is None will to count to infinity.
 
-    Args:
-        from_cnt (int): Where to start counting.
-        to_cnt (int or None): Where to stop counting (if None will count to infinity).
-        wait (float): Will wait that amount between counting emits.
-
-    Returns:
-        The `on_payload` callback will pass the current count as payload.
-
-    Example configuration:
-
-        name: count
-        pull:
-          plugin: pnp.plugins.pull.simple.Count
-          args:
-            from_cnt: 0
-            to_cnt: 10
-            wait: 5
-        push:
-          plugin: pnp.plugins.push.simple.Echo
-
+    See Also:
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/simple.Count/index.md
 
     """
 
@@ -54,12 +38,8 @@ class Cron(Polling):
     """
     Cron-like triggering of dependent pushes.
 
-    Args:
-        expressions (List[str]): Cron like expressions.
-
-    Returns:
-        The `poll`-method will trigger any `on_payload` callback if a cron-schedule
-        is matched for the current time.
+    See Also:
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/simple.Cron/index.md
     """
 
     def __init__(self, expressions, **kwargs):
@@ -74,25 +54,15 @@ class Cron(Polling):
 
     def poll(self):
         for job in self.jobs:
-            t = datetime.now()
-            if job.check_trigger((t.year, t.month, t.day, t.hour, t.minute)):
+            dtime = datetime.now()
+            if job.check_trigger((dtime.year, dtime.month, dtime.day, dtime.hour, dtime.minute)):
                 self.notify({'data': job.comment})
-        return None
 
 
 class CustomPolling(Polling):
     """
     Calls the specified callable every `interval`. The result of the callable is simply returned.
-
-    Args:
-        scheduled_callable (callable): Custom function to execute every `interval`.
-
-    Returns:
-        The `on_payload` callback will pass anything that the scheduled_callable has returned.
-
-    Example configuration:
-
-        Does not work with yaml or json configurations so far.
+    This plugin is basically for _internal_ use only.
     """
     def __init__(self, scheduled_callable, **kwargs):
         super().__init__(**kwargs)
@@ -106,38 +76,20 @@ class CustomPolling(Polling):
 class Infinite(PullBase):
     """Just for demonstration purposes. DO NOT USE!"""
 
-    def __init__(self, **kwargs):  # pragma: no cover
+    def __init__(self, **kwargs):  # pragma: no cover, pylint: disable=useless-super-delegation
         super().__init__(**kwargs)
 
     def pull(self):  # pragma: no cover
         while True:
-            try:
-                time.sleep(0.5)
-            except:
-                pass
+            time.sleep(0.5)
 
 
 class Repeat(PullBase):
     """
     Emits every `wait` seconds the same `repeat`.
 
-    Args:
-        repeat (any): Will repeat this every emit.
-        wait (float): Will wait that amount between counting emits.
-
-    Returns:
-        The `on_payload` callback will pass the repeated object as payload.
-
-    Example configuration:
-
-    name: repeat
-    pull:
-      plugin: pnp.plugins.pull.simple.Repeat
-      args:
-        repeat: "Hello World"  # Repeats 'Hello World'
-        wait: 1  # Every second
-    push:
-      plugin: pnp.plugins.push.simple.Echo
+    See Also:
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/simple.Repeat/index.md
 
     """
 
