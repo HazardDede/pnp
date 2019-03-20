@@ -35,3 +35,4 @@ rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/src/app/build/
 
 # Update pip to latest
 pip3 install --upgrade --no-cache-dir pip setuptools wheel
+pip3 install bluepy>=1.3.0
