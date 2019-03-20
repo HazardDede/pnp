@@ -41,6 +41,11 @@ RUN pip3 install \
 
 COPY . .
 
+# Run the installation routine again to register entry points properly
+RUN pip3 install \
+    --no-cache-dir \
+    .
+
 # Changing 'INSTALL_DEV_PACKAGES' has no effect on previous layers, but will force a recreation
 # Use the build arg in the last possible moment
 ARG INSTALL_DEV_PACKAGES="no"
