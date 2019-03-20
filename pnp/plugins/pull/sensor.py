@@ -1,7 +1,9 @@
+"""Useful sensor stuff."""
+
 import logging
+import os
 from datetime import datetime, timedelta
 
-import os
 import requests
 
 from . import PullBase, Polling, PollingError
@@ -9,51 +11,21 @@ from .. import load_optional_module
 from ...utils import safe_get, auto_str_ignore, parse_duration_literal, Throttle
 from ...validator import Validator
 
-logger = logging.getLogger(__name__)
-
-
-def load_dht_package():
-    try:
-        import Adafruit_DHT as DHT
-    except ImportError:  # pragma: no cover
-        logger.warning("Adafruit_DHT package is not available - Using mock")
-        from ...mocking import DHTMock as DHT
-    return DHT
-
 
 class DHT(Polling):
     """
     Periodically polls a dht11 or dht22 (aka am2302) for temperature and humidity readings.
     Polling interval is controlled by `interval`.
 
-    Args:
-        device (str): The device to poll (one of dht22, dht11, am2302)
-        data_gpio (int): The data gpio port where the device operates on.
-
-    Returns:
-        The callback `on_payload` passes a dictionary containing `temperature` and `humidity`.
-
-    Example configuration:
-
-    name: dht
-        pull:
-          plugin: pnp.plugins.pull.sensor.DHT
-          args:
-            device: dht22  # Connect to a dht22
-            data_gpio: 17  # DHT is connected to gpio port 17
-            interval: 5m  # Polls the readings every 5 minutes
-        push:
-          - plugin: pnp.plugins.push.simple.Echo
-            selector: payload.temperature  # Temperature reading
-          - plugin: pnp.plugins.push.simple.Echo
-            selector: payload.humidity  # Humidity reading
-
+    See Also:
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/sensor.DHT/index.md
     """
     __prefix__ = 'dht'
 
     EXTRA = 'dht'
 
-    def __init__(self, device='dht22', data_gpio=17, humidity_offset=0.0, temp_offset=0.0, **kwargs):
+    def __init__(self, device='dht22', data_gpio=17, humidity_offset=0.0, temp_offset=0.0,
+                 **kwargs):
         super().__init__(**kwargs)
         valid_devices = ['dht11', 'dht22', 'am2302']
         self.device = str(device).lower()
@@ -62,15 +34,26 @@ class DHT(Polling):
         self.humidity_offset = float(humidity_offset)
         self.temp_offset = float(temp_offset)
 
+    @staticmethod
+    def _load_dht_package():
+        try:
+            import Adafruit_DHT as Pkg
+        except ImportError:  # pragma: no cover
+            logger = logging.getLogger(__name__)
+            logger.warning("Adafruit_DHT package is not available - Using mock")
+            from ...mocking import DHTMock as Pkg
+        return Pkg
+
     def poll(self):
         # Adafruit package is optional - import at the last moment
-        DHT = load_dht_package()
+        pkg = self._load_dht_package()
 
-        device_map = {'dht11': DHT.DHT11, 'dht22': DHT.DHT22, 'am2302': DHT.AM2302}
-        humidity, temperature = DHT.read_retry(device_map[self.device], self.data_gpio)
+        device_map = {'dht11': pkg.DHT11, 'dht22': pkg.DHT22, 'am2302': pkg.AM2302}
+        humidity, temperature = pkg.read_retry(device_map[self.device], self.data_gpio)
 
         if humidity is None or temperature is None:
-            raise PollingError("Failed to get '{}' @ GPIO {} readings...".format(self.device, str(self.data_gpio)))
+            raise PollingError("Failed to get '{}' @ GPIO {} readings...".format(
+                self.device, str(self.data_gpio)))
 
         return {
             'humidity': round(float(humidity) + self.humidity_offset, 2),
@@ -78,27 +61,86 @@ class DHT(Polling):
         }
 
 
+@auto_str_ignore(['_poller'])
+class MiFlora(Polling):
+    """
+    Periodically polls a xiaomi miflora plant sensor for sensor readings via btle.
+
+    See Also:
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/sensor.MiFlora/index.md
+
+    """
+    EXTRA = 'miflora'
+
+    def __init__(self, mac, adapter='hci0', **kwargs):
+        super().__init__(**kwargs)
+        self.mac = str(mac)
+        self.adapter = str(adapter)
+        self._poller = None
+
+    def _find_backend(self):
+        try:
+            import bluepy.btle  # noqa: F401 pylint: disable=unused-import
+            from btlewrap import BluepyBackend
+            backend = BluepyBackend
+        except ImportError:
+            from btlewrap import GatttoolBackend
+            backend = GatttoolBackend
+        self.logger.debug("Miflora for %s is using %s backend", self.mac, backend.__name__)
+        return backend
+
+    def _init(self):
+        if self._poller:
+            # We already got a miflora poller -> abort
+            return
+
+        mfp = load_optional_module('miflora.miflora_poller', self.EXTRA)
+        self._poller = mfp.MiFloraPoller(
+            mac=self.mac, adapter=self.adapter, backend=self._find_backend()
+        )
+        self.logger.debug("Initialization for %s finished", self.mac)
+
+    def _connect_sensor(self):
+        assert self._poller
+
+        from btlewrap import BluetoothBackendException
+        try:
+            self.logger.debug("Reading miflora sensor: %s", self.mac)
+            self._poller.fill_cache()
+        except IOError as ioerr:
+            raise PollingError() from ioerr
+        except BluetoothBackendException as bterror:
+            raise PollingError() from bterror
+
+    def _get_sensor_readings(self):
+        assert self._poller
+
+        mfp = load_optional_module('miflora.miflora_poller', self.EXTRA)
+        reading_params = [mfp.MI_CONDUCTIVITY, mfp.MI_LIGHT, mfp.MI_MOISTURE,
+                          mfp.MI_TEMPERATURE, mfp.MI_BATTERY]
+        res = {para: self._poller.parameter_value(para) for para in reading_params}
+        return {**res, **{'firmware': self._poller.firmware_version()}}
+
+    def poll(self):
+        self._init()
+        self._connect_sensor()
+        readings = self._get_sensor_readings()
+        self.logger.info("Miflora readings for '%s': %s", self.mac, readings)
+        return readings
+
+
 @auto_str_ignore(ignore_list=["api_key"])
 class OpenWeather(Polling):
     """
     Periodically polls weather data from the OpenWeatherMap api.
 
-    Args:
-        api_key (str): The api_key you got from OpenWeatherMap after registration.
-        lat (float): Latitude. If you pass `lat`, you have to pass `lon` as well.
-        lon (float): Longitude. If you pass `lon`, you have to pass `lat` as well.
-        city_name (str): The name of your city. To minimize ambiguity use lat/lon or your country as a suffix,
-            e.g. London,GB. You have to pass whether `city_name` or `lat/lon`.
-        units (str on of (metric, imperial, kelvin)): Specify units for temperature and speed.
-            imperial = fahrenheit + miles/hour, metric = celsius + m/secs, kelvin = kelvin + m/secs. Default is metric.
-        tz (str, optional): Time zone to use for current time and last updated time. Default is your local timezone.
-
-    Results:
-        A dictionary containing the results from OpenWeatherMap. See the docs for more information.
+    See Also:
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/sensor.OpenWeather/index.md
     """
     __prefix__ = 'openweather'
 
-    def __init__(self, api_key, lat=None, lon=None, city_name=None, units="metric", tz=None, **kwargs):
+    def __init__(self, api_key, lat=None, lon=None, city_name=None, units="metric", tz=None,
+                 **kwargs):  # pylint: disable=too-many-arguments
         super().__init__(**kwargs)
         self.api_key = str(api_key)
         self.lat = Validator.cast_or_none(float, lat)
@@ -109,17 +151,18 @@ class OpenWeather(Polling):
 
         Validator.one_of(["metric", "imperial", "kelvin"], units=units)
         self.units = units
-        self.tz = Validator.cast_or_none(str, tz)
+        self.tzone = Validator.cast_or_none(str, tz)
 
         from pytz import timezone
         from tzlocal import get_localzone
-        self._tz = get_localzone() if self.tz is None else timezone(self.tz)
+        self._tz = get_localzone() if self.tzone is None else timezone(self.tzone)
 
     def poll(self):
         url = self._create_request_url()
         resp = requests.get(url)
-        if 200 != resp.status_code:
-            raise PollingError("GET of '{url}' failed with status code = '{resp.status_code}'".format(**locals()))
+        if resp.status_code != 200:
+            raise PollingError("GET of '{url}' failed with status "
+                               "code = '{resp.status_code}'".format(**locals()))
 
         raw_data = resp.json()
 
@@ -130,7 +173,8 @@ class OpenWeather(Polling):
             cloudiness=safe_get(raw_data, "clouds", "all"),
             wind=safe_get(raw_data, "wind"),
             poll_dts=datetime.now(self._tz).isoformat(),
-            last_updated_dts=datetime.fromtimestamp(safe_get(raw_data, "dt"), tz=self._tz).isoformat(),
+            last_updated_dts=datetime.fromtimestamp(
+                safe_get(raw_data, "dt"), tz=self._tz).isoformat(),
             raw=raw_data
         )
 
@@ -148,8 +192,17 @@ class OpenWeather(Polling):
         return url.format(**locals())
 
 
+# pylint: disable=too-many-instance-attributes
 @auto_str_ignore(ignore_list=['cool_down_secs', 'notify', 'signal_fft', 'signal_length'])
 class Sound(PullBase):
+    """
+    Listens to the microphone in realtime and searches the stream for a specific sound pattern.
+    Practical example: I use this plugin to recognize my doorbell without tampering with
+    the electrical device ;-)
+
+    See Also:
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/sensor.Sound/index.md
+    """
     EXTRA = 'sound'
 
     MODE_PEARSON = 'pearson'
@@ -160,8 +213,9 @@ class Sound(PullBase):
     PEARSON_THRESHOLD = 0.5
     STD_THRESHOLD = 1.4
 
-    def __init__(self, wav_file, device_index=None, mode='pearson',
-                 sensitivity_offset=0.0, cool_down="10s", ignore_overflow=False, **kwargs):
+    # pylint: disable=too-many-arguments
+    def __init__(self, wav_file, device_index=None, mode='pearson', sensitivity_offset=0.0,
+                 cool_down="10s", ignore_overflow=False, **kwargs):  # pylint: disable=too-many-arguments
         super().__init__(**kwargs)
         self.wav_file = str(wav_file)
         if not os.path.isabs(self.wav_file):
@@ -181,10 +235,10 @@ class Sound(PullBase):
 
     def _load_wav_fft(self):
         wavfile = load_optional_module('scipy.io.wavfile', self.EXTRA)
-        self.logger.debug("[{self.name}] Loading wav file from '{self.wav_file}'".format(**locals()))
+        self.logger.debug("[%s] Loading wav file from '%s'", self.name, self.wav_file)
         sample_rate, signal = wavfile.read(self.wav_file)
         N, secs, signal_fft = self._perform_fft(signal, sample_rate)
-        self.logger.debug("[{self.name}] Loaded {secs} seconds wav file @ {sample_rate} hz".format(**locals()))
+        self.logger.debug("[%s] Loaded %s seconds wav file @ %s hz", self.name, secs, sample_rate)
         return N, signal_fft
 
     def _perform_fft(self, signal, rate, add_zeros=True):
@@ -196,7 +250,6 @@ class Sound(PullBase):
             signal = signal.sum(axis=1) / 2
         N = int(signal.shape[0])
         secs = N / float(rate)
-        # Ts = 1 / rate
         if add_zeros:
             signal = np.concatenate((signal, np.zeros(len(signal))), axis=None)
         trans_fft = abs(scipy.fft(signal))
@@ -243,12 +296,17 @@ class Sound(PullBase):
                 buffer = data if buffer is None else np.concatenate((buffer, data), axis=None)
                 lbuf = len(buffer)
                 if lbuf >= N:
-                    self.logger.debug("[{self.name}] Buffer ({lbuf}) >= size of wav file ({N})".format(**locals()))
+                    self.logger.debug("[%s] Buffer (%s) >= size of wav file (%s)",
+                                      self.name, lbuf, N)
                     flag, corrcoef, threshold = self._similarity(buffer)
-                    self.logger.debug("[{self.name}] Correlation: {corrcoef} >= {threshold} = {flag}".format(
-                        **locals()))
+                    self.logger.debug("[%s] Correlation: %s >= %s = %s",
+                                      self.name, corrcoef, threshold, flag)
                     if flag:
-                        self.notify({'data': self.wav_file_name, 'corrcoef': corrcoef, 'threshold': threshold})
+                        self.notify({
+                            'data': self.wav_file_name,
+                            'corrcoef': corrcoef,
+                            'threshold': threshold
+                        })
                         buffer = None
                     else:
                         buffer = buffer[int(len(buffer) * 0.75):]

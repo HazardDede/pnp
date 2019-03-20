@@ -6,6 +6,8 @@ SOURCE_PATH=./pnp
 TEST_PATH=./tests
 DOCKER_REPO=hazard
 IMAGE_NAME=$(DOCKER_REPO)/pnp
+LOCAL_IMAGE_NAME=pnp:local
+LOCAL_IMAGE_NAME_ARM=pnp:local-arm
 FULL_IMAGE_NAME=$(IMAGE_NAME):$(VERSION)
 FULL_IMAGE_NAME_ARM=$(IMAGE_NAME):$(VERSION)-arm
 
@@ -68,31 +70,33 @@ doctest:
 docker:
 	docker build \
 		--build-arg INSTALL_DEV_PACKAGES=yes \
-		-t $(FULL_IMAGE_NAME) \
+		-t $(LOCAL_IMAGE_NAME) \
 		-f Dockerfile .
-	docker run --rm $(FULL_IMAGE_NAME) pytest tests
+	docker run --rm $(LOCAL_IMAGE_NAME) pytest tests
 	docker build \
 		--build-arg INSTALL_DEV_PACKAGES=no \
-		-t $(FULL_IMAGE_NAME) \
+		-t $(LOCAL_IMAGE_NAME) \
 		-f Dockerfile .
 
 docker-arm:
 	docker build \
 		--build-arg INSTALL_DEV_PACKAGES=yes \
-		-t $(FULL_IMAGE_NAME_ARM) \
+		-t $(LOCAL_IMAGE_NAME_ARM) \
 		-f Dockerfile.arm32v7 .
-	docker run --rm $(FULL_IMAGE_NAME_ARM) pytest tests
+	docker run --rm $(LOCAL_IMAGE_NAME) pytest tests
 	docker build \
 		--build-arg INSTALL_DEV_PACKAGES=no \
-		-t $(FULL_IMAGE_NAME_ARM) \
+		-t $(LOCAL_IMAGE_NAME_ARM) \
 		-f Dockerfile.arm32v7 .
 
 docker-push: docker
+	docker tag $(LOCAL_IMAGE_NAME) $(FULL_IMAGE_NAME)
 	docker push $(FULL_IMAGE_NAME)
 	docker tag $(FULL_IMAGE_NAME) $(IMAGE_NAME):latest
 	docker push $(IMAGE_NAME):latest
 
 docker-push-arm: docker-arm
+	docker tag $(LOCAL_IMAGE_NAME_ARM) $(FULL_IMAGE_NAME_ARM)
 	docker push $(FULL_IMAGE_NAME_ARM)
 	docker tag $(FULL_IMAGE_NAME_ARM) $(IMAGE_NAME):latest-arm
 	docker push $(IMAGE_NAME):latest-arm

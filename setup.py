@@ -41,7 +41,7 @@ setup(
     ],
     keywords='push pull data pipeline',
     project_urls={
-        'Documentation': 'https://github.com/HazardDede/pnp/blob/master/README.md',
+        'Documentation': 'https://github.com/HazardDede/pnp/blob/master/index.md',
         'Source': 'https://github.com/HazardDede/pnp/',
         'Tracker': 'https://github.com/HazardDede/pnp/issues',
     },
@@ -76,6 +76,7 @@ setup(
         'gmail': ['google-api-python-client>=1.7.7', 'google-auth-httplib2>=0.0.3', 'google-auth-oauthlib>=0.2.0'],
         'gpio': ['RPi.GPIO>=0.6.5'],
         'http-server': ['Flask>=1.0.2', 'gevent>=1.3.4'],
+        'miflora': ['miflora>=0.4.0'],
         'pushbullet': ['pushbullet.py>=0.10.0', 'urllib3>=1.20'],
         'sound': ['PyAudio>=0.2.11', 'scipy>=1.2.0']
     },

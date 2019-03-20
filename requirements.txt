@@ -1,2 +1,2 @@
--e .[dropbox,fitbit,fswatcher,gmail,http-server,pushbullet,sound]
+-e .[dropbox,fitbit,fswatcher,gmail,http-server,miflora,pushbullet,sound]
 -r requirements.dev

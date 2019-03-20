@@ -24,6 +24,7 @@ ENV = {
     'HA_TOKEN': 'abcdefg',
     'HA_URL': 'http://localhost:8123',
     'MQTT_HOST': 'localhost',
+    'MQTT_BASE_TOPIC': 'anytopic',
     'GMAIL_TOKEN_FILE': GMAIL_AUTH_PATH,
     'GMAIL_RECIPIENT': 'somebody@somehost.net',
     'MOTIONEYE_MEDIA_PATH': MOTIONEYE_MEDIA_PATH
