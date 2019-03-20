@@ -9,7 +9,7 @@ set -e
 
 # Required debian packages for running pnp plugins
 PACKAGES=(
-    build-essential,
+    build-essential
     # Bluetooth interface for miflora
     bluez
     # Some stuff needs to be compiled (c-source)
