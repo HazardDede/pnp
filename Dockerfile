@@ -36,10 +36,14 @@ COPY README.md setup.py ./
 
 RUN pip3 install \
     --no-cache-dir \
-    .[dropbox,fitbit,fswatcher,gmail,http-server,miflora,pushbullet] \
-    bluepy>=1.3.0
+    .[dropbox,fitbit,fswatcher,gmail,http-server,miflora,pushbullet]
 
 COPY . .
+
+# Run the installation routine again to register entry points properly
+RUN pip3 install \
+    --no-cache-dir \
+    .
 
 # Changing 'INSTALL_DEV_PACKAGES' has no effect on previous layers, but will force a recreation
 # Use the build arg in the last possible moment
