@@ -12,8 +12,8 @@ LABEL maintainer="Dennis Muth <d.muth@gmx.net>"
 ENV CONFDIR=/config \
     DEBIAN_FRONTEND="noninteractive" \
     LOGDIR=/logs \
-    PNP_LOG_CONF=${CONFDIR}/logging.yaml \
-    PYTHONPATH=${WORKDIR} \
+    PNP_LOG_CONF=/config/logging.yaml \
+    PYTHONPATH=/pnp \
     WORKDIR=/pnp
 
 # Volumes
