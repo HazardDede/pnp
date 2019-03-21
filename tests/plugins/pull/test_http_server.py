@@ -27,7 +27,7 @@ def _run_test(url, data, assertion_fun, method=requests.get, allowed_methods='GE
     dut = Server(port=port, name='pytest', allowed_methods=allowed_methods, server_impl=server_impl)
     runner = make_runner(dut, callback)
     with start_runner(runner):
-        time.sleep(0.5)
+        time.sleep(2)
         kwargs = dict(url=url.format(port=port))
         if data is not None:
             kwargs['data'] = data
