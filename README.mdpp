@@ -320,6 +320,7 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 * Breaking: New default value of `cwd` argument of `push.simple.Execute` is now the folder where the invoked pnp-configuration is located and not the current working directory anymore
 * Adds `push.simple.TemplatedExecute` as a replacement for `push.simple.Execute`
 * Adds cron-expressions to polling base class
+* Adds `pull.sensor.MiFlora` plugin to periodically poll xiaomi miflora devices
 
 **0.15.0**
 * Adds `push.mail.GMail` to send e-mails via the gmail api
