@@ -1,7 +1,7 @@
 .PHONY: clean-pyc clean-build clean docs docker docker-arm lint test doctest version
 
 # Setup
-VERSION=0.15.0
+VERSION=0.16.0
 SOURCE_PATH=./pnp
 TEST_PATH=./tests
 DOCKER_REPO=hazard
