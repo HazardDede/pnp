@@ -83,7 +83,7 @@ docker-arm:
 		--build-arg INSTALL_DEV_PACKAGES=yes \
 		-t $(LOCAL_IMAGE_NAME_ARM) \
 		-f Dockerfile.arm32v7 .
-	docker run --rm $(LOCAL_IMAGE_NAME) pytest tests
+	docker run --rm $(LOCAL_IMAGE_NAME_ARM) pytest tests
 	docker build \
 		--build-arg INSTALL_DEV_PACKAGES=no \
 		-t $(LOCAL_IMAGE_NAME_ARM) \
