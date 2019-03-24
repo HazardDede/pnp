@@ -1,19 +1,22 @@
+"""Configuration handling in json/yaml files."""
+
 import os
 from functools import partial
-from ruamel import yaml
 
-from box import Box
+from ruamel import yaml
 from schema import Schema, Use, Optional, Or, And
+from box import Box
 
 from .engines import Engine, RetryHandler
 from .plugins import load_plugin
 from .utils import make_list
 
 
+# pylint: disable=too-few-public-methods
 class OrOverride(Or):
     """
-    Validates the given data as the original Or validation directive would do, but overrides the resulting
-    data.
+    Validates the given data as the original Or validation directive would do,
+    but overrides the resulting data.
 
     Example:
         >>> # Whether inbound or outbound are valid keys, but will be overridden by override
@@ -30,7 +33,8 @@ class OrOverride(Or):
     """
     def __init__(self, *args, **kwargs):
         if len(args) < 2:
-            raise ValueError("OrMap expects the mapping value at first and then multiple validation directives")
+            raise ValueError("OrMap expects the mapping value at first and then "
+                             "multiple validation directives")
         self.override = args[0]
         super().__init__(*args[1:], **kwargs)
 
@@ -39,7 +43,7 @@ class OrOverride(Or):
         return self.override
 
 
-push_schema = Schema({
+PUSH = Schema({
     "plugin": Use(str),
     Optional("selector", default=None): Or(object, None),
     Optional("unwrap", default=False): bool,
@@ -50,29 +54,32 @@ push_schema = Schema({
     Optional("deps", default=list()): And(object, Use(make_list))
 })
 
-pull_schema = Schema({
+PULL = Schema({
     "plugin": Use(str),
     Optional("args", default={}): {
         Optional(str): object
     },
 })
 
-push_list_schema = Schema([push_schema])
+PUSH_LIST = Schema([PUSH])
 
-task_entity_schema = Schema({
+TASK = Schema({
     "name": Use(str),
-    OrOverride("pull", "inbound", "pull"): pull_schema,
-    OrOverride("pushes", "outbound", "push"): And(Or(push_list_schema, push_schema), Use(make_list))
+    OrOverride("pull", "inbound", "pull"): PULL,
+    OrOverride("pushes", "outbound", "push"): And(Or(PUSH_LIST, PUSH), Use(make_list))
 })
 
-task_list_schema = Schema([task_entity_schema])
+# Allow configuration of a single task or a list of tasks
+TASK_LIST = Schema(
+    Or(
+        And(TASK, Use(make_list)),
+        [TASK]
+    )
+)
 
-# Allow confguration of a single task
-tasks = Schema(Or(And(task_entity_schema, Use(make_list)), task_list_schema))  # Single or multiple tasks are allowed
+ENGINE = Engine
 
-engine_schema = Engine
-
-udfs_schema = Schema([{
+UDFS = Schema([{
     "name": Use(str),
     "plugin": Use(str),
     Optional("args"): Or({
@@ -80,34 +87,35 @@ udfs_schema = Schema([{
     }, None)
 }])
 
-tasks_settings_schema = Schema({
+TASK_SETTINGS = Schema({
     Optional(Or("anchors", "anchor", "ref", "refs", "alias", "aliases")): object,
-    Optional("engine", default=None): engine_schema,
-    Optional("udfs", default=None): udfs_schema,
-    'tasks': tasks
+    Optional("engine", default=None): ENGINE,
+    Optional("udfs", default=None): UDFS,
+    'tasks': TASK_LIST
 })
 
-root_schema = Schema(And(
+ROOT = Schema(And(
     Or(
-        tasks_settings_schema,  # Tasks with additional settings and aliases (yaml only)
-        tasks,  # Tasks without settings or aliases - just a list of tasks (backward compatibility)
+        # Tasks with additional settings and aliases (yaml only)
+        TASK_SETTINGS,
+        # Tasks without settings or aliases - just a list of tasks (backwards compatibility)
+        TASK_LIST,
     ),
     # In case of list only we create a tasks node - so we know it's always there
     Use(lambda x: x if 'tasks' in x else dict(tasks=x))
 ))
 
-schema = Schema(root_schema)
-
 
 def validate_push_deps(push):
-    # Recursively validate pushes
+    """Validates a push against the schema. This is done recursively."""
     for dependency in push['deps']:
-        validated_push = push_schema.validate(dependency)
+        validated_push = PUSH.validate(dependency)
         validated_push['deps'] = list(validate_push_deps(validated_push))
         yield validated_push
 
 
 def custom_constructor(loader, node, clstype):
+    """YAML custom constructor. Necessary to create an engine and retry handler."""
     args = loader.construct_mapping(node, deep=True)
     if 'type' not in args:
         raise ValueError("You have to specify a 'type' when instantiating a engine with !engine")
@@ -116,6 +124,7 @@ def custom_constructor(loader, node, clstype):
 
 
 def make_mentor(config_path):
+    """Creates an instance of the dictmentor with configured plugins."""
     from dictmentor import DictMentor, ext
     return DictMentor(
         ext.Environment(fail_on_unset=True),
@@ -138,7 +147,7 @@ def load_config(config_path):
     mentor = make_mentor(config_path)
     # Remove the faked dictionary as root level
 
-    validated = schema.validate(mentor.augment(cfg)['cfg'])
+    validated = ROOT.validate(mentor.augment(cfg)['cfg'])
     for pull in validated['tasks']:
         for push in pull['pushes']:
             push['deps'] = list(validate_push_deps(push))

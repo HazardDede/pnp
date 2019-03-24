@@ -156,7 +156,7 @@ class PushExecutor(Loggable, Singleton):
         payload = PayloadSelector.instance.eval_selector(push.selector, copy.deepcopy(payload))
 
         # Only make the push if the selector wasn't evaluated to suppress the push
-        if payload is not PayloadSelector.instance.SuppressLiteral:
+        if payload is not PayloadSelector.instance.suppress:
             self.logger.debug("[{id}] Emitting '{payload}' to push '{push.instance}'".format(**locals()))
             push_result = push.instance.push(payload=payload)
 

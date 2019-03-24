@@ -1,3 +1,5 @@
+"""Utility classes for the building block 'selector'."""
+
 from .models import UDFModel
 
 from .utils import Singleton, safe_eval, FallbackBox, EvaluationError
@@ -6,77 +8,24 @@ from .validator import Validator
 
 class PayloadSelector(Singleton):
     """
-    Examples:
-
-        >>> dut = PayloadSelector.instance
-
-        >>> dut.eval_selector('payload.k1', dict(k1='k1', k2='k2'))
-        'k1'
-        >>> dut.eval_selector('suppress_me if int(payload) == 0 else int(payload)', 1)
-        1
-        >>> dut.eval_selector('suppress_me if int(payload) == 0 else int(payload)', 0) is dut.SuppressLiteral
-        True
-        >>> dut.eval_selector('on_off(data)', True)
-        'on'
-
-        >>> dut.instance.register_custom_global('on_off_custom', lambda x: 'on' if x else 'off')
-        >>> dut.eval_selector('on_off_custom(data)', True)
-        'on'
-        >>> dut.eval_selector('on_off_custom(data)', False)
-        'off'
-
-        >>> payload = {'foo': {'bar': 1, 'baz': 2}}
-        >>> dut.eval_selector({
-        ...     "lambda payload: payload['foo']['bar']": 'baz',
-        ...     "foo": "lambda payload: payload['foo']['baz']",
-        ...     "lambda payload: payload['foo']['baz']": "lambda payload: payload['foo']['bar']"
-        ... }, payload=payload) == {1: 'baz', 'foo': 2, 2: 1}
-        True
-
-        >>> dut.eval_selector([
-        ...     "foo",
-        ...     "lambda payload: payload['foo']['bar']",
-        ...     "lambda payload: payload['foo']['baz']",
-        ...     {"lambda payload: payload['foo']['bar']": "lambda payload: payload['foo']['baz']"},
-        ...     ["foo", "bar", "lambda payload: payload['foo']['bar']"]
-        ... ], payload=payload)
-        ['foo', 1, 2, {1: 2}, ['foo', 'bar', 1]]
-
-        >>> dut.eval_selector("payload", payload=payload) == {'foo': {'bar': 1, 'baz': 2}}
-        True
-        >>> dut.eval_selector({"payload": "payload"}, payload=payload)
-        {'payload': 'payload'}
-        >>> (dut.eval_selector({"payload": "lambda payload: payload"}, payload=payload)
-        ...     == {'payload': {'foo': {'bar': 1, 'baz': 2}}})
-        True
-
-        >>> dut.eval_selector("this one is not known", payload=payload)
-        Traceback (most recent call last):
-        ...
-        pnp.utils.EvaluationError: Failed to evaluate 'this one is not known'
-        >>> dut.eval_selector(["lambda payload: known this is not"], payload=payload)
-        Traceback (most recent call last):
-        ...
-        pnp.utils.EvaluationError: Your lambda is errorneous: 'lambda payload: known this is not'
-        >>> dut.eval_selector(["lambda payload: known"], payload=payload)
-        Traceback (most recent call last):
-        ...
-        pnp.utils.EvaluationError: Error when running the selector lambda: 'lambda payload: known'
-        >>> dut.eval_selector({'str': 'str'}, payload=payload)  # Callables but no lambdas
-        {'str': 'str'}
+    The actual selector implementation.
+    Knows about globals, the suppress literal, udfs and how to evaluate
+    simple and complex selector expressions.
     """
 
-    def __init__(self):
+    def __init__(self):  # pylint: disable=super-init-not-called
         self._suppress_literal = object()
         self._custom = {}
         self._register_globals()
 
     @property
-    def SuppressLiteral(self):
+    def suppress(self):
+        """Return the suppress literal."""
         return self._suppress_literal
 
     @property
     def suppress_aliases(self):
+        """Returns available aliases for the suppress literal."""
         uppers = ["SUPPRESS", "SUPPRESSME", "SUPPRESSPUSH", "SUPPRESS_ME", "SUPPRESS_PUSH"]
         return uppers + [item.lower() for item in uppers]
 
@@ -127,13 +76,14 @@ class PayloadSelector(Singleton):
             self._custom[name] = fun
 
     def register_udfs(self, udfs):
+        """Register the given user-definied function."""
         Validator.is_iterable_but_no_str(udfs=udfs)
         for i, udf in enumerate(udfs):
-            Validator.is_instance(UDFModel, **{'udfs.item_{i}'.format(**locals()): udf})
+            Validator.is_instance(UDFModel, **{'udfs.item_{i}'.format(i=i): udf})
             self.register_custom_global(udf.name, udf.callable)
 
     def _eval_wrapper(self, selector, payload):
-        suppress_kwargs = {alias: self.SuppressLiteral for alias in self.suppress_aliases}
+        suppress_kwargs = {alias: self.suppress for alias in self.suppress_aliases}
         return safe_eval(
             source=selector,
             payload=payload,
@@ -144,38 +94,43 @@ class PayloadSelector(Singleton):
 
     @staticmethod
     def _isalambda(v):
-        LAMBDA = lambda: 0  # pylint: disable=E731
-        return isinstance(v, type(LAMBDA)) and v.__name__ == LAMBDA.__name__
+        lambda_ = lambda: 0
+        return isinstance(v, type(lambda_)) and v.__name__ == lambda_.__name__
 
-    def _e(self, snippet, payload, is_key=False):
+    def _e(self, snippet, payload):
         # There might be nested dicts or lists inside the complex structure... Eval them recursively
         if isinstance(snippet, dict):
-            return {self._e(k, payload, True): self._e(v, payload) for k, v in snippet.items()}
+            return {self._e(k, payload): self._e(v, payload) for k, v in snippet.items()}
         if isinstance(snippet, list):
             return [self._e(i, payload) for i in snippet]
 
-        # Test if the snippet constructs a lambda -> assumes to be callable code with payload argument
+        # Test if the snippet constructs a lambda
+        # -> assumes to be callable code with payload argument
         try:
             possible_fun = self._eval_wrapper(snippet, payload)
         except EvaluationError:
             if str(snippet).startswith('lambda'):
-                raise EvaluationError("Your lambda is errorneous: '{snippet}'".format(**locals()))
-            return snippet  # Evaluation failed -> assume that is string literal (dict key/value or list item)
+                raise EvaluationError("Your lambda is errorneous: '{snippet}'".format(
+                    **locals()))
+            # Evaluation failed -> assume that is string literal (dict key/value or list item)
+            return snippet
 
         if not self._isalambda(possible_fun):
             return snippet  # Cannot be executed. So assume it is not a selector expression
 
         # It is a callable. Lets modify globals and call it :-)
-        suppress_kwargs = {alias: self.SuppressLiteral for alias in self.suppress_aliases}
+        suppress_kwargs = {alias: self.suppress for alias in self.suppress_aliases}
         customs = self._custom
         for k, v in {**suppress_kwargs, **customs}.items():
             possible_fun.__globals__[k] = v
         try:
             return possible_fun(payload)
         except:
-            raise EvaluationError("Error when running the selector lambda: '{snippet}'".format(**locals()))
+            raise EvaluationError("Error when running the selector lambda: '{snippet}'".format(
+                **locals()))
 
     def eval_selector(self, selector, payload):
+        """Applies the specified selector to the given payload."""
         # Wrap payload inside a Box -> this makes dot accessable dictionaries possible
         # We create a dictionary cause payload might not be an actual dictionary.
         # This way wrapping with Box will always work ;-)
