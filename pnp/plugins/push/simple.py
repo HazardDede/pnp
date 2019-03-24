@@ -11,6 +11,9 @@ class Echo(PushBase):
     """
     This push simply logs the `payload` via the `logging` module.
 
+    See Also:
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/simple.Echo/index.md
+
     Examples:
 
         >>> dut = Echo(name="echo_push")
@@ -33,6 +36,9 @@ class Nop(PushBase):
     This push is useful when you only need the power of the selector for dependent pushes.
 
     Nop = No operation OR No push ;-)
+
+    See Also:
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/simple.Nop/index.md
 
     Examples:
 

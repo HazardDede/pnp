@@ -3,6 +3,11 @@ from . import UserDefinedFunction
 
 class Counter(UserDefinedFunction):
     """
+    Memories a counter value which is increased everytime you call the udf.
+
+    See Also:
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/udf/simple.Counter/index.md
+
     Example:
 
         >>> dut = Counter(name='doctest')
@@ -33,6 +38,11 @@ class Counter(UserDefinedFunction):
 
 class Memory(UserDefinedFunction):
     """
+    Returns a previously memorized value when called.
+
+    See Also:
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/udf/simple.Memory/index.md
+
     Example:
 
         >>> dut = Memory(name='doctest', init='foo')

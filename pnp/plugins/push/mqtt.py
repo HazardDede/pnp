@@ -62,83 +62,12 @@ class _MQTTBase(PushBase):
         raise NotImplementedError()
 
 
-class Publish(_MQTTBase):
-    """
-    This push will push the given `payload` to a mqtt broker (in this case mosquitto).
-    The broker is specified by `host` and `port`. In addition a topic needs to be specified were the payload
-    is pushed to (e.g. home/living/thermostat).
-
-    The `payload` will be pushed as it is. No transformation is applied. If you need to some transformations, use the
-    selector.
-
-    Returns:
-        For chaining of pushes the payload is simply returned as is.
-
-    Example configuration:
-
-        name: mqtt
-        pull:
-          plugin: pnp.plugins.pull.simple.Count
-        push:
-          plugin: pnp.plugins.push.mqtt.MQTTPush
-          args:
-            host: localhost
-            topic: home/devices/#
-            port: 1883
-    """
-
-    def __init__(self, topic=None, retain=False, multi=False, **kwargs):
-        super().__init__(**kwargs)
-        self.topic = self._parse_topic(topic)
-        self.retain = self._parse_retain(retain)
-        self.multi = bool(multi)
-
-    def _parse_retain(self, val):
-        return try_parse_bool(val, default=False)
-
-    def _parse_topic(self, val):
-        return str(val) if val is not None else None
-
-    @staticmethod
-    def _topic_concat(t1, t2):
-        if str(t1).endswith('/'):
-            return t1 + t2
-        return t1 + '/' + t2
-
-    def _push_single(self, payload):
-        envelope, real_payload = self.envelope_payload(payload)
-        topic = self._parse_envelope_value('topic', envelope)  # Override topic via envelope
-        retain = self._parse_envelope_value('retain', envelope)  # Override retain via envelope
-        qos = self._parse_envelope_value('qos', envelope)  # Override qos via envelope
-
-        if topic is None:
-            raise ValueError("Topic was not defined either by the __init__ nor by the envelope")
-
-        if not self.multi:
-            self._publish(real_payload, topic, retain, qos)
-        else:
-            if not isinstance(real_payload, dict):
-                raise TypeError("In multi mode the payload is required to be a dictionary")
-            for k, v in real_payload.items():
-                key_topic = self._topic_concat(topic, k)
-                try:
-                    self._publish(v, key_topic, retain, qos)
-                except:
-                    import traceback
-                    ex = traceback.format_exc()
-                    self.logger.error("[{self.name}] Publishing failed for message on '{key_topic}' @ "
-                                      "{self.host}:{self.port} with qos={qos}. Payload='{v}'\n{ex}".format(**locals()))
-
-    def push(self, payload):
-        self._push_single(payload)
-        return payload  # Payload as is. With envelope (if any).
-
-
-MQTTPush = Publish
-
-
 @auto_str_ignore(['configured'])
 class Discovery(_MQTTBase):
+    """
+    See Also:
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/mqtt.Discovery/index.md
+    """
     SUPPORTED_COMPONENTS = ['alarm_control_panel', 'binary_sensor', 'camera', 'cover', 'fan', 'climate', 'light',
                             'lock', 'sensor', 'switch']
 
@@ -205,3 +134,63 @@ class Discovery(_MQTTBase):
         self._publish(real_payload, state_topic, retain=True)
 
         return payload
+
+
+class Publish(_MQTTBase):
+    """
+    This push will push the given `payload` to a mqtt broker (in this case mosquitto).
+    The broker is specified by `host` and `port`. In addition a topic needs to be specified
+    were the payload is pushed to (e.g. home/living/thermostat).
+
+    See Also:
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/mqtt.Publish/index.md
+    """
+
+    def __init__(self, topic=None, retain=False, multi=False, **kwargs):
+        super().__init__(**kwargs)
+        self.topic = self._parse_topic(topic)
+        self.retain = self._parse_retain(retain)
+        self.multi = bool(multi)
+
+    def _parse_retain(self, val):
+        return try_parse_bool(val, default=False)
+
+    def _parse_topic(self, val):
+        return str(val) if val is not None else None
+
+    @staticmethod
+    def _topic_concat(t1, t2):
+        if str(t1).endswith('/'):
+            return t1 + t2
+        return t1 + '/' + t2
+
+    def _push_single(self, payload):
+        envelope, real_payload = self.envelope_payload(payload)
+        topic = self._parse_envelope_value('topic', envelope)  # Override topic via envelope
+        retain = self._parse_envelope_value('retain', envelope)  # Override retain via envelope
+        qos = self._parse_envelope_value('qos', envelope)  # Override qos via envelope
+
+        if topic is None:
+            raise ValueError("Topic was not defined either by the __init__ nor by the envelope")
+
+        if not self.multi:
+            self._publish(real_payload, topic, retain, qos)
+        else:
+            if not isinstance(real_payload, dict):
+                raise TypeError("In multi mode the payload is required to be a dictionary")
+            for k, v in real_payload.items():
+                key_topic = self._topic_concat(topic, k)
+                try:
+                    self._publish(v, key_topic, retain, qos)
+                except:
+                    import traceback
+                    ex = traceback.format_exc()
+                    self.logger.error("[{self.name}] Publishing failed for message on '{key_topic}' @ "
+                                      "{self.host}:{self.port} with qos={qos}. Payload='{v}'\n{ex}".format(**locals()))
+
+    def push(self, payload):
+        self._push_single(payload)
+        return payload  # Payload as is. With envelope (if any).
+
+
+MQTTPush = Publish

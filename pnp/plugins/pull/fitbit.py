@@ -1,3 +1,5 @@
+"""Fitbit related plugins."""
+
 import os
 import pathlib
 from functools import partial
@@ -88,62 +90,15 @@ class _FitbitBase(Polling):
         raise NotImplementedError()  # pragma: no cover
 
 
-class Devices(_FitbitBase):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def poll(self):
-        return [transform_dict_items(d, keys_fun=camel_to_snake) for d in self.client.get_devices()]
-
-
-@auto_str_ignore(['_goals_map'])
-class Goal(_FitbitBase):
-    def __init__(self, goals, **kwargs):
-        super().__init__(**kwargs)
-        self._goals_map = self._create_goal_map()
-        self._goals = make_list(goals)
-        for goal in self._goals:
-            Validator.one_of(list(self._goals_map.keys()), goal=goal)
-
-    def _create_goal_map(self):
-        return {
-            'body/fat': lambda goal: float(self.client.body_fat_goal().get('goal', {}).get('fat')),
-            'body/weight': lambda goal: float(self.client.body_weight_goal().get('goal', {}).get('weight')),
-            'activities/daily/activeMinutes': self._get_daily_activity_goal,
-            'activities/daily/caloriesOut': self._get_daily_activity_goal,
-            'activities/daily/distance': self._get_daily_activity_goal,
-            'activities/daily/floors': self._get_daily_activity_goal,
-            'activities/daily/steps': self._get_daily_activity_goal,
-            'activities/weekly/distance': self._get_weekly_activity_goal,
-            'activities/weekly/floors': self._get_weekly_activity_goal,
-            'activities/weekly/steps': self._get_weekly_activity_goal,
-            'foods/calories': lambda goal: int(self.client.food_goal().get('goals', {}).get('calories')),
-            'foods/water': lambda goal: int(self.client.water_goal().get('goal', {}).get('goal'))
-        }
-
-    def _get_daily_activity_goal(self, goal):
-        single_goal = goal.split('/')[-1]
-        conv = float if single_goal == 'distance' else int
-        return conv(self.client.activities_daily_goal().get('goals', {}).get(single_goal))
-
-    def _get_weekly_activity_goal(self, goal):
-        single_goal = goal.split('/')[-1]
-        conv = float if single_goal == 'distance' else int
-        return conv(self.client.activities_weekly_goal().get('goals', {}).get(single_goal))
-
-    def _call(self, goal):
-        return self._goals_map.get(goal)(goal)
-
-    def poll(self):
-        p = Parallel(workers=4)
-        for goal in self._goals:
-            p(self._call, fun_key=goal, goal=goal)
-        p.run_until_complete()
-        return transform_dict_items(p.results, keys_fun=camel_to_snake)
-
-
 @auto_str_ignore(['_resource_map'])
 class Current(_FitbitBase):
+    """
+    Requests various latest / current metrics (steps, calories, distance, ...)
+    from the fitbit api.
+
+    See Also:
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/fitbit.Current/index.md
+    """
     def __init__(self, resources, **kwargs):
         super().__init__(**kwargs)
         self._resource_map = self._create_resource_map()
@@ -201,5 +156,72 @@ class Current(_FitbitBase):
         p = Parallel(workers=4)
         for r in self._resources:
             p(self._call, fun_key=r, resource=r)
+        p.run_until_complete()
+        return transform_dict_items(p.results, keys_fun=camel_to_snake)
+
+
+class Devices(_FitbitBase):
+    """
+    Requests details (battery, model, ...) about your fitbit devices / trackers
+    associated to your account.
+
+    See Also:
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/fitbit.Devices/index.md
+    """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def poll(self):
+        return [transform_dict_items(d, keys_fun=camel_to_snake) for d in self.client.get_devices()]
+
+
+@auto_str_ignore(['_goals_map'])
+class Goal(_FitbitBase):
+    """
+    Requests your goals (water, steps, ...) from the fitbit api.
+
+    See Also:
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/fitbit.Goal/index.md
+    """
+    def __init__(self, goals, **kwargs):
+        super().__init__(**kwargs)
+        self._goals_map = self._create_goal_map()
+        self._goals = make_list(goals)
+        for goal in self._goals:
+            Validator.one_of(list(self._goals_map.keys()), goal=goal)
+
+    def _create_goal_map(self):
+        return {
+            'body/fat': lambda goal: float(self.client.body_fat_goal().get('goal', {}).get('fat')),
+            'body/weight': lambda goal: float(self.client.body_weight_goal().get('goal', {}).get('weight')),
+            'activities/daily/activeMinutes': self._get_daily_activity_goal,
+            'activities/daily/caloriesOut': self._get_daily_activity_goal,
+            'activities/daily/distance': self._get_daily_activity_goal,
+            'activities/daily/floors': self._get_daily_activity_goal,
+            'activities/daily/steps': self._get_daily_activity_goal,
+            'activities/weekly/distance': self._get_weekly_activity_goal,
+            'activities/weekly/floors': self._get_weekly_activity_goal,
+            'activities/weekly/steps': self._get_weekly_activity_goal,
+            'foods/calories': lambda goal: int(self.client.food_goal().get('goals', {}).get('calories')),
+            'foods/water': lambda goal: int(self.client.water_goal().get('goal', {}).get('goal'))
+        }
+
+    def _get_daily_activity_goal(self, goal):
+        single_goal = goal.split('/')[-1]
+        conv = float if single_goal == 'distance' else int
+        return conv(self.client.activities_daily_goal().get('goals', {}).get(single_goal))
+
+    def _get_weekly_activity_goal(self, goal):
+        single_goal = goal.split('/')[-1]
+        conv = float if single_goal == 'distance' else int
+        return conv(self.client.activities_weekly_goal().get('goals', {}).get(single_goal))
+
+    def _call(self, goal):
+        return self._goals_map.get(goal)(goal)
+
+    def poll(self):
+        p = Parallel(workers=4)
+        for goal in self._goals:
+            p(self._call, fun_key=goal, goal=goal)
         p.run_until_complete()
         return transform_dict_items(p.results, keys_fun=camel_to_snake)

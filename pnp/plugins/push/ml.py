@@ -10,13 +10,9 @@ from ...validator import Validator
 @auto_str_ignore(['known_encodings'])
 class FaceR(PushBase):
     """
-    FaceR (short one for face recognition) tags known faces in images. Output is the image with all faces tagged whether
-    with the known name or an `unknown_label`. Default for unknown ones is 'Unknown'.
-
-    Known faces can be ingested either by a directory of known faces (`known_faces_dir`) or by mapping of `known_faces`
-    (dictionary: name -> [list of face files]).
-
-    The `payload` passed to the `push` method is expected to be a valid byte array that represents an image in memory.
+    FaceR (short one for face recognition) tags known faces in images.
+    Output is the image with all faces tagged whether with the known name or an `unknown_label`.
+    Default for unknown ones is 'Unknown'.
 
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/ml.FaceR/index.md

@@ -9,7 +9,13 @@ from . import PushBase, PushExecutionError
 
 
 class Call(PushBase):
+    """
+    Makes a request to a http resource.
 
+    See Also:
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/http.Call/index.md
+
+    """
     def __init__(self, url, method='GET', fail_on_error=False, provide_response=False, **kwargs):
         super().__init__(**kwargs)
         self.url = self._parse_url(url)

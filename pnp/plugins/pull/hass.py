@@ -9,6 +9,16 @@ from ...utils import make_list, auto_str_ignore, include_or_exclude, wildcards_t
 
 @auto_str_ignore(['token', '_websocket', '_loop', '_include_regex', '_exclude_regex'])
 class State(PullBase):
+    """
+    Connects to the home assistant websocket api and listens for state changes.
+    If no include or exclude is defined it will report all state changes.
+    If include is defined only entities that match one of the specified patterns will be emitted.
+    If exclude if defined entities that match at least one of the specified patterns will
+    be ignored. Exclude patterns overrides include patterns.
+
+    See Also:
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/hass.State/index.md
+    """
     __prefix__ = 'hass'
 
     def __init__(self, url, token, include=None, exclude=None, **kwargs):

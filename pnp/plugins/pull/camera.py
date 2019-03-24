@@ -1,4 +1,4 @@
-"""Camera related pull plugins"""
+"""Camera related pull plugins."""
 
 import os
 
@@ -16,7 +16,7 @@ class MotionEyeWatcher(FileSystemWatcher):
     only when motion is triggered and not 24/7.
 
     See Also:
-        https://github.com/HazardDede/pnp/blob/feature/motioneye/docs/plugins/pull/camera.MotionEyeWatcher/index.md
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/camera.MotionEyeWatcher/index.md
 
     """
 

@@ -13,44 +13,12 @@ from ...validator import Validator
 @auto_str_ignore(['password'])
 class ZwayPoll(Polling):
     """
-    Pulls the specified json content from the zway rest api. The content is specified by the url, e.g.
-    `http://<host>:8083/ZWaveAPI/Run/devices` will pull all devices and serve the result as a json.
+    Pulls the specified json content from the zway rest api.
+    The content is specified by the url, e.g. http://<host>:8083/ZWaveAPI/Run/devices will pull
+    all devices and serve the result as a json.
 
-    Specify the polling interval by setting the argument `interval`. User / password combination is required when
-    your api is protected against guest access (by default it is).
-
-    Use multiple pushes and the related selectors to extract the required content like temperature readings (see
-    the example configuration for guidance).
-
-    All arguments (`url`, `user` and `password`) can be automatically injected via environment variables.
-    * ZWAY_URL
-    * ZWAY_USER
-    * ZWAY_PASSWORD
-
-    Args:
-        url (str): The zway api url to poll.
-        user (str): The user for authentication to the api.
-        password (str): The related password.
-
-    Returns:
-        The `on_payload` callback will pass the result of specified url.
-
-    Example configuration:
-
-        name: zway
-        pull:
-          plugin: pnp.plugins.pull.ZwayPoll
-          args:
-            url: http://<host>:8083/ZWaveAPI/Run/devices  # Retrieve all devices
-            user: admin
-            password: secret
-            interval: 5m  # Poll the api every 5 minutes
-        push:
-          - plugin: pnp.plugins.push.Echo
-            selector: payload[19].instances[0].commandClasses[49].data[1].val.value  # temp. of fibaro motion sensor
-          - plugin: pnp.plugins.push.Echo
-            selector: payload[9].instances[0].commandClasses[128].data.last.value  # Setpoint of heater
-
+    See Also:
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/zway.ZwayPoll/index.md
     """
 
     __prefix__ = 'zway'
@@ -77,37 +45,10 @@ class ZwayPoll(Polling):
 class ZwayReceiver(Server):
     """
     Setups a http server to process incoming GET-requests from the
-    Zway-App [`HttpGet`](https://github.com/hplato/Zway-HTTPGet/blob/master/index.js).
+    Z-Way-App [`HttpGet`](https://github.com/hplato/Zway-HTTPGet/blob/master/index.js).
 
-    Besides the arguments noted below the component will accept any arguments that `pnp.plugins.pull.http.Server`
-    would accept.
-
-    Args:
-        url_format (str): The url_format that is configured in your HttpGet App. If you configured
-            `http://<ip>:<port>/set?device=%DEVICE%&state=%VALUE%` (default of the App), you basically have to copy
-            the path component `set?device=%DEVICE%&state=%VALUE%` to be your `url_format`.
-        device_mapping (Union[Dict[Str, Str], Dict[Str, Dict]], optional): A mapping to map the somewhat cryptic
-            virtual device names to human readable ones. Default is None, which means that no mapping will be performed.
-            Two ways possible:
-                1. Ordinary mapping from virtual device name -> alias.
-                2. Enhanced mapping from virtual device name to dictionary with additional properties. One property
-                has to be alias.
-        ignore_unknown_devices (bool, optional): If set to True all incoming requests that are associated with an
-            device that is not part of the mapping will be ignored. Default is False.<br/>
-
-    Returns:
-
-        Given the url_format `%DEVICE%?value=%VALUE%`, the url `http://<ip>:<port>/set?vdevice1?value=5.5` and
-        the device_mapping `vdevice1 -> alias of vdevice1` the emitted message will look like this:
-
-        ```yaml
-        {
-            'device_name': 'alias of vdevice1',
-            'raw_device': 'vdevice1'
-            'value': 5.5,
-            'props': {}
-        }
-        ```
+    See Also:
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/zway.ZwayReceiver/index.md
     """
     MAPPING_SCHEMA = schema.Schema({
         schema.Optional(str): schema.Or(

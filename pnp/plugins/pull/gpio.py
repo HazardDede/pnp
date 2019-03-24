@@ -26,6 +26,13 @@ CONST_MOTION_OFF = "motion_off"
 
 
 class Watcher(PullBase):
+    """
+    Listens for low/high state changes on the configured gpio pins.
+
+    See Also:
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/gpio.Watcher/index.md
+    """
+
     __prefix__ = 'gpio'
 
     EXTRA = 'gpio'

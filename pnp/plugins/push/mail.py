@@ -9,6 +9,12 @@ from ...validator import Validator
 
 
 class GMail(PushBase):
+    """
+    Sends an e-mail via the gmail api.
+
+    See Also:
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/mail.GMail/index.md
+    """
     __prefix__ = 'gmail'
     EXTRA = 'gmail'
 

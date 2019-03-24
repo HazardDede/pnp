@@ -5,6 +5,16 @@ from ...utils import auto_str_ignore
 
 @auto_str_ignore(['api_key'])
 class Pushbullet (PushBase):
+    """
+    Sends a message to the Pushbullet service. The type of the message will guessed:
+
+    - `push_link` for a single http link
+    - `push_file` if the link is directed to a file (mimetype will be guessed)
+    - `push_note` for everything else (converted to str)
+
+    See Also:
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/notify.Pushbullet/index.md
+    """
     __prefix__ = 'pushbullet'
 
     EXTRA = 'pushbullet'

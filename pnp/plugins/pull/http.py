@@ -15,43 +15,8 @@ class Server(PullBase):
     Any data passed to the endpoint will be tried to be parsed to a dictionary (json). If this is not possible
     the data will be passed as is. See sections `Returns` for specific payload and examples.
 
-    Remark: You will not able to make requests to the endpoint DELETE `/_shutdown` because it is used internally.
-
-    Args:
-        port (int): The port the rest server should listen to for requests.
-
-    Returns:
-        The callback `on_payload` will offer a payload that is a dictionary of the request made.
-
-        Examples:
-            curl -X GET 'http://localhost:5000/resource/endpoint?foo=bar&bar=baz' --data '{"baz": "bar"}'
-            {
-                'endpoint': 'resource/endpoint,
-                'method': 'GET',
-                'query': {'foo': 'bar', 'bar': 'baz'},
-                'data': {'baz': 'bar'},
-                'is_json': True
-            }
-            curl -X GET 'http://localhost:5000/resource/endpoint' --data 'no json obviously'
-            {
-                'endpoint': 'resource/endpoint,
-                'method': 'GET',
-                'query': {},
-                'data': b'no json obviously',
-                'is_json': False
-            }
-
-    Example configuration:
-
-        name: rest
-        pull:
-          plugin: pnp.plugins.pull.rest.RestServer
-          args:
-            port: 5000
-            allowed_methods: [GET, POST]
-        push:
-          plugin: pnp.plugins.push.simple.Echo
-
+    See Also:
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/http.Server/index.md
     """
     __prefix__ = "rest"
 

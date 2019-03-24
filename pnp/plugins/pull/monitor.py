@@ -8,6 +8,9 @@ from . import Polling
 class Stats (Polling):
     """
     Periodically emits stats about the host system, like cpu_use, memory_use, swap_use, ...
+
+    See Also:
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/monitor.Stats/index.md
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

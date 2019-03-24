@@ -12,17 +12,8 @@ class InfluxPush(PushBase):
     E.g. {payload.metric},room={payload.location} value={payload.value} assumes that payload contains metric, location
     and value.
 
-    Args:
-        host (str): The host where the influxdb is running.
-        port (int): The port where the influxdb service is listening on.
-        user (str): Username to use for authentication.
-        password (str): Related password.
-        database (str): The database to write to.
-        protocol (str): Line protocol template (augmented with payload-data).
-            See https://docs.influxdata.com/influxdb/v1.5/write_protocols/line_protocol_tutorial/.
-
-    Returns:
-        For the ability to chain multiple pushes together the payload is simply returned as is.
+    See Also:
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/timedb.InfluxPush/index.md
     """
     __prefix__ = 'influx'
 

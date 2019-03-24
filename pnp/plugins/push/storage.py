@@ -6,6 +6,12 @@ from ...validator import Validator
 
 @auto_str_ignore(['api_key'])
 class Dropbox (PushBase):
+    """
+    Uploads provided file to the specified dropbox account.
+
+    See Also:
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/storage.Dropbox/index.md
+    """
     __prefix__ = 'dropbox'
 
     EXTRA = 'dropbox'
