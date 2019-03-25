@@ -10,6 +10,52 @@ class PushExecutionError(Exception):
     pass
 
 
+def _lookup(instance, lookups):
+    """
+    Will lookup the instance for the given attribute names in `lookups`.
+    Returns the first occurrence found.
+
+    Examples:
+
+        >>> class Foo:
+        ...     def __init__(self):
+        ...         self.a = 1
+        ...         self.b = 2
+        ...         self.c = 3
+        ...         self.__a = 99
+        >>> instance = Foo()
+        >>> _lookup(instance, 'a')
+        1
+        >>> _lookup(instance, '__a')
+        99
+        >>> _lookup(instance, ['c', 'b'])
+        3
+        >>> _lookup(instance, ['d', 'b'])
+        2
+        >>> print(_lookup(instance, ['x', 'y', 'z']))
+        None
+
+    Args:
+        instance: The class to lookup for the given attribute names.
+        lookups: Attribute names to lookup.
+
+    Returns:
+        Returns the value of the first found attribute name in lookups. If none is found, simply
+        None is returned.
+    """
+    lookups = utils.make_list(lookups)
+    # There might be some name mangling for private attributes - add them as lookups
+    privates = ['_{classname}{attrname}'.format(classname=type(instance).__name__, attrname=x)
+                for x in lookups if x.startswith('__') and not x.endswith('__')]
+    lookups = lookups + privates
+    _Nothing = object()
+    for lookup in lookups:
+        val = getattr(instance, lookup, _Nothing)
+        if val is not _Nothing:
+            return val
+    return None
+
+
 class PushBase(Plugin):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -45,14 +91,14 @@ class PushBase(Plugin):
         if envelope is None or name not in envelope:
             return (instance_lookup_fun(name)
                     if instance_lookup_fun is not None
-                    else utils.instance_lookup(self, list(lookups.values())))
+                    else _lookup(self, list(lookups.values())))
 
         val = envelope[name]
         try:
             if parse_fun is None:
                 public_attr_name = lookups['public']
                 parse_fun_names = utils.make_public_protected_private_attr_lookup('parse_' + public_attr_name)
-                parse_fun = utils.instance_lookup(self, parse_fun_names)
+                parse_fun = _lookup(self, parse_fun_names)
                 if parse_fun is None:
                     return val
             return parse_fun(val)
@@ -62,7 +108,7 @@ class PushBase(Plugin):
                 name=self.name, attr=name, error=traceback.format_exc()))
             return (instance_lookup_fun(name)
                     if instance_lookup_fun is not None
-                    else utils.instance_lookup(self, list(lookups.values())))
+                    else _lookup(self, list(lookups.values())))
 
     @staticmethod
     def envelope_payload(payload):

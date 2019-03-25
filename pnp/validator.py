@@ -1,7 +1,9 @@
+"""Contains utility methods for validating."""
 import os
 
 
 class Validator:
+    """Collection of utility methods for validating arguments / vars."""
     @staticmethod
     def _allow_none(arg_value, allow_none):
         return not (allow_none and arg_value is None)
@@ -34,17 +36,19 @@ class Validator:
         """
         for arg_name, arg_value in kwargs.items():
             if arg_value is None:
-                raise ValueError("Argument '{arg_name}' is expected to be not none".format(**locals()))
+                raise ValueError("Argument '{arg_name}' is expected to be not none".format(
+                    arg_name=arg_name
+                ))
 
     @staticmethod
     def one_not_none(**kwargs):
         """
         Examples:
             >>> Validator.one_not_none(arg1=None, arg2=None, arg3='passed')
-            >>> Validator.one_not_none(arg1=None, arg2=None, arg3=None)
+            >>> Validator.one_not_none(arg1=None, arg2=None)
             Traceback (most recent call last):
             ...
-            ValueError: Arguments ['arg1', 'arg2', 'arg3'] expects at least one passed, but all are none
+            ValueError: Arguments ['arg1', 'arg2'] expects at least one passed, but all are none
         """
         if all([x is None for x in kwargs.values()]):
             raise ValueError("Arguments {args} expects at least one passed, but all are none"
@@ -69,9 +73,15 @@ class Validator:
             TypeError: Argument 'arg2' is expected to be a (<class 'str'>,), but is <class 'bool'>
         """
         for arg_name, arg_value in kwargs.items():
-            if Validator._allow_none(arg_value, allow_none) and not isinstance(arg_value, required_type):
-                raise TypeError("Argument '{arg_name}' is expected to be a {required_type}"
-                                ", but is {actual_type}".format(**locals(), actual_type=type(arg_value)))
+            if (Validator._allow_none(arg_value, allow_none) and
+                    not isinstance(arg_value, required_type)):
+                raise TypeError(
+                    "Argument '{arg_name}' is expected to be a {required_type}"
+                    ", but is {actual_type}".format(
+                        arg_name=arg_name,
+                        required_type=required_type,
+                        actual_type=type(arg_value)
+                    ))
 
     @staticmethod
     def is_non_negative(allow_none=False, **kwargs):
@@ -92,18 +102,21 @@ class Validator:
             try:
                 arg_value = float(arg_value)
             except (TypeError, ValueError):
-                raise ValueError("Argument '{arg_name}' is not numeric (float, int, ...)".format(**locals()))
+                raise ValueError("Argument '{arg_name}' is not numeric (float, int, ...)".format(
+                    arg_name=arg_name
+                ))
 
             if Validator._allow_none(arg_value, allow_none) and arg_value < 0.0:
-                raise ValueError("Argument '{arg_name}' is expected to be greater or equal to zero"
-                                 ", but it is not".format(**locals()))
+                raise ValueError(
+                    "Argument '{arg_name}' is expected to be greater or equal to zero"
+                    ", but it is not".format(arg_name=arg_name))
 
     @staticmethod
     def one_of(possible, allow_none=False, **kwargs):
         """
         Examples:
             >>> Validator.one_of(['a', 'b', 'c'], arg='a')
-            >>> Validator.one_of(['a', 'b', 'c'], allow_none=True, arg='a', arg2=None)  # Should be ok as well
+            >>> Validator.one_of(['a', 'b', 'c'], allow_none=True, arg='a', arg2=None)
             >>> Validator.one_of(['a', 'b', 'c'], arg='z')
             Traceback (most recent call last):
             ...
@@ -116,8 +129,12 @@ class Validator:
         Validator.is_instance(list, tuple, possible=possible)
         for arg_name, arg_value in kwargs.items():
             if Validator._allow_none(arg_value, allow_none) and arg_value not in possible:
-                raise ValueError("Argument '{arg_name}' is expected to be one of {possible}, "
-                                 "but is '{arg_value}'".format(**locals()))
+                raise ValueError(
+                    "Argument '{arg_name}' is expected to be one of {possible}, "
+                    "but is '{arg_value}'".format(
+                        arg_name=arg_name, possible=possible, arg_value=arg_value
+                    )
+                )
 
     @staticmethod
     def subset_of(possible, allow_none=False, **kwargs):
@@ -136,9 +153,14 @@ class Validator:
         from .utils import make_list
         Validator.is_instance(list, tuple, possible=possible)
         for arg_name, arg_value in kwargs.items():
-            if Validator._allow_none(arg_value, allow_none) and not (set(make_list(arg_value)) <= set(possible)):
-                raise ValueError("Argument '{arg_name}' is expected to be a subset of {possible}, but is '{arg_value}'"
-                                 .format(**locals()))
+            if (Validator._allow_none(arg_value, allow_none)
+                    and not set(make_list(arg_value)) <= set(possible)):
+                raise ValueError(
+                    "Argument '{arg_name}' is expected to be a subset of {possible}, "
+                    "but is '{arg_value}'".format(
+                        arg_name=arg_name, possible=possible, arg_value=arg_value
+                    )
+                )
 
     @staticmethod
     def is_directory(allow_none=False, **kwargs):
@@ -151,9 +173,12 @@ class Validator:
             ValueError: Argument 'arg' is expected to be a directory, but is '/thisonedoesnotexists'
         """
         for arg_name, arg_value in kwargs.items():
-            if Validator._allow_none(arg_value, allow_none) and not os.path.isdir(arg_value):
-                raise ValueError("Argument '{arg_name}' is expected to be a directory, "
-                                 "but is '{arg_value}'".format(**locals()))
+            if (Validator._allow_none(arg_value, allow_none)
+                    and not os.path.isdir(arg_value)):
+                raise ValueError(
+                    "Argument '{arg_name}' is expected to be a directory, "
+                    "but is '{arg_value}'".format(arg_name=arg_name, arg_value=arg_value)
+                )
 
     @staticmethod
     def is_file(allow_none=False, **kwargs):
@@ -162,15 +187,19 @@ class Validator:
             >>> import tempfile
             >>> with tempfile.NamedTemporaryFile() as tmpf:
             ...     Validator.is_file(arg=tmpf.name)
-            >>> Validator.is_file(arg='/thisonedoesnotexists.txt')
+            >>> Validator.is_file(arg='/doesnotexist.txt')
             Traceback (most recent call last):
             ...
-            ValueError: Argument 'arg' is expected to be a file, but is '/thisonedoesnotexists.txt'
+            ValueError: Argument 'arg' is expected to be a file, but is '/doesnotexist.txt'
         """
         for arg_name, arg_value in kwargs.items():
             if Validator._allow_none(arg_value, allow_none) and not os.path.isfile(arg_value):
-                raise ValueError("Argument '{arg_name}' is expected to be a file, "
-                                 "but is '{arg_value}'".format(**locals()))
+                raise ValueError(
+                    "Argument '{arg_name}' is expected to be a file, "
+                    "but is '{arg_value}'".format(
+                        arg_name=arg_name, arg_value=arg_value
+                    )
+                )
 
     @staticmethod
     def is_function(allow_none=False, **kwargs):
@@ -188,8 +217,12 @@ class Validator:
         for arg_name, arg_value in kwargs.items():
             if Validator._allow_none(arg_value, allow_none) and not callable(arg_value):
                 arg_type = type(arg_value)
-                raise TypeError("Argument '{arg_name}' is expected to be a function/callable, "
-                                "but is '{arg_type}'".format(**locals()))
+                raise TypeError(
+                    "Argument '{arg_name}' is expected to be a function/callable, "
+                    "but is '{arg_type}'".format(
+                        arg_name=arg_name, arg_type=arg_type
+                    )
+                )
 
     @staticmethod
     def is_iterable_but_no_str(allow_none=False, **kwargs):
@@ -205,7 +238,12 @@ class Validator:
         """
         from .utils import is_iterable_but_no_str
         for arg_name, arg_value in kwargs.items():
-            if Validator._allow_none(arg_value, allow_none) and not is_iterable_but_no_str(arg_value):
+            if (Validator._allow_none(arg_value, allow_none)
+                    and not is_iterable_but_no_str(arg_value)):
                 arg_type = type(arg_value)
-                raise TypeError("Argument '{arg_name}' is expected to be a non-str iterable, "
-                                "but is '{arg_type}'".format(**locals()))
+                raise TypeError(
+                    "Argument '{arg_name}' is expected to be a non-str iterable, "
+                    "but is '{arg_type}'".format(
+                        arg_name=arg_name, arg_type=arg_type
+                    )
+                )

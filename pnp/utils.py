@@ -1,3 +1,7 @@
+"""Utility / helper functions, classes, decorators, ..."""
+
+# pylint: disable=too-many-lines
+
 import inspect
 import logging
 import os
@@ -22,15 +26,15 @@ FILE_MODES = ['binary', 'text', 'auto']
 HTTP_METHODS = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH']
 
 
-logger = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 class EvaluationError(Exception):
-    pass
+    """Is raised when a selector expression cannot be evaluated."""
 
 
 class StopCycleError(Exception):
-    pass
+    """A callback of interruptible_sleep should call this, when the sleep should be interrupted."""
 
 
 def make_list(item_or_items):
@@ -90,8 +94,8 @@ def camel_to_snake(name):
     'http_response_code_xyz'
 
     """
-    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
-    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+    _str = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', _str).lower()
 
 
 def wildcards_to_regex(wildcard_patterns):
@@ -99,8 +103,10 @@ def wildcards_to_regex(wildcard_patterns):
     Examples:
 
         >>> import fnmatch, re
-        >>> (wildcards_to_regex(['sensor.*', 'sensor.lamp'])
-        ...     == [re.compile(fnmatch.translate('sensor.*')), re.compile(fnmatch.translate('sensor.lamp'))])
+        >>> (wildcards_to_regex(['sensor.*', 'sensor.lamp']) == [
+        ...     re.compile(fnmatch.translate('sensor.*')),
+        ...     re.compile(fnmatch.translate('sensor.lamp'))
+        ... ])
         True
         >>> wildcards_to_regex('sensor.lamp') == re.compile(fnmatch.translate('sensor.lamp'))
         True
@@ -113,7 +119,6 @@ def wildcards_to_regex(wildcard_patterns):
     if not wildcard_patterns:
         return wildcard_patterns
     import fnmatch
-    import re
     if is_iterable_but_no_str(wildcard_patterns):
         return [re.compile(fnmatch.translate(item)) for item in wildcard_patterns]
     Validator.is_instance(str, wildcard_patterns=wildcard_patterns)
@@ -158,18 +163,20 @@ def transform_dict_items(dct, keys_fun=None, vals_fun=None):
     Transforms keys and/or values of the given dictionary by applying the given function.
 
     >>> dct = {"CamelCase": "gnaaa", "foo_oool": 42}
-    >>> transform_dict_items(dct, keys_fun=camel_to_snake) == {"camel_case": "gnaaa", "foo_oool": 42}
+    >>> (transform_dict_items(dct, keys_fun=camel_to_snake) ==
+    ...     {"camel_case": "gnaaa", "foo_oool": 42})
     True
     >>> transform_dict_items(dct, vals_fun=str) == {"CamelCase": "gnaaa", "foo_oool": "42"}
     True
-    >>> transform_dict_items(dct, keys_fun=camel_to_snake, vals_fun=str) == {"camel_case": "gnaaa", "foo_oool": "42"}
+    >>> (transform_dict_items(dct, keys_fun=camel_to_snake, vals_fun=str) ==
+    ...     {"camel_case": "gnaaa", "foo_oool": "42"})
     True
     """
     if not keys_fun and not vals_fun:
         return dct
 
-    def apply(kv, fun):
-        return kv if not fun else fun(kv)
+    def apply(kov, fun):
+        return kov if not fun else fun(kov)
 
     return {apply(k, keys_fun): apply(v, vals_fun) for k, v in dct.items()}
 
@@ -192,12 +199,14 @@ def is_iterable_but_no_str(candidate):
 def interruptible_sleep(wait, callback, interval=0.5):
     """
 
-    Waits the specified amount of time. The waiting can be interrupted when the callback raises a `StopCycleError`.
-    The argument `interval` defines after how much wait time the callback should be called.
+    Waits the specified amount of time. The waiting can be interrupted when the callback raises a
+    `StopCycleError`. The argument `interval` defines after how much wait time the callback
+    should be called.
 
     Examples:
 
-        >>> interruptible_sleep(0.5, lambda: print("Cycle"), 0.2)  # Does perform two cycles of 0.2 secs and one 0.1
+        # Does perform two cycles of 0.2 secs and one 0.1
+        >>> interruptible_sleep(0.5, lambda: print("Cycle"), 0.2)
         Cycle
         Cycle
         >>> i = 0
@@ -212,7 +221,8 @@ def interruptible_sleep(wait, callback, interval=0.5):
         Cycle
 
     Args:
-        wait (float): Wait for this amount of time, if not interrupted (some semantias as in `time.sleep(wait)`.
+        wait (float): Wait for this amount of time, if not interrupted (same semantics as in
+            `time.sleep(wait)`.
         interval (float): How often the callback should be called.
 
     Returns:
@@ -223,7 +233,7 @@ def interruptible_sleep(wait, callback, interval=0.5):
 
     complete_cycles = int(wait // interval)
     try:
-        for i in range(0, complete_cycles):
+        for _ in range(0, complete_cycles):
             callback()  # Should raise a StopCycleError error when waiting should be aborted
             time.sleep(interval)
 
@@ -234,9 +244,9 @@ def interruptible_sleep(wait, callback, interval=0.5):
 
 def make_public_protected_private_attr_lookup(attr_name, as_dict=False):
     """
-    Given an attribute name this function will generate names of public, private and protected attribute names.
-    The order is of lookups is always the given attr_name first and then descending by visibility (public -> proctected
-    -> private)
+    Given an attribute name this function will generate names of public, private and protected
+    attribute names. The order is of lookups is always the given attr_name first and then
+    descending by visibility (public -> proctected -> private)
 
     Examples:
         >>> make_public_protected_private_attr_lookup('my_lookup')  # Public attribute name
@@ -254,81 +264,42 @@ def make_public_protected_private_attr_lookup(attr_name, as_dict=False):
     as_dict = try_parse_bool(as_dict, default=False)
     if attr_name.startswith('__'):
         # __lookup, lookup, _lookup
-        res = OrderedDict([('private', attr_name), ('public', attr_name[2:]), ('protected', attr_name[1:])])
+        res = OrderedDict([
+            ('private', attr_name), ('public', attr_name[2:]), ('protected', attr_name[1:])
+        ])
     elif attr_name.startswith('_'):
         # _lookup, lookup, __lookup
-        res = OrderedDict([('protected', attr_name), ('public', attr_name[1:]), ('private', '_' + attr_name)])
+        res = OrderedDict([
+            ('protected', attr_name), ('public', attr_name[1:]), ('private', '_' + attr_name)
+        ])
     else:
         # lookup, _lookup, __lookup
-        res = OrderedDict([('public', attr_name), ('protected', '_' + attr_name), ('private', '__' + attr_name)])
+        res = OrderedDict([
+            ('public', attr_name), ('protected', '_' + attr_name), ('private', '__' + attr_name)
+        ])
     return res if as_dict else list(res.values())
-
-
-def instance_lookup(instance, lookups):
-    """
-    Will lookup the instance for the given attribute names in `lookups`.
-    Returns the first occurrence found.
-
-    Examples:
-
-        >>> class Foo:
-        ...     def __init__(self):
-        ...         self.a = 1
-        ...         self.b = 2
-        ...         self.c = 3
-        ...         self.__a = 99
-        >>> instance = Foo()
-        >>> instance_lookup(instance, 'a')
-        1
-        >>> instance_lookup(instance, '__a')
-        99
-        >>> instance_lookup(instance, ['c', 'b'])
-        3
-        >>> instance_lookup(instance, ['d', 'b'])
-        2
-        >>> print(instance_lookup(instance, ['x', 'y', 'z']))
-        None
-
-    Args:
-        instance: The class to lookup for the given attribute names.
-        lookups: Attribute names to lookup.
-
-    Returns:
-        Returns the value of the first found attribute name in lookups. If none is found, simply None is returned.s
-    """
-    lookups = make_list(lookups)
-    # There might be some name mangling for private attributes - add them as lookups
-    privates = ['_{classname}{attrname}'.format(classname=type(instance).__name__, attrname=x)
-                for x in lookups if x.startswith('__') and not x.endswith('__')]
-    lookups = lookups + privates
-    _Nothing = object()
-    for lookup in lookups:
-        val = getattr(instance, lookup, _Nothing)
-        if val is not _Nothing:
-            return val
-    return None
 
 
 def safe_eval(source, **context):
     """
-    Calls the `eval` function with modified globals() and locals(). By default of `eval` the current globals() and
-    locals() are passed. We do not want that behaviour because the user can make a lot of nasty things with it
-    (think of a already imported `os` module...).
+    Calls the `eval` function with modified globals() and locals(). By default of `eval` the
+    current globals() and locals() are passed. We do not want that behaviour because the user
+    can make a lot of nasty things with it (think of a already imported `os` module...).
 
-    Instead we pass some functions (not all) from `__builtins__` (aka the whitelist) and remove all other modules.
-    The caller can pass some additional context (like variables) to the eval.
+    Instead we pass some functions (not all) from `__builtins__` (aka the whitelist) and remove
+    all other modules. The caller can pass some additional context (like variables) to the eval.
 
     Examples:
 
         >>> payload = {'foo': {'bar': 1, 'baz': 2}}
-        >>> safe_eval("str(payload['foo']['bar'])", payload=payload, str=str)  # We pass some ctx the eval has access to
+        >>> safe_eval("str(payload['foo']['bar'])", payload=payload, str=str)
         '1'
         >>> import os
         >>> safe_eval("os.system('echo 0')")  # Try to access os
         Traceback (most recent call last):
         ...
         pnp.utils.EvaluationError: Failed to evaluate 'os.system('echo 0')'
-        >>> safe_eval("os.system('echo 0')", os=os)  # The caller can pass the os module... if he really wants to...
+        >>> safe_eval("os.system('echo 0')", os=os)
         0
 
     Args:
@@ -339,8 +310,8 @@ def safe_eval(source, **context):
         Return the result of the eval. If something went wrong it raises an error.
     """
     try:
-        return eval(str(source), {'__builtins__': {}}, context)
-    except Exception as exc:
+        return eval(str(source), {'__builtins__': {}}, context)  # pylint: disable=eval-used
+    except Exception as exc:  # pylint: disable=bare-except
         raise EvaluationError("Failed to evaluate '{source}'".format(**locals())) from exc
 
 
@@ -372,8 +343,8 @@ def try_parse_int(candidate):
 
 def try_parse_int_float_str(candidate):
     """
-    Tries to parse the given value as an int or float. If this does not work simply the string-representation of the
-    candidate will be returned.
+    Tries to parse the given value as an int or float. If this does not work simply the
+    string-representation of the candidate will be returned.
 
     Examples:
         >>> res = try_parse_int_float_str(5)
@@ -396,13 +367,14 @@ def try_parse_int_float_str(candidate):
     try:
         ffloat = float(candidate)
         return int(ffloat) if ffloat.is_integer() else ffloat
-    except:
+    except:  # pylint: disable=bare-except
         return str(candidate)
 
 
-def try_parse_bool(value, default=None):
+def try_parse_bool(value, default=None):  # pylint: disable=too-many-return-statements
     """
-    Tries to parse the given value as a boolean. If the parsing is unsuccessful the default will be returned.
+    Tries to parse the given value as a boolean. If the parsing is unsuccessful the default will
+    be returned.
 
     Args:
         value: Value to parse.
@@ -438,10 +410,9 @@ def try_parse_bool(value, default=None):
     if isinstance(value, str):
         if value.lower() in ['t', 'true', '1', 'wahr', 'ja', 'yes', 'on']:
             return True
-        elif value.lower() in ['f', 'false', '0', 'falsch', 'nein', 'no', 'off']:
+        if value.lower() in ['f', 'false', '0', 'falsch', 'nein', 'no', 'off']:
             return False
-        else:
-            return default
+        return default
 
     try:
         return bool(value)
@@ -451,8 +422,8 @@ def try_parse_bool(value, default=None):
 
 def on_off(value):
     """
-    Tries to convert the given value to a on / off literal. If conversion is not possible (unsupported datatype) it will
-    silently fail and return 'off'.
+    Tries to convert the given value to a on / off literal. If conversion is not possible
+    (unsupported datatype) it will silently fail and return 'off'.
 
     Examples:
 
@@ -469,7 +440,8 @@ def on_off(value):
         value: The value to convert to on / off.
 
     Returns:
-        Return 'on' if the the `value` is True or equivalent (see try_parse_bool); otherwise 'off'.
+        Return 'on' if the the `value` is True or equivalent (see try_parse_bool);
+        otherwise 'off'.
     """
     return 'on' if try_parse_bool(value, default=False) else 'off'
 
@@ -508,23 +480,35 @@ def get_file_mode(file_path, mode):
 
 
 def load_file(fp, mode='auto', base64=False):
+    """
+    Loads a file by the given file path into memory.
+    The read mode can either be binary, text or auto. Auto will try to guess the read mode
+    based on the files content.
+
+    Args:
+        fp (str): file path.
+        mode (str): One of binary, text, auto
+        base64 (bool): If True the content will be base64 encoded; otherwise not.
+    """
     if not isinstance(base64, bool):
-        raise TypeError("Argument 'base64' is expected to be a bool, but is {}".format(type(base64)))
+        raise TypeError("Argument 'base64' is expected to be a bool, but is {}".format(
+            type(base64)
+        ))
     mode = 'binary' if base64 else mode
     if mode not in FILE_MODES:
         raise ValueError("Argument 'mode' is expected to be one of: {}".format(FILE_MODES))
 
     read_mode = get_file_mode(fp, mode=mode)
-    with open(fp, read_mode) as fs:
-        contents = b64encode(fs.read()) if base64 else fs.read()
+    with open(fp, read_mode) as fstream:
+        contents = b64encode(fstream.read()) if base64 else fstream.read()
 
     return dict(file_name=os.path.basename(fp), content=contents, mode=read_mode, base64=base64)
 
 
 def get_first_existing_file(*file_list):
     """
-    Given is a list of possible files. The function returns the first item that exists. If none of the candidates
-    exists `None` is returned.
+    Given is a list of possible files. The function returns the first item that exists.
+    If none of the candidates exists `None` is returned.
 
     Examples:
         >>> import tempfile
@@ -541,7 +525,9 @@ def get_first_existing_file(*file_list):
 
 def get_bytes(stream_or_file):
     """
-    Returns the bytes of the given stream or file argument. If it is a file, it will be opened in binary mode.
+    Returns the bytes of the given stream or file argument. If it is a file, it will be opened
+    in binary mode.
+
     Examples:
         >>> import tempfile
         >>> tmp = tempfile.NamedTemporaryFile()
@@ -610,12 +596,12 @@ def parse_duration_literal(literal: DurationLiteral):
     try:
         # if successful we got seconds
         return int(literal)
-    except:  # pylint: disable=broad-except
+    except:  # pylint: disable=bare-except
         # We have to check for s, m, h, d, w suffix
         seconds_per_unit = {"s": 1, "m": 60, "h": 3600, "d": 86400, "w": 604800}
         # Remove all non-alphanumeric letters
-        s = re.sub('[^0-9a-zA-Z]+', '', str(literal))
-        value_str, unit = s[:-1], s[-1].lower()
+        _str = re.sub('[^0-9a-zA-Z]+', '', str(literal))
+        value_str, unit = _str[:-1], _str[-1].lower()
         value = try_parse_int(value_str)
         if value is None or unit not in seconds_per_unit:
             raise TypeError("Interval '{}' is not a valid literal".format(literal))
@@ -624,7 +610,8 @@ def parse_duration_literal(literal: DurationLiteral):
 
 def safe_get(dct, *keys, default=None):
     """
-    Get the value inside the dictionary that is accessible by the given keys or - if a key doesn't exists - the default.
+    Get the value inside the dictionary that is accessible by the given keys or - if a key doesn't
+    exists - the default.
 
     Examples:
 
@@ -644,8 +631,8 @@ def safe_get(dct, *keys, default=None):
         default (object, optional):
 
     Returns:
-        Returns the requested value inside the probably nested dictionary. If a key does not exists, the function will
-        return the default.
+        Returns the requested value inside the probably nested dictionary. If a key does not
+        exists, the function will return the default.
     """
     for key in keys:
         try:
@@ -657,7 +644,8 @@ def safe_get(dct, *keys, default=None):
 
 def get_field_mro(cls, field_name):
     """
-    Goes up the mro (method resolution order) of the given class and returns the union of a given field.
+    Goes up the mro (method resolution order) of the given class and returns the union of a given
+    field.
 
     Example:
 
@@ -696,8 +684,8 @@ def get_field_mro(cls, field_name):
             return res
         cls = type(cls)
 
-    for c in inspect.getmro(cls):
-        values_ = getattr(c, field_name, None)
+    for clazz in inspect.getmro(cls):
+        values_ = getattr(clazz, field_name, None)
         if values_ is not None:
             res = res.union(set(make_list(values_)))
     return res
@@ -708,16 +696,17 @@ def auto_str(__repr__=False):
     Use this decorator to auto implement __str__() and optionally __repr__() methods on classes.
 
     Args:
-        __repr__ (bool): If set to true, the decorator will auto-implement the __repr__() method as well.
+        __repr__ (bool): If set to true, the decorator will auto-implement the __repr__() method
+        as well.
 
     Returns:
         callable: Decorating function.
 
     Note:
-        There are known issues with self referencing (self.s = self). Recursion will be identified by the python
-        interpreter and will do no harm, but it will actually not work.
-        A eval(class.__repr__()) will obviously not work, when there are attributes that are not part of the
-        __init__'s arguments.
+        There are known issues with self referencing (self.s = self). Recursion will be identified
+        by the python interpreter and will do no harm, but it will actually not work.
+        A eval(class.__repr__()) will obviously not work, when there are attributes that are not
+        part of the __init__'s arguments.
 
     Example:
         >>> @auto_str(__repr__=True)
@@ -737,11 +726,13 @@ def auto_str(__repr__=False):
     """
     def decorator(cls):
         def __str__(self):
-            items = ["{name}={value}".format(
-                name=name,
-                value=vars(self)[name].__repr__()
-            ) for name in [key for key in sorted(vars(self))]
-                if name not in get_field_mro(self.__class__, '__auto_str_ignore__')]
+            items = [
+                "{name}={value}".format(
+                    name=name,
+                    value=vars(self)[name].__repr__()
+                ) for name in [key for key in sorted(vars(self))]
+                if name not in get_field_mro(self.__class__, '__auto_str_ignore__')
+            ]
             return "{clazz}({items})".format(
                 clazz=str(type(self).__name__),
                 items=', '.join(items)
@@ -787,7 +778,7 @@ def auto_str_ignore(ignore_list):
     return decorator
 
 
-class classproperty(property):
+class classproperty(property):  # pylint: disable=invalid-name
     """
     Decorator classproperty:
     Make class methods look like read-only class properties.
@@ -813,9 +804,11 @@ class classproperty(property):
         return classmethod(self.fget).__get__(None, owner)()
 
 
-class Loggable(object):
+class Loggable:  # pylint: disable=too-few-public-methods
     """
-    Adds a logger property to the class to provide easy access to a configured logging instance to use.
+    Adds a logger property to the class to provide easy access to a configured logging instance to
+    use.
+
     Example:
         >>> class NeedsLogger(Loggable):
         ...     def do(self, message):
@@ -824,13 +817,13 @@ class Loggable(object):
         >>> dut.do('mymessage')
     """
     @classproperty
-    def logger(cls):
+    def logger(cls):  # pylint: disable=no-self-argument
         """
         Configures and returns a logger instance for further use.
         Returns:
             (logging.Logger)
         """
-        component = "{}.{}".format(cls.__module__, cls.__name__)
+        component = "{}.{}".format(cls.__module__, cls.__name__)  # pylint: disable=no-member
         return logging.getLogger(component)
 
 
@@ -840,14 +833,14 @@ class FallbackBox(Box):
     a boxed dictionary. For example we would like to mimic access paths like the zway api can:
         devices[19].instances[0].commandClasses[49].data[3].val.value
     In this case all int looking ones are actual string keys. But for plugins we want it
-    as easy as possible. So we first take the key as it is to access the data, but when it raises a `KeyError`
-    we cast the key to str and try it again to access the key as a fallback.
+    as easy as possible. So we first take the key as it is to access the data, but when it raises
+    a `KeyError` we cast the key to str and try it again to access the key as a fallback.
 
     Examples:
 
         >>> d = {'devices': {'1': {'instances': {'0': 'instance0', 1: 'instance1'}}}}
         >>> dut = FallbackBox(d)
-        >>> dut.devices[1].instances[0]  # devices.1 is a syntax error, cause 1 is not a valid identifier
+        >>> dut.devices[1].instances[0]
         'instance0'
         >>> dut.devices[1].instances[1]
         'instance1'
@@ -855,16 +848,16 @@ class FallbackBox(Box):
     def __getitem__(self, item, _ignore_default=False):
         try:
             return super().__getitem__(item, _ignore_default=_ignore_default)
-        except BoxKeyError as ke:
+        except BoxKeyError as kerr:
             if isinstance(item, (int, float)):
                 return super().__getitem__(str(item), _ignore_default=_ignore_default)
-            raise ke
+            raise kerr
 
 
 class Debounce:
     """
-    Defers a function execution until `wait` seconds have elapsed since the last time it was invoked.
-    It is a way to collect multiple invokes and only really execute the last invocation.
+    Defers a function execution until `wait` seconds have elapsed since the last time it was
+    invoked. It is a way to collect multiple invokes and only really execute the last invocation.
 
     Examples:
 
@@ -905,8 +898,9 @@ class Debounce:
             self.timer.cancel()
 
     def execute_now(self):
-        # Without checking self.timer.finished.is_set(), in rare situations the actual function would get executed
-        # twice
+        """Execute the debounced function call now. No matter what."""
+        # Without checking self.timer.finished.is_set(), in rare situations the actual function
+        # would get executed twice.
         if self.timer is not None and not self.timer.finished.is_set():
             self._safe_stop_timer()
             self.timer.function(*self.timer.args, **self.timer.kwargs)
@@ -917,7 +911,7 @@ class Debounce:
         self.timer.start()
 
 
-class Singleton(object):
+class Singleton:
     """
     Derive from this class to create a singleton.
     Examples:
@@ -963,26 +957,29 @@ class Singleton(object):
             cls.init = cls.__init__
             # .. and then forget about it...
 
-            def empty_init(self, *args, **kwargs):
+            def empty_init(self, *args, **kwargs):  # pylint: disable=unused-argument
                 pass
             cls.__init__ = empty_init
         return instance
 
     @classproperty
-    def instance(cls):
+    def instance(cls):  # pylint: disable=no-self-argument
         """
-        Returns the singleton instance. If there is none yet, it will be created by calling the ``init`` method
-        without any arguments.
+        Returns the singleton instance. If there is none yet, it will be created by
+        calling the `init` method without any arguments.
         """
         return cls.__new__(cls)
 
 
-class FileLock(object):
+class FileLock:
     """
-    A file locking mechanism that has context-manager support so you can use it within a with statement.
-    This implementation should be relatively cross-platform compatible cause it doesn't rely on msvcrt or fcntl
-    for the locking.
-    You can nest calls to ``acquire`` it will only lock the file once and release it with the last call to ``release``.
+    A file locking mechanism that has context-manager support so you can use it within a with
+    statement.
+    This implementation should be relatively cross-platform compatible cause it doesn't rely on
+    msvcrt or fcntl for the locking.
+    You can nest calls to ``acquire`` it will only lock the file once and release it with the last
+    call to ``release``.
+
     Examples:
         >>> import tempfile
         >>> tmp = tempfile.NamedTemporaryFile()
@@ -1026,16 +1023,17 @@ class FileLock(object):
     """
 
     class TimeoutError(Exception):
-        pass
+        """Is raised when a timeout occurs when waiting for the file lock."""
 
     def __init__(self, file_name, timeout=10, delay=.05):
         """
-        Prepare the file locker. Specify the file to lock and optionally the maximum timeout (seconds) and the delay
-        between each attempt to lock.
+        Prepare the file locker. Specify the file to lock and optionally the maximum timeout
+        (seconds) and the delay between each attempt to lock.
+
         Args:
             file_name: The file to lock exclusively.
-            timeout: If the file is already locked by another process, this instance tries to acquire the lock
-                for a maximum of `timeout` seconds.
+            timeout: If the file is already locked by another process, this instance tries
+                to acquire the lock for a maximum of `timeout` seconds.
             delay:
         """
         self.lock_counter = 0
@@ -1043,12 +1041,14 @@ class FileLock(object):
         self.file_name = file_name
         self.timeout = timeout
         self.delay = delay
-        self.fd = None
+        self.fd = None  # pylint: disable=invalid-name
 
     def acquire(self):
         """
-        Acquires the lock, if possible. If the file is already locked, the algorithm tries to acquire the lock until
-        it either gets the lock or the timeout threshold is exceeded. In case of a timeout an error is raised.
+        Acquires the lock, if possible. If the file is already locked, the algorithm tries to
+        acquire the lock until it either gets the lock or the timeout threshold is exceeded.
+        In case of a timeout an error is raised.
+
         Returns:
             None
         """
@@ -1063,9 +1063,9 @@ class FileLock(object):
                 self.fd = os.open(self.lockfile, os.O_CREAT | os.O_EXCL | os.O_RDWR)
                 self.lock_counter += 1
                 break
-            except OSError as e:
+            except OSError as oserr:
                 import errno
-                if e.errno != errno.EEXIST:
+                if oserr.errno != errno.EEXIST:
                     raise
                 if (time.time() - start_time) >= self.timeout:
                     raise FileLock.TimeoutError("Timeout occurred")
@@ -1074,6 +1074,7 @@ class FileLock(object):
     def release(self):
         """
         Unlocks the file when the exclusive lock is no longer needed.
+
         Returns:
             None
         """
@@ -1090,26 +1091,31 @@ class FileLock(object):
     def locked(self):
         """
         Checks whether the file is currently locked by any process.
-        Returns: True if the file is currently locked (by any process, not just this one); otherwise False.
+
+        Returns: True if the file is currently locked (by any process, not just this one);
+            otherwise False.
         """
         return os.path.isfile(self.lockfile)
 
     def __enter__(self):
         """
         Context manager acquire lock.
+
         Returns:
             Self
         """
         self.acquire()
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exc_type, exc_value, traceback):
         """
         Context manager release.
+
         Args:
-            type: unused
-            value: unused
+            exc_type: unused
+            exc_value: unused
             traceback: unused
+
         Returns:
             None
         """
@@ -1118,6 +1124,7 @@ class FileLock(object):
     def __del__(self):
         """
         Make sure that this instance doesn't leave a lockfile lying around when garbage collected.
+
         Returns:
             None
         """
@@ -1165,6 +1172,7 @@ class Parallel:
 
     @property
     def results(self):
+        """Return the results of the parallel run."""
         import copy
         return copy.copy(self._results)
 
@@ -1177,29 +1185,30 @@ class Parallel:
         if fun_key:
             try:
                 self._results[fun_key] = future.result()
-            except:
+            except:  # pylint: disable=bare-except
                 import traceback
-                logger.warning("Parallel result raised an error\n{}".format(traceback.format_exc()))
+                _LOGGER.warning("Parallel result raised an error\n%s", traceback.format_exc())
         if callback:
             try:
                 callback(future.result)
-            except:
+            except:  # pylint: disable=bare-except
                 import traceback
-                logger.warning("Parallel callback raised an error\n{}".format(traceback.format_exc()))
+                _LOGGER.warning("Parallel callback raised an error\n%s", traceback.format_exc())
 
     def run_until_complete(self):
+        """Run the scheduled tasks until all are completed."""
         self._results.clear()
         futures = []
         with ThreadPoolExecutor(max_workers=self.workers) as executor:
-            for fun, cb, fun_key, args, kwargs in self.funcs:
+            for fun, cback, fun_key, args, kwargs in self.funcs:
                 future = executor.submit(fun, *args, **kwargs)
-                future.add_done_callback(partial(self._intercept, callback=cb, fun_key=fun_key))
+                future.add_done_callback(partial(self._intercept, callback=cback, fun_key=fun_key))
                 futures.append(future)
 
         return ['finished' if f.exception() is None else 'error' for f in futures]
 
 
-class Throttle:
+class Throttle:  # pylint: disable=too-few-public-methods
     """
     Decorator that prevents a function from being called more than once every
     time period.
@@ -1222,14 +1231,15 @@ class Throttle:
         Validator.is_instance(timedelta, delta=delta)
         self.time_of_last_call = datetime.min
 
-    def __call__(self, fn):
-        @wraps(fn)
+    def __call__(self, fun):
+        @wraps(fun)
         def wrapper(*args, **kwargs):
             now = datetime.now()
             time_since_last_call = now - self.time_of_last_call
 
             if time_since_last_call > self.throttle_period:
                 self.time_of_last_call = now
-                return fn(*args, **kwargs)
+                return fun(*args, **kwargs)
+            return None
 
         return wrapper
