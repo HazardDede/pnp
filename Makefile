@@ -57,17 +57,12 @@ lint:
 		pylint $(SOURCE_PATH)/app.py $(SOURCE_PATH)/config.py $(SOURCE_PATH)/mocking.py \
 		    $(SOURCE_PATH)/models.py $(SOURCE_PATH)/selector.py $(SOURCE_PATH)/utils.py \
 		    $(SOURCE_PATH)/validator.py
-		pylint $(SOURCE_PATH)/engines/__init__.py $(SOURCE_PATH)/engines/parallel.py \
-		    $(SOURCE_PATH)/engines/process.py $(SOURCE_PATH)/engines/sequential.py \
-		    $(SOURCE_PATH)/engines/thread.py
-		pylint $(SOURCE_PATH)/runner/pnp.py $(SOURCE_PATH)/runner/pnp_gmail_tokens.py \
-		    $(SOURCE_PATH)/runner/pnp_record_sound.py
-		pylint $(SOURCE_PATH)/shared/exc.py $(SOURCE_PATH)/shared/hass.py \
-		    $(SOURCE_PATH)/shared/mime.py
+		pylint $(SOURCE_PATH)/engines/
+		pylint $(SOURCE_PATH)/runner/
+		pylint $(SOURCE_PATH)/shared/
 		pylint $(SOURCE_PATH)/plugins/__init__.py
-		pylint $(SOURCE_PATH)/plugins/pull/__init__.py $(SOURCE_PATH)/plugins/pull/camera.py \
-		    $(SOURCE_PATH)/plugins/pull/fitbit.py $(SOURCE_PATH)/plugins/pull/fs.py \
-		    $(SOURCE_PATH)/plugins/pull/gpio.py $(SOURCE_PATH)/plugins/pull/hass.py
+		pylint $(SOURCE_PATH)/plugins/pull/
+		pylint $(SOURCE_PATH)/plugins/udf
 
 test:
 		pytest --verbose --color=yes \

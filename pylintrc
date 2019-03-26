@@ -255,7 +255,10 @@ good-names=i,
            fp,
            b,
            pa,
-           GPIO
+           GPIO,
+           rc,
+           N,
+           np
 
 # Include a hint for the correct naming format with invalid-name.
 include-naming-hint=no

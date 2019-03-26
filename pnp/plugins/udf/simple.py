@@ -31,7 +31,7 @@ class Counter(UserDefinedFunction):
         if self.cnt < 0:
             self.cnt = 0
 
-    def action(self):
+    def action(self):  # pylint: disable=arguments-differ
         try:
             return self.cnt
         finally:
@@ -57,7 +57,7 @@ class Memory(UserDefinedFunction):
         super().__init__(**kwargs)
         self.init = init
 
-    def action(self, new_memory=_MISSING):
+    def action(self, new_memory=_MISSING):  # pylint: disable=arguments-differ
         try:
             return self.init
         finally:

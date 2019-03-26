@@ -1,11 +1,14 @@
+"""Monitoring related plugins."""
+
 import os
-import psutil
 import subprocess
+
+import psutil
 
 from . import Polling
 
 
-class Stats (Polling):
+class Stats(Polling):
     """
     Periodically emits stats about the host system, like cpu_use, memory_use, swap_use, ...
 
@@ -30,8 +33,8 @@ class Stats (Polling):
     def _cpu_temp():
         try:
             # Raspberry
-            with open('/sys/class/thermal/thermal_zone0/temp') as tz:
-                return round(float(tz.read()) * 0.001, 1)
+            with open('/sys/class/thermal/thermal_zone0/temp') as tzone:
+                return round(float(tzone.read()) * 0.001, 1)
         except FileNotFoundError:  # pragma: no cover
             return 0.0
 
@@ -51,7 +54,10 @@ class Stats (Polling):
             mask4 = 4  # throttled
             mask8 = 8  # soft temperature limit throttle (pi3 b+)
 
-            out = subprocess.run(['vcgencmd', 'get_throttled'], stdout=subprocess.PIPE).stdout.decode('utf-8')
+            out = subprocess.run(
+                ['vcgencmd', 'get_throttled'],
+                stdout=subprocess.PIPE
+            ).stdout.decode('utf-8')
             hex_num = int(out[out.find('=') + 1:], 16)
 
             return (
@@ -65,7 +71,7 @@ class Stats (Polling):
 
     def poll(self):
         l1m, l5m, l15m = os.getloadavg()
-        uv, fc, throttled, temp_limit = self._throttled()
+        uvolt, fcap, throttled, temp_limit = self._throttled()
         return {
             'cpu_count': psutil.cpu_count(),
             'cpu_freq': self._cpu_freq(),
@@ -76,9 +82,9 @@ class Stats (Polling):
             'load_5m': l5m,
             'load_15m': l15m,
             'memory_use': psutil.virtual_memory().percent,
-            'rpi_cpu_freq_capped': fc,
+            'rpi_cpu_freq_capped': fcap,
             'rpi_temp_limit_throttle': temp_limit,
             'rpi_throttle': throttled,
-            'rpi_under_voltage': uv,
+            'rpi_under_voltage': uvolt,
             'swap_use': psutil.swap_memory().percent
         }

@@ -1,3 +1,5 @@
+"""Http related plugins."""
+
 import json
 
 import requests
@@ -12,8 +14,8 @@ from ...validator import Validator
 class Server(PullBase):
     """
     Listens on the specified `port` for requests to any endpoint.
-    Any data passed to the endpoint will be tried to be parsed to a dictionary (json). If this is not possible
-    the data will be passed as is. See sections `Returns` for specific payload and examples.
+    Any data passed to the endpoint will be tried to be parsed to a dictionary (json).
+    If this is not possible the data will be passed as is.
 
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/http.Server/index.md
@@ -42,8 +44,8 @@ class Server(PullBase):
             app.run(host='0.0.0.0', port=self.port, threaded=True)
             self.server = app
         elif self.server_impl == 'gevent':
-            WSGIServer = load_optional_module('gevent.pywsgi', self.EXTRA).WSGIServer
-            self.server = WSGIServer(('', self.port), app)
+            pywsgi = load_optional_module('gevent.pywsgi', self.EXTRA)
+            self.server = pywsgi.WSGIServer(('', self.port), app)
             self.server.serve_forever()
 
     def stop(self):
@@ -55,13 +57,14 @@ class Server(PullBase):
 
     def _create_app(self):
         that = self
-        Flask = load_optional_module('flask', self.EXTRA).Flask
-        app = Flask(__name__)
+        flask = load_optional_module('flask', self.EXTRA)
+        app = flask.Flask(__name__)
 
         if self.server_impl == 'flask':
-            # We need to register a shutdown endpoint, to end the serving if using the flask development server
+            # We need to register a shutdown endpoint, to end the serving if using the flask
+            # development server
             @app.route('/_shutdown', methods=['DELETE'])
-            def shutdown():
+            def shutdown():  # pylint: disable=unused-variable
                 from flask import request
                 func = request.environ.get('werkzeug.server.shutdown')
                 if func is None:
@@ -71,7 +74,7 @@ class Server(PullBase):
 
         @app.route('/', defaults={'path': '/'}, methods=self.allowed_methods)
         @app.route('/<path:path>', methods=self.allowed_methods)
-        def catch_all(path):
+        def catch_all(path):  # pylint: disable=unused-variable
             from flask import request
             data = request.get_json(force=True, silent=True)
             if data is None:  # No valid json in request body > fallback to data
@@ -104,13 +107,15 @@ class Server(PullBase):
             {'key': 'value'}
             >>> Server._flatten_query_args({'key': ['value']})  # One item list -> flatten
             {'key': 'value'}
-            >>> Server._flatten_query_args({'key': ['value1', 'value2']})  # multiple items list -> no flatten
+            >>> # multiple items list -> no flatten
+            >>> Server._flatten_query_args({'key': ['value1', 'value2']})
             {'key': ['value1', 'value2']}
             >>> Server._flatten_query_args({'key': ['']})  # Empty string -> None
             {'key': None}
             >>> Server._flatten_query_args({'key': []})  # Empty list -> None
             {'key': None}
-            >>> Server._flatten_query_args({'key': ['', '']})  # Multiple Empty string -> Multiple None's
+            >>> # Multiple Empty string -> Multiple None's
+            >>> Server._flatten_query_args({'key': ['', '']})
             {'key': [None, None]}
             >>> Server._flatten_query_args("notadict")  # Argument has to be a dict
             Traceback (most recent call last):
@@ -122,7 +127,7 @@ class Server(PullBase):
             if not isinstance(item, list):
                 return item
             # item -> list
-            if len(item) == 0:
+            if not item:
                 return None
             if len(item) == 1:
                 return item[0] if item[0] else None  # Empty string -> None

@@ -1,8 +1,10 @@
+"""Z-Way related pulls."""
+
 import re
 
 import requests
-import schema
 from requests.auth import HTTPBasicAuth
+import schema
 
 from . import Polling, PollingError
 from .http import Server
@@ -13,7 +15,7 @@ from ...validator import Validator
 @auto_str_ignore(['password'])
 class ZwayPoll(Polling):
     """
-    Pulls the specified json content from the zway rest api.
+    Pulls the specified json content from the z-way rest api.
     The content is specified by the url, e.g. http://<host>:8083/ZWaveAPI/Run/devices will pull
     all devices and serve the result as a json.
 
@@ -30,10 +32,12 @@ class ZwayPoll(Polling):
         self.password = str(password)
 
     def poll(self):
-        self.logger.debug("[{name}] Polling url '{url}'".format(name=self.name, url=self.url))
+        self.logger.debug("[%s] Polling url '%s'", self.name, self.url)
         reply = requests.get(self.url, auth=HTTPBasicAuth(self.user, self.password))
-        if reply.status_code != requests.codes.ok:
-            raise PollingError("Code {code}: {error}".format(code=reply.status_code, error=reply.text))
+        if reply.status_code != requests.codes.ok:  # pylint: disable=no-member
+            raise PollingError(
+                "Code {code}: {error}".format(code=reply.status_code, error=reply.text)
+            )
 
         try:
             return reply.json()
@@ -66,7 +70,8 @@ class ZwayReceiver(Server):
     MODE_MAPPING = 'mapping'
     MODE_BOTH = 'both'
     VALID_MODES = [MODE_AUTO, MODE_MAPPING, MODE_BOTH]
-    VDEV_REGEX = r'ZWayVDev_zway_(?P<device_id>[0-9]+)\-(?P<instance>[0-9]+)\-(?P<cclass>[0-9]+)(\-(?P<mode>[0-9]+))?'
+    VDEV_REGEX = r'ZWayVDev_zway_(?P<device_id>[0-9]+)\-(?P<instance>[0-9]+)\-(?P<cclass>[0-9]+)' \
+                 r'(\-(?P<mode>[0-9]+))?'
 
     AUTO_MAPPING = {
         '37': 'switch',  # Switch binary
@@ -83,8 +88,12 @@ class ZwayReceiver(Server):
         escaped_url = re.escape(url_format)
         device_group = "(?P<device>{})".format(ZwayReceiver.DEVICE_REGEX)
         value_group = "(?P<value>{})".format(ZwayReceiver.VALUE_REGEX)
-        return re.compile('.*' + escaped_url.replace(r'\%DEVICE\%', device_group).replace(r'\%VALUE\%', value_group)
-                          .replace(r'%DEVICE%', device_group).replace(r'%VALUE%', value_group))
+        return re.compile(
+            '.*' + escaped_url.replace(r'\%DEVICE\%', device_group)
+            .replace(r'\%VALUE\%', value_group)
+            .replace(r'%DEVICE%', device_group)
+            .replace(r'%VALUE%', value_group)
+        )
 
     @staticmethod
     def _safe_get_group(match, group_name):
@@ -132,9 +141,10 @@ class ZwayReceiver(Server):
         full_path = payload['full_path']
         match = self.url_format_regex.match(full_path)
         if match is None:
-            self.logger.warning("Cannot extract device_name and/or value from '{}' with regex '{}'".format(
+            self.logger.warning(
+                "Cannot extract device_name and/or value from '%s' with regex '%s'",
                 full_path, self.url_format_regex
-            ))
+            )
             return
         raw_device = match.group('device')
         value = match.group('value')
@@ -147,11 +157,16 @@ class ZwayReceiver(Server):
             match = self._vdev_regex_compiled.match(raw_device)
 
             if match is not None:
-                device_id, cclass, mode = match.group('device_id'), match.group('cclass'), match.group('mode')
+                device_id, cclass, mode = (
+                    match.group('device_id'),
+                    match.group('cclass'),
+                    match.group('mode')
+                )
                 type_of_device = self._auto_map(cclass, mode)
                 if not type_of_device and self.ignore_unknown_devices:
-                    self.logger.debug("Got device '{raw_device}' but it is unknown to the automapper".format(
-                        **locals()))
+                    self.logger.debug(
+                        "Got device '%s' but it is unknown to the automapper", raw_device
+                    )
                     return
                 device_map = {
                     'alias': device_id,
@@ -160,13 +175,14 @@ class ZwayReceiver(Server):
                     'type': type_of_device or (cclass + '-{}'.format(mode) if mode else '')
                 }
             else:
-                self.logger.warning("Cannot extract device_name and/or value from '{}' with regex '{}'".format(
+                self.logger.warning(
+                    "Cannot extract device_name and/or value from '%s' with regex '%s'",
                     raw_device, self._vdev_regex
-                ))
+                )
 
         if device_map is None:
             if self.ignore_unknown_devices:
-                self.logger.debug("Got device '{raw_device}' but it is ignored".format(**locals()))
+                self.logger.debug("Got device '%s' but it is ignored", raw_device)
                 return  # Device is not mapped and should be ignored-> abort
             device_map = dict(alias=raw_device)  # If it isn't ignored just take the raw name
 

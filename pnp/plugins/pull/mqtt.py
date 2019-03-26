@@ -1,3 +1,5 @@
+"""MQTT related plugins."""
+
 from . import PullBase
 
 
@@ -21,27 +23,27 @@ class Subscribe(PullBase):
         self.password = password and str(password)
         self._client = None
 
-    def on_connect(self, client, userdata, flags, rc):
+    def _on_connect(self, client, userdata, flags, rc):  # pylint: disable=unused-argument
         # Subscribing in on_connect() means that if we lose the connection and
         # reconnect then subscriptions will be renewed.
         if rc == 0:
             client.subscribe(self.topic)
-            self.logger.info("[{self.name}] Connected with result code '{rc}' "
-                             "to {self.topic} @ {self.host}:{self.port}".format(**locals()))
+            self.logger.info("[%s] Connected with result code '%s' "
+                             "to %s @ %s:%s", self.name, rc, self.topic, self.host, self.port)
         else:
-            self.logger.error("[{self.name}] Bad connection with result code '{rc}' "
-                              "to {self.topic} @ {self.host}:{self.port}".format(**locals()))
+            self.logger.error("[%s] Bad connection with result code '%s' "
+                              "to %s @ %s:%s", self.name, rc, self.topic, self.host, self.port)
 
-    def on_disconnect(self, client, userdata, rc):
+    def _on_disconnect(self, client, userdata, rc):  # pylint: disable=unused-argument
         if rc != 0:
-            self.logger.warning("[{self.name}] Unexpected mqtt disconnect with result code '{rc}'. "
-                                "Will automatically reconnect.".format(**locals()))
+            self.logger.warning("[%s] Unexpected mqtt disconnect with result code '%s'. "
+                                "Will automatically reconnect.", self.name, rc)
 
-    def on_message(self, client, obj, msg):
-        self.logger.debug("[{self.name}] Got message from broker on topic '{self.topic}'. "
-                          "Payload='{msg.payload}'".format(**locals()))
+    def _on_message(self, client, obj, msg):  # pylint: disable=unused-argument
+        self.logger.debug("[%s] Got message from broker on topic '%s'. "
+                          "Payload='%s'", self.name, self.topic, msg.payload)
 
-        # This one is a envelope with data
+        # This one is an envelope with data
         self.notify(dict(
             topic=str(msg.topic),
             levels=[level for level in msg.topic.split('/')],
@@ -59,9 +61,9 @@ class Subscribe(PullBase):
         self._client = paho.Client()
         if self.user:
             self._client.username_pw_set(self.user, self.password)
-        self._client.on_connect = self.on_connect
-        self._client.on_message = self.on_message
-        self._client.on_disconnect = self.on_disconnect
+        self._client.on_connect = self._on_connect
+        self._client.on_message = self._on_message
+        self._client.on_disconnect = self._on_disconnect
 
         self._client.connect(self.host, self.port, 60)
         self._client.loop_forever(retry_first_connection=True)

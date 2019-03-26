@@ -28,19 +28,19 @@ class UserDefinedFunction(Plugin):
             return self.action(*args, **kwargs)
 
         # Invariant: self.throttle is not None
-        n = datetime.now()
+        now = datetime.now()
         if self._last_call is None:
             res = self.action(*args, **kwargs)
             self._cache = res
-            self._last_call = n
+            self._last_call = now
             return res
 
         # Invariant: self._last_call is not None
-        span = n - self._last_call
+        span = now - self._last_call
         if span >= timedelta(seconds=self.throttle):
             res = self.action(*args, **kwargs)
             self._cache = res
-            self._last_call = n
+            self._last_call = now
             return res
 
         # Invariant: span < delta(throttle)

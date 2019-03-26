@@ -24,7 +24,7 @@ class State(UserDefinedFunction):
             self.timeout = None  # Basically means no timeout
         self._client = HassApi(self.url, self.token, self.timeout)
 
-    def action(self, entity_id, attribute=None):
+    def action(self, entity_id, attribute=None):  # pylint: disable=arguments-differ
         """
         Calls the home assistant api to fetch the state of the given entity (or one of it's
         attributes).
