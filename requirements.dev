@@ -1,6 +1,7 @@
 bumpversion
 flake8
 mock
+pylint>=2.2.2
 pytest>=3.6
 pytest-cov
 setuptools
