@@ -804,7 +804,7 @@ class classproperty(property):  # pylint: disable=invalid-name
         return classmethod(self.fget).__get__(None, owner)()
 
 
-class Loggable:  # pylint: disable=too-few-public-methods
+class Loggable:
     """
     Adds a logger property to the class to provide easy access to a configured logging instance to
     use.
@@ -1208,7 +1208,7 @@ class Parallel:
         return ['finished' if f.exception() is None else 'error' for f in futures]
 
 
-class Throttle:  # pylint: disable=too-few-public-methods
+class Throttle:
     """
     Decorator that prevents a function from being called more than once every
     time period.

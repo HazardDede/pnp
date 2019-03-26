@@ -33,11 +33,11 @@ class MotionEyeWatcher(FileSystemWatcher):
         Validator.is_instance(str, allow_none=True, image_ext=image_ext)
         self.image_ext = image_ext
         if self.image_ext:
-            self.image_ext = self.image_ext if self.image_ext.startswith('.') else '.' + self.image_ext
+            self.image_ext = self._add_dot_to_ext(self.image_ext)
         Validator.is_instance(str, allow_none=True, movie_ext=movie_ext)
         self.movie_ext = movie_ext
         if self.movie_ext:
-            self.movie_ext = self.movie_ext if self.movie_ext.startswith('.') else '.' + self.movie_ext
+            self.movie_ext = self._add_dot_to_ext(self.movie_ext)
 
         self._events = []
         self._patterns = []
@@ -60,6 +60,10 @@ class MotionEyeWatcher(FileSystemWatcher):
 
         self.motion_cool_down = parse_duration_literal(motion_cool_down)
         self._debouncer = None
+
+    @staticmethod
+    def _add_dot_to_ext(ext):
+        return ext if ext.startswith('.') else '.' + ext
 
     def _motion_off(self, notify_impl):
         self.logger.debug("Send motion 'off' (initial)")
@@ -84,7 +88,8 @@ class MotionEyeWatcher(FileSystemWatcher):
             self.logger.debug("Got image '%s' (created)", source)
             self._motion_on(super().notify)
             super().notify(payload=dict(event=self.CONF_EVENT_TYPE_IMAGE, source=source))
-        elif operator == self.EVENT_TYPE_CREATED and ext == self.movie_ext:  # Creation of movie -> trigger motion
+        # Creation of movie -> trigger motion
+        elif operator == self.EVENT_TYPE_CREATED and ext == self.movie_ext:
             self.logger.debug("Got movie '%s' (created)", source)
             self._motion_on(super().notify)
         elif operator == self.EVENT_TYPE_MODIFIED and ext == self.movie_ext:  # This one's a movie
@@ -92,7 +97,10 @@ class MotionEyeWatcher(FileSystemWatcher):
             self._motion_on(super().notify)
             super().notify(payload=dict(event=self.CONF_EVENT_TYPE_MOVIE, source=source))
         else:
-            self.logger.debug("Got event '%s' with source '%s', but not supported. Ignored...", operator, source)
+            self.logger.debug(
+                "Got event '%s' with source '%s', but not supported. Ignored...",
+                operator, source
+            )
 
     def stop(self):
         if self._debouncer:

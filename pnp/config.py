@@ -12,7 +12,6 @@ from .plugins import load_plugin
 from .utils import make_list
 
 
-# pylint: disable=too-few-public-methods
 class OrOverride(Or):
     """
     Validates the given data as the original Or validation directive would do,

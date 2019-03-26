@@ -73,8 +73,8 @@ class Validator:
             TypeError: Argument 'arg2' is expected to be a (<class 'str'>,), but is <class 'bool'>
         """
         for arg_name, arg_value in kwargs.items():
-            if (Validator._allow_none(arg_value, allow_none) and
-                    not isinstance(arg_value, required_type)):
+            if (Validator._allow_none(arg_value, allow_none)
+                    and not isinstance(arg_value, required_type)):
                 raise TypeError(
                     "Argument '{arg_name}' is expected to be a {required_type}"
                     ", but is {actual_type}".format(
@@ -150,7 +150,17 @@ class Validator:
             ValueError: Argument 'arg' is expected to be a subset of ['a', 'b', 'c'], but is 'd'
             >>> Validator.subset_of(['a', 'b', 'c'], allow_none=True, arg1=None, arg2=None)
         """
-        from .utils import make_list
+        def make_list(lst):
+            if lst is None:
+                return None
+            if isinstance(lst, list):
+                return lst
+            if isinstance(lst, dict):
+                return [lst]
+            if hasattr(lst, '__iter__') and not isinstance(lst, str):
+                return list(lst)
+            return [lst]
+
         Validator.is_instance(list, tuple, possible=possible)
         for arg_name, arg_value in kwargs.items():
             if (Validator._allow_none(arg_value, allow_none)
@@ -236,7 +246,9 @@ class Validator:
             TypeError: Argument 's' is expected to be a non-str iterable, but is '<class 'str'>'
 
         """
-        from .utils import is_iterable_but_no_str
+        def is_iterable_but_no_str(candidate):
+            return hasattr(candidate, '__iter__') and not isinstance(candidate, (str, bytes))
+
         for arg_name, arg_value in kwargs.items():
             if (Validator._allow_none(arg_value, allow_none)
                     and not is_iterable_but_no_str(arg_value)):

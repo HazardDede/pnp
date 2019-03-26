@@ -40,13 +40,13 @@ def _validate_callable(instance, attrib, val):  # pylint: disable=unused-argumen
 
 
 @attr.s
-class PullModel:  # pylint: disable=too-few-public-methods
+class PullModel:
     """Model representing a pull."""
     instance = attr.ib(validator=attr.validators.instance_of(PullBase))
 
 
 @attr.s
-class PushModel:  # pylint: disable=too-few-public-methods
+class PushModel:
     """Model representing a push."""
     instance = attr.ib(validator=attr.validators.instance_of(PushBase))
     selector = attr.ib(validator=attr.validators.optional(
@@ -103,7 +103,7 @@ class TaskModel:
 
 
 @attr.s
-class UDFModel:  # pylint: disable=too-few-public-methods
+class UDFModel:
     """Model representing a user-defined function."""
     name = attr.ib(converter=str)
     callable = attr.ib(validator=_validate_callable)

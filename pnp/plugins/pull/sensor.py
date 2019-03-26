@@ -140,7 +140,7 @@ class OpenWeather(Polling):
     __prefix__ = 'openweather'
 
     def __init__(self, api_key, lat=None, lon=None, city_name=None, units="metric", tz=None,
-                 **kwargs):  # pylint: disable=too-many-arguments
+                 **kwargs):
         super().__init__(**kwargs)
         self.api_key = str(api_key)
         self.lat = Validator.cast_or_none(float, lat)
@@ -213,9 +213,8 @@ class Sound(PullBase):
     PEARSON_THRESHOLD = 0.5
     STD_THRESHOLD = 1.4
 
-    # pylint: disable=too-many-arguments
     def __init__(self, wav_file, device_index=None, mode='pearson', sensitivity_offset=0.0,
-                 cool_down="10s", ignore_overflow=False, **kwargs):  # pylint: disable=too-many-arguments
+                 cool_down="10s", ignore_overflow=False, **kwargs):
         super().__init__(**kwargs)
         self.wav_file = str(wav_file)
         if not os.path.isabs(self.wav_file):

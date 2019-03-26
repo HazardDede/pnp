@@ -1,3 +1,5 @@
+"""Home assistant related plugins."""
+
 import asyncio
 import json
 
@@ -40,13 +42,14 @@ class State(PullBase):
             return res[:-1]  # Remove last /
         return res
 
-    def _layout_message(self, message):
+    @staticmethod
+    def _layout_message(message):
         def _layout_state(state):
             from copy import copy
-            cp = copy(state)
-            cp.pop('entity_id', None)
-            cp.pop('context', None)
-            return cp
+            _copy = copy(state)
+            _copy.pop('entity_id', None)
+            _copy.pop('context', None)
+            return _copy
 
         state_data = message.get('event', {}).get('data', {})
         entity_id = state_data.get('entity_id')
@@ -57,7 +60,7 @@ class State(PullBase):
     def _emit(self, message):
         payload = self._layout_message(message)
         if include_or_exclude(payload['entity_id'], self._include_regex, self._exclude_regex):
-            self.on_payload(self, payload)
+            self.on_payload(self, payload)  # pylint: disable=too-many-function-args
 
     async def _receive_states(self):
         self._websocket = await asyncws.connect('{self.url}/api/websocket'.format(**locals()))
@@ -69,27 +72,29 @@ class State(PullBase):
             message = json.loads(message)
             if message.get('type', '') == 'auth_required':
                 hass_version = message.get('ha_version')
-                self.logger.info("[{self.name}] Connected to Home Assistant {hass_version} websocket @ {self.url}"
-                                 .format(**locals()))
-                self.logger.debug("[{self.name}] Authentication is required. Providing token".format(**locals()))
+                self.logger.info(
+                    "[%s] Connected to Home Assistant %s websocket @ %s",
+                    self.name, hass_version, self.url
+                )
+                self.logger.debug("[%s] Authentication is required. Providing token", self.name)
                 await self._websocket.send(json.dumps({
                     'type': 'auth',
                     'access_token': self.token
                 }))
             elif message.get('type', '') == 'auth_ok':
-                self.logger.info("[{self.name}] Authentication is valid".format(**locals()))
+                self.logger.info("[%s] Authentication is valid", self.name)
                 await self._websocket.send(json.dumps(
                     {'id': 1, 'type': 'subscribe_events', 'event_type': 'state_changed'}
                 ))
             elif message.get('type', '') == 'auth_invalid':
-                self.logger.info("[{self.name}] Authentication is invalid. Aborting...".format(**locals()))
+                self.logger.info("[%s] Authentication is invalid. Aborting...", self.name)
                 await self._websocket.close()
             elif message.get('type', '') == 'result':
                 pass
             elif message.get('type', '') == 'event':
                 self._emit(message)
             else:
-                self.logger.warning("[{self.name}] Got unexpected message '{message}'".format(**locals()))
+                self.logger.warning("[%s] Got unexpected message '%s'", self.name, message)
 
     def stop(self):
         super().stop()

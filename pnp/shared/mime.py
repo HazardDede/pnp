@@ -1,3 +1,5 @@
+"""Shared functionality for e-mail traffic."""
+
 import mimetypes
 import os
 from email import encoders
@@ -8,6 +10,9 @@ from ..validator import Validator
 
 
 class Mail:
+    """Utility class for e-mail creation.
+    Makes mime-compatible e-mails with or without attachments."""
+
     @staticmethod
     def _content_type(file_path):
         content_type, encoding = mimetypes.guess_type(file_path)
@@ -24,7 +29,6 @@ class Mail:
     @staticmethod
     def _make_attachment(file_path, contents, main_type, sub_type):
         if main_type == 'text':
-            from email.mime.text import MIMEText
             msg = MIMEText(contents, _subtype=sub_type)
         elif main_type == 'image':
             from email.mime.image import MIMEImage
@@ -43,20 +47,21 @@ class Mail:
         return msg
 
     @classmethod
-    def create_with_attachment(cls, sender, to, subject, file_path, message_text=None):
+    def create_with_attachment(cls, sender, recipient, subject, file_path, message_text=None):
         """Create a message for an email.
 
         Example:
 
             >>> import tempfile
             >>> with tempfile.NamedTemporaryFile() as attach:
-            ...     res = Mail.create_with_attachment('sender', 'a@a.com', 'subject', attach.name, 'Message text')
+            ...     res = Mail.create_with_attachment('sender', 'a@a.com', 'subject',
+            ...                                        attach.name, 'Message text')
             >>> res['to'], res['from'], res['subject']
             ('a@a.com', 'sender', 'subject')
 
         Args:
             sender: Email address of the sender.
-            to: Email address of the receiver.
+            recipient: Email address of the receiver.
             subject: The subject of the email message.
             message_text: The text of the email message.
             file_path: The path to the file to be attached.
@@ -67,7 +72,7 @@ class Mail:
         Validator.is_file(file_path=file_path)
 
         message = MIMEMultipart()
-        message['to'] = str(to)
+        message['to'] = str(recipient)
         message['from'] = str(sender)
         message['subject'] = str(subject)
         if message_text is not None:
@@ -82,7 +87,7 @@ class Mail:
         return message
 
     @classmethod
-    def create_text(cls, sender, to, subject, message_text):
+    def create_text(cls, sender, recipient, subject, message_text):
         """Create a message for an email.
 
         Example:
@@ -95,7 +100,7 @@ class Mail:
 
         Args:
             sender: Email address of the sender.
-            to: Email address of the receiver.
+            recipient: Email address of the receiver.
             subject: The subject of the email message.
             message_text: The text of the email message.
 
@@ -103,7 +108,7 @@ class Mail:
             An object containing a base64url encoded email object.
         """
         message = MIMEText(message_text)
-        message['to'] = str(to)
+        message['to'] = str(recipient)
         message['from'] = str(sender)
         message['subject'] = str(subject)
 

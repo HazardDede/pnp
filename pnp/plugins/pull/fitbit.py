@@ -9,7 +9,8 @@ import schema
 
 from . import Polling
 from .. import load_optional_module
-from ...utils import auto_str_ignore, camel_to_snake, transform_dict_items, make_list, FileLock, Parallel
+from ...utils import (auto_str_ignore, camel_to_snake, transform_dict_items, make_list, FileLock,
+                      Parallel)
 from ...validator import Validator
 
 
@@ -45,10 +46,12 @@ class _FitbitBase(Polling):
 
     @property
     def client(self):
+        """Return the configured fitbit client."""
         with self._client_lock:
             if self._load_tokens():  # Check if tokens got refreshed by another process
-                fb = load_optional_module('fitbit', self.EXTRA)
-                self._client = fb.Fitbit(**self._tokens, oauth2=True, refresh_cb=self._save_tokens, system=self._system)
+                fbit = load_optional_module('fitbit', self.EXTRA)
+                self._client = fbit.Fitbit(**self._tokens, oauth2=True,
+                                           refresh_cb=self._save_tokens, system=self._system)
             return self._client
 
     def _load_tokens(self):
@@ -58,14 +61,15 @@ class _FitbitBase(Polling):
             # Tokens did not change. Skip
             return False
 
-        self.logger.debug("[{self.name}] Loading tokens from {self._config}: Requesting lock".format(**locals()))
+        self.logger.debug("[%s] Loading tokens from %s: Requesting lock", self.name, self._config)
         with FileLock(self._config):
-            self.logger.debug("[{self.name}] Loading tokens from {self._config}: Lock acquired".format(**locals()))
+            self.logger.debug("[{%s] Loading tokens from %s: Lock acquired", self.name,
+                              self._config)
             with open(self._config, 'r') as fp:
                 _tokens = yaml.safe_load(fp)
                 self._tokens = self.TOKEN_SCHEMA.validate(_tokens)
             self._tokens_tstamp = current_tstamp
-        self.logger.debug("[{self.name}] Loading tokens from {self._config}: Lock released".format(**locals()))
+        self.logger.debug("[%s] Loading tokens from %s: Lock released", self.name, self._config)
         return True
 
     def _save_tokens(self, tokens):
@@ -76,15 +80,15 @@ class _FitbitBase(Polling):
             'refresh_token': tokens.get('refresh_token'),
             'expires_at': tokens.get('expires_at')
         }
-        self.logger.debug("[{self.name}] Saving tokens to {self._config}: Requesting lock".format(**locals()))
+        self.logger.debug("[%s] Saving tokens to %s: Requesting lock", self.name, self._config)
         self.TOKEN_SCHEMA.validate(new_config)
         with FileLock(self._config):
-            self.logger.debug("[{self.name}] Saving tokens to {self._config}: Lock acquired".format(**locals()))
+            self.logger.debug("[%s] Saving tokens to %s: Lock acquired", self.name, self._config)
             with open(self._config, 'w') as fp:
                 yaml.dump(new_config, fp, default_flow_style=False)
             self._tokens_tstamp = pathlib.Path(self._config).stat().st_mtime
             self._tokens = new_config
-            self.logger.debug("[{self.name}] Saving tokens to {self._config}: Lock released".format(**locals()))
+            self.logger.debug("[%s] Saving tokens to %s: Lock released", self.name, self._config)
 
     def poll(self):
         raise NotImplementedError()  # pragma: no cover
@@ -153,11 +157,11 @@ class Current(_FitbitBase):
         return self._resource_map.get(resource)(resource)
 
     def poll(self):
-        p = Parallel(workers=4)
-        for r in self._resources:
-            p(self._call, fun_key=r, resource=r)
-        p.run_until_complete()
-        return transform_dict_items(p.results, keys_fun=camel_to_snake)
+        runner = Parallel(workers=4)
+        for res in self._resources:
+            runner(self._call, fun_key=res, resource=res)
+        runner.run_until_complete()
+        return transform_dict_items(runner.results, keys_fun=camel_to_snake)
 
 
 class Devices(_FitbitBase):
@@ -193,7 +197,9 @@ class Goal(_FitbitBase):
     def _create_goal_map(self):
         return {
             'body/fat': lambda goal: float(self.client.body_fat_goal().get('goal', {}).get('fat')),
-            'body/weight': lambda goal: float(self.client.body_weight_goal().get('goal', {}).get('weight')),
+            'body/weight': lambda goal: (
+                float(self.client.body_weight_goal().get('goal', {}).get('weight'))
+            ),
             'activities/daily/activeMinutes': self._get_daily_activity_goal,
             'activities/daily/caloriesOut': self._get_daily_activity_goal,
             'activities/daily/distance': self._get_daily_activity_goal,
@@ -202,7 +208,9 @@ class Goal(_FitbitBase):
             'activities/weekly/distance': self._get_weekly_activity_goal,
             'activities/weekly/floors': self._get_weekly_activity_goal,
             'activities/weekly/steps': self._get_weekly_activity_goal,
-            'foods/calories': lambda goal: int(self.client.food_goal().get('goals', {}).get('calories')),
+            'foods/calories': lambda goal: (
+                int(self.client.food_goal().get('goals', {}).get('calories'))
+            ),
             'foods/water': lambda goal: int(self.client.water_goal().get('goal', {}).get('goal'))
         }
 
@@ -220,8 +228,8 @@ class Goal(_FitbitBase):
         return self._goals_map.get(goal)(goal)
 
     def poll(self):
-        p = Parallel(workers=4)
+        runner = Parallel(workers=4)
         for goal in self._goals:
-            p(self._call, fun_key=goal, goal=goal)
-        p.run_until_complete()
-        return transform_dict_items(p.results, keys_fun=camel_to_snake)
+            runner(self._call, fun_key=goal, goal=goal)
+        runner.run_until_complete()
+        return transform_dict_items(runner.results, keys_fun=camel_to_snake)

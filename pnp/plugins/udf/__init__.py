@@ -1,3 +1,5 @@
+"""Contains base stuff for user-defined functions in selector expressions."""
+
 from abc import abstractmethod
 from datetime import datetime, timedelta
 
@@ -6,7 +8,16 @@ from ...utils import parse_duration_literal
 
 
 class UserDefinedFunction(Plugin):
+    """Base class for a user defined expression."""
+
     def __init__(self, throttle=None, **kwargs):
+        """
+        Initializer.
+
+        Args:
+            throttle: If set to a valid duration literal (e.g. 5m) the return value of the
+                called functions will be cached for the amount of time.
+        """
         super().__init__(**kwargs)
         self.throttle = throttle and parse_duration_literal(throttle)
         self._cache = None
@@ -37,4 +48,5 @@ class UserDefinedFunction(Plugin):
 
     @abstractmethod
     def action(self, *args, **kwargs):
+        """Actual definition of the hard-work of the user defined function."""
         raise NotImplementedError()

@@ -11,7 +11,6 @@ Options:
   --log=<log_conf>  Specify logging configuration to load.
   -h --help         Show this screen.
   --version         Show version.
-
 """
 
 import logging
@@ -19,24 +18,24 @@ import logging.config
 import os
 
 from docopt import docopt
-from schema import Schema, Use, And, Or
 from ruamel import yaml
+from schema import Schema, Use, And, Or
 
-from ..utils import get_first_existing_file
 from ..app import Application
+from ..utils import get_first_existing_file
 
 
-def setup_logging(*candidates, default_level=logging.INFO, env_key='PNP_LOG_CONF', verbose=False):
+def _setup_logging(*candidates, default_level=logging.INFO, env_key='PNP_LOG_CONF', verbose=False):
     """Setup logging configuration"""
     log_file_path = get_first_existing_file(*candidates)
     env_path = os.getenv(env_key, None)
     if env_path:
         log_file_path = env_path
     if log_file_path and os.path.exists(log_file_path):
-        with open(log_file_path, 'rt') as f:
-            config = yaml.safe_load(f.read())
+        with open(log_file_path, 'rt') as fhandle:
+            config = yaml.safe_load(fhandle.read())
         logging.config.dictConfig(config)
-        logging.info("Logging loaded from: {}".format(log_file_path))
+        logging.info("Logging loaded from: %s", log_file_path)
         if verbose:
             logging.getLogger().setLevel(logging.DEBUG)
     else:
@@ -45,7 +44,7 @@ def setup_logging(*candidates, default_level=logging.INFO, env_key='PNP_LOG_CONF
         logging.info("Logging loaded with basic configuration")
 
 
-def validate_args(args):
+def _validate_args(args):
     validator = Schema({
         "--help": Use(bool),
         "--verbose": Use(bool),
@@ -58,17 +57,21 @@ def validate_args(args):
 
 
 def run(args):
-    validated = validate_args(args)
+    """Run pull 'n' push."""
+    validated = _validate_args(args)
     pnp_cfg_path = validated['<configuration>']
     default_log_level = os.environ.get('LOG_LEVEL', 'DEBUG')
-    setup_logging(args['--log'], 'logging.yaml', os.path.join(os.path.dirname(pnp_cfg_path), 'logging.yaml'),
-                  default_level=default_log_level, verbose=validated['--verbose'])
+    _setup_logging(
+        args['--log'], 'logging.yaml', os.path.join(os.path.dirname(pnp_cfg_path), 'logging.yaml'),
+        default_level=default_log_level, verbose=validated['--verbose']
+    )
     app = Application.from_file(pnp_cfg_path)
     if not validated['--check']:
         app.start()
 
 
 def main():
+    """Main entry point into pnp application."""
     arguments = docopt(__doc__, version='0.16.0')
     run(arguments)
 

@@ -1,3 +1,5 @@
+"""Engine implementation using multiprocessing."""
+
 import multiprocessing as proc
 import os
 
@@ -58,5 +60,5 @@ class ProcessEngine(ParallelEngine):
     def _stop_worker(self):
         # We do not use the stop_working_item here... We ungentle terminate the worker
         for worker in self.worker:
-            self.logger.debug("Terminating worker: {}".format(worker))
+            self.logger.debug("Terminating worker: %s", worker)
             worker.terminate()

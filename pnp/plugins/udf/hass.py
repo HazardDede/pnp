@@ -1,4 +1,4 @@
-"""Home assistant related udf's"""
+"""Home assistant related user-defined functions."""
 
 from . import UserDefinedFunction
 from ...shared.hass import HassApi
@@ -25,6 +25,18 @@ class State(UserDefinedFunction):
         self._client = HassApi(self.url, self.token, self.timeout)
 
     def action(self, entity_id, attribute=None):
+        """
+        Calls the home assistant api to fetch the state of the given entity (or one of it's
+        attributes).
+
+        Args:
+            entity_id (str): The entity id of the entity state of interest.
+            attribute: Optionally specify an attribute of the entity.
+
+        Returns:
+            Returns the state of the entity itself or - if argument attribute is set - the state
+            of the specified attribute of that entity.
+        """
         entity_id = str(entity_id)
         attribute = attribute and str(attribute)
         endpoint = 'states/{entity_id}'.format(**locals())

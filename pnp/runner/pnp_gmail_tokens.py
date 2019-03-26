@@ -25,6 +25,7 @@ SCOPES = ['https://www.googleapis.com/auth/gmail.send']
 
 
 def run(credential_file, token_file):
+    """Run the utility script pnp_gmail_tokens."""
     if not os.path.isfile(credential_file):
         print("Credential file '{}' does not exist".format(credential_file))
         return 1
@@ -40,6 +41,7 @@ def run(credential_file, token_file):
 
 
 def main():
+    """Main entry point for utility script pnp_gmail_tokens."""
     arguments = docopt(__doc__)
     creds, token = arguments['<credential_file>'], arguments['<token_file>']
     return run(creds, token)

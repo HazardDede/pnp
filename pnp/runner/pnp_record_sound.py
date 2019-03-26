@@ -22,6 +22,14 @@ CHUNK = 512
 
 
 def run(out_wav, secs, idx):
+    """
+    Run the sound recorder.
+
+    Args:
+        out_wav (str): File path where to store the recorded sound.
+        secs (int): Number of seconds to record.
+        idx (Optional[int]): The device index to use or None (first qualified device).
+    """
     try:
         import pyaudio
         import wave
@@ -40,7 +48,9 @@ def run(out_wav, secs, idx):
             print("Device @ index {idx} is not an input device (microphone)".format(**locals()))
             return 2
         if device.get('maxInputChannels', 0) < CHANNELS:
-            print("Device @ index {idx} does not support {channels} channels".format(idx=idx, channels=CHANNELS))
+            print("Device @ index {idx} does not support {channels} channels".format(
+                idx=idx, channels=CHANNELS
+            ))
             return 3
 
     buffer = []
@@ -55,7 +65,7 @@ def run(out_wav, secs, idx):
     )
 
     try:
-        for i in range(0, int(RATE / CHUNK * secs)):
+        for _ in range(0, int(RATE / CHUNK * secs)):
             data = stream.read(CHUNK)
             buffer.append(data)
     finally:
@@ -75,6 +85,7 @@ def run(out_wav, secs, idx):
 
 
 def list_devices():
+    """List all available microphone devices."""
     try:
         import pyaudio
     except ImportError:
@@ -88,18 +99,26 @@ def list_devices():
         if input_chn > 0:
             name = dev.get('name')
             rate = dev.get('defaultSampleRate')
-            print("Index {i}: {name} (Max Channels {input_chn}, Default @ {rate} Hz)".format(**locals()))
+            print("Index {i}: {name} (Max Channels {input_chn}, Default @ {rate} Hz)".format(
+                i=i, name=name, input_chn=input_chn, rate=int(rate)
+
+            ))
     return 0
 
 
 def main():
+    """Main entry point to runner pnp_record_sound."""
     from docopt import docopt
     arguments = docopt(__doc__)
     if arguments.get('--list', False):
         return list_devices()
-    else:
-        out_wav, secs, idx = arguments['<output_file>'], int(arguments['<seconds>']), arguments.get('--index', None)
-        return run(out_wav, secs, idx and int(idx))
+
+    out_wav, secs, idx = (
+        arguments['<output_file>'],
+        int(arguments['<seconds>']),
+        arguments.get('--index', None)
+    )
+    return run(out_wav, secs, idx and int(idx))
 
 
 if __name__ == '__main__':

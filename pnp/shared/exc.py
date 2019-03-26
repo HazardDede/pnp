@@ -1,5 +1,5 @@
-"""Shared Exceptions"""
+"""Shared Exceptions."""
 
 
 class TemplateError(Exception):
-    pass
+    """Is raised when a template cannot be rendered."""

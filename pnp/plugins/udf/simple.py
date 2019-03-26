@@ -1,3 +1,5 @@
+"""Contains simple user-defined functions."""
+
 from . import UserDefinedFunction
 
 
