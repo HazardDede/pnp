@@ -5,6 +5,7 @@ import types
 import pytest
 
 import pnp.plugins.pull.gpio as gpio
+import pnp.shared.gpio as shared
 from pnp.mocking import GPIOMock
 from pnp.utils import parse_duration_literal
 from . import make_runner, start_runner
@@ -131,48 +132,48 @@ def test_gpio_pull_with_multiple_callbacks_on_pin(mock_gpio):
 
 
 def test_callback_from_str():
-    res = gpio.Callback.from_str("2")
-    assert isinstance(res, gpio.RisingCallback)
+    res = shared.Callback.from_str("2")
+    assert isinstance(res, shared.RisingCallback)
     assert res.gpio_pin == 2
 
-    res = gpio.Callback.from_str("2", default=gpio.CONST_FALLING)
-    assert isinstance(res, gpio.FallingCallback)
+    res = shared.Callback.from_str("2", default=shared.CONST_FALLING)
+    assert isinstance(res, shared.FallingCallback)
     assert res.gpio_pin == 2
 
-    res = gpio.Callback.from_str("2:rising", default=gpio.CONST_FALLING)
-    assert isinstance(res, gpio.RisingCallback)
+    res = shared.Callback.from_str("2:rising", default=shared.CONST_FALLING)
+    assert isinstance(res, shared.RisingCallback)
     assert res.gpio_pin == 2
 
-    res = gpio.Callback.from_str("2:falling", default=gpio.CONST_RISING)
-    assert isinstance(res, gpio.FallingCallback)
+    res = shared.Callback.from_str("2:falling", default=shared.CONST_RISING)
+    assert isinstance(res, shared.FallingCallback)
     assert res.gpio_pin == 2
 
-    res = gpio.Callback.from_str("2:switch", default=gpio.CONST_RISING)
-    assert isinstance(res, gpio.SwitchCallback)
+    res = shared.Callback.from_str("2:switch", default=shared.CONST_RISING)
+    assert isinstance(res, shared.SwitchCallback)
     assert res.gpio_pin == 2
-    assert res.delay == gpio.SwitchCallback.BOUNCE_DEFAULT
+    assert res.delay == shared.SwitchCallback.BOUNCE_DEFAULT
 
-    res = gpio.Callback.from_str("2:switch(999)", default=gpio.CONST_RISING)
-    assert isinstance(res, gpio.SwitchCallback)
+    res = shared.Callback.from_str("2:switch(999)", default=shared.CONST_RISING)
+    assert isinstance(res, shared.SwitchCallback)
     assert res.gpio_pin == 2
     assert res.delay == 999
 
     try:
-        gpio.Callback.from_str("2:switch()", default=gpio.CONST_RISING)
+        shared.Callback.from_str("2:switch()", default=shared.CONST_RISING)
     except ValueError:
         pass
 
-    res = gpio.Callback.from_str("2:motion", default=gpio.CONST_RISING)
-    assert isinstance(res, gpio.MotionCallback)
+    res = shared.Callback.from_str("2:motion", default=shared.CONST_RISING)
+    assert isinstance(res, shared.MotionCallback)
     assert res.gpio_pin == 2
-    assert res.delay == parse_duration_literal(gpio.MotionCallback.DELAY_DEFAULT)
+    assert res.delay == parse_duration_literal(shared.MotionCallback.DELAY_DEFAULT)
 
-    res = gpio.Callback.from_str("2:motion(2m)", default=gpio.CONST_RISING)
-    assert isinstance(res, gpio.MotionCallback)
+    res = shared.Callback.from_str("2:motion(2m)", default=shared.CONST_RISING)
+    assert isinstance(res, shared.MotionCallback)
     assert res.gpio_pin == 2
     assert res.delay == 120
 
     try:
-        gpio.Callback.from_str("2:motion()", default=gpio.CONST_RISING)
+        shared.Callback.from_str("2:motion()", default=gpio.CONST_RISING)
     except ValueError:
         pass

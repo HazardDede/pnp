@@ -1,4 +1,4 @@
-"""Home assistant related utility classes"""
+"""Home assistant related utility classes."""
 
 import json
 
