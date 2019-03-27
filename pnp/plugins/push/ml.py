@@ -70,7 +70,7 @@ class FaceR(PushBase):
 
     @staticmethod
     def _tag_image(unknown_image, tags):
-        from PIL import Image, ImageDraw
+        from PIL import Image, ImageDraw  # pylint: disable=import-error
 
         # Convert the image to a PIL-format image so that we can draw on top of it with the
         # Pillow library. See http://pillow.readthedocs.io/ for more about PIL/Pillow
