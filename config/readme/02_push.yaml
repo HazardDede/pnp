@@ -1,3 +1,4 @@
+---
 - name: example
   pull:
     plugin: pnp.plugins.pull.mqtt.Subscribe
@@ -9,5 +10,5 @@
     - plugin: pnp.plugins.push.fs.FileDump
       args:
         directory: "/tmp"
-        binary_mode: False
+        binary_mode: false
     - plugin: pnp.plugins.push.simple.Echo

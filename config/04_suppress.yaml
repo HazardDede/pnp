@@ -1,3 +1,4 @@
+---
 # By returning a pre-defined constant (SUPRESSME, SUPPRESS, SUPPRESS_ME) from a selector you can suppress
 # the execution of a push.
 

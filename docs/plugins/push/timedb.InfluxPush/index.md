@@ -26,7 +26,7 @@ For the ability to chain multiple pushes together the payload is simply returned
 __Examples__
 
 ```yaml
-- name: mqtt_pull
+- name: influx_push
   pull:
     plugin: pnp.plugins.pull.mqtt.Subscribe
     args:

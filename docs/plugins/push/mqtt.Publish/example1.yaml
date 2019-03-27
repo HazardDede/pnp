@@ -8,4 +8,4 @@
       host: localhost
       topic: home/counter/state
       port: 1883
-      retain: True
+      retain: true

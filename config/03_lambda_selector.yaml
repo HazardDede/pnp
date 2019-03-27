@@ -1,3 +1,4 @@
+---
 - name: selector
   pull:
     plugin: pnp.plugins.pull.simple.Repeat

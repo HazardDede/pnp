@@ -1,4 +1,4 @@
-- name: mqtt_pull
+- name: influx_push
   pull:
     plugin: pnp.plugins.pull.mqtt.Subscribe
     args:

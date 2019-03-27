@@ -46,6 +46,7 @@ __Examples__
     - plugin: pnp.plugins.push.simple.Echo
       # Luminiscence of fibaro motion sensor
       selector: payload[19].instances[0].commandClasses[49].data[3].val.value
+
 ```
 
 __Appendix__

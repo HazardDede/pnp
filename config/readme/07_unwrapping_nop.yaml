@@ -1,3 +1,4 @@
+---
 - name: unwrapping
   pull:
     plugin: pnp.plugins.pull.simple.Repeat
@@ -10,7 +11,7 @@
   push:
     - plugin: pnp.plugins.push.simple.Nop
       selector: "data + [4, 5, 6]"
-      unwrap: False  # Which is the default
+      unwrap: false  # Which is the default
       deps:
         - plugin: pnp.plugins.push.simple.Echo
-          unwrap: True
+          unwrap: true

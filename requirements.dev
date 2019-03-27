@@ -7,3 +7,4 @@ pytest-cov
 setuptools
 twine
 MarkdownPP==1.4
+yamllint>=1.15.0

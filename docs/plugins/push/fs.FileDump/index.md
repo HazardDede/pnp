@@ -35,9 +35,10 @@ __Examples__
       directory: "/tmp"
       file_name: null  # Auto-generated file (timestamp)
       extension: ".txt"  # Extension of auto-generated file
-      binary_mode: False  # text mode
+      binary_mode: false  # text mode
     deps:
       - plugin: pnp.plugins.push.simple.Echo
+
 ```
 
 ```yaml
@@ -58,7 +59,8 @@ __Examples__
       directory: "/tmp"
       file_name: null  # Auto-generated file (timestamp)
       extension: ".txt"  # Extension of auto-generated file
-      binary_mode: False  # text mode
+      binary_mode: false  # text mode
     deps:
       - plugin: pnp.plugins.push.simple.Echo
+
 ```

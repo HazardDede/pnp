@@ -1,3 +1,4 @@
+---
 # As a matter of fact dependencies can have dependencies as well ;-)
 
 # This example yields the string 'Hello World' every second. The first push gets 'Hello' and just returns it.

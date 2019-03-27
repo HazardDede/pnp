@@ -14,7 +14,8 @@ When you want to run multiple task in a concurrent manner you have to use the `T
 engine: !engine
   type: pnp.engines.sequential.SequentialEngine
   retry_handler: !retry
-    type: pnp.engines.NoRetryHandler  # Is the key to termination after counting has finished
+    # Is the key to termination after counting has finished
+    type: pnp.engines.NoRetryHandler
 tasks:
   - name: sequential
     pull:
@@ -47,6 +48,7 @@ tasks:
         repeat: "Hello World"
     push:
       - plugin: pnp.plugins.push.simple.Echo
+
 ```
 
 # pnp.engines.process.ProcessEngine
@@ -68,4 +70,5 @@ tasks:
         repeat: "Hello World"
     push:
       - plugin: pnp.plugins.push.simple.Echo
+
 ```

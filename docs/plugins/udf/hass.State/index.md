@@ -43,4 +43,5 @@ tasks:
       - plugin: pnp.plugins.push.simple.Echo
         # Will only print the data when the state of the sun component is above 'above_horizon'
         selector: "'above_horizon' if hass_state('sun.sun') == 'above_horizon' else SUPPRESS"
+
 ```

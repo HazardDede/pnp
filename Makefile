@@ -3,6 +3,8 @@
 # Setup
 VERSION=0.16.0
 SOURCE_PATH=./pnp
+DOCS_PATH=./docs
+CONFIG_PATH=./config
 TEST_PATH=./tests
 DOCKER_REPO=hazard
 IMAGE_NAME=$(DOCKER_REPO)/pnp
@@ -55,6 +57,7 @@ docs:
 lint:
 		flake8 --exclude=.tox --max-line-length 120 --ignore=W503,E722,E731 $(SOURCE_PATH)
 		pylint $(SOURCE_PATH)
+		yamllint -c .yamllint $(DOCS_PATH) $(CONFIG_PATH)
 
 test:
 		pytest --verbose --color=yes \

@@ -22,4 +22,5 @@ __Examples__
       wait: 1  # Every second
   push:
     plugin: pnp.plugins.push.simple.Echo
+
 ```

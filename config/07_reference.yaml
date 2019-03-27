@@ -1,5 +1,5 @@
+---
 # Demonstrates how to use the optional refs node to define aliases for later referencing.
-
 
 refs:
   echo_plugin: &echo_plugin

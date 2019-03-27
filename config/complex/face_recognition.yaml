@@ -1,3 +1,4 @@
+---
 # Watches the directory '/tmp/camera' for file changes on image files and publishes them to a message queue (base64 encoded).
 # Then the image data is pulled from the queue and a face recognition is executed. The result is a tagged file
 # (known and unknown persons) which will be dumped to the specified directory.
@@ -8,10 +9,10 @@
     args:
       path: "/tmp/camera"
       events: [created]
-      ignore_directories: True
+      ignore_directories: true
       patterns: ['*.jpeg', '*.jpg', '*.png']
-      load_file: True
-      base64: True
+      load_file: true
+      base64: true
 
   push:
     plugin: pnp.plugins.push.mqtt.Publish

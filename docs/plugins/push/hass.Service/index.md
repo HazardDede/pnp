@@ -17,9 +17,7 @@ Returns the payload as-is for better chaining (this plugin can't add any useful 
 __Examples__
 
 ```yaml
-#
 # Calls the frontend.set_theme service to oscillate between a "light" and a "dark" theme
-#
 - name: hass_service
   pull:
     plugin: pnp.plugins.pull.simple.Count
@@ -34,12 +32,11 @@ __Examples__
       token: "{{env::HA_TOKEN}}"
       domain: frontend
       service: set_theme
+
 ```
 
 ```yaml
-#
 # Calls the notify.pushbullet service to send a message with the actual counter
-#
 - name: hass_service
   pull:
     plugin: pnp.plugins.pull.simple.Count
@@ -54,4 +51,5 @@ __Examples__
       token: "{{env::HA_TOKEN}}"
       domain: notify
       service: pushbullet
+
 ```

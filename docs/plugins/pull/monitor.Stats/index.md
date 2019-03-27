@@ -31,7 +31,8 @@ __Examples__
     plugin: pnp.plugins.pull.monitor.Stats
     args:
       interval: 10s
-      instant_run: True
+      instant_run: true
   push:
     plugin: pnp.plugins.push.simple.Echo
+
 ```

@@ -33,10 +33,11 @@ __Examples__
       interval: 5m  # Polls the readings every 5 minutes
       humidity_offset: -5.0  # Subtracts 5% from the humidity reading
       temp_offset: 1.0  # Adds 1 °C to the temperature reading
-      instant_run: True
+      instant_run: true
   push:
     - plugin: pnp.plugins.push.simple.Echo
       selector: payload.temperature  # Temperature reading
     - plugin: pnp.plugins.push.simple.Echo
       selector: payload.humidity  # Humidity reading
+
 ```

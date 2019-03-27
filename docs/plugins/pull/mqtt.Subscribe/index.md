@@ -34,5 +34,6 @@ __Examples__
       topic: test/#
   push:
     plugin: pnp.plugins.push.simple.Echo
+
 ```
 

@@ -59,9 +59,10 @@ __Examples__
     plugin: pnp.plugins.pull.fs.FileSystemWatcher
     args:
       path: "/tmp"
-      ignore_directories: True
+      ignore_directories: true
       events: [created, deleted, modified]
-      load_file: False
+      load_file: false
   push:
     plugin: pnp.plugins.push.simple.Echo
+
 ```

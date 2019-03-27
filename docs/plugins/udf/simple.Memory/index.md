@@ -34,4 +34,5 @@ tasks:
       - plugin: pnp.plugins.push.simple.Echo
         # Will memorize every uneven count
         selector: "mem() if data % 2 == 0 else mem(new_memory=data)"
+
 ```

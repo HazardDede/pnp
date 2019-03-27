@@ -1,3 +1,4 @@
+---
 - name: unwrapping
   pull:
     plugin: pnp.plugins.pull.simple.Repeat
@@ -9,4 +10,4 @@
         - 3
   push:
     - plugin: pnp.plugins.push.simple.Echo
-      unwrap: True
+      unwrap: true

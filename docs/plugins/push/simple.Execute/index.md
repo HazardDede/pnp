@@ -47,9 +47,10 @@ __Examples__
         - "+%Y-%m-%d"
       timeout: 2s
       cwd:  # None -> pnp-configuration directory
-      capture: True  # Capture stdout and stderr
+      capture: true  # Capture stdout and stderr
     deps:
       - plugin: pnp.plugins.push.simple.Echo
+
 ```
 
 ```yaml
@@ -70,7 +71,8 @@ __Examples__
       command: echo  # The command to execute
       timeout: 2s
       cwd:  # None -> pnp-configuration directory
-      capture: True  # Capture stdout and stderr
+      capture: true  # Capture stdout and stderr
     deps:
       - plugin: pnp.plugins.push.simple.Echo
+
 ```

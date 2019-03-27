@@ -58,6 +58,7 @@ __Examples__
         - POST
   push:
     plugin: pnp.plugins.push.simple.Echo
+
 ```
 
 ```yaml
@@ -72,7 +73,7 @@ __Examples__
     plugin: pnp.plugins.push.http.Call
     args:
       url: http://localhost:5000/
-      provide_response: True
+      provide_response: true
     deps:
       plugin: pnp.plugins.push.simple.Echo
 - name: rest_server
@@ -84,4 +85,5 @@ __Examples__
         - GET
   push:
     plugin: pnp.plugins.push.simple.Nop
+
 ```

@@ -77,15 +77,16 @@ That's it. If your token expires it will be refreshed automatically by the plugi
 __Examples__
 
 ```yaml
-# Please point your environment variable `FITBIT_AUTH` to your authentication configuration
-
+# Please point your environment variable `FITBIT_AUTH` to your authentication
+# configuration
 - name: fitbit_devices
   pull:
     plugin: pnp.plugins.pull.fitbit.Devices
     args:
       config: "{{env::FITBIT_AUTH}}"
-      instant_run: True
+      instant_run: true
       interval: 5m
   push:
     - plugin: pnp.plugins.push.simple.Echo
+
 ```

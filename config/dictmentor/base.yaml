@@ -1,3 +1,4 @@
+---
 # Uses the dictmentor package to augment the configuration by dictmentor extensions.
 # Make sure to export the environment variable to echo:
 # export MESSAGE="Hello World"

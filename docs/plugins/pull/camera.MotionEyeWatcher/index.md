@@ -52,7 +52,6 @@ __Examples__
 
 ```yaml
 # Basic example - just echoing events
-
 - name: motioneye_watcher
   pull:
     plugin: pnp.plugins.pull.camera.MotionEyeWatcher
@@ -64,6 +63,7 @@ __Examples__
       defer_modified: 5
   push:
     plugin: pnp.plugins.push.simple.Echo
+
 ```
 
 ```yaml
@@ -80,71 +80,72 @@ __Examples__
 # - PUSHBULLET_API_KEY: Your pushbullet api key
 
 udfs:
-# Defines the udf. name is the actual alias you can call in selector expressions.
-# For fetching the entity of binary_sensor.somebpody_home
-- name: hass_state
-  plugin: pnp.plugins.udf.hass.State
-  args:
-    url: "{{env::HA_URL}}"
-    token: "{{env::HA_TOKEN}}"
-tasks:
-# Emits events when motioneye creates / modifies image and/or movie files
-- name: motioneye_watcher
-  pull:
-    plugin: pnp.plugins.pull.camera.MotionEyeWatcher
+  # Defines the udf. name is the actual alias you can call in selector
+  # expressions.
+  # For fetching the entity of binary_sensor.somebpody_home
+  - name: hass_state
+    plugin: pnp.plugins.udf.hass.State
     args:
-      path: "{{env::MOTIONEYE_MEDIA_PATH}}"
-      image_ext: jpg
-      movie_ext: mp4
-      motion_cool_down: 30s
-      defer_modified: 5
-  push:
-  # Handle motion event
-  # - Push on/off to mqtt for automatic home asisstant discovery
-  - plugin: pnp.plugins.push.simple.Nop
-    selector: "data.state if data.event == 'motion' else SUPPRESS"
-    deps:
-    - plugin: pnp.plugins.push.mqtt.Discovery
-      selector:
-        data: "lambda data: data"
-        object_id: "motion01_motion"
+      url: "{{env::HA_URL}}"
+      token: "{{env::HA_TOKEN}}"
+tasks:
+  # Emits events when motioneye creates / modifies image and/or movie files
+  - name: motioneye_watcher
+    pull:
+      plugin: pnp.plugins.pull.camera.MotionEyeWatcher
       args:
-        host: "{{env::MQTT_HOST}}"
-        discovery_prefix: homeassistant
-        component: binary_sensor
-        config:
-          name: "{{var::object_id}}"
-          device_class: "motion"
-          payload_on: "on"
-          payload_off: "off"
-  # Handle image event
-  # - Push image to home assistant push camera via url
-  - plugin: pnp.plugins.push.simple.Nop
-    selector: "data if data.event == 'image' else SUPPRESS"
-    deps:
-    - plugin: pnp.plugins.push.simple.Execute
-      selector:
-        data:
-        args:
-          - "lambda data: data.source"
-      args:
-        command: ./push_camera.sh
-        timeout: 10s
-        capture: True
-      deps:
-        plugin: pnp.plugins.push.simple.Echo
-  # Handle movie event
-  # - Push movie to dropbox and notify by pushbullet, but only when nobody is home
-  - plugin: pnp.plugins.push.simple.Nop
-    selector: "data if data.event == 'movie' and hass_state('binary_sensor.somebody_home') == 'off' else SUPPRESS"
-    deps:
-    - plugin: pnp.plugins.push.storage.Dropbox
-      selector:
-        data: "lambda data: data.source"
-        target_file_name: "lambda data: basename(data.source)"
-      deps:
-      - plugin: pnp.plugins.push.notify.Pushbullet
-        selector: data.raw_link
+        path: "{{env::MOTIONEYE_MEDIA_PATH}}"
+        image_ext: jpg
+        movie_ext: mp4
+        motion_cool_down: 30s
+        defer_modified: 5
+    push:
+      # Handle motion event
+      # - Push on/off to mqtt for automatic home asisstant discovery
+      - plugin: pnp.plugins.push.simple.Nop
+        selector: "data.state if data.event == 'motion' else SUPPRESS"
+        deps:
+          - plugin: pnp.plugins.push.mqtt.Discovery
+            selector:
+              data: "lambda data: data"
+              object_id: "motion01_motion"
+            args:
+              host: "{{env::MQTT_HOST}}"
+              discovery_prefix: homeassistant
+              component: binary_sensor
+              config:
+                name: "{{var::object_id}}"
+                device_class: "motion"
+                payload_on: "on"
+                payload_off: "off"
+      # Handle image event
+      # - Push image to home assistant push camera via url
+      - plugin: pnp.plugins.push.simple.Nop
+        selector: "data if data.event == 'image' else SUPPRESS"
+        deps:
+          - plugin: pnp.plugins.push.simple.Execute
+            selector:
+              data:
+              args:
+                - "lambda data: data.source"
+            args:
+              command: ./push_camera.sh
+              timeout: 10s
+              capture: true
+            deps:
+              plugin: pnp.plugins.push.simple.Echo
+      # Handle movie event
+      # - Push movie to dropbox and notify by pushbullet, but only when nobody is home
+      - plugin: pnp.plugins.push.simple.Nop
+        selector: "data if data.event == 'movie' and hass_state('binary_sensor.somebody_home') == 'off' else SUPPRESS"
+        deps:
+          - plugin: pnp.plugins.push.storage.Dropbox
+            selector:
+              data: "lambda data: data.source"
+              target_file_name: "lambda data: basename(data.source)"
+            deps:
+              - plugin: pnp.plugins.push.notify.Pushbullet
+                selector: data.raw_link
 
 ```
 

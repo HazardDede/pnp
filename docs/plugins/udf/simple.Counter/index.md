@@ -31,4 +31,5 @@ tasks:
         selector:
           data: "lambda data: data"
           count: "lambda data: counter()"  # Calls the udf
+
 ```

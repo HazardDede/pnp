@@ -1,3 +1,4 @@
+---
 udfs:
   - name: my_str  # Register the builtin str callable as my_str
     plugin: str

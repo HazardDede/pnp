@@ -1,5 +1,5 @@
+---
 # You can define multiple pushes to push the pulled data to multiple sinks.
-
 # This example yields the string 'Hello World' every second. Both pushes print it out.
 
 - name: multipush

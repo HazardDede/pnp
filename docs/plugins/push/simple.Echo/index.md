@@ -22,4 +22,5 @@ __Examples__
       to_cnt: 10
   push:
     plugin: pnp.plugins.push.simple.Echo
+
 ```

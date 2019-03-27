@@ -35,21 +35,20 @@ __Examples__
 
 ```yaml
 # Make sure that you provided DROPBOX_API_KEY as an environment variable
-
 - name: dropbox
   pull:
     plugin: pnp.plugins.pull.fs.FileSystemWatcher
     args:
       path: "/tmp"
-      ignore_directories: True
+      ignore_directories: true
       events:
         - created
         - modified
-      load_file: False
+      load_file: false
   push:
     - plugin: pnp.plugins.push.storage.Dropbox
       args:
-        create_shared_link: True  # Create a publicly available link
+        create_shared_link: true  # Create a publicly available link
       selector:
         data: "lambda data: data.source"  # Absolute path to file
         target_file_name: "lambda data: basename(data.source)"  # File name only

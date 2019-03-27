@@ -1,5 +1,4 @@
 # Basic example - just echoing events
-
 - name: motioneye_watcher
   pull:
     plugin: pnp.plugins.pull.camera.MotionEyeWatcher

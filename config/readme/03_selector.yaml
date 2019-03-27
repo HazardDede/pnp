@@ -1,3 +1,4 @@
+---
 - name: example
   pull:
     plugin: pnp.plugins.pull.mqtt.Subscribe
@@ -10,6 +11,6 @@
       selector: data.payload
       args:
         directory: "/tmp"
-        binary_mode: False
+        binary_mode: false
     - plugin: pnp.plugins.push.simple.Echo
       selector: data.levels[0]

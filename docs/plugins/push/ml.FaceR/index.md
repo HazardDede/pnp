@@ -41,17 +41,18 @@ __Examples__
     plugin: pnp.plugins.pull.fs.FileSystemWatcher
     args:
       path: "/tmp/camera"
-      recursive: True
+      recursive: true
       patterns: "*.jpg"
-      ignore_directories: True
-      case_sensitive: False
+      ignore_directories: true
+      case_sensitive: false
       events: [created]
-      load_file: True
+      load_file: true
       mode: binary
-      base64: False
+      base64: false
   push:
     plugin: pnp.plugins.push.ml.FaceR
     args:
       known_faces_dir: "/tmp/faces"
       unknown_label: "don't know him"
+
 ```

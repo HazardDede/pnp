@@ -44,7 +44,7 @@ __Examples__
     plugin: pnp.plugins.pull.sensor.MiFlora
     args:
       mac: 'C4:7C:8D:67:50:AB'  # The mac of your miflora device
-      instant_run: True
+      instant_run: true
   push:
     - plugin: pnp.plugins.push.simple.Echo
 

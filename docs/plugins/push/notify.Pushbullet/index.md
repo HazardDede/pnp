@@ -22,16 +22,15 @@ __Examples__
 
 ```yaml
 # Make sure that you provided PUSHBULETT_API_KEY as an environment variable
-
 - name: pushbullet
   pull:
     plugin: pnp.plugins.pull.fs.FileSystemWatcher
     args:
       path: "/tmp"
-      ignore_directories: True
+      ignore_directories: true
       events:
         - created
-      load_file: False
+      load_file: false
   push:
     plugin: pnp.plugins.push.notify.Pushbullet
     args:

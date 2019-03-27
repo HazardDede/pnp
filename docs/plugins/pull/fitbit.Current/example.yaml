@@ -1,11 +1,11 @@
-# Please point your environment variable `FITBIT_AUTH` to your authentication configuration
-
+# Please point your environment variable `FITBIT_AUTH` to your authentication
+# configuration
 - name: fitbit_current
   pull:
     plugin: pnp.plugins.pull.fitbit.Current
     args:
       config: "{{env::FITBIT_AUTH}}"
-      instant_run: True
+      instant_run: true
       interval: 5m
       resources:
         - 'activities/calories'

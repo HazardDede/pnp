@@ -57,4 +57,5 @@ __Examples__
         - light.*
   push:
     - plugin: pnp.plugins.push.simple.Echo
+
 ```

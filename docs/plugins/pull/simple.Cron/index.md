@@ -34,4 +34,5 @@ __Examples__
         - "0 16 * * 1-5 every weekday @ 4pm"
   push:
     plugin: pnp.plugins.push.simple.Echo
+
 ```

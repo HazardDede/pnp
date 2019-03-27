@@ -38,7 +38,8 @@ __Examples__
       host: localhost
       topic: home/counter/state
       port: 1883
-      retain: True
+      retain: true
+
 ```
 
 ```yaml
@@ -57,6 +58,7 @@ __Examples__
     args:
       host: localhost
       port: 1883
+
 ```
 
 ```yaml
@@ -65,7 +67,7 @@ __Examples__
     # Periodically gets metrics about your system
     plugin: pnp.plugins.pull.monitor.Stats
     args:
-      instant_run: True
+      instant_run: true
       interval: 10s
   push:
     # Push them to the mqtt
@@ -74,9 +76,10 @@ __Examples__
       host: localhost
       topic: devices/localhost/
       port: 1883
-      retain: True
+      retain: true
       # Each item of the payload-dict (cpu_count, cpu_usage, ...) will be pushed to the broker as multiple items.
       # The key of the item will be appended to the topic, e.g. `devices/localhost/cpu_count`.
       # The value of the item is the actual payload.
-      multi: True
+      multi: true
+
 ```

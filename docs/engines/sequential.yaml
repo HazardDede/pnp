@@ -3,7 +3,8 @@
 engine: !engine
   type: pnp.engines.sequential.SequentialEngine
   retry_handler: !retry
-    type: pnp.engines.NoRetryHandler  # Is the key to termination after counting has finished
+    # Is the key to termination after counting has finished
+    type: pnp.engines.NoRetryHandler
 tasks:
   - name: sequential
     pull:

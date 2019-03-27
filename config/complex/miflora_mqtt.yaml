@@ -1,88 +1,89 @@
+---
 - name: miflora
   pull:
     plugin: pnp.plugins.pull.sensor.MiFlora
     args:
       mac: 'C4:7C:8D:67:50:AB'  # The mac of your miflora device
-      instant_run: False
+      instant_run: false
       interval: '20 * * * *'
   push:
     - plugin: pnp.plugins.push.simple.Nop
       selector: "data if data.get('conductivity') else SUPPRESS"
       deps:
-      - plugin: pnp.plugins.push.mqtt.Discovery
-        selector:
-          data: "lambda data: data.get('conductivity')"
-          object_id: "miflora_06_conductivity"
-        args:
-          host: "{{env::MQTT_HOST}}"
-          discovery_prefix: "{{env::MQTT_BASE_TOPIC}}"
-          component: sensor
-          config:
-            name: "{{var::object_id}}"
-            unit_of_measurement: "µS/cm"
-            icon: mdi:flash-circle
-            friendly_name: Conductivity
+        - plugin: pnp.plugins.push.mqtt.Discovery
+          selector:
+            data: "lambda data: data.get('conductivity')"
+            object_id: "miflora_06_conductivity"
+          args:
+            host: "{{env::MQTT_HOST}}"
+            discovery_prefix: "{{env::MQTT_BASE_TOPIC}}"
+            component: sensor
+            config:
+              name: "{{var::object_id}}"
+              unit_of_measurement: "µS/cm"
+              icon: mdi:flash-circle
+              friendly_name: Conductivity
     - plugin: pnp.plugins.push.simple.Nop
       selector: "data if data.get('light') else SUPPRESS"
       deps:
-      - plugin: pnp.plugins.push.mqtt.Discovery
-        selector:
-          data: "lambda data: data.get('light')"
-          object_id: "miflora_06_light_intensity"
-        args:
-          host: "{{env::MQTT_HOST}}"
-          discovery_prefix: "{{env::MQTT_BASE_TOPIC}}"
-          component: sensor
-          config:
-            name: "{{var::object_id}}"
-            unit_of_measurement: "lx"
-            icon: mdi:white-balance-sunny
-            friendly_name: Light intensity
+        - plugin: pnp.plugins.push.mqtt.Discovery
+          selector:
+            data: "lambda data: data.get('light')"
+            object_id: "miflora_06_light_intensity"
+          args:
+            host: "{{env::MQTT_HOST}}"
+            discovery_prefix: "{{env::MQTT_BASE_TOPIC}}"
+            component: sensor
+            config:
+              name: "{{var::object_id}}"
+              unit_of_measurement: "lx"
+              icon: mdi:white-balance-sunny
+              friendly_name: Light intensity
     - plugin: pnp.plugins.push.simple.Nop
       selector: "data if data.get('temperature') else SUPPRESS"
       deps:
-      - plugin: pnp.plugins.push.mqtt.Discovery
-        selector:
-          data: "lambda data: data.get('temperature')"
-          object_id: "miflora_06_temperature"
-        args:
-          host: "{{env::MQTT_HOST}}"
-          discovery_prefix: "{{env::MQTT_BASE_TOPIC}}"
-          component: sensor
-          config:
-            name: "{{var::object_id}}"
-            unit_of_measurement: "°C"
-            icon: mdi:thermometer
-            friendly_name: Temperature
+        - plugin: pnp.plugins.push.mqtt.Discovery
+          selector:
+            data: "lambda data: data.get('temperature')"
+            object_id: "miflora_06_temperature"
+          args:
+            host: "{{env::MQTT_HOST}}"
+            discovery_prefix: "{{env::MQTT_BASE_TOPIC}}"
+            component: sensor
+            config:
+              name: "{{var::object_id}}"
+              unit_of_measurement: "°C"
+              icon: mdi:thermometer
+              friendly_name: Temperature
     - plugin: pnp.plugins.push.simple.Nop
       selector: "data if data.get('battery') else SUPPRESS"
       deps:
-      - plugin: pnp.plugins.push.mqtt.Discovery
-        selector:
-          data: "lambda data: data.get('battery')"
-          object_id: "miflora_06_battery"
-        args:
-          host: "{{env::MQTT_HOST}}"
-          discovery_prefix: "{{env::MQTT_BASE_TOPIC}}"
-          component: sensor
-          config:
-            name: "{{var::object_id}}"
-            unit_of_measurement: "%"
-            device_class: battery
-            friendly_name: Battery
+        - plugin: pnp.plugins.push.mqtt.Discovery
+          selector:
+            data: "lambda data: data.get('battery')"
+            object_id: "miflora_06_battery"
+          args:
+            host: "{{env::MQTT_HOST}}"
+            discovery_prefix: "{{env::MQTT_BASE_TOPIC}}"
+            component: sensor
+            config:
+              name: "{{var::object_id}}"
+              unit_of_measurement: "%"
+              device_class: battery
+              friendly_name: Battery
     - plugin: pnp.plugins.push.simple.Nop
       selector: "data if data.get('moisture') else SUPPRESS"
       deps:
-      - plugin: pnp.plugins.push.mqtt.Discovery
-        selector:
-          data: "lambda data: data.get('moisture')"
-          object_id: "miflora_06_moisture"
-        args:
-          host: "{{env::MQTT_HOST}}"
-          discovery_prefix: "{{env::MQTT_BASE_TOPIC}}"
-          component: sensor
-          config:
-            name: "{{var::object_id}}"
-            unit_of_measurement: "%"
-            icon: mdi:water-percent
-            friendly_name: Moisture
+        - plugin: pnp.plugins.push.mqtt.Discovery
+          selector:
+            data: "lambda data: data.get('moisture')"
+            object_id: "miflora_06_moisture"
+          args:
+            host: "{{env::MQTT_HOST}}"
+            discovery_prefix: "{{env::MQTT_BASE_TOPIC}}"
+            component: sensor
+            config:
+              name: "{{var::object_id}}"
+              unit_of_measurement: "%"
+              icon: mdi:water-percent
+              friendly_name: Moisture

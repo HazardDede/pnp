@@ -97,6 +97,7 @@ knows how to handle the target). You can define your configurations in `yaml` or
 It is up to you. I prefer yaml...
 
 ```yaml
+---
 - name: hello-world
   pull:
     plugin: pnp.plugins.pull.simple.Repeat
@@ -105,6 +106,7 @@ It is up to you. I prefer yaml...
       repeat: "Hello World"
   push:
     - plugin: pnp.plugins.push.simple.Echo
+
 ```
         
 Copy this configuration and create the file `helloworld.yaml`. Run it:
@@ -156,13 +158,13 @@ implemented pulls. To instantiate a pull by configuration file you only have to 
 and the argument that should be passed.
 
 ```yaml
+---
 - name: example
   pull:
     plugin: pnp.plugins.pull.mqtt.Subscribe
     args:
       host: localhost
       port: 1883
-      topic: test/#
 
 ```
         
@@ -181,6 +183,7 @@ A pull passes its data to multiple pushes to transfer/transform the data. For ex
 to influx or dump a file to the file system.
 
 ```yaml
+---
 - name: example
   pull:
     plugin: pnp.plugins.pull.mqtt.Subscribe
@@ -192,8 +195,9 @@ to influx or dump a file to the file system.
     - plugin: pnp.plugins.push.fs.FileDump
       args:
         directory: "/tmp"
-        binary_mode: False
+        binary_mode: false
     - plugin: pnp.plugins.push.simple.Echo
+
 ```
       
 The above snippet adds two pushes to the already known pull. The first push takes the incoming data and dumps it into
@@ -208,6 +212,7 @@ Sometimes the output of a pull needs to be transformed before the specified push
 rescue. Given our input we decide to just dump the payload and print out the first level of the topic.
 
 ```yaml
+---
 - name: example
   pull:
     plugin: pnp.plugins.pull.mqtt.Subscribe
@@ -220,9 +225,10 @@ rescue. Given our input we decide to just dump the payload and print out the fir
       selector: data.payload
       args:
         directory: "/tmp"
-        binary_mode: False
+        binary_mode: false
     - plugin: pnp.plugins.push.simple.Echo
       selector: data.levels[0]
+
 ```
 
 Easy as that. We can reference our incoming data via `data` or `payload`.
@@ -239,6 +245,7 @@ input of the next push. The good thing is: Yes we can.
 Back to our example let's assume we want to print out the path to the created file dump after the dump is created.
 
 ```yaml
+---
 - name: example
   pull:
     plugin: pnp.plugins.pull.mqtt.Subscribe
@@ -251,11 +258,12 @@ Back to our example let's assume we want to print out the path to the created fi
       selector: data.payload
       args:
         directory: "/tmp"
-        binary_mode: False
+        binary_mode: false
       deps:
         - plugin: pnp.plugins.push.simple.Echo
     - plugin: pnp.plugins.push.simple.Echo
       selector: data.levels[0]
+
 ```
         
 As you can see we just add a dependant push to the previous one.
@@ -273,6 +281,7 @@ resp. the `topic` where the message should be published.
 Given the example ...
 
 ```yaml
+---
 - name: envelope
   pull:
     plugin: pnp.plugins.pull.simple.Count
@@ -288,7 +297,7 @@ Given the example ...
       directory: "/tmp/counter"
       file_name: "counter"  # Overridden by envelope
       extension: ".txt"  #  Overridden by envelope
-      binary_mode: False  # text mode
+      binary_mode: false  # text mode
 
 ```
           
@@ -337,6 +346,7 @@ to `unwrap` each individual item of the iterable and providing that item to the 
 you can perform for each loops for pushes.
 
 ```yaml
+---
 - name: unwrapping
   pull:
     plugin: pnp.plugins.pull.simple.Repeat
@@ -348,7 +358,8 @@ you can perform for each loops for pushes.
         - 3
   push:
     - plugin: pnp.plugins.push.simple.Echo
-      unwrap: True
+      unwrap: true
+
 ```
 
 Hint: Selector expressions are applied after unwrapping. So the selector is applied to each individual item.
@@ -356,6 +367,7 @@ If you need the selector to augment your list, use a `push.simple.Nop` with `unw
 
 
 ```yaml
+---
 - name: unwrapping
   pull:
     plugin: pnp.plugins.pull.simple.Repeat
@@ -368,10 +380,11 @@ If you need the selector to augment your list, use a `push.simple.Nop` with `unw
   push:
     - plugin: pnp.plugins.push.simple.Nop
       selector: "data + [4, 5, 6]"
-      unwrap: False  # Which is the default
+      unwrap: false  # Which is the default
       deps:
         - plugin: pnp.plugins.push.simple.Echo
-          unwrap: True
+          unwrap: true
+
 ```
 
 
@@ -397,7 +410,8 @@ When you want to run multiple task in a concurrent manner you have to use the `T
 engine: !engine
   type: pnp.engines.sequential.SequentialEngine
   retry_handler: !retry
-    type: pnp.engines.NoRetryHandler  # Is the key to termination after counting has finished
+    # Is the key to termination after counting has finished
+    type: pnp.engines.NoRetryHandler
 tasks:
   - name: sequential
     pull:
@@ -432,6 +446,7 @@ tasks:
         repeat: "Hello World"
     push:
       - plugin: pnp.plugins.push.simple.Echo
+
 ```
 
 <a name="pnp.engines.process.processengine"></a>
@@ -455,6 +470,7 @@ tasks:
         repeat: "Hello World"
     push:
       - plugin: pnp.plugins.push.simple.Echo
+
 ```
 
 <a name="usefulhints"></a>
@@ -539,6 +555,7 @@ return DictMentor(
 Example:
 
 ```yaml
+---
 # Uses the dictmentor package to augment the configuration by dictmentor extensions.
 # Make sure to export the environment variable to echo:
 # export MESSAGE="Hello World"
@@ -552,6 +569,7 @@ Example:
   push:
     - external: echo.pull
     - external: nop.pull
+
 ```
 
 ```yaml
@@ -598,6 +616,7 @@ The first one is more readable, isn't it?
 Additional example:
 
 ```yaml
+---
 - name: selector
   pull:
     plugin: pnp.plugins.pull.simple.Repeat
@@ -619,6 +638,7 @@ Additional example:
         - bar  # String literal
         - "lambda d: d.split(' ')[0]"  # Lambda -> evaluate the expression
         - "lambda d: d.split(' ')[1]"  # Lambda -> evaluate the expression
+
 ```
 
 <a name="udfthrottle>=0.15.0"></a>
@@ -635,6 +655,7 @@ when a specified time has passed since the last call that actually fetched a res
 Example:
 
 ```yaml
+---
 udfs:
   - name: count  # Instantiate a Counter user defined function
     plugin: pnp.plugins.udf.simple.Counter
@@ -654,6 +675,7 @@ tasks:
       - plugin: pnp.plugins.push.simple.Echo
         selector:
           counter: "lambda d: count()"
+
 ```
 
 
@@ -730,7 +752,6 @@ __Examples__
 
 ```yaml
 ### Basic example - just echoing events
-
 - name: motioneye_watcher
   pull:
     plugin: pnp.plugins.pull.camera.MotionEyeWatcher
@@ -742,6 +763,7 @@ __Examples__
       defer_modified: 5
   push:
     plugin: pnp.plugins.push.simple.Echo
+
 ```
 
 ```yaml
@@ -758,71 +780,72 @@ __Examples__
 ### - PUSHBULLET_API_KEY: Your pushbullet api key
 
 udfs:
-### Defines the udf. name is the actual alias you can call in selector expressions.
-### For fetching the entity of binary_sensor.somebpody_home
-- name: hass_state
-  plugin: pnp.plugins.udf.hass.State
-  args:
-    url: "{{env::HA_URL}}"
-    token: "{{env::HA_TOKEN}}"
-tasks:
-### Emits events when motioneye creates / modifies image and/or movie files
-- name: motioneye_watcher
-  pull:
-    plugin: pnp.plugins.pull.camera.MotionEyeWatcher
+  # Defines the udf. name is the actual alias you can call in selector
+  # expressions.
+  # For fetching the entity of binary_sensor.somebpody_home
+  - name: hass_state
+    plugin: pnp.plugins.udf.hass.State
     args:
-      path: "{{env::MOTIONEYE_MEDIA_PATH}}"
-      image_ext: jpg
-      movie_ext: mp4
-      motion_cool_down: 30s
-      defer_modified: 5
-  push:
-  # Handle motion event
-  # - Push on/off to mqtt for automatic home asisstant discovery
-  - plugin: pnp.plugins.push.simple.Nop
-    selector: "data.state if data.event == 'motion' else SUPPRESS"
-    deps:
-    - plugin: pnp.plugins.push.mqtt.Discovery
-      selector:
-        data: "lambda data: data"
-        object_id: "motion01_motion"
+      url: "{{env::HA_URL}}"
+      token: "{{env::HA_TOKEN}}"
+tasks:
+  # Emits events when motioneye creates / modifies image and/or movie files
+  - name: motioneye_watcher
+    pull:
+      plugin: pnp.plugins.pull.camera.MotionEyeWatcher
       args:
-        host: "{{env::MQTT_HOST}}"
-        discovery_prefix: homeassistant
-        component: binary_sensor
-        config:
-          name: "{{var::object_id}}"
-          device_class: "motion"
-          payload_on: "on"
-          payload_off: "off"
-  # Handle image event
-  # - Push image to home assistant push camera via url
-  - plugin: pnp.plugins.push.simple.Nop
-    selector: "data if data.event == 'image' else SUPPRESS"
-    deps:
-    - plugin: pnp.plugins.push.simple.Execute
-      selector:
-        data:
-        args:
-          - "lambda data: data.source"
-      args:
-        command: ./push_camera.sh
-        timeout: 10s
-        capture: True
-      deps:
-        plugin: pnp.plugins.push.simple.Echo
-  # Handle movie event
-  # - Push movie to dropbox and notify by pushbullet, but only when nobody is home
-  - plugin: pnp.plugins.push.simple.Nop
-    selector: "data if data.event == 'movie' and hass_state('binary_sensor.somebody_home') == 'off' else SUPPRESS"
-    deps:
-    - plugin: pnp.plugins.push.storage.Dropbox
-      selector:
-        data: "lambda data: data.source"
-        target_file_name: "lambda data: basename(data.source)"
-      deps:
-      - plugin: pnp.plugins.push.notify.Pushbullet
-        selector: data.raw_link
+        path: "{{env::MOTIONEYE_MEDIA_PATH}}"
+        image_ext: jpg
+        movie_ext: mp4
+        motion_cool_down: 30s
+        defer_modified: 5
+    push:
+      # Handle motion event
+      # - Push on/off to mqtt for automatic home asisstant discovery
+      - plugin: pnp.plugins.push.simple.Nop
+        selector: "data.state if data.event == 'motion' else SUPPRESS"
+        deps:
+          - plugin: pnp.plugins.push.mqtt.Discovery
+            selector:
+              data: "lambda data: data"
+              object_id: "motion01_motion"
+            args:
+              host: "{{env::MQTT_HOST}}"
+              discovery_prefix: homeassistant
+              component: binary_sensor
+              config:
+                name: "{{var::object_id}}"
+                device_class: "motion"
+                payload_on: "on"
+                payload_off: "off"
+      # Handle image event
+      # - Push image to home assistant push camera via url
+      - plugin: pnp.plugins.push.simple.Nop
+        selector: "data if data.event == 'image' else SUPPRESS"
+        deps:
+          - plugin: pnp.plugins.push.simple.Execute
+            selector:
+              data:
+              args:
+                - "lambda data: data.source"
+            args:
+              command: ./push_camera.sh
+              timeout: 10s
+              capture: true
+            deps:
+              plugin: pnp.plugins.push.simple.Echo
+      # Handle movie event
+      # - Push movie to dropbox and notify by pushbullet, but only when nobody is home
+      - plugin: pnp.plugins.push.simple.Nop
+        selector: "data if data.event == 'movie' and hass_state('binary_sensor.somebody_home') == 'off' else SUPPRESS"
+        deps:
+          - plugin: pnp.plugins.push.storage.Dropbox
+            selector:
+              data: "lambda data: data.source"
+              target_file_name: "lambda data: basename(data.source)"
+            deps:
+              - plugin: pnp.plugins.push.notify.Pushbullet
+                selector: data.raw_link
 
 ```
 
@@ -951,14 +974,14 @@ That's it. If your token expires it will be refreshed automatically by the plugi
 __Examples__
 
 ```yaml
-### Please point your environment variable `FITBIT_AUTH` to your authentication configuration
-
+### Please point your environment variable `FITBIT_AUTH` to your authentication
+### configuration
 - name: fitbit_current
   pull:
     plugin: pnp.plugins.pull.fitbit.Current
     args:
       config: "{{env::FITBIT_AUTH}}"
-      instant_run: True
+      instant_run: true
       interval: 5m
       resources:
         - 'activities/calories'
@@ -987,6 +1010,7 @@ __Examples__
         - 'sleep/timeInBed'
   push:
     - plugin: pnp.plugins.push.simple.Echo
+
 ```
 <a name="pnp.plugins.pull.fitbit.devices"></a>
 
@@ -1069,17 +1093,18 @@ That's it. If your token expires it will be refreshed automatically by the plugi
 __Examples__
 
 ```yaml
-### Please point your environment variable `FITBIT_AUTH` to your authentication configuration
-
+### Please point your environment variable `FITBIT_AUTH` to your authentication
+### configuration
 - name: fitbit_devices
   pull:
     plugin: pnp.plugins.pull.fitbit.Devices
     args:
       config: "{{env::FITBIT_AUTH}}"
-      instant_run: True
+      instant_run: true
       interval: 5m
   push:
     - plugin: pnp.plugins.push.simple.Echo
+
 ```
 <a name="pnp.plugins.pull.fitbit.goal"></a>
 
@@ -1172,14 +1197,14 @@ That's it. If your token expires it will be refreshed automatically by the plugi
 __Examples__
 
 ```yaml
-### Please point your environment variable `FITBIT_AUTH` to your authentication configuration
-
+### Please point your environment variable `FITBIT_AUTH` to your authentication
+### configuration
 - name: fitbit_goal
   pull:
     plugin: pnp.plugins.pull.fitbit.Goal
     args:
       config: "{{env::FITBIT_AUTH}}"
-      instant_run: True
+      instant_run: true
       interval: 5m
       goals:
         - body/fat
@@ -1196,6 +1221,7 @@ __Examples__
         - foods/water
   push:
     - plugin: pnp.plugins.push.simple.Echo
+
 ```
 <a name="pnp.plugins.pull.fs.filesystemwatcher"></a>
 
@@ -1260,11 +1286,12 @@ __Examples__
     plugin: pnp.plugins.pull.fs.FileSystemWatcher
     args:
       path: "/tmp"
-      ignore_directories: True
+      ignore_directories: true
       events: [created, deleted, modified]
-      load_file: False
+      load_file: false
   push:
     plugin: pnp.plugins.push.simple.Echo
+
 ```
 <a name="pnp.plugins.pull.gpio.watcher"></a>
 
@@ -1316,6 +1343,7 @@ __Examples__
         - 9:motion(1m)    # Specify delay (default is 30 seconds)
   push:
     - plugin: pnp.plugins.push.simple.Echo
+
 ```
 <a name="pnp.plugins.pull.hass.state"></a>
 
@@ -1378,6 +1406,7 @@ __Examples__
         - light.*
   push:
     - plugin: pnp.plugins.push.simple.Echo
+
 ```
 <a name="pnp.plugins.pull.http.server"></a>
 
@@ -1440,6 +1469,7 @@ __Examples__
       allowed_methods: [GET, POST]
   push:
     plugin: pnp.plugins.push.simple.Echo
+
 ```
 <a name="pnp.plugins.pull.monitor.stats"></a>
 
@@ -1476,9 +1506,10 @@ __Examples__
     plugin: pnp.plugins.pull.monitor.Stats
     args:
       interval: 10s
-      instant_run: True
+      instant_run: true
   push:
     plugin: pnp.plugins.push.simple.Echo
+
 ```
 <a name="pnp.plugins.pull.mqtt.subscribe"></a>
 
@@ -1518,6 +1549,7 @@ __Examples__
       topic: test/#
   push:
     plugin: pnp.plugins.push.simple.Echo
+
 ```
 
 <a name="pnp.plugins.pull.sensor.dht"></a>
@@ -1557,12 +1589,13 @@ __Examples__
       interval: 5m  # Polls the readings every 5 minutes
       humidity_offset: -5.0  # Subtracts 5% from the humidity reading
       temp_offset: 1.0  # Adds 1 °C to the temperature reading
-      instant_run: True
+      instant_run: true
   push:
     - plugin: pnp.plugins.push.simple.Echo
       selector: payload.temperature  # Temperature reading
     - plugin: pnp.plugins.push.simple.Echo
       selector: payload.humidity  # Humidity reading
+
 ```
 <a name="pnp.plugins.pull.sensor.miflora"></a>
 
@@ -1612,7 +1645,7 @@ __Examples__
     plugin: pnp.plugins.pull.sensor.MiFlora
     args:
       mac: 'C4:7C:8D:67:50:AB'  # The mac of your miflora device
-      instant_run: True
+      instant_run: true
   push:
     - plugin: pnp.plugins.push.simple.Echo
 
@@ -1699,8 +1732,8 @@ to checkout the documentation about the meaning of individual fields.
 __Examples__
 
 ```yaml
-### Make sure you export your api key with: `export OPENWEATHER_API_KEY=<your_api_key>`
-
+### Make sure you export your api key with:
+###   `export OPENWEATHER_API_KEY=<your_api_key>`
 - name: openweather
   pull:
     plugin: pnp.plugins.pull.sensor.OpenWeather
@@ -1709,10 +1742,11 @@ __Examples__
       # lon: 10
       # lat: 53.55
       units: metric  # imperial (fahrenheit + miles/hour), metric (celsius + m/secs), kelvin (kelvin + m/secs)
-      instant_run: True
+      instant_run: true
       # tz: GMT
   push:
     plugin: pnp.plugins.push.simple.Echo
+
 ```
 <a name="pnp.plugins.pull.sensor.sound"></a>
 
@@ -1762,11 +1796,11 @@ __Examples__
     plugin: pnp.plugins.pull.sensor.Sound
     args:
       wav_file: doorbell.wav  # The file to compare for similarity
-      device_index: # The index of the microphone devices. If not specified pyAudio will try to find a capable device
+      device_index:  # The index of the microphone devices. If not specified pyAudio will try to find a capable device
       mode: pearson  # Use pearson correlation coefficient [pearson, std]
       sensitivity_offset: 0.1  # Adjust sensitivity. Positive means less sensitive; negative is more sensitive
       cool_down: 3s  # Prevents the pull to emit more than one sound detection event every 3 seconds
-      ignore_overflow: True  # Some devices might be too slow to process the stream in realtime. Ignore any buffer overflow errors.
+      ignore_overflow: true  # Some devices might be too slow to process the stream in realtime. Ignore any buffer overflow errors.
   push:
     - plugin: pnp.plugins.push.simple.Echo
 
@@ -1800,6 +1834,7 @@ __Examples__
       to_cnt: 10
   push:
     plugin: pnp.plugins.push.simple.Echo
+
 ```
 <a name="pnp.plugins.pull.simple.cron"></a>
 
@@ -1839,6 +1874,7 @@ __Examples__
         - "0 16 * * 1-5 every weekday @ 4pm"
   push:
     plugin: pnp.plugins.push.simple.Echo
+
 ```
 <a name="pnp.plugins.pull.simple.repeat"></a>
 
@@ -1866,6 +1902,7 @@ __Examples__
       wait: 1  # Every second
   push:
     plugin: pnp.plugins.push.simple.Echo
+
 ```
 <a name="pnp.plugins.pull.zway.zwaypoll"></a>
 
@@ -1917,6 +1954,7 @@ __Examples__
     - plugin: pnp.plugins.push.simple.Echo
       # Luminiscence of fibaro motion sensor
       selector: payload[19].instances[0].commandClasses[49].data[3].val.value
+
 ```
 
 __Appendix__
@@ -2013,10 +2051,11 @@ __Examples__
           other_prop: foo
         vdevice3: dev3  # props == {}
       url_format: "%DEVICE%?value=%VALUE%"
-      ignore_unknown_devices: False
+      ignore_unknown_devices: false
   push:
     - plugin: pnp.plugins.push.simple.Echo
       selector: "'Got value {} from device {} ({}) with props {}'.format(data.value, data.device_name, data.raw_device, data.props)"
+
 ```
 
 <a name="pnp.plugins.push.fs.filedump"></a>
@@ -2058,9 +2097,10 @@ __Examples__
       directory: "/tmp"
       file_name: null  # Auto-generated file (timestamp)
       extension: ".txt"  # Extension of auto-generated file
-      binary_mode: False  # text mode
+      binary_mode: false  # text mode
     deps:
       - plugin: pnp.plugins.push.simple.Echo
+
 ```
 
 ```yaml
@@ -2081,9 +2121,10 @@ __Examples__
       directory: "/tmp"
       file_name: null  # Auto-generated file (timestamp)
       extension: ".txt"  # Extension of auto-generated file
-      binary_mode: False  # text mode
+      binary_mode: false  # text mode
     deps:
       - plugin: pnp.plugins.push.simple.Echo
+
 ```
 <a name="pnp.plugins.push.hass.service"></a>
 
@@ -2106,9 +2147,7 @@ Returns the payload as-is for better chaining (this plugin can't add any useful 
 __Examples__
 
 ```yaml
-###
 ### Calls the frontend.set_theme service to oscillate between a "light" and a "dark" theme
-###
 - name: hass_service
   pull:
     plugin: pnp.plugins.pull.simple.Count
@@ -2123,12 +2162,11 @@ __Examples__
       token: "{{env::HA_TOKEN}}"
       domain: frontend
       service: set_theme
+
 ```
 
 ```yaml
-###
 ### Calls the notify.pushbullet service to send a message with the actual counter
-###
 - name: hass_service
   pull:
     plugin: pnp.plugins.pull.simple.Count
@@ -2143,6 +2181,7 @@ __Examples__
       token: "{{env::HA_TOKEN}}"
       domain: notify
       service: pushbullet
+
 ```
 <a name="pnp.plugins.push.http.call"></a>
 
@@ -2206,6 +2245,7 @@ __Examples__
         - POST
   push:
     plugin: pnp.plugins.push.simple.Echo
+
 ```
 
 ```yaml
@@ -2220,7 +2260,7 @@ __Examples__
     plugin: pnp.plugins.push.http.Call
     args:
       url: http://localhost:5000/
-      provide_response: True
+      provide_response: true
     deps:
       plugin: pnp.plugins.push.simple.Echo
 - name: rest_server
@@ -2232,6 +2272,7 @@ __Examples__
         - GET
   push:
     plugin: pnp.plugins.push.simple.Nop
+
 ```
 <a name="pnp.plugins.push.mail.gmail"></a>
 
@@ -2276,15 +2317,15 @@ __Examples__
     plugin: pnp.plugins.pull.fs.FileSystemWatcher
     args:
       path: "/tmp"
-      ignore_directories: True
+      ignore_directories: true
       events:
         - created
-      load_file: False
+      load_file: false
   push:
     plugin: pnp.plugins.push.mail.GMail
     selector:
       subject: "lambda p: basename(p.source)"  # basename(p.source) = file name
-      data: # Message body -> None -> Just the attachment
+      data:  # Message body -> None -> Just the attachment
       attachment: "lambda p: p.source"  # Attachment -> p.source = absolute path
     args:
       token_file: "{{env::GMAIL_TOKEN_FILE}}"
@@ -2338,19 +2379,20 @@ __Examples__
     plugin: pnp.plugins.pull.fs.FileSystemWatcher
     args:
       path: "/tmp/camera"
-      recursive: True
+      recursive: true
       patterns: "*.jpg"
-      ignore_directories: True
-      case_sensitive: False
+      ignore_directories: true
+      case_sensitive: false
       events: [created]
-      load_file: True
+      load_file: true
       mode: binary
-      base64: False
+      base64: false
   push:
     plugin: pnp.plugins.push.ml.FaceR
     args:
       known_faces_dir: "/tmp/faces"
       unknown_label: "don't know him"
+
 ```
 <a name="pnp.plugins.push.mqtt.discovery"></a>
 
@@ -2372,13 +2414,12 @@ __Examples__
 
 ```yaml
 ### Please point your environment variable `FITBIT_AUTH` to your authentication configuration
-
 - name: fitbit_steps
   pull:
     plugin: pnp.plugins.pull.fitbit.Current
     args:
       config: "{{env::FITBIT_AUTH}}"
-      instant_run: True
+      instant_run: true
       interval: 5m
       resources:
         - activities/steps
@@ -2399,14 +2440,14 @@ __Examples__
     plugin: pnp.plugins.pull.fitbit.Devices
     args:
       config: "{{env::FITBIT_AUTH}}"
-      instant_run: True
+      instant_run: true
       interval: 5m
   push:
     - plugin: pnp.plugins.push.mqtt.Discovery
       selector:
         data: "lambda data: data.get('battery_level')"
         object_id: "lambda data: 'fb_{}_battery'.format(data.get('device_version', '').replace(' ', '_').lower())"
-      unwrap: True
+      unwrap: true
       args:
         host: localhost
         discovery_prefix: homeassistant
@@ -2419,7 +2460,7 @@ __Examples__
       selector:
         data: "lambda data: data.get('last_sync_time')"
         object_id: "lambda data: 'fb_{}_lastsync'.format(data.get('device_version', '').replace(' ', '_').lower())"
-      unwrap: True
+      unwrap: true
       args:
         host: localhost
         discovery_prefix: homeassistant
@@ -2470,7 +2511,8 @@ __Examples__
       host: localhost
       topic: home/counter/state
       port: 1883
-      retain: True
+      retain: true
+
 ```
 
 ```yaml
@@ -2489,6 +2531,7 @@ __Examples__
     args:
       host: localhost
       port: 1883
+
 ```
 
 ```yaml
@@ -2497,7 +2540,7 @@ __Examples__
     # Periodically gets metrics about your system
     plugin: pnp.plugins.pull.monitor.Stats
     args:
-      instant_run: True
+      instant_run: true
       interval: 10s
   push:
     # Push them to the mqtt
@@ -2506,11 +2549,12 @@ __Examples__
       host: localhost
       topic: devices/localhost/
       port: 1883
-      retain: True
+      retain: true
       # Each item of the payload-dict (cpu_count, cpu_usage, ...) will be pushed to the broker as multiple items.
       # The key of the item will be appended to the topic, e.g. `devices/localhost/cpu_count`.
       # The value of the item is the actual payload.
-      multi: True
+      multi: true
+
 ```
 <a name="pnp.plugins.push.notify.pushbullet"></a>
 
@@ -2538,16 +2582,15 @@ __Examples__
 
 ```yaml
 ### Make sure that you provided PUSHBULETT_API_KEY as an environment variable
-
 - name: pushbullet
   pull:
     plugin: pnp.plugins.pull.fs.FileSystemWatcher
     args:
       path: "/tmp"
-      ignore_directories: True
+      ignore_directories: true
       events:
         - created
-      load_file: False
+      load_file: false
   push:
     plugin: pnp.plugins.push.notify.Pushbullet
     args:
@@ -2581,6 +2624,7 @@ __Examples__
       to_cnt: 10
   push:
     plugin: pnp.plugins.push.simple.Echo
+
 ```
 <a name="pnp.plugins.push.simple.execute"></a>
 
@@ -2633,9 +2677,10 @@ __Examples__
         - "+%Y-%m-%d"
       timeout: 2s
       cwd:  # None -> pnp-configuration directory
-      capture: True  # Capture stdout and stderr
+      capture: true  # Capture stdout and stderr
     deps:
       - plugin: pnp.plugins.push.simple.Echo
+
 ```
 
 ```yaml
@@ -2656,9 +2701,10 @@ __Examples__
       command: echo  # The command to execute
       timeout: 2s
       cwd:  # None -> pnp-configuration directory
-      capture: True  # Capture stdout and stderr
+      capture: true  # Capture stdout and stderr
     deps:
       - plugin: pnp.plugins.push.simple.Echo
+
 ```
 <a name="pnp.plugins.push.storage.dropbox"></a>
 
@@ -2699,21 +2745,20 @@ __Examples__
 
 ```yaml
 ### Make sure that you provided DROPBOX_API_KEY as an environment variable
-
 - name: dropbox
   pull:
     plugin: pnp.plugins.pull.fs.FileSystemWatcher
     args:
       path: "/tmp"
-      ignore_directories: True
+      ignore_directories: true
       events:
         - created
         - modified
-      load_file: False
+      load_file: false
   push:
     - plugin: pnp.plugins.push.storage.Dropbox
       args:
-        create_shared_link: True  # Create a publicly available link
+        create_shared_link: true  # Create a publicly available link
       selector:
         data: "lambda data: data.source"  # Absolute path to file
         target_file_name: "lambda data: basename(data.source)"  # File name only
@@ -2749,7 +2794,7 @@ For the ability to chain multiple pushes together the payload is simply returned
 __Examples__
 
 ```yaml
-- name: mqtt_pull
+- name: influx_push
   pull:
     plugin: pnp.plugins.pull.mqtt.Subscribe
     args:
@@ -2816,6 +2861,7 @@ tasks:
       - plugin: pnp.plugins.push.simple.Echo
         # Will only print the data when the state of the sun component is above 'above_horizon'
         selector: "'above_horizon' if hass_state('sun.sun') == 'above_horizon' else SUPPRESS"
+
 ```
 <a name="pnp.plugins.udf.simple.counter"></a>
 
@@ -2852,6 +2898,7 @@ tasks:
         selector:
           data: "lambda data: data"
           count: "lambda data: counter()"  # Calls the udf
+
 ```
 <a name="pnp.plugins.udf.simple.memory"></a>
 
@@ -2891,6 +2938,7 @@ tasks:
       - plugin: pnp.plugins.push.simple.Echo
         # Will memorize every uneven count
         selector: "mem() if data % 2 == 0 else mem(new_memory=data)"
+
 ```
 
 <a name="changelog"></a>

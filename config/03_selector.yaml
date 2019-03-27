@@ -1,3 +1,4 @@
+---
 # Define selectors to parse / tailor your pulled data. Each selector is bound to a push that controls which input
 # is ingested.
 

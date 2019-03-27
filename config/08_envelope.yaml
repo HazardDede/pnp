@@ -1,3 +1,4 @@
+---
 - name: envelope
   pull:
     plugin: pnp.plugins.pull.simple.Count
@@ -13,4 +14,4 @@
       directory: "/tmp/counter"
       file_name: "counter"  # Overridden by envelope
       extension: ".txt"  #  Overridden by envelope
-      binary_mode: False  # text mode
+      binary_mode: false  # text mode

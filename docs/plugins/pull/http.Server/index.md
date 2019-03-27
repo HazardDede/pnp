@@ -57,4 +57,5 @@ __Examples__
       allowed_methods: [GET, POST]
   push:
     plugin: pnp.plugins.push.simple.Echo
+
 ```

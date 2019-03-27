@@ -1,7 +1,7 @@
+---
 # Define "pulls" to pull data from source systems (or fakes).
 # Define multiple "pushes" per pull to push the pulled data anywhere else (you only need a plugin that is capable of)
 # You can define your configurations in yaml or json. It is up to you.
-
 # This example yields the string 'Hello World' every second. The push prints it out.
 
 - name: hello-world

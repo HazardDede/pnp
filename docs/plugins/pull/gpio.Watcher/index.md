@@ -46,4 +46,5 @@ __Examples__
         - 9:motion(1m)    # Specify delay (default is 30 seconds)
   push:
     - plugin: pnp.plugins.push.simple.Echo
+
 ```

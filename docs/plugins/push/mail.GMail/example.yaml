@@ -5,15 +5,15 @@
     plugin: pnp.plugins.pull.fs.FileSystemWatcher
     args:
       path: "/tmp"
-      ignore_directories: True
+      ignore_directories: true
       events:
         - created
-      load_file: False
+      load_file: false
   push:
     plugin: pnp.plugins.push.mail.GMail
     selector:
       subject: "lambda p: basename(p.source)"  # basename(p.source) = file name
-      data: # Message body -> None -> Just the attachment
+      data:  # Message body -> None -> Just the attachment
       attachment: "lambda p: p.source"  # Attachment -> p.source = absolute path
     args:
       token_file: "{{env::GMAIL_TOKEN_FILE}}"

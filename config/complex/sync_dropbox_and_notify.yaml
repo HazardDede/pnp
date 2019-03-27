@@ -1,3 +1,4 @@
+---
 # Make sure that you provided DROPBOX_API_KEY as an environment variable
 # Make sure that you provided PUSHBULETT_API_KEY as an environment variable
 
@@ -6,11 +7,11 @@
     plugin: pnp.plugins.pull.fs.FileSystemWatcher
     args:
       path: "/tmp"
-      ignore_directories: True
+      ignore_directories: true
       events:
         - created
         - modified
-      load_file: False
+      load_file: false
   push:
     - plugin: pnp.plugins.push.storage.Dropbox
       selector:

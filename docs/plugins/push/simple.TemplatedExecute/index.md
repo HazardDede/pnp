@@ -54,9 +54,10 @@ __Examples__
         - "{{labels.iter}}"
       timeout: 2s
       cwd:  # None -> pnp-configuration directory
-      capture: True  # Capture stdout and stderr
+      capture: true  # Capture stdout and stderr
     deps:
       - plugin: pnp.plugins.push.simple.Echo
+
 ```
 
 ```yaml
@@ -77,7 +78,8 @@ __Examples__
         - "{{salutation}}"
       timeout: 2s
       cwd:  # None -> pnp-configuration directory
-      capture: True  # Capture stdout and stderr
+      capture: true  # Capture stdout and stderr
     deps:
       - plugin: pnp.plugins.push.simple.Echo
+
 ```
