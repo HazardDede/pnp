@@ -1,3 +1,5 @@
+"""Machine learning related push plugins."""
+
 import io
 import os
 
@@ -40,13 +42,13 @@ class FaceR(PushBase):
 
         self.unknown_label = str(unknown_label)
 
-    def _load_from_mapping(self, m):
+    def _load_from_mapping(self, mapping):
         def _loop():
-            for name, fps in m.items():
+            for name, fps in mapping.items():
                 for fp in make_list(fps):
                     yield name, self._load_fencodings(fp)
-        t = list(_loop())
-        return [name for name, _ in t], [fp for _, fp in t]
+        targets = list(_loop())
+        return [name for name, _ in targets], [fp for _, fp in targets]
 
     def _load_from_directory(self, directory):
         def _loop():
@@ -55,19 +57,23 @@ class FaceR(PushBase):
                 filename = os.fsdecode(file)
                 if filename.endswith(accepted):
                     # strip the extension from the filename
-                    yield os.path.splitext(filename)[0], self._load_fencodings(os.path.join(directory, filename))
-        t = list(_loop())
-        return [name for name, _ in t], [fp for _, fp in t]
+                    yield (
+                        os.path.splitext(filename)[0],
+                        self._load_fencodings(os.path.join(directory, filename))
+                    )
+        targets = list(_loop())
+        return [name for name, _ in targets], [fp for _, fp in targets]
 
     def _load_fencodings(self, fp):
         img = self.face_recognition.load_image_file(fp)
         return self.face_recognition.face_encodings(img)[0]
 
-    def _tag_image(self, unknown_image, tags):
+    @staticmethod
+    def _tag_image(unknown_image, tags):
         from PIL import Image, ImageDraw
 
-        # Convert the image to a PIL-format image so that we can draw on top of it with the Pillow library
-        # See http://pillow.readthedocs.io/ for more about PIL/Pillow
+        # Convert the image to a PIL-format image so that we can draw on top of it with the
+        # Pillow library. See http://pillow.readthedocs.io/ for more about PIL/Pillow
         pil_image = Image.fromarray(unknown_image)
         # Create a Pillow ImageDraw Draw instance to draw with
         draw = ImageDraw.Draw(pil_image)
@@ -77,7 +83,7 @@ class FaceR(PushBase):
                 draw.rectangle(((left, top), (right, bottom)), outline=(0, 0, 255))
 
                 # Draw a label with a name below the face
-                text_width, text_height = draw.textsize(name)
+                _, text_height = draw.textsize(name)
                 draw.rectangle(
                     ((left, bottom - text_height - 10), (right, bottom)),
                     fill=(0, 0, 255),
@@ -91,7 +97,7 @@ class FaceR(PushBase):
             del draw
 
     def push(self, payload):
-        envelope, payload = self.envelope_payload(payload)
+        _, payload = self.envelope_payload(payload)
         # Load unknown image and find faces
         unknown_image = self.face_recognition.load_image_file(io.BytesIO(payload))
         face_locations = self.face_recognition.face_locations(unknown_image)
@@ -119,7 +125,7 @@ class FaceR(PushBase):
             return dict(
                 tagged_image=out_io.getvalue(),
                 no_of_faces=len(face_locations),
-                known_faces=list(set([name for name, _ in tags if name != self.unknown_label]))
+                known_faces=list({name for name, _ in tags if name != self.unknown_label})
             )
         finally:
             del out_io

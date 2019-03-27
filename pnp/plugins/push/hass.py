@@ -27,13 +27,19 @@ class Service(PushBase):
         self._client = HassApi(self.url, self.token, self.timeout)
 
     def _call(self, data):
-        endpoint = 'services/{self.domain}/{self.service}'.format(**locals())
+        endpoint = 'services/{domain}/{service}'.format(
+            domain=self.domain,
+            service=self.service
+        )
 
         try:
             return self._client.call(endpoint, method='post', data=data)
         except RuntimeError as exc:
             raise RuntimeError(
-                "Failed to call the service {endpoint} @ {self.url}".format(**locals())
+                "Failed to call the service {endpoint} @ {url}".format(
+                    endpoint=endpoint,
+                    url=self.url
+                )
             ) from exc
 
     def push(self, payload):

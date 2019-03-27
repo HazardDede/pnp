@@ -1,10 +1,12 @@
+"""Notification related push plugins."""
+
 from . import PushBase
 from .. import load_optional_module
 from ...utils import auto_str_ignore
 
 
 @auto_str_ignore(['api_key'])
-class Pushbullet (PushBase):
+class Pushbullet(PushBase):
     """
     Sends a message to the Pushbullet service. The type of the message will guessed:
 
@@ -25,58 +27,62 @@ class Pushbullet (PushBase):
         self.title = str(title)
 
     def _load_deps(self):
-        pb = load_optional_module('pushbullet', self.EXTRA)
+        pbullet = load_optional_module('pushbullet', self.EXTRA)
         try:
             import urlparse
-        except:  # For Python 3
+        except:  # For Python 3, pylint: disable=bare-except
             import urllib.parse as urlparse
 
-        return pb, urlparse
+        return pbullet, urlparse
 
     def _guess_mimetype(self, url):
         import mimetypes
-        _, up = self._load_deps()
-        res = up.urlparse(url)
+        _, urlparse = self._load_deps()
+        res = urlparse.urlparse(url)
         if not res.path:
             return None
-        mt, _ = mimetypes.guess_type(res.path)
-        return mt
+        mtype, _ = mimetypes.guess_type(res.path)
+        return mtype
 
-    def _safe_basename(self, name):
+    @staticmethod
+    def _safe_basename(name):
         import os
         try:
             return os.path.basename(name)
-        except:
+        except:  # pylint: disable=bare-except
             return name
 
     def push(self, payload):
-        envelope, real_payload = self.envelope_payload(payload)
+        _, real_payload = self.envelope_payload(payload)
 
-        pb, up = self._load_deps()
-        client = pb.Pushbullet(self.api_key)
-        pr = up.urlparse(real_payload)
-        self.logger.info("[{self.name}] Sending message '{real_payload}' to Pushbullet".format(**locals()))
-        if pr.scheme and pr.netloc:
+        pbullet, urlparse = self._load_deps()
+        client = pbullet.Pushbullet(self.api_key)
+        urlprofile = urlparse.urlparse(real_payload)
+        self.logger.info("[%s] Sending message '%s' to Pushbullet", self.name, real_payload)
+        if urlprofile.scheme and urlprofile.netloc:
             # Is URL
-            self.logger.debug("[{self.name}] Payload '{real_payload}' is an url".format(**locals()))
-            mt = self._guess_mimetype(real_payload)
-            if not mt:
+            self.logger.debug("[%s] Payload '%s' is an url", self.name, real_payload)
+            mtype = self._guess_mimetype(real_payload)
+            if not mtype:
                 # Some link
-                self.logger.debug("[{self.name}] Payload '{real_payload}' has no mimetype associated"
-                                  .format(**locals()))
+                self.logger.debug(
+                    "[%s] Payload '%s' has no mimetype associated", self.name, real_payload
+                )
                 client.push_link(self.title, real_payload)
             else:
                 # Some file
-                self.logger.debug("[{self.name}] Guessed type '{mt}' for payload '{real_payload}'".format(**locals()))
+                self.logger.debug(
+                    "[%s] Guessed type '%s' for payload '%s'", self.name, mtype, real_payload
+                )
                 client.push_file(
-                    file_name=self._safe_basename(pr.path),
-                    file_type=mt,
+                    file_name=self._safe_basename(urlprofile.path),
+                    file_type=mtype,
                     file_url=real_payload,
                     title=self.title
                 )
         else:
             # Is NOT url
-            self.logger.debug("[{self.name}] Payload '{real_payload}' is a simple note".format(**locals()))
+            self.logger.debug("[%s] Payload '%s' is a simple note", self.name, real_payload)
             client.push_note(self.title, real_payload)
 
         return payload

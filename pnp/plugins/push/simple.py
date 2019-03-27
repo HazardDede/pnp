@@ -1,3 +1,5 @@
+"""Basic push plugins."""
+
 import warnings
 from functools import partial
 
@@ -21,12 +23,12 @@ class Echo(PushBase):
         'I will be logged'
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs):  # pylint: disable=useless-super-delegation
         super().__init__(**kwargs)
 
     def push(self, payload):
         envelope, real_payload = self.envelope_payload(payload)
-        self.logger.info("[{self.name}] Got '{real_payload}' with envelope '{envelope}'".format(**locals()))
+        self.logger.info("[%s] Got '%s' with envelope '%s'", self.name, real_payload, envelope)
         return payload  # Payload as is. With envelope (if any)
 
 
@@ -58,8 +60,8 @@ class Nop(PushBase):
 class TemplatedExecute(PushBase):
     """
     Executes a command with given arguments in a shell of the operating system.
-    Both `command` and `args` may include placeholders (e.g. `{{placeholder}}`) which are injected at runtime
-    by passing the specified payload after selector transformation. Please see the Examples section for further details.
+    Both `command` and `args` may include placeholders (e.g. `{{placeholder}}`) which are injected
+    at runtime by passing the specified payload after selector transformation.
 
     Will return the exit code of the command and optionally the output from stdout and stderr.
 
@@ -86,17 +88,19 @@ class TemplatedExecute(PushBase):
         except UndefinedError as exc:
             raise TemplateError('Error when rendering template in TemplatedExecute') from exc
 
-    def _parse_args(self, val):
+    @staticmethod
+    def _parse_args(val):
         args = make_list(val)
-        if args:
-            return [str(arg) for arg in args]
+        if not args:
+            return None
+        return [str(arg) for arg in args]
 
     def _serialize_args(self, transform_fun=None, add_quotes=True):
         def escape_fun(arg):
             return str(arg).replace('"', '\\"')
 
         def quotes_fun(arg):
-            if arg is None or len(str(arg)) == 0 or str(arg).strip() == 'None':
+            if arg is None or not str(arg) or str(arg).strip() == 'None':
                 return ''
             return '"{}"'.format(escape_fun(arg)) if add_quotes else str(arg)
 
@@ -112,12 +116,12 @@ class TemplatedExecute(PushBase):
         return " ".join(args)
 
     def _execute(self, command_str):
-        def _output(br):
-            return [line.strip('\n\r') for line in br]
+        def _output(response):
+            return [line.strip('\n\r') for line in response]
 
         import subprocess
-        self.logger.info("[{self.name}] Running command in shell: {command_str}".format(**locals()))
-        p = subprocess.Popen(
+        self.logger.info("[%s] Running command in shell: %s", self.name, command_str)
+        proc = subprocess.Popen(
             args=command_str,
             shell=True,
             cwd=self._cwd,
@@ -127,16 +131,16 @@ class TemplatedExecute(PushBase):
         )
         try:
             if self._timeout:
-                p.wait(timeout=int(self._timeout))
+                proc.wait(timeout=int(self._timeout))
 
-            res = dict(return_code=p.returncode)
+            res = dict(return_code=proc.returncode)
             if self._capture:
-                res['stdout'] = _output(p.stdout)
-                res['stderr'] = _output(p.stderr)
+                res['stdout'] = _output(proc.stdout)
+                res['stderr'] = _output(proc.stderr)
             return res
         finally:
-            p.stdout.close()
-            p.stderr.close()
+            proc.stdout.close()
+            proc.stderr.close()
 
     def push(self, payload):
         if isinstance(payload, dict):
@@ -150,7 +154,7 @@ class TemplatedExecute(PushBase):
                 transform_fun=partial(self._render_jinja_template, subs=subs),
                 add_quotes=True
             )
-            command_str = "{command_str} {args}".format(**locals())
+            command_str = "{command_str} {args}".format(command_str=command_str, args=args)
 
         return self._execute(command_str)
 
@@ -177,7 +181,7 @@ class Execute(TemplatedExecute):
         warnings.simplefilter('default', DeprecationWarning)
 
     def push(self, payload):
-        envelope, real_payload = self.envelope_payload(payload)
+        envelope, _ = self.envelope_payload(payload)
         args = self._parse_envelope_value('args', envelope)  # Override args via envelope
 
         command_str = self._command
@@ -186,6 +190,9 @@ class Execute(TemplatedExecute):
                 transform_fun=None,
                 add_quotes=False
             )
-            command_str = "{command_str} {args}".format(**locals())
+            command_str = "{command_str} {args}".format(
+                command_str=command_str,
+                args=args
+            )
 
         return self._execute(command_str)

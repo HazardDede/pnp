@@ -1,3 +1,5 @@
+"""MQTT related push plugins."""
+
 import json
 from abc import abstractmethod
 
@@ -23,13 +25,13 @@ class _MQTTBase(PushBase):
     def _parse_qos(self, val):
         pval = try_parse_int(val)
         if pval is None:
-            self.logger.warning("QOS level of '{val}' is not int parsable. Defaulting to 0".format(**locals()))
+            self.logger.warning("QOS level of '%s' is not int parsable. Defaulting to 0", val)
             return 0
         if pval < 0:
-            self.logger.warning("QOS level of '{val}' is invalid. Defaulting to 0".format(**locals()))
+            self.logger.warning("QOS level of '%s' is invalid. Defaulting to 0", val)
             return 0
         if pval > 2:
-            self.logger.warning("QOS level of '{val}' is invalid. Defaulting to 2".format(**locals()))
+            self.logger.warning("QOS level of '%s' is invalid. Defaulting to 2", val)
             return 2
         return pval
 
@@ -54,8 +56,10 @@ class _MQTTBase(PushBase):
             auth=auth,
             qos=qos
         )
-        self.logger.debug("[{self.name}] Published message on '{topic}' @ {self.host}:{self.port} with qos={qos}. "
-                          "Payload='{real_payload}'".format(**locals()))
+        self.logger.debug(
+            "[%s] Published message on '%s' @ %s:%s with qos=%s. Payload='%s'",
+            self.name, topic, self.host, self.port, qos, real_payload
+        )
 
     @abstractmethod
     def push(self, payload):
@@ -68,8 +72,8 @@ class Discovery(_MQTTBase):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/mqtt.Discovery/index.md
     """
-    SUPPORTED_COMPONENTS = ['alarm_control_panel', 'binary_sensor', 'camera', 'cover', 'fan', 'climate', 'light',
-                            'lock', 'sensor', 'switch']
+    SUPPORTED_COMPONENTS = ['alarm_control_panel', 'binary_sensor', 'camera', 'cover', 'fan',
+                            'climate', 'light', 'lock', 'sensor', 'switch']
 
     def __init__(self, discovery_prefix, component, config, object_id=None, node_id=None, **kwargs):
         super().__init__(**kwargs)
@@ -85,18 +89,26 @@ class Discovery(_MQTTBase):
 
     @property
     def config(self):
+        """Return the mqtt discovery configuration."""
         import copy
         return copy.copy(self._config)
 
-    def _parse_object_id(self, val):
+    @staticmethod
+    def _parse_object_id(val):
         return str(val)
 
-    def _parse_node_id(self, val):
+    @staticmethod
+    def _parse_node_id(val):
         return val and str(val)
 
-    def _topics(self, object_id, node_id):
+    def _topics(self, object_id, node_id):  # pylint: disable=unused-argument
         node_id = "{node_id}/".format(node_id=node_id) if node_id else ""
-        base_topic = "{self.discovery_prefix}/{self.component}/{node_id}{object_id}".format(**locals())
+        base_topic = "{prefix}/{component}/{node_id}{object_id}".format(
+            prefix=self.discovery_prefix,
+            component=self.component,
+            node_id=node_id,
+            object_id=object_id
+        )
         state_topic = base_topic + "/state"
         config_topic = base_topic + "/config"
         return base_topic, config_topic, state_topic
@@ -123,8 +135,8 @@ class Discovery(_MQTTBase):
 
     def push(self, payload):
         envelope, real_payload = self.envelope_payload(payload)
-        object_id = self._parse_envelope_value('object_id', envelope)  # Override object_id via envelope
-        node_id = self._parse_envelope_value('node_id', envelope)  # Override node_id via envelope
+        object_id = self._parse_envelope_value('object_id', envelope)
+        node_id = self._parse_envelope_value('node_id', envelope)
 
         if object_id is None:
             raise ValueError("object_id was not defined either by the __init__ nor by the envelope")
@@ -152,17 +164,19 @@ class Publish(_MQTTBase):
         self.retain = self._parse_retain(retain)
         self.multi = bool(multi)
 
-    def _parse_retain(self, val):
+    @staticmethod
+    def _parse_retain(val):
         return try_parse_bool(val, default=False)
 
-    def _parse_topic(self, val):
+    @staticmethod
+    def _parse_topic(val):
         return str(val) if val is not None else None
 
     @staticmethod
-    def _topic_concat(t1, t2):
-        if str(t1).endswith('/'):
-            return t1 + t2
-        return t1 + '/' + t2
+    def _topic_concat(topic1, topic2):
+        if str(topic1).endswith('/'):
+            return topic1 + topic2
+        return topic1 + '/' + topic2
 
     def _push_single(self, payload):
         envelope, real_payload = self.envelope_payload(payload)
@@ -182,11 +196,13 @@ class Publish(_MQTTBase):
                 key_topic = self._topic_concat(topic, k)
                 try:
                     self._publish(v, key_topic, retain, qos)
-                except:
+                except:  # pylint: disable=bare-except
                     import traceback
-                    ex = traceback.format_exc()
-                    self.logger.error("[{self.name}] Publishing failed for message on '{key_topic}' @ "
-                                      "{self.host}:{self.port} with qos={qos}. Payload='{v}'\n{ex}".format(**locals()))
+                    self.logger.error(
+                        "[%s] Publishing failed for message on '%s' @ "
+                        "%s:%s with qos=%s. Payload='%s'\n%s",
+                        self.name, key_topic, self.host, self.port, qos, v, traceback.format_exc()
+                    )
 
     def push(self, payload):
         self._push_single(payload)

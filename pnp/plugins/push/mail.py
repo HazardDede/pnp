@@ -1,3 +1,5 @@
+"""E-mail related push plugins."""
+
 import base64
 import os
 
@@ -30,23 +32,26 @@ class GMail(PushBase):
         self.sender = self._parse_sender(sender)
 
     @staticmethod
-    def _create_message(sender, to, subject, message_text=None, attachment=None):
-        if is_iterable_but_no_str(to):
-            to = ",".join(to)
+    def _create_message(sender, recipient, subject, message_text=None, attachment=None):
+        if is_iterable_but_no_str(recipient):
+            recipient = ",".join(recipient)
         if attachment is None:
-            mail = Mail.create_text(sender, to, subject, message_text)
+            mail = Mail.create_text(sender, recipient, subject, message_text)
         else:
-            mail = Mail.create_with_attachment(sender, to, subject, attachment, message_text)
+            mail = Mail.create_with_attachment(sender, recipient, subject, attachment, message_text)
         return {'raw': base64.urlsafe_b64encode(mail.as_bytes()).decode()}
 
-    def _parse_recipient(self, val):
-        to = make_list(val)
-        return [str(v) for v in to]
+    @staticmethod
+    def _parse_recipient(val):
+        recipients = make_list(val)
+        return [str(v) for v in recipients]
 
-    def _parse_subject(self, val):
+    @staticmethod
+    def _parse_subject(val):
         return val and str(val)
 
-    def _parse_sender(self, val):
+    @staticmethod
+    def _parse_sender(val):
         return str(val)
 
     def _make_service(self, token_file):
@@ -61,7 +66,8 @@ class GMail(PushBase):
             with open(token_file, 'rb') as tokenfp:
                 creds = pickle.load(tokenfp)
 
-            # Check if the given credentials are still valid... If no: Might be outdated so refresh them
+            # Check if the given credentials are still valid...
+            # If no: Might be outdated so refresh them
             if not creds.valid:
                 if creds.expired and creds.refresh_token:
                     requests = load_optional_module('google.auth.transport.requests', self.EXTRA)
@@ -89,24 +95,26 @@ class GMail(PushBase):
         """
         try:
             return service.users().messages().send(userId=user_id, body=message).execute()
-        except:
+        except:  # pylint: disable=bare-except
             import traceback
-            error = traceback.format_exc()
-            self.logger.error("[{self.name}] Error: {error}".format(**locals()))
+            self.logger.error("[%s] Error: %s", self.name, traceback.format_exc())
 
     def push(self, payload):
         envelope, real_payload = self.envelope_payload(payload)
-        recipient = self._parse_envelope_value('recipient', envelope)  # Override recipient via envelope
-        subject = self._parse_envelope_value('subject', envelope)  # Override subject via envelope
-        sender = self._parse_envelope_value('sender', envelope)  # Override sender via envelope
+        recipient = self._parse_envelope_value('recipient', envelope)
+        subject = self._parse_envelope_value('subject', envelope)
+        sender = self._parse_envelope_value('sender', envelope)
         file_path = envelope.get('attachment')
 
         if subject is None:
             raise ValueError("Subject was not defined either by the __init__ nor by the envelope")
         Validator.is_file(allow_none=True, file_path=file_path)
 
-        self.logger.info("[{self.name}] Sending E-Mail '{subject}' to {recipient}\n"
-                         "Content: '{real_payload}' (Attachment: '{file_path}')".format(**locals()))
+        self.logger.info(
+            "[%s] Sending E-Mail '%s' to %s\n"
+            "Content: '%s' (Attachment: '%s')",
+            self.name, subject, recipient, real_payload, file_path
+        )
 
         message = self._create_message(sender, recipient, subject, real_payload, file_path)
         service = self._make_service(self.token_file)

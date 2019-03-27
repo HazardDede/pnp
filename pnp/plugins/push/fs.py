@@ -1,3 +1,5 @@
+"""Contains file system related push plugins."""
+
 import os
 import time
 
@@ -8,9 +10,10 @@ from ...validator import Validator
 class FileDump(PushBase):
     """
     This push dumps the given `payload` to a file to the specified `directory`.
-    If argument `file_name` is None, a name will be generated based on the current datetime (%Y%m%d-%H%M%S).
-    If `file_name` is not passed (or None) you should pass `extension` to specify the extension of the generated
-    file name.
+    If argument `file_name` is None, a name will be generated based on the current datetime
+    (%Y%m%d-%H%M%S).
+    If `file_name` is not passed (or None) you should pass `extension` to specify the extension of
+    the generated file name.
     Argument `binary_mode` controls whether the dump is binary (mode=wb) or text (mode=w).
 
 
@@ -28,7 +31,8 @@ class FileDump(PushBase):
         ...         assert fs.read() == "I am the content"
 
     """
-    def __init__(self, directory='.', file_name=None, extension='.dump', binary_mode=True, **kwargs):
+    def __init__(self, directory='.', file_name=None, extension='.dump', binary_mode=True,
+                 **kwargs):
         super().__init__(**kwargs)
         self.directory = directory
         Validator.is_directory(directory=self.directory)
@@ -36,10 +40,12 @@ class FileDump(PushBase):
         self.binary_mode = bool(binary_mode)
         self.file_name = self._parse_file_name(file_name)
 
-    def _parse_file_name(self, value):
+    @staticmethod
+    def _parse_file_name(value):
         return Validator.cast_or_none(str, value)
 
-    def _parse_extension(self, value):
+    @staticmethod
+    def _parse_extension(value):
         value = str(value)
         if not value.startswith('.'):
             return'.' + value
@@ -53,7 +59,7 @@ class FileDump(PushBase):
         if file_name is None:
             file_name = time.strftime("%Y%m%d-%H%M%S")
         file_path = os.path.join(self.directory, file_name + extension)
-        with open(file_path, 'wb' if self.binary_mode else 'w') as fs:
-            fs.write(str(payload) if not self.binary_mode else payload)
+        with open(file_path, 'wb' if self.binary_mode else 'w') as fhandle:
+            fhandle.write(str(payload) if not self.binary_mode else payload)
 
         return file_path

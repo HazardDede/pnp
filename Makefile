@@ -54,15 +54,7 @@ docs:
 
 lint:
 		flake8 --exclude=.tox --max-line-length 120 --ignore=W503,E722,E731 $(SOURCE_PATH)
-		pylint $(SOURCE_PATH)/app.py $(SOURCE_PATH)/config.py $(SOURCE_PATH)/mocking.py \
-		    $(SOURCE_PATH)/models.py $(SOURCE_PATH)/selector.py $(SOURCE_PATH)/utils.py \
-		    $(SOURCE_PATH)/validator.py
-		pylint $(SOURCE_PATH)/engines/
-		pylint $(SOURCE_PATH)/runner/
-		pylint $(SOURCE_PATH)/shared/
-		pylint $(SOURCE_PATH)/plugins/__init__.py
-		pylint $(SOURCE_PATH)/plugins/pull/
-		pylint $(SOURCE_PATH)/plugins/udf
+		pylint $(SOURCE_PATH)
 
 test:
 		pytest --verbose --color=yes \

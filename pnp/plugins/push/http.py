@@ -1,3 +1,5 @@
+"""Http related push plugins."""
+
 import json
 
 import requests
@@ -23,15 +25,18 @@ class Call(PushBase):
         self.fail_on_error = self._parse_fail_on_error(fail_on_error)
         self.provide_response = bool(provide_response)
 
-    def _parse_url(self, val):
+    @staticmethod
+    def _parse_url(val):
         return str(val)
 
-    def _parse_method(self, val):
+    @staticmethod
+    def _parse_method(val):
         val = str(val).upper()
         Validator.one_of(utils.HTTP_METHODS, method=val)
         return val
 
-    def _parse_fail_on_error(self, val):
+    @staticmethod
+    def _parse_fail_on_error(val):
         return try_parse_bool(val)
 
     def push(self, payload):
@@ -44,12 +49,17 @@ class Call(PushBase):
         if isinstance(real_payload, (dict, list, tuple)):
             try:
                 real_payload = json.dumps(real_payload)
-            except:
+            except:  # pylint: disable=bare-except
                 pass
         resp = requests.request(method, url, data=str(real_payload))
-        if fail_on_error and not (200 <= resp.status_code <= 299):
-            raise PushExecutionError("{method} of '{url}' failed with "
-                                     "status code = '{resp.status_code}'".format(**locals()))
+        if fail_on_error and not 200 <= resp.status_code <= 299:
+            raise PushExecutionError(
+                "{method} of '{url}' failed with status code = '{status_code}'".format(
+                    method=method,
+                    url=url,
+                    status_code=resp.status_code
+                )
+            )
         if not self.provide_response:
             return payload
 
