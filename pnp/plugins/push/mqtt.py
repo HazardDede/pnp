@@ -1,73 +1,15 @@
 """MQTT related push plugins."""
 
-import json
-from abc import abstractmethod
-
 from dictmentor import DictMentor, ext
 
 from . import PushBase
-from ...utils import try_parse_bool, try_parse_int, auto_str_ignore
+from ...shared.mqtt import MQTTBase
+from ...utils import try_parse_bool, auto_str_ignore
 from ...validator import Validator
 
 
-@auto_str_ignore(['password'])
-class _MQTTBase(PushBase):
-    __prefix__ = 'mqtt'
-
-    def __init__(self, host, port=1883, user=None, password=None, qos=0, **kwargs):
-        super().__init__(**kwargs)
-        self.host = str(host)
-        self.port = int(port)
-        self.user = user and str(user)
-        self.password = password and str(password)
-        self.qos = self._parse_qos(qos)
-
-    def _parse_qos(self, val):
-        pval = try_parse_int(val)
-        if pval is None:
-            self.logger.warning("QOS level of '%s' is not int parsable. Defaulting to 0", val)
-            return 0
-        if pval < 0:
-            self.logger.warning("QOS level of '%s' is invalid. Defaulting to 0", val)
-            return 0
-        if pval > 2:
-            self.logger.warning("QOS level of '%s' is invalid. Defaulting to 2", val)
-            return 2
-        return pval
-
-    def _publish(self, real_payload, topic, retain=False, qos=None):
-        if isinstance(real_payload, (dict, list, tuple)):
-            real_payload = json.dumps(real_payload)
-
-        auth = None
-        if self.user:
-            auth = dict(username=self.user, password=self.password)
-
-        if qos is None:
-            qos = self.qos
-
-        import paho.mqtt.publish as publish
-        publish.single(
-            topic=topic,
-            payload=real_payload,
-            hostname=self.host,
-            port=self.port,
-            retain=retain,
-            auth=auth,
-            qos=qos
-        )
-        self.logger.debug(
-            "[%s] Published message on '%s' @ %s:%s with qos=%s. Payload='%s'",
-            self.name, topic, self.host, self.port, qos, real_payload
-        )
-
-    @abstractmethod
-    def push(self, payload):
-        raise NotImplementedError()
-
-
 @auto_str_ignore(['configured'])
-class Discovery(_MQTTBase):
+class Discovery(MQTTBase, PushBase):
     """
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/mqtt.Discovery/index.md
@@ -148,7 +90,7 @@ class Discovery(_MQTTBase):
         return payload
 
 
-class Publish(_MQTTBase):
+class Publish(MQTTBase, PushBase):
     """
     This push will push the given `payload` to a mqtt broker (in this case mosquitto).
     The broker is specified by `host` and `port`. In addition a topic needs to be specified
