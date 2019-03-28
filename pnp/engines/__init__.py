@@ -2,21 +2,16 @@
 
 import copy
 from abc import abstractmethod
-from collections import namedtuple
 from datetime import datetime
 from typing import Any, Callable, Optional
+
+import attr
 
 from ..models import TaskSet, PushModel
 from ..selector import PayloadSelector
 from ..utils import (Loggable, Singleton, parse_duration_literal, DurationLiteral, auto_str,
                      is_iterable_but_no_str)
 from ..validator import Validator
-
-# Contains directive information for engines on how to proceed on failure cases.
-# abort -> Abort the pull
-# wait_for -> how long the pulling should be interrupted after the interrupt retry the pull
-# retry_cnt -> Just a context information.
-RetryDirective = namedtuple("RetryDirective", ["abort", "wait_for", "retry_cnt"])
 
 
 class NotSupportedError(Exception):
@@ -53,6 +48,18 @@ class Engine(Loggable):
     def _stop(self):
         """Stop the engine. Override in child classes."""
         raise NotImplementedError()
+
+
+@attr.s
+class RetryDirective:
+    """Contains directive information for engines on how to proceed in erroneous cases."""
+
+    # If set to True, instructs the engine to abort the pull; otherwise retry the pull
+    abort = attr.ib(converter=bool, type=bool, default=True)
+    # Instructs the engine to wait some time before retrying the pull again
+    wait_for = attr.ib(converter=parse_duration_literal, type=int, default=0)
+    # Just contextual information how many retries occurred so far
+    retry_cnt = attr.ib(converter=int, type=int, default=0)
 
 
 @auto_str(__repr__=True)
@@ -126,11 +133,11 @@ class AdvancedRetryHandler(LimitedRetryHandler):
         self.last_error = None
 
     def handle_error(self) -> RetryDirective:
-        if self.last_error is None:
-            # Initial value -> no retries so far, the next is 1
-            self.retry_count = 0
-        elif (datetime.now() - self.last_error).total_seconds() > self.reset_retry_threshold:
-            # Reset retry count because threshold has reached, next try is 1
+        # Handles two cases:
+        # 1. Initial value -> no retries so far, the next is 1
+        # 2. Reset retry count because threshold has reached, next try is 1
+        if (self.last_error is None
+                or (datetime.now() - self.last_error).total_seconds() > self.reset_retry_threshold):
             self.retry_count = 0
 
         self.last_error = datetime.now()
