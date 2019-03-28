@@ -5,7 +5,7 @@ import multiprocessing
 from . import (Engine, RetryHandler, PushExecutor, NotSupportedError, SimpleRetryHandler,
                NoRetryHandler)
 from ..models import TaskSet
-from ..utils import StopCycleError, interruptible_sleep
+from ..utils import sleep_until_interrupt
 from ..validator import Validator
 
 
@@ -20,15 +20,6 @@ class SequentialEngine(Engine):
             self.retry_handler = SimpleRetryHandler()
         self.stopped = multiprocessing.Event()
         self._task = None
-
-    def _sleep(self, sleep_time):
-        def callback():
-            if self.stopped.is_set():
-                raise StopCycleError()
-        # We couldn't just easily call time.sleep(self, retry_wait), cause we cannot react on
-        # the stopping signal. So have to manually sleep in 0.5 second steps and check for
-        # stopping signal.
-        interruptible_sleep(sleep_time, callback, interval=0.5)
 
     def _run(self, tasks: TaskSet):
         if not tasks:
@@ -82,7 +73,7 @@ class SequentialEngine(Engine):
                         )
                         self.stopped.set()
                     else:
-                        self._sleep(directive.wait_for)
+                        sleep_until_interrupt(directive.wait_for, self.stopped.is_set)
 
     def _stop(self):
         self.stopped.set()

@@ -8,7 +8,7 @@ from queue import Queue
 
 from . import RetryHandler, PushExecutor, Engine, SimpleRetryHandler
 from ..models import TaskModel, TaskSet
-from ..utils import Loggable, StopCycleError, interruptible_sleep, auto_str, auto_str_ignore
+from ..utils import Loggable, auto_str, auto_str_ignore, sleep_until_interrupt
 from ..validator import Validator
 
 
@@ -85,15 +85,6 @@ class StoppableRunner(Loggable):
         if not self._runner:
             raise RuntimeError("Runner is is not started")
 
-    def _sleep(self, sleep_time):
-        def callback():
-            if self.stopped.is_set():
-                raise StopCycleError()
-        # We couldn't just easily call time.sleep(self, retry_wait), cause we cannot react on the
-        # stopping signal. So have to manually sleep in 0.5 second steps and check for stopping
-        # signal.
-        interruptible_sleep(sleep_time, callback, interval=0.5)
-
     def _start_pull(self):
         def on_payload(plugin, payload):  # pylint: disable=unused-argument
             for push in self.task.pushes:
@@ -120,8 +111,8 @@ class StoppableRunner(Loggable):
             except KeyboardInterrupt:  # pragma: no cover
                 self.logger.debug(
                     "[Task-%s] Pulling of '%s' hit a keyboard interrupt",
-                    thread=self.get_ident(),
-                    pull=self.task.pull.instance
+                    self.get_ident(),
+                    self.task.pull.instance
                 )
             except:  # pylint: disable=bare-except
                 # Bad thing... Pulling exited with exception
@@ -133,17 +124,20 @@ class StoppableRunner(Loggable):
                     traceback.format_exc()
                 )
             finally:
-                if not self.stopped.is_set():
-                    directive = self.retry_handler.handle_error()
-                    if directive.abort:
-                        self.logger.error(
-                            "[Task-%s] Pulling of '%s' exited due to retry limitation",
-                            self.get_ident(),
-                            self.task.pull.instance,
-                        )
-                        self.stopped.set()
-                    else:
-                        self._sleep(directive.wait_for)
+                self._handle_pull_exit()
+
+    def _handle_pull_exit(self):
+        if not self.stopped.is_set():
+            directive = self.retry_handler.handle_error()
+            if directive.abort:
+                self.logger.error(
+                    "[Task-%s] Pulling of '%s' exited due to retry limitation",
+                    self.get_ident(),
+                    self.task.pull.instance,
+                )
+                self.stopped.set()
+            else:
+                sleep_until_interrupt(directive.wait_for, self.stopped.is_set)
 
     def stop(self):
         """Stop the runner gracefully."""

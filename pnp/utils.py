@@ -242,6 +242,17 @@ def interruptible_sleep(wait, callback, interval=0.5):
         pass
 
 
+def sleep_until_interrupt(sleep_time, interrupt_fun, interval=0.5):
+    """Call this method to sleep an interruptable sleep until the interrupt function returns
+    True."""
+    Validator.is_function(interrupt_fun=interrupt_fun)
+
+    def callback():
+        if interrupt_fun():
+            raise StopCycleError()
+    interruptible_sleep(sleep_time, callback, interval=interval)
+
+
 def make_public_protected_private_attr_lookup(attr_name, as_dict=False):
     """
     Given an attribute name this function will generate names of public, private and protected

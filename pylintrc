@@ -141,7 +141,6 @@ disable=print-statement,
         comprehension-escape,
         too-few-public-methods,
         too-many-instance-attributes,
-        duplicate-code,
         too-many-arguments
 
 # Enable the message, report, category or checker with the given id(s). You can
