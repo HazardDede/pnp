@@ -1,6 +1,6 @@
 """Notification related push plugins."""
 
-from . import PushBase
+from . import PushBase, enveloped
 from .. import load_optional_module
 from ...utils import auto_str_ignore
 
@@ -52,37 +52,37 @@ class Pushbullet(PushBase):
         except:  # pylint: disable=bare-except
             return name
 
-    def push(self, payload):
-        _, real_payload = self.envelope_payload(payload)
-
+    @enveloped
+    def push(self, envelope, payload):  # pylint: disable=arguments-differ
         pbullet, urlparse = self._load_deps()
         client = pbullet.Pushbullet(self.api_key)
-        urlprofile = urlparse.urlparse(real_payload)
-        self.logger.info("[%s] Sending message '%s' to Pushbullet", self.name, real_payload)
+        urlprofile = urlparse.urlparse(payload)
+        self.logger.info("[%s] Sending message '%s' to Pushbullet", self.name, payload)
+
         if urlprofile.scheme and urlprofile.netloc:
             # Is URL
-            self.logger.debug("[%s] Payload '%s' is an url", self.name, real_payload)
-            mtype = self._guess_mimetype(real_payload)
+            self.logger.debug("[%s] Payload '%s' is an url", self.name, payload)
+            mtype = self._guess_mimetype(payload)
             if not mtype:
                 # Some link
                 self.logger.debug(
-                    "[%s] Payload '%s' has no mimetype associated", self.name, real_payload
+                    "[%s] Payload '%s' has no mimetype associated", self.name, payload
                 )
-                client.push_link(self.title, real_payload)
+                client.push_link(self.title, payload)
             else:
                 # Some file
                 self.logger.debug(
-                    "[%s] Guessed type '%s' for payload '%s'", self.name, mtype, real_payload
+                    "[%s] Guessed type '%s' for payload '%s'", self.name, mtype, payload
                 )
                 client.push_file(
                     file_name=self._safe_basename(urlprofile.path),
                     file_type=mtype,
-                    file_url=real_payload,
+                    file_url=payload,
                     title=self.title
                 )
         else:
             # Is NOT url
-            self.logger.debug("[%s] Payload '%s' is a simple note", self.name, real_payload)
-            client.push_note(self.title, real_payload)
+            self.logger.debug("[%s] Payload '%s' is a simple note", self.name, payload)
+            client.push_note(self.title, payload)
 
-        return payload
+        return {'data': payload, **envelope} if envelope else payload

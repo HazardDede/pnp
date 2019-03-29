@@ -3,7 +3,7 @@
 import os
 import time
 
-from . import PushBase
+from . import PushBase, enveloped, parse_envelope, drop_envelope
 from ...validator import Validator
 
 
@@ -51,11 +51,11 @@ class FileDump(PushBase):
             return'.' + value
         return value
 
-    def push(self, payload):
-        envelope, payload = self.envelope_payload(payload)
-        file_name = self._parse_envelope_value('file_name', envelope)
-        extension = self._parse_envelope_value('extension', envelope)
-
+    @enveloped
+    @parse_envelope('file_name')
+    @parse_envelope('extension')
+    @drop_envelope
+    def push(self, file_name, extension, payload):  # pylint: disable=arguments-differ
         if file_name is None:
             file_name = time.strftime("%Y%m%d-%H%M%S")
         file_path = os.path.join(self.directory, file_name + extension)

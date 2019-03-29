@@ -3,7 +3,7 @@
 import io
 import os
 
-from . import PushBase
+from . import PushBase, enveloped, drop_envelope
 from .. import load_optional_module
 from ...utils import make_list, auto_str_ignore
 from ...validator import Validator
@@ -96,8 +96,9 @@ class FaceR(PushBase):
             # Remove the drawing library from memory as per the Pillow docs
             del draw
 
+    @enveloped
+    @drop_envelope
     def push(self, payload):
-        _, payload = self.envelope_payload(payload)
         # Load unknown image and find faces
         unknown_image = self.face_recognition.load_image_file(io.BytesIO(payload))
         face_locations = self.face_recognition.face_locations(unknown_image)

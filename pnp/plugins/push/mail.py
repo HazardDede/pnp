@@ -3,7 +3,7 @@
 import base64
 import os
 
-from . import PushBase
+from . import PushBase, enveloped, parse_envelope
 from .. import load_optional_module
 from ...shared.mime import Mail
 from ...utils import FileLock, make_list, is_iterable_but_no_str
@@ -99,11 +99,11 @@ class GMail(PushBase):
             import traceback
             self.logger.error("[%s] Error: %s", self.name, traceback.format_exc())
 
-    def push(self, payload):
-        envelope, real_payload = self.envelope_payload(payload)
-        recipient = self._parse_envelope_value('recipient', envelope)
-        subject = self._parse_envelope_value('subject', envelope)
-        sender = self._parse_envelope_value('sender', envelope)
+    @enveloped
+    @parse_envelope('recipient')
+    @parse_envelope('subject')
+    @parse_envelope('sender')
+    def push(self, recipient, subject, sender, envelope, payload):  # pylint: disable=arguments-differ
         file_path = envelope.get('attachment')
 
         if subject is None:
@@ -113,11 +113,11 @@ class GMail(PushBase):
         self.logger.info(
             "[%s] Sending E-Mail '%s' to %s\n"
             "Content: '%s' (Attachment: '%s')",
-            self.name, subject, recipient, real_payload, file_path
+            self.name, subject, recipient, payload, file_path
         )
 
-        message = self._create_message(sender, recipient, subject, real_payload, file_path)
+        message = self._create_message(sender, recipient, subject, payload, file_path)
         service = self._make_service(self.token_file)
         self._send_message(service, message)
 
-        return payload
+        return {'data': payload, **envelope} if envelope else payload

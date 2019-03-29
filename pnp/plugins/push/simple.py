@@ -3,7 +3,7 @@
 import warnings
 from functools import partial
 
-from . import PushBase
+from . import PushBase, enveloped, parse_envelope, drop_envelope
 from ...shared.exc import TemplateError
 from ...utils import parse_duration_literal, make_list
 from ...validator import Validator
@@ -113,6 +113,7 @@ class TemplatedExecute(PushBase):
         args = [quotes_fun(arg) for arg in args]
         # Remove empty args
         args = [arg for arg in args if arg != '']
+        print("========>", args)
         return " ".join(args)
 
     def _execute(self, command_str):
@@ -180,10 +181,10 @@ class Execute(TemplatedExecute):
         )
         warnings.simplefilter('default', DeprecationWarning)
 
-    def push(self, payload):
-        envelope, _ = self.envelope_payload(payload)
-        args = self._parse_envelope_value('args', envelope)  # Override args via envelope
-
+    @enveloped
+    @parse_envelope('args')
+    @drop_envelope
+    def push(self, args, payload):  # pylint: disable=arguments-differ
         command_str = self._command
         if args:
             args = self._serialize_args(

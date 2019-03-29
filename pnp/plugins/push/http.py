@@ -4,10 +4,10 @@ import json
 
 import requests
 
+from . import PushBase, PushExecutionError, enveloped, parse_envelope
+from ... import utils
 from ...utils import try_parse_bool
 from ...validator import Validator
-from ... import utils
-from . import PushBase, PushExecutionError
 
 
 class Call(PushBase):
@@ -39,19 +39,17 @@ class Call(PushBase):
     def _parse_fail_on_error(val):
         return try_parse_bool(val)
 
-    def push(self, payload):
-        envelope, real_payload = self.envelope_payload(payload)
-
-        url = self._parse_envelope_value('url', envelope)
-        method = self._parse_envelope_value('method', envelope)
-        fail_on_error = self._parse_envelope_value('fail_on_error', envelope)
-
-        if isinstance(real_payload, (dict, list, tuple)):
+    @enveloped
+    @parse_envelope('url')
+    @parse_envelope('method')
+    @parse_envelope('fail_on_error')
+    def push(self, url, method, fail_on_error, envelope, payload):  # pylint: disable=arguments-differ
+        if isinstance(payload, (dict, list, tuple)):
             try:
-                real_payload = json.dumps(real_payload)
+                payload = json.dumps(payload)
             except:  # pylint: disable=bare-except
                 pass
-        resp = requests.request(method, url, data=str(real_payload))
+        resp = requests.request(method, url, data=str(payload))
         if fail_on_error and not 200 <= resp.status_code <= 299:
             raise PushExecutionError(
                 "{method} of '{url}' failed with status code = '{status_code}'".format(
@@ -61,7 +59,7 @@ class Call(PushBase):
                 )
             )
         if not self.provide_response:
-            return payload
+            return {'data': payload, **envelope} if envelope else payload
 
         try:
             return dict(status_code=resp.status_code, is_json=True, data=resp.json())

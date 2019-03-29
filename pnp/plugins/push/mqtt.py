@@ -2,7 +2,7 @@
 
 from dictmentor import DictMentor, ext
 
-from . import PushBase
+from . import PushBase, enveloped, parse_envelope, drop_envelope
 from ...shared.mqtt import MQTTBase
 from ...utils import try_parse_bool, auto_str_ignore
 from ...validator import Validator
@@ -75,17 +75,17 @@ class Discovery(MQTTBase, PushBase):
             self._publish(config_augmented, config_topic, retain=True)
             self.configured[configure_key] = True
 
-    def push(self, payload):
-        envelope, real_payload = self.envelope_payload(payload)
-        object_id = self._parse_envelope_value('object_id', envelope)
-        node_id = self._parse_envelope_value('node_id', envelope)
-
+    @enveloped
+    @parse_envelope('object_id')
+    @parse_envelope('node_id')
+    @drop_envelope
+    def push(self, object_id, node_id, payload):  # pylint: disable=arguments-differ
         if object_id is None:
             raise ValueError("object_id was not defined either by the __init__ nor by the envelope")
 
         self._configure(object_id, node_id)
         _, _, state_topic = self._topics(object_id, node_id)
-        self._publish(real_payload, state_topic, retain=True)
+        self._publish(payload, state_topic, retain=True)
 
         return payload
 
@@ -120,21 +120,20 @@ class Publish(MQTTBase, PushBase):
             return topic1 + topic2
         return topic1 + '/' + topic2
 
-    def _push_single(self, payload):
-        envelope, real_payload = self.envelope_payload(payload)
-        topic = self._parse_envelope_value('topic', envelope)  # Override topic via envelope
-        retain = self._parse_envelope_value('retain', envelope)  # Override retain via envelope
-        qos = self._parse_envelope_value('qos', envelope)  # Override qos via envelope
-
+    @enveloped
+    @parse_envelope('topic')
+    @parse_envelope('retain')
+    @parse_envelope('qos')
+    def push(self, topic, retain, qos, envelope, payload):  # pylint: disable=arguments-differ
         if topic is None:
             raise ValueError("Topic was not defined either by the __init__ nor by the envelope")
 
         if not self.multi:
-            self._publish(real_payload, topic, retain, qos)
+            self._publish(payload, topic, retain, qos)
         else:
-            if not isinstance(real_payload, dict):
+            if not isinstance(payload, dict):
                 raise TypeError("In multi mode the payload is required to be a dictionary")
-            for k, v in real_payload.items():
+            for k, v in payload.items():
                 key_topic = self._topic_concat(topic, k)
                 try:
                     self._publish(v, key_topic, retain, qos)
@@ -146,9 +145,7 @@ class Publish(MQTTBase, PushBase):
                         self.name, key_topic, self.host, self.port, qos, v, traceback.format_exc()
                     )
 
-    def push(self, payload):
-        self._push_single(payload)
-        return payload  # Payload as is. With envelope (if any).
+        return {'data': payload, **envelope} if envelope else payload
 
 
 MQTTPush = Publish

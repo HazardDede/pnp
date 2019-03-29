@@ -1,6 +1,6 @@
 """Storage related push plugins."""
 
-from . import PushBase
+from . import PushBase, enveloped, parse_envelope, drop_envelope
 from .. import load_optional_module
 from ...utils import auto_str_ignore, get_bytes
 from ...validator import Validator
@@ -46,17 +46,16 @@ class Dropbox(PushBase):
         url_parts[4] = urlencode({'raw': '1'})
         return urlparse.urlunparse(url_parts)
 
-    def push(self, payload):
-        envelope, real_payload = self.envelope_payload(payload)
-        # Override target_file_name via envelope
-        target_file_name = self._sanitze_target_file_name(
-            self._parse_envelope_value('target_file_name', envelope)
-        )
+    @enveloped
+    @parse_envelope('target_file_name')
+    @drop_envelope
+    def push(self, target_file_name, payload):  # pylint: disable=arguments-differ
+        target_file_name = self._sanitze_target_file_name(target_file_name)
 
         # Upload file or stream to dropbox
         dropbox = load_optional_module('dropbox', self.EXTRA)
         dbx = dropbox.Dropbox(self.api_key)
-        fcontent = get_bytes(real_payload)  # Might be a file or a stream
+        fcontent = get_bytes(payload)  # Might be a file or a stream
         self.logger.info("[%s] Uploading file to dropbox '%s'", self.name, target_file_name)
         metadata = dbx.files_upload(
             fcontent,

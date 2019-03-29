@@ -1,6 +1,7 @@
 """Base stuff for pushes."""
 
 import copy
+import functools
 from abc import abstractmethod
 
 from .. import Plugin
@@ -10,6 +11,59 @@ from ...validator import Validator
 
 class PushExecutionError(Exception):
     """Is raised by push-plugins when the execution flow has failed."""
+
+
+def enveloped(fun):
+    """Decorator to split the envelope and the actual payload. This is an but a convenience
+    decorator for `envelope_payload` of the `PushBase` class."""
+
+    Validator.is_function(fun=fun)
+
+    @functools.wraps(fun)
+    def _wrapper(self, payload):
+        Validator.is_instance(PushBase, self=self)
+        envelope, real_payload = self.envelope_payload(payload)
+        return fun(
+            self,
+            envelope=envelope,
+            payload=real_payload
+        )
+    return _wrapper
+
+
+def parse_envelope(value):
+    """Decorator the parse the given value-key from the envelope. This is but a convenience
+    decorator / wrapper for `_parse_envelope_value` of the `PushBase` class."""
+
+    Validator.is_instance(str, value=value)
+
+    def _inner(fun):
+        @functools.wraps(fun)
+        def _wrapper(self, envelope=None, payload=None, **kwargs):
+            Validator.is_instance(PushBase, self=self)
+            parsed = self._parse_envelope_value(value, envelope=envelope)
+
+            new_kwargs = {
+                value: parsed,
+                'payload': payload
+            }
+            if envelope is not None:
+                new_kwargs['envelope'] = envelope
+
+            return fun(self, **{**new_kwargs, **kwargs})
+        return _wrapper
+    return _inner
+
+
+def drop_envelope(fun):
+    """Decorator to drop the envelope from the arguments before calling the actual `push` method to
+    make the linter happy again if necessary (unused-argument)."""
+    @functools.wraps(fun)
+    def _wrapper(self, *args, **kwargs):
+        Validator.is_instance(PushBase, self=self)
+        kwargs.pop('envelope', None)
+        return fun(self, *args, **kwargs)
+    return _wrapper
 
 
 def _lookup(instance, lookups):

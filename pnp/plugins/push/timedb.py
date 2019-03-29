@@ -1,6 +1,6 @@
 """Time database related push plugins."""
 
-from . import PushBase
+from . import PushBase, enveloped
 from ...utils import auto_str_ignore
 
 
@@ -28,14 +28,13 @@ class InfluxPush(PushBase):
         self.database = str(database)
         self.protocol = str(protocol)
 
-    def push(self, payload):
-        _, real_payload = self.envelope_payload(payload)
-
-        points = [self.protocol.format(payload=real_payload)]
+    @enveloped
+    def push(self, envelope, payload):  # pylint: disable=arguments-differ
+        points = [self.protocol.format(payload=payload)]
         self.logger.debug("[%s] Writing '%s' to influxdb", self.name, str(points))
 
         from influxdb import InfluxDBClient
         client = InfluxDBClient(self.host, self.port, self.user, self.password, self.database)
         client.write(points, {'db': self.database}, 204, 'line')
 
-        return payload  # Payload as is. With envelope (if any)
+        return {'data': payload, **envelope} if envelope else payload
