@@ -31,7 +31,7 @@ class InfluxPush(PushBase):
     @enveloped
     def push(self, envelope, payload):  # pylint: disable=arguments-differ
         points = [self.protocol.format(payload=payload)]
-        self.logger.debug("[%s] Writing '%s' to influxdb", self.name, str(points))
+        self.logger.debug("Writing '%s' to influxdb", str(points))
 
         from influxdb import InfluxDBClient
         client = InfluxDBClient(self.host, self.port, self.user, self.password, self.database)

@@ -1,11 +1,11 @@
 """Basic stuff for plugins (pull, push, udf)."""
-
+import logging
 import warnings
 from importlib import import_module
 
 from argresolver import EnvironmentResolver
 
-from ..utils import Loggable, auto_str, auto_str_ignore
+from ..utils import auto_str, auto_str_ignore
 from ..validator import Validator
 
 # https://stackoverflow.com/questions/40845304/  \
@@ -39,9 +39,20 @@ class PluginMeta(type):
         return newly
 
 
+class PluginLogAdapter(logging.LoggerAdapter):
+    """Logging adapter for plugin classes. Will put the name of the plugin in front of the
+    message."""
+    def __init__(self, logger, prefix):
+        super().__init__(logger, {})
+        self.prefix = prefix
+
+    def process(self, msg, kwargs):
+        return '[{prefix}] {message}'.format(prefix=self.prefix, message=msg), kwargs
+
+
 @auto_str(__repr__=True)
 @auto_str_ignore(['_base_path'])
-class Plugin(Loggable, metaclass=PluginMeta):
+class Plugin(metaclass=PluginMeta):
     """Base class for a plugin."""
 
     def __init__(self, name, base_path=None, **kwargs):  # pylint: disable=unused-argument
@@ -66,6 +77,13 @@ class Plugin(Loggable, metaclass=PluginMeta):
             import os
             return os.getcwd()
         return self._base_path
+
+    @property
+    def logger(self):
+        """Return the logger of this instance."""
+        component = "{}.{}".format(type(self).__module__, type(self).__name__)
+        logger = logging.getLogger(component)
+        return PluginLogAdapter(logger, self.name)
 
 
 class ClassNotFoundError(Exception):

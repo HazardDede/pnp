@@ -98,8 +98,8 @@ class FileSystemWatcher(PullBase):
                             self.dispatcher[modified_file] = defer_fun
                         defer_fun(modified_file, payload)
                         that.logger.debug(
-                            "[%s] Event of modified_file '%s' is deferred for %s",
-                            that.name, modified_file, that.defer_modified
+                            "Event of modified_file '%s' is deferred for %s",
+                            modified_file, that.defer_modified
                         )
                 else:
                     defer_fun = self.dispatcher.get(payload['source'], None)
@@ -118,7 +118,7 @@ class FileSystemWatcher(PullBase):
                         'source': getattr(event, 'src_path', None),
                         'destination': getattr(event, 'dest_path', None)
                     }
-                    that.logger.info("[%s] Got '%s'", that.name, payload)
+                    that.logger.info("Got '%s'", payload)
                     if that.load_file:
                         file_envelope = self._read_file_from_event(event)
                         if file_envelope is not None:

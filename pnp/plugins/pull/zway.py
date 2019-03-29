@@ -32,7 +32,7 @@ class ZwayPoll(Polling):
         self.password = str(password)
 
     def poll(self):
-        self.logger.debug("[%s] Polling url '%s'", self.name, self.url)
+        self.logger.debug("Polling url '%s'", self.url)
         reply = requests.get(self.url, auth=HTTPBasicAuth(self.user, self.password))
         if reply.status_code != requests.codes.ok:  # pylint: disable=no-member
             raise PollingError(

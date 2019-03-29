@@ -2,7 +2,7 @@
 
 from functools import partial
 
-from . import PushBase
+from . import PushBase, enveloped
 from ...shared.exc import TemplateError
 from ...utils import parse_duration_literal, make_list
 from ...validator import Validator
@@ -25,10 +25,11 @@ class Echo(PushBase):
     def __init__(self, **kwargs):  # pylint: disable=useless-super-delegation
         super().__init__(**kwargs)
 
-    def push(self, payload):
-        envelope, real_payload = self.envelope_payload(payload)
-        self.logger.info("[%s] Got '%s' with envelope '%s'", self.name, real_payload, envelope)
-        return payload  # Payload as is. With envelope (if any)
+    @enveloped
+    def push(self, envelope, payload):  # pylint: disable=arguments-differ
+        self.logger.info("Got '%s' with envelope '%s'", payload, envelope)
+        # Payload as is. With envelope (if any)
+        return {'data': payload, **envelope} if envelope else payload
 
 
 class Nop(PushBase):
@@ -119,7 +120,7 @@ class Execute(PushBase):
             return [line.strip('\n\r') for line in response]
 
         import subprocess
-        self.logger.info("[%s] Running command in shell: %s", self.name, command_str)
+        self.logger.info("Running command in shell: %s", command_str)
         proc = subprocess.Popen(
             args=command_str,
             shell=True,

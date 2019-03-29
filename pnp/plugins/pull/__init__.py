@@ -113,7 +113,7 @@ class Polling(PullBase):
             self.stop()
         except Exception:  # pragma: no cover, pylint: disable=broad-except
             import traceback
-            self.logger.error("[%s]\n%s", self.name, traceback.format_exc())
+            self.logger.error("\n%s", traceback.format_exc())
 
     def _configure_scheduler(self, scheduler, callback):
         """

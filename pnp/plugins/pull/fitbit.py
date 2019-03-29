@@ -61,15 +61,14 @@ class _FitbitBase(Polling):
             # Tokens did not change. Skip
             return False
 
-        self.logger.debug("[%s] Loading tokens from %s: Requesting lock", self.name, self._config)
+        self.logger.debug("Loading tokens from %s: Requesting lock", self._config)
         with FileLock(self._config):
-            self.logger.debug("[{%s] Loading tokens from %s: Lock acquired", self.name,
-                              self._config)
+            self.logger.debug("Loading tokens from %s: Lock acquired", self._config)
             with open(self._config, 'r') as fp:
                 _tokens = yaml.safe_load(fp)
                 self._tokens = self.TOKEN_SCHEMA.validate(_tokens)
             self._tokens_tstamp = current_tstamp
-        self.logger.debug("[%s] Loading tokens from %s: Lock released", self.name, self._config)
+        self.logger.debug("Loading tokens from %s: Lock released", self._config)
         return True
 
     def _save_tokens(self, tokens):
@@ -80,15 +79,15 @@ class _FitbitBase(Polling):
             'refresh_token': tokens.get('refresh_token'),
             'expires_at': tokens.get('expires_at')
         }
-        self.logger.debug("[%s] Saving tokens to %s: Requesting lock", self.name, self._config)
+        self.logger.debug("Saving tokens to %s: Requesting lock", self._config)
         self.TOKEN_SCHEMA.validate(new_config)
         with FileLock(self._config):
-            self.logger.debug("[%s] Saving tokens to %s: Lock acquired", self.name, self._config)
+            self.logger.debug("Saving tokens to %s: Lock acquired", self._config)
             with open(self._config, 'w') as fp:
                 yaml.dump(new_config, fp, default_flow_style=False)
             self._tokens_tstamp = pathlib.Path(self._config).stat().st_mtime
             self._tokens = new_config
-            self.logger.debug("[%s] Saving tokens to %s: Lock released", self.name, self._config)
+            self.logger.debug("Saving tokens to %s: Lock released", self._config)
 
     def poll(self):
         raise NotImplementedError()  # pragma: no cover

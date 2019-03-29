@@ -73,28 +73,28 @@ class State(PullBase):
             if message.get('type', '') == 'auth_required':
                 hass_version = message.get('ha_version')
                 self.logger.info(
-                    "[%s] Connected to Home Assistant %s websocket @ %s",
-                    self.name, hass_version, self.url
+                    "Connected to Home Assistant %s websocket @ %s",
+                    hass_version, self.url
                 )
-                self.logger.debug("[%s] Authentication is required. Providing token", self.name)
+                self.logger.debug("Authentication is required. Providing token")
                 await self._websocket.send(json.dumps({
                     'type': 'auth',
                     'access_token': self.token
                 }))
             elif message.get('type', '') == 'auth_ok':
-                self.logger.info("[%s] Authentication is valid", self.name)
+                self.logger.info("Authentication is valid")
                 await self._websocket.send(json.dumps(
                     {'id': 1, 'type': 'subscribe_events', 'event_type': 'state_changed'}
                 ))
             elif message.get('type', '') == 'auth_invalid':
-                self.logger.info("[%s] Authentication is invalid. Aborting...", self.name)
+                self.logger.info("Authentication is invalid. Aborting...")
                 await self._websocket.close()
             elif message.get('type', '') == 'result':
                 pass
             elif message.get('type', '') == 'event':
                 self._emit(message)
             else:
-                self.logger.warning("[%s] Got unexpected message '%s'", self.name, message)
+                self.logger.warning("Got unexpected message '%s'", message)
 
     def stop(self):
         super().stop()

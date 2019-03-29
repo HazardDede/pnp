@@ -140,9 +140,9 @@ class Publish(MQTTBase, PushBase):
                 except:  # pylint: disable=bare-except
                     import traceback
                     self.logger.error(
-                        "[%s] Publishing failed for message on '%s' @ "
+                        "Publishing failed for message on '%s' @ "
                         "%s:%s with qos=%s. Payload='%s'\n%s",
-                        self.name, key_topic, self.host, self.port, qos, v, traceback.format_exc()
+                        key_topic, self.host, self.port, qos, v, traceback.format_exc()
                     )
 
         return {'data': payload, **envelope} if envelope else payload

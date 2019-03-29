@@ -37,13 +37,12 @@ class Watcher(PullBase):
         if len(_without_duplicate) != len(self._pins):
             diff = list((Counter(self._pins) - Counter(_without_duplicate)).elements())
             self.logger.warning(
-                "[%s] You provided duplicate gpio pin configurations. Will ignore '%s'",
-                self.name, diff
+                "You provided duplicate gpio pin configurations. Will ignore '%s'", diff
             )
             self._pins = _without_duplicate
 
     def _universal_callback(self, gpio_pin, event):
-        self.logger.info("[%s] GPIO '%s' raised event '%s'", self.name, gpio_pin, event)
+        self.logger.info("GPIO '%s' raised event '%s'", gpio_pin, event)
         self.notify(dict(gpio_pin=gpio_pin, event=event))
 
     def pull(self):

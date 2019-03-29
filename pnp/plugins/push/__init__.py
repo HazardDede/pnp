@@ -172,8 +172,8 @@ class PushBase(Plugin):
         except (ValueError, TypeError):
             import traceback
             self.logger.error(
-                "[%s] Cannot parse value for '%s' from envelope. Error is\n%s",
-                self.name, name, traceback.format_exc()
+                "Cannot parse value for '%s' from envelope. Error is\n%s",
+                name, traceback.format_exc()
             )
             return (instance_lookup_fun(name)
                     if instance_lookup_fun is not None

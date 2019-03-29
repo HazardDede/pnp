@@ -56,7 +56,7 @@ class Dropbox(PushBase):
         dropbox = load_optional_module('dropbox', self.EXTRA)
         dbx = dropbox.Dropbox(self.api_key)
         fcontent = get_bytes(payload)  # Might be a file or a stream
-        self.logger.info("[%s] Uploading file to dropbox '%s'", self.name, target_file_name)
+        self.logger.info("Uploading file to dropbox '%s'", target_file_name)
         metadata = dbx.files_upload(
             fcontent,
             target_file_name,

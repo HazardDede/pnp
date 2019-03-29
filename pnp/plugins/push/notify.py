@@ -57,22 +57,21 @@ class Pushbullet(PushBase):
         pbullet, urlparse = self._load_deps()
         client = pbullet.Pushbullet(self.api_key)
         urlprofile = urlparse.urlparse(payload)
-        self.logger.info("[%s] Sending message '%s' to Pushbullet", self.name, payload)
-
+        self.logger.info("Sending message '%s' to Pushbullet", payload)
         if urlprofile.scheme and urlprofile.netloc:
             # Is URL
-            self.logger.debug("[%s] Payload '%s' is an url", self.name, payload)
+            self.logger.debug("Payload '%s' is an url", payload)
             mtype = self._guess_mimetype(payload)
             if not mtype:
                 # Some link
                 self.logger.debug(
-                    "[%s] Payload '%s' has no mimetype associated", self.name, payload
+                    "Payload '%s' has no mimetype associated", payload
                 )
                 client.push_link(self.title, payload)
             else:
                 # Some file
                 self.logger.debug(
-                    "[%s] Guessed type '%s' for payload '%s'", self.name, mtype, payload
+                    "Guessed type '%s' for payload '%s'", mtype, payload
                 )
                 client.push_file(
                     file_name=self._safe_basename(urlprofile.path),
@@ -82,7 +81,7 @@ class Pushbullet(PushBase):
                 )
         else:
             # Is NOT url
-            self.logger.debug("[%s] Payload '%s' is a simple note", self.name, payload)
+            self.logger.debug("Payload '%s' is a simple note", payload)
             client.push_note(self.title, payload)
 
         return {'data': payload, **envelope} if envelope else payload

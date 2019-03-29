@@ -97,7 +97,7 @@ class GMail(PushBase):
             return service.users().messages().send(userId=user_id, body=message).execute()
         except:  # pylint: disable=bare-except
             import traceback
-            self.logger.error("[%s] Error: %s", self.name, traceback.format_exc())
+            self.logger.error("Error: %s", traceback.format_exc())
 
     @enveloped
     @parse_envelope('recipient')
@@ -111,9 +111,9 @@ class GMail(PushBase):
         Validator.is_file(allow_none=True, file_path=file_path)
 
         self.logger.info(
-            "[%s] Sending E-Mail '%s' to %s\n"
+            "Sending E-Mail '%s' to %s\n"
             "Content: '%s' (Attachment: '%s')",
-            self.name, subject, recipient, payload, file_path
+            subject, recipient, payload, file_path
         )
 
         message = self._create_message(sender, recipient, subject, payload, file_path)

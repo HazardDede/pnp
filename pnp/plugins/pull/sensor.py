@@ -234,10 +234,10 @@ class Sound(PullBase):
 
     def _load_wav_fft(self):
         wavfile = load_optional_module('scipy.io.wavfile', self.EXTRA)
-        self.logger.debug("[%s] Loading wav file from '%s'", self.name, self.wav_file)
+        self.logger.debug("Loading wav file from '%s'", self.wav_file)
         sample_rate, signal = wavfile.read(self.wav_file)
         N, secs, signal_fft = self._perform_fft(signal, sample_rate)
-        self.logger.debug("[%s] Loaded %s seconds wav file @ %s hz", self.name, secs, sample_rate)
+        self.logger.debug("Loaded %s seconds wav file @ %s hz", secs, sample_rate)
         return N, signal_fft
 
     def _perform_fft(self, signal, rate, add_zeros=True):
@@ -295,11 +295,11 @@ class Sound(PullBase):
                 buffer = data if buffer is None else np.concatenate((buffer, data), axis=None)
                 lbuf = len(buffer)
                 if lbuf >= N:
-                    self.logger.debug("[%s] Buffer (%s) >= size of wav file (%s)",
-                                      self.name, lbuf, N)
+                    self.logger.debug("Buffer (%s) >= size of wav file (%s)",
+                                      lbuf, N)
                     flag, corrcoef, threshold = self._similarity(buffer)
-                    self.logger.debug("[%s] Correlation: %s >= %s = %s",
-                                      self.name, corrcoef, threshold, flag)
+                    self.logger.debug("Correlation: %s >= %s = %s",
+                                      corrcoef, threshold, flag)
                     if flag:
                         self.notify({
                             'data': self.wav_file_name,

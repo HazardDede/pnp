@@ -28,20 +28,20 @@ class Subscribe(PullBase):
         # reconnect then subscriptions will be renewed.
         if rc == 0:
             client.subscribe(self.topic)
-            self.logger.info("[%s] Connected with result code '%s' "
-                             "to %s @ %s:%s", self.name, rc, self.topic, self.host, self.port)
+            self.logger.info("Connected with result code '%s' "
+                             "to %s @ %s:%s", rc, self.topic, self.host, self.port)
         else:
-            self.logger.error("[%s] Bad connection with result code '%s' "
-                              "to %s @ %s:%s", self.name, rc, self.topic, self.host, self.port)
+            self.logger.error("Bad connection with result code '%s' "
+                              "to %s @ %s:%s", rc, self.topic, self.host, self.port)
 
     def _on_disconnect(self, client, userdata, rc):  # pylint: disable=unused-argument
         if rc != 0:
-            self.logger.warning("[%s] Unexpected mqtt disconnect with result code '%s'. "
-                                "Will automatically reconnect.", self.name, rc)
+            self.logger.warning("Unexpected mqtt disconnect with result code '%s'. "
+                                "Will automatically reconnect.", rc)
 
     def _on_message(self, client, obj, msg):  # pylint: disable=unused-argument
-        self.logger.debug("[%s] Got message from broker on topic '%s'. "
-                          "Payload='%s'", self.name, self.topic, msg.payload)
+        self.logger.debug("Got message from broker on topic '%s'. "
+                          "Payload='%s'", self.topic, msg.payload)
 
         # This one is an envelope with data
         self.notify(dict(
