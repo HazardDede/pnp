@@ -1,9 +1,8 @@
 """Basic push plugins."""
 
-import warnings
 from functools import partial
 
-from . import PushBase, enveloped, parse_envelope, drop_envelope
+from . import PushBase
 from ...shared.exc import TemplateError
 from ...utils import parse_duration_literal, make_list
 from ...validator import Validator
@@ -57,7 +56,7 @@ class Nop(PushBase):
         return payload
 
 
-class TemplatedExecute(PushBase):
+class Execute(PushBase):
     """
     Executes a command with given arguments in a shell of the operating system.
     Both `command` and `args` may include placeholders (e.g. `{{placeholder}}`) which are injected
@@ -66,7 +65,7 @@ class TemplatedExecute(PushBase):
     Will return the exit code of the command and optionally the output from stdout and stderr.
 
     See Also:
-        https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/simple.TemplatedExecute/index.md
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/simple.Execute/index.md
     """
     def __init__(self, command, args=None, cwd=None, capture=True, timeout="5s", **kwargs):
         super().__init__(**kwargs)
@@ -113,7 +112,6 @@ class TemplatedExecute(PushBase):
         args = [quotes_fun(arg) for arg in args]
         # Remove empty args
         args = [arg for arg in args if arg != '']
-        print("========>", args)
         return " ".join(args)
 
     def _execute(self, command_str):
@@ -156,44 +154,5 @@ class TemplatedExecute(PushBase):
                 add_quotes=True
             )
             command_str = "{command_str} {args}".format(command_str=command_str, args=args)
-
-        return self._execute(command_str)
-
-
-class Execute(TemplatedExecute):
-    """
-    Executes a command with given arguments in a shell of the operating system.
-
-    Will return the exit code of the command and optionally the output from stdout and stderr.
-
-    See Also:
-        https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/simple.Execute/index.md
-    """
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        warnings.simplefilter('always', DeprecationWarning)
-        warnings.warn(
-            "Plugin `pnp.plugins.push.simple.Execute` is deprecated."
-            " Please use `pnp.plugins.push.simple.TemplatedExecute`."
-            " In the near future `Execute` will be replaced by `TemplatedExecute`.",
-            category=DeprecationWarning,
-            stacklevel=2
-        )
-        warnings.simplefilter('default', DeprecationWarning)
-
-    @enveloped
-    @parse_envelope('args')
-    @drop_envelope
-    def push(self, args, payload):  # pylint: disable=arguments-differ
-        command_str = self._command
-        if args:
-            args = self._serialize_args(
-                transform_fun=None,
-                add_quotes=False
-            )
-            command_str = "{command_str} {args}".format(
-                command_str=command_str,
-                args=args
-            )
 
         return self._execute(command_str)

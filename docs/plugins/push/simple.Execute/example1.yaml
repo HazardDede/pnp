@@ -1,18 +1,23 @@
-- name: templated_execute
+- name: execute
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
       wait: 1
       from_cnt: 1
   push:
-    plugin: pnp.plugins.push.simple.TemplatedExecute
+    plugin: pnp.plugins.push.simple.Execute
     selector:
       command: echo
-      salutation: "\"hello you\""
+      count: "lambda data: str(data)"
+      labels:
+        prefix: "The actual count is"
+        iter: iterations
     args:
       command: "{{command}}"  # The command to execute (passed by selector)
       args:
-        - "{{salutation}}"
+        - "{{labels.prefix}}"
+        - "{{count}}"  # The named argument passed at runtime by selector
+        - "{{labels.iter}}"
       timeout: 2s
       cwd:  # None -> pnp-configuration directory
       capture: true  # Capture stdout and stderr

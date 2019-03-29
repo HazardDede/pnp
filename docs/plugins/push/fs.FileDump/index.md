@@ -32,7 +32,7 @@ __Examples__
   push:
     plugin: pnp.plugins.push.fs.FileDump
     args:
-      directory: "/tmp"
+      directory: "{{env::WATCH_DIR}}"
       file_name: null  # Auto-generated file (timestamp)
       extension: ".txt"  # Extension of auto-generated file
       binary_mode: false  # text mode
@@ -56,7 +56,7 @@ __Examples__
       file_name: hello-world
       extension: .hello
     args:
-      directory: "/tmp"
+      directory: "{{env::WATCH_DIR}}"
       file_name: null  # Auto-generated file (timestamp)
       extension: ".txt"  # Extension of auto-generated file
       binary_mode: false  # text mode

@@ -1,14 +1,16 @@
 # pnp.plugins.push.simple.Execute
 
 Executes a command with given arguments in a shell of the operating system.
+Both `command` and `args` may include placeholders (e.g. `{{placeholder}}`) which are injected at runtime
+by passing the specified payload after selector transformation. Please see the Examples section for further details.
 
 Will return the exit code of the command and optionally the output from stdout and stderr.
 
 __Arguments__
 
-- **command (str)**: The command to execute.
+- **command (str)**: The command to execute. May contain placeholders.
 - **args (str or iterable, optional)**: The arguments to pass to the command. Default is no arguments.
-May be overridden by envelope key `args`. See example in the Examples section.
+May contain placeholders.
 - **cwd (str, optional)**: Specifies where to execute the command (working directory).
 Default is the folder where the invoked pnp-configuration is located.
 - **timeout (duration literal, optional)**: Specifies how long the worker should wait for the command to finish.</br>
@@ -29,6 +31,6 @@ Returns a dictionary that contains the `return_code` and optionally the output f
 
 __Examples__
 
-!INCLUDECODE "docs/plugins/push/simple.Execute/example.yaml" (yaml)
+!INCLUDECODE "docs/plugins/push/simple.Execute/example1.yaml" (yaml)
 
 !INCLUDECODE "docs/plugins/push/simple.Execute/example2.yaml" (yaml)

@@ -4,15 +4,15 @@
     args:
       wait: 1
       from_cnt: 1
-      to_cnt: 10
   push:
     plugin: pnp.plugins.push.simple.Execute
     selector:
-      data:
-      args:
-        - "lambda data: str(data)"  # The actual count as first argument
+      command: echo
+      salutation: "\"hello you\""
     args:
-      command: echo  # The command to execute
+      command: "{{command}}"  # The command to execute (passed by selector)
+      args:
+        - "{{salutation}}"
       timeout: 2s
       cwd:  # None -> pnp-configuration directory
       capture: true  # Capture stdout and stderr

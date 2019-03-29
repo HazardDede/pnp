@@ -309,6 +309,9 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 
     pip install pnp==0.10.0
 
+**unreleased**
+* Breaking: Removes `push.simple.Execute` and replace it by `push.simple.TemplatedExecute`
+
 **0.16.0**
 * Adds `ignore_overflow` argument to `pull.sensor.Sound` to ignore buffer overflows errors on slow devices
 * Possible breaking: Adds raspberrypi specific stats (under voltage, throttle, ...) to `pull.monitor.stats`
