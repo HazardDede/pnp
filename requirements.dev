@@ -1,11 +1,12 @@
 bumpversion
 coveralls
 flake8
+MarkdownPP==1.4
 mock
 pylint>=2.2.2
 pytest>=3.6
 pytest-cov
 setuptools
 twine
-MarkdownPP==1.4
+websockets
 yamllint>=1.15.0

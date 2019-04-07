@@ -65,4 +65,5 @@ def test_bundled_config(config_file):
 
 
 if __name__ == '__main__':
-    pytest.main([os.path.dirname(__file__), '-v'])
+    import sys
+    sys.exit(pytest.main([os.path.dirname(__file__), '-v']))
