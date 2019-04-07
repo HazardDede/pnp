@@ -70,9 +70,10 @@ setup(
     extras_require={
         'dht': ['Adafruit_DHT>=1.3.2'],
         'dropbox': ['dropbox>=9.0.0', 'urllib3>=1.20'],
+        'faceR': ['image>=1.5.24', 'face-recognition>=1.2.2'],
         'fitbit': ['fitbit>=0.3.0'],
         'fswatcher': ['watchdog>=0.8.3'],
-        'faceR': ['image>=1.5.24', 'face-recognition>=1.2.2'],
+        'ftp': ['pyftpdlib>=1.5.0'],
         'gmail': ['google-api-python-client>=1.7.7', 'google-auth-httplib2>=0.0.3', 'google-auth-oauthlib>=0.2.0'],
         'gpio': ['RPi.GPIO>=0.6.5'],
         'http-server': ['Flask>=1.0.2', 'gevent>=1.3.4'],

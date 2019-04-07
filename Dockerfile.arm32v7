@@ -37,7 +37,7 @@ COPY README.md setup.py requirements.dev ./
 RUN pip3 install \
     --no-cache-dir \
     --extra-index-url https://www.piwheels.hostedpi.com/simple \
-    .[dht,dropbox,fitbit,fswatcher,gmail,gpio,http-server,miflora,pushbullet]
+    .[dht,dropbox,fitbit,fswatcher,ftp,gmail,gpio,http-server,miflora,pushbullet]
 
 COPY . .
 

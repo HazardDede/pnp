@@ -36,7 +36,7 @@ COPY README.md setup.py ./
 
 RUN pip3 install \
     --no-cache-dir \
-    .[dropbox,fitbit,fswatcher,gmail,http-server,miflora,pushbullet]
+    .[dropbox,fitbit,fswatcher,ftp,gmail,http-server,miflora,pushbullet]
 
 COPY . .
 
