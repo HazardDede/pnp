@@ -1,0 +1,11 @@
+- name: file_size
+  pull:
+    plugin: pnp.plugins.pull.fs.Size
+    args:
+      instant_run: true
+      interval: 5s
+      file_paths:
+        test: /Users/dmuth/test.txt
+        hass: /Users/dmuth/private/home-assistent
+  push:
+    plugin: pnp.plugins.push.simple.Echo

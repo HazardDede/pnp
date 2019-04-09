@@ -29,6 +29,10 @@ def load_optional_module(namespace, extra):
         raise InstallOptionalExtraError(extra)
 
 
+class PluginStoppedError(RuntimeError):
+    """Is raised when a operation is canceled / refushed because the plugin should / has stopped."""
+
+
 class PluginMeta(type):
     """Metaclasses for plugins. Hooks up the `argresolver`-package to inject any missing arguments
     at runtime if provided as an environment variable."""

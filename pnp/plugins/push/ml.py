@@ -21,26 +21,31 @@ class FaceR(PushBase):
     """
     EXTRA = 'faceR'
 
-    def __init__(self, known_faces=None, known_faces_dir=None, unknown_label="Unknown", **kwargs):
+    def __init__(self, known_faces=None, known_faces_dir=None, unknown_label="Unknown", lazy=False,
+                 **kwargs):
         # known_faces -> mapping name -> list of files
         # known_faces_dir -> directory with known faces (filename -> name)
         # unknown_label -> Label for unknown faces
         super().__init__(**kwargs)
 
-        # Do not break the complete module, when extra_packages are not present
-        self.face_recognition = load_optional_module('face_recognition', self.EXTRA)
-
         Validator.one_not_none(known_faces=known_faces, known_faces_dir=known_faces_dir)
-        # If both are set known_faces is the default
-        if known_faces is not None:
-            # Process known faces mapping
-            self.known_names, self.known_encodings = self._load_from_mapping(known_faces)
+        self.known_faces = known_faces
+        Validator.is_instance(dict, allow_none=True, known_faces=self.known_faces)
+        self.known_faces_dir = known_faces_dir and str(known_faces_dir)
+        Validator.is_directory(allow_none=True, known_faces_dir=self.known_faces_dir)
+
+        if not lazy:
+            self._configure()
         else:
-            # Process known faces directory
-            Validator.is_directory(known_faces_dir=known_faces_dir)
-            self.known_names, self.known_encodings = self._load_from_directory(known_faces_dir)
+            self.known_names = None
+            self.known_encodings = None
+            self.face_recognition = None
 
         self.unknown_label = str(unknown_label)
+
+    def _load_fencodings(self, fp):
+        img = self.face_recognition.load_image_file(fp)
+        return self.face_recognition.face_encodings(img)[0]
 
     def _load_from_mapping(self, mapping):
         def _loop():
@@ -55,7 +60,7 @@ class FaceR(PushBase):
             accepted = ('.tif', '.tiff', '.gif', '.jpeg', '.jpg', '.jif', '.jfif', '.png')
             for file in os.listdir(os.fsencode(directory)):
                 filename = os.fsdecode(file)
-                if filename.endswith(accepted):
+                if filename.lower().endswith(accepted):
                     # strip the extension from the filename
                     yield (
                         os.path.splitext(filename)[0],
@@ -64,9 +69,15 @@ class FaceR(PushBase):
         targets = list(_loop())
         return [name for name, _ in targets], [fp for _, fp in targets]
 
-    def _load_fencodings(self, fp):
-        img = self.face_recognition.load_image_file(fp)
-        return self.face_recognition.face_encodings(img)[0]
+    def _configure(self):
+        # Do not break the complete module, when extra_packages are not present
+        self.face_recognition = load_optional_module('face_recognition', self.EXTRA)
+
+        # If both are set known_faces is the default
+        if self.known_faces:
+            self.known_names, self.known_encodings = self._load_from_mapping(self.known_faces)
+        else:
+            self.known_names, self.known_encodings = self._load_from_directory(self.known_faces_dir)
 
     @staticmethod
     def _tag_image(unknown_image, tags):
@@ -99,6 +110,9 @@ class FaceR(PushBase):
     @enveloped
     @drop_envelope
     def push(self, payload):
+        if not self.face_recognition:
+            self._configure()
+
         # Load unknown image and find faces
         unknown_image = self.face_recognition.load_image_file(io.BytesIO(payload))
         face_locations = self.face_recognition.face_locations(unknown_image)

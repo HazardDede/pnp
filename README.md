@@ -2406,6 +2406,8 @@ __Arguments__
 - **known_faces_dir (str, optional)**: A directory containing images with known persons (file_name -> person's name).
     Default is None.
 - **unknown_label (str, optional)**: Tag label of unknown faces. Default is 'Unknown'.
+- **lazy (bool, optional)**: If set to True the face encodings will be loaded when the first push is executed (lazy);
+    otherwise the encodings are loaded when the plugin is initialized (during `__init__`).
 
 You have to specify either `known_faces` or `known_faces_dir`. If both are unsupplied the push will fail.
 
@@ -2443,6 +2445,7 @@ __Examples__
     args:
       known_faces_dir: "/tmp/faces"
       unknown_label: "don't know him"
+      lazy: true
 
 ```
 <a name="pnp.plugins.push.mqtt.discovery"></a>
@@ -3010,7 +3013,16 @@ You are encouraged to specify explicitly the version in your dependency tools, e
     pip install pnp==0.10.0
 
 **unreleased**
+* Adjusts inline documentation - refers to github documentation
+* Refactors a majority of codebase to comply to pylint linter
+* Integrates yamllint as linter
+* Refactores RetryDirective (namedtuple to attr class)
+* Adds decorators for parsing the envelope in a push context
 * Breaking: Removes `push.simple.Execute` and replace it by `push.simple.TemplatedExecute`
+* Adjusts method `logger` in plugin classes to automatically prepend plugin name
+* Integrates coveralls
+* Adds `pull.ftp.Server` plugin
+* Adds lazy configuration property to `push.ml.FaceR` (basically to test initialization of FaceR without installing face-recognition and dlib)
 
 **0.16.0**
 * Adds `ignore_overflow` argument to `pull.sensor.Sound` to ignore buffer overflows errors on slow devices

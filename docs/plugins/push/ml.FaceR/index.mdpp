@@ -17,6 +17,8 @@ __Arguments__
 - **known_faces_dir (str, optional)**: A directory containing images with known persons (file_name -> person's name).
     Default is None.
 - **unknown_label (str, optional)**: Tag label of unknown faces. Default is 'Unknown'.
+- **lazy (bool, optional)**: If set to True the face encodings will be loaded when the first push is executed (lazy);
+    otherwise the encodings are loaded when the plugin is initialized (during `__init__`).
 
 You have to specify either `known_faces` or `known_faces_dir`. If both are unsupplied the push will fail.
 

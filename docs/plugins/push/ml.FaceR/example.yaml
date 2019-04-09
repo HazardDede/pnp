@@ -16,3 +16,4 @@
     args:
       known_faces_dir: "/tmp/faces"
       unknown_label: "don't know him"
+      lazy: true

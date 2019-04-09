@@ -32,6 +32,7 @@
     selector: b64decode(payload.payload)
     args:
       known_faces_dir: '/tmp/faces'
+      lazy: true
     deps:
       - plugin: pnp.plugins.push.simple.Echo
         selector: (payload['known_faces'], payload['no_of_faces'])
