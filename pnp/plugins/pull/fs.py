@@ -162,14 +162,15 @@ class Size(Polling):
             self.file_paths = {os.path.basename(str(fp)): str(fp) for fp in make_list(file_paths)}
         self.fail_on_error = bool(fail_on_error)
 
-    def _file_size(self, path):
+    @staticmethod
+    def _file_size(path):
         return os.path.getsize(path)
 
     def _dir_size(self, path):
         total_size = 0
-        for dirpath, dirnames, filenames in os.walk(path):
-            for f in filenames:
-                fp = os.path.join(dirpath, f)
+        for dirpath, _, filenames in os.walk(path):
+            for fname in filenames:
+                fp = os.path.join(dirpath, fname)
                 try:
                     total_size += self._file_size(os.path.realpath(fp))
                 except FileNotFoundError:
