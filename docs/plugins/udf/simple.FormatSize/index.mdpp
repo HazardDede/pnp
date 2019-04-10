@@ -1,0 +1,16 @@
+# pnp.plugins.udf.simple.FormatSize
+
+Returns the size of a file (or whatever) as a human readable size (e.g. bytes, KB, MB, GB, TB, PB).
+The input is expected to be at byte scale.
+
+__Arguments__
+
+- **size_in_bytes (float|int)**: The size in bytes to format to a human readable format.
+
+__Result__
+
+Returns the argument in a human readable size format.
+
+__Examples__
+
+!INCLUDECODE "docs/plugins/udf/simple.FormatSize/example.yaml" (yaml)

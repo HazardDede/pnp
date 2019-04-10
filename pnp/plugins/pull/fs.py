@@ -153,13 +153,13 @@ class Size(Polling):
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/fs.FileSize/index.md
     """
 
-    def __init__(self, file_paths, fail_on_error=True, **kwargs):
+    def __init__(self, paths, fail_on_error=True, **kwargs):
         super().__init__(**kwargs)
-        if isinstance(file_paths, dict):
-            self.file_paths = file_paths  # alias -> file path mapping
+        if isinstance(paths, dict):
+            self.file_paths = paths  # alias -> file path mapping
         else:
             # No explicit alias: Use the basename of the file
-            self.file_paths = {os.path.basename(str(fp)): str(fp) for fp in make_list(file_paths)}
+            self.file_paths = {os.path.basename(str(fp)): str(fp) for fp in make_list(paths)}
         self.fail_on_error = bool(fail_on_error)
 
     @staticmethod

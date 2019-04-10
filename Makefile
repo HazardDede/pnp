@@ -61,6 +61,7 @@ lint:
 
 test:
 		pytest --verbose --color=yes \
+		    --durations=10 \
 			--doctest-modules \
 			--cov=$(SOURCE_PATH) --cov-report html --cov-report term $(TEST_PATH) \
 			$(SOURCE_PATH)
