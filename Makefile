@@ -77,7 +77,7 @@ docker:
 		--build-arg INSTALL_DEV_PACKAGES=yes \
 		-t $(LOCAL_IMAGE_NAME) \
 		-f Dockerfile .
-	docker run --rm $(LOCAL_IMAGE_NAME) pytest tests
+	docker run --rm $(LOCAL_IMAGE_NAME) pytest --durations=10 -vv tests
 	docker build \
 		--build-arg INSTALL_DEV_PACKAGES=no \
 		-t $(LOCAL_IMAGE_NAME) \

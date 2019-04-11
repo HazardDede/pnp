@@ -47,7 +47,7 @@ class WebSocketFakeServer:
     def _loop(self):
         event_loop = asyncio.new_event_loop()
         self.loop = event_loop
-        event_loop.run_until_complete(websockets.serve(self._handler, 'localhost', 8123, loop=event_loop))
+        event_loop.run_until_complete(websockets.serve(self._handler, port=8123, loop=event_loop))
         event_loop.run_forever()
 
     def start(self):
