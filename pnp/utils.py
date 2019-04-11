@@ -14,10 +14,10 @@ from datetime import datetime, timedelta
 from functools import partial
 from functools import wraps
 from threading import Timer
-from typing import Union
+from typing import Union, Any, Optional, Iterable, Pattern, overload, Dict, Callable
 
-from binaryornot.check import is_binary
-from box import Box, BoxKeyError
+from binaryornot.check import is_binary  # type: ignore
+from box import Box, BoxKeyError  # type: ignore
 
 from .validator import Validator
 
@@ -37,7 +37,7 @@ class StopCycleError(Exception):
     """A callback of interruptible_sleep should call this, when the sleep should be interrupted."""
 
 
-def make_list(item_or_items):
+def make_list(item_or_items: Any) -> Optional[Iterable[Any]]:
     """
     Makes a list out of the given items.
     Examples:
@@ -73,7 +73,7 @@ def make_list(item_or_items):
     return [item_or_items]
 
 
-def camel_to_snake(name):
+def camel_to_snake(name: str) -> str:
     """
     Converts camelCase to snake_case.
     https://stackoverflow.com/questions/1175208/elegant-python-function-to-convert-camelcase-to-snake-case
@@ -96,6 +96,14 @@ def camel_to_snake(name):
     """
     _str = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', _str).lower()
+
+
+@overload
+def wildcards_to_regex(wildcard_patterns: Optional[str]) -> Optional[Pattern[str]]: ...
+
+
+@overload
+def wildcards_to_regex(wildcard_patterns: Iterable[str]) -> Iterable[Pattern[str]]: ...
 
 
 def wildcards_to_regex(wildcard_patterns):
@@ -125,7 +133,8 @@ def wildcards_to_regex(wildcard_patterns):
     return re.compile(fnmatch.translate(wildcard_patterns))
 
 
-def include_or_exclude(item, include_regex=None, exclude_regex=None):
+def include_or_exclude(item, include_regex: Optional[Iterable[Pattern[str]]] = None,
+                       exclude_regex: Optional[Iterable[Pattern[str]]] = None) -> bool:
     """
 
     Returns:
@@ -158,7 +167,8 @@ def include_or_exclude(item, include_regex=None, exclude_regex=None):
     return include_regex is None
 
 
-def transform_dict_items(dct, keys_fun=None, vals_fun=None):
+def transform_dict_items(dct: Dict[Any, Any], keys_fun: Optional[Callable[[Any], str]] = None,
+                         vals_fun: Optional[Callable[[Any], str]] = None):
     """
     Transforms keys and/or values of the given dictionary by applying the given function.
 
@@ -181,7 +191,7 @@ def transform_dict_items(dct, keys_fun=None, vals_fun=None):
     return {apply(k, keys_fun): apply(v, vals_fun) for k, v in dct.items()}
 
 
-def is_iterable_but_no_str(candidate):
+def is_iterable_but_no_str(candidate: Any) -> bool:
     """
     Checks if the given candidate is an iterable but not a str instance
 
@@ -196,7 +206,7 @@ def is_iterable_but_no_str(candidate):
     return hasattr(candidate, '__iter__') and not isinstance(candidate, (str, bytes))
 
 
-def interruptible_sleep(wait, callback, interval=0.5):
+def interruptible_sleep(wait: float, callback: Callable[[], None], interval: float = 0.5) -> None:
     """
 
     Waits the specified amount of time. The waiting can be interrupted when the callback raises a
@@ -242,7 +252,8 @@ def interruptible_sleep(wait, callback, interval=0.5):
         pass
 
 
-def sleep_until_interrupt(sleep_time, interrupt_fun, interval=0.5):
+def sleep_until_interrupt(sleep_time: float, interrupt_fun: Callable[[], bool],
+                          interval: float = 0.5) -> None:
     """Call this method to sleep an interruptable sleep until the interrupt function returns
     True."""
     Validator.is_function(interrupt_fun=interrupt_fun)
@@ -253,7 +264,8 @@ def sleep_until_interrupt(sleep_time, interrupt_fun, interval=0.5):
     interruptible_sleep(sleep_time, callback, interval=interval)
 
 
-def make_public_protected_private_attr_lookup(attr_name, as_dict=False):
+def make_public_protected_private_attr_lookup(attr_name: str,
+                                              as_dict: bool = False) -> Iterable[str]:
     """
     Given an attribute name this function will generate names of public, private and protected
     attribute names. The order is of lookups is always the given attr_name first and then
@@ -291,7 +303,7 @@ def make_public_protected_private_attr_lookup(attr_name, as_dict=False):
     return res if as_dict else list(res.values())
 
 
-def safe_eval(source, **context):
+def safe_eval(source: str, **context: Any) -> Any:
     """
     Calls the `eval` function with modified globals() and locals(). By default of `eval` the
     current globals() and locals() are passed. We do not want that behaviour because the user
@@ -326,7 +338,7 @@ def safe_eval(source, **context):
         raise EvaluationError("Failed to evaluate '{source}'".format(**locals())) from exc
 
 
-def try_parse_int(candidate):
+def try_parse_int(candidate: Any) -> Optional[int]:
     """
     Convert the given candidate to int. If it fails None is returned.
 
@@ -352,7 +364,7 @@ def try_parse_int(candidate):
         return None
 
 
-def try_parse_int_float_str(candidate):
+def try_parse_int_float_str(candidate: Any) -> Union[float, int, str]:
     """
     Tries to parse the given value as an int or float. If this does not work simply the
     string-representation of the candidate will be returned.
@@ -382,7 +394,7 @@ def try_parse_int_float_str(candidate):
         return str(candidate)
 
 
-def try_parse_bool(value, default=None):  # pylint: disable=too-many-return-statements
+def try_parse_bool(value: Any, default: Optional[Any] = None) -> Any:  # pylint: disable=too-many-return-statements
     """
     Tries to parse the given value as a boolean. If the parsing is unsuccessful the default will
     be returned.
@@ -431,7 +443,7 @@ def try_parse_bool(value, default=None):  # pylint: disable=too-many-return-stat
         return default
 
 
-def on_off(value):
+def on_off(value: Any) -> str:
     """
     Tries to convert the given value to a on / off literal. If conversion is not possible
     (unsupported datatype) it will silently fail and return 'off'.
@@ -457,7 +469,7 @@ def on_off(value):
     return 'on' if try_parse_bool(value, default=False) else 'off'
 
 
-def get_file_mode(file_path, mode):
+def get_file_mode(file_path: 'os.PathLike[Any]', mode: str) -> str:
     """
     Returns 'rb' if mode = 'binary'.
     Returns 'r' if mode = 'text'

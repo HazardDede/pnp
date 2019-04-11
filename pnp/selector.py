@@ -1,7 +1,7 @@
 """Utility classes for the building block 'selector'."""
+from typing import Any
 
 from .models import UDFModel
-
 from .utils import Singleton, safe_eval, FallbackBox, EvaluationError
 from .validator import Validator
 

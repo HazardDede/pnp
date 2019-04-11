@@ -1,15 +1,16 @@
 """Contains utility methods for validating."""
 import os
+from typing import Any, Callable, Iterable, List, Optional
 
 
 class Validator:
     """Collection of utility methods for validating arguments / vars."""
     @staticmethod
-    def _allow_none(arg_value, allow_none):
+    def _allow_none(arg_value: Any, allow_none: bool) -> bool:
         return not (allow_none and arg_value is None)
 
     @staticmethod
-    def cast_or_none(cast_fun, arg_value):
+    def cast_or_none(cast_fun: Callable[[Any], Any], arg_value: Any) -> Any:
         """
         Examples:
             >>> print(Validator.cast_or_none(str, None))
@@ -24,7 +25,7 @@ class Validator:
         return cast_fun(arg_value) if arg_value is not None else None
 
     @staticmethod
-    def is_not_none(**kwargs):
+    def is_not_none(**kwargs: Any) -> None:
         """
         Examples:
 
@@ -41,7 +42,7 @@ class Validator:
                 ))
 
     @staticmethod
-    def one_not_none(**kwargs):
+    def one_not_none(**kwargs: Any) -> None:
         """
         Examples:
             >>> Validator.one_not_none(arg1=None, arg2=None, arg3='passed')
@@ -55,7 +56,7 @@ class Validator:
                              .format(args=sorted(list(kwargs.keys()))))
 
     @staticmethod
-    def is_instance(*required_type, allow_none=False, **kwargs):
+    def is_instance(*required_type: type, allow_none: bool = False, **kwargs: Any) -> None:
         """
         Examples:
 
@@ -84,7 +85,7 @@ class Validator:
                     ))
 
     @staticmethod
-    def is_non_negative(allow_none=False, **kwargs):
+    def is_non_negative(allow_none: bool = False, **kwargs: Any) -> None:
         """
         Examples:
             >>> Validator.is_non_negative(arg=0)
@@ -112,7 +113,7 @@ class Validator:
                     ", but it is not".format(arg_name=arg_name))
 
     @staticmethod
-    def one_of(possible, allow_none=False, **kwargs):
+    def one_of(possible: Iterable[Any], allow_none: bool = False, **kwargs: Any) -> None:
         """
         Examples:
             >>> Validator.one_of(['a', 'b', 'c'], arg='a')
@@ -137,7 +138,7 @@ class Validator:
                 )
 
     @staticmethod
-    def subset_of(possible, allow_none=False, **kwargs):
+    def subset_of(possible: Iterable[Any], allow_none: bool = False, **kwargs: Any) -> None:
         """
         Examples:
 
@@ -150,7 +151,7 @@ class Validator:
             ValueError: Argument 'arg' is expected to be a subset of ['a', 'b', 'c'], but is 'd'
             >>> Validator.subset_of(['a', 'b', 'c'], allow_none=True, arg1=None, arg2=None)
         """
-        def make_list(lst):
+        def make_list(lst: Any) -> Optional[List[Any]]:
             if lst is None:
                 return None
             if isinstance(lst, list):
@@ -164,7 +165,7 @@ class Validator:
         Validator.is_instance(list, tuple, possible=possible)
         for arg_name, arg_value in kwargs.items():
             if (Validator._allow_none(arg_value, allow_none)
-                    and not set(make_list(arg_value)) <= set(possible)):
+                    and not set(make_list(arg_value) or set()) <= set(possible)):
                 raise ValueError(
                     "Argument '{arg_name}' is expected to be a subset of {possible}, "
                     "but is '{arg_value}'".format(
@@ -173,7 +174,7 @@ class Validator:
                 )
 
     @staticmethod
-    def is_directory(allow_none=False, **kwargs):
+    def is_directory(allow_none: bool = False, **kwargs: Any) -> None:
         """
         Examples:
             >>> Validator.is_directory(arg='/tmp')
@@ -191,7 +192,7 @@ class Validator:
                 )
 
     @staticmethod
-    def is_file(allow_none=False, **kwargs):
+    def is_file(allow_none: bool = False, **kwargs: Any) -> None:
         """
         Examples:
             >>> import tempfile
@@ -212,7 +213,7 @@ class Validator:
                 )
 
     @staticmethod
-    def is_function(allow_none=False, **kwargs):
+    def is_function(allow_none: bool = False, **kwargs: Any) -> None:
         """
         Examples:
             >>> def foo():
@@ -235,7 +236,7 @@ class Validator:
                 )
 
     @staticmethod
-    def is_iterable_but_no_str(allow_none=False, **kwargs):
+    def is_iterable_but_no_str(allow_none: bool = False, **kwargs: Any) -> None:
         """
         Examples:
             >>> Validator.is_iterable_but_no_str(l=[])
@@ -246,7 +247,7 @@ class Validator:
             TypeError: Argument 's' is expected to be a non-str iterable, but is '<class 'str'>'
 
         """
-        def is_iterable_but_no_str(candidate):
+        def is_iterable_but_no_str(candidate: Any) -> bool:
             return hasattr(candidate, '__iter__') and not isinstance(candidate, (str, bytes))
 
         for arg_name, arg_value in kwargs.items():
