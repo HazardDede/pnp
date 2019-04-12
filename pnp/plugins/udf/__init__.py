@@ -2,15 +2,16 @@
 
 from abc import abstractmethod
 from datetime import datetime, timedelta
+from typing import Optional, Any
 
 from .. import Plugin
-from ...utils import parse_duration_literal
+from ...utils import parse_duration_literal, DurationLiteral
 
 
 class UserDefinedFunction(Plugin):
     """Base class for a user defined expression."""
 
-    def __init__(self, throttle=None, **kwargs):
+    def __init__(self, throttle: Optional[DurationLiteral] = None, **kwargs: Any):
         """
         Initializer.
 
@@ -21,9 +22,9 @@ class UserDefinedFunction(Plugin):
         super().__init__(**kwargs)
         self.throttle = throttle and parse_duration_literal(throttle)
         self._cache = None
-        self._last_call = None
+        self._last_call = None  # type: Optional[datetime]
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
         if not self.throttle:
             return self.action(*args, **kwargs)
 
@@ -47,6 +48,6 @@ class UserDefinedFunction(Plugin):
         return self._cache
 
     @abstractmethod
-    def action(self, *args, **kwargs):
+    def action(self, *args: Any, **kwargs: Any) -> Any:
         """Actual definition of the hard-work of the user defined function."""
         raise NotImplementedError()

@@ -3,9 +3,11 @@
 import copy
 import functools
 from abc import abstractmethod
+from typing import Any, Callable, Optional, Dict, Iterable, Union, cast, List, Tuple
 
 from .. import Plugin
 from ... import utils
+from ...typing import Envelope, Payload
 from ...validator import Validator
 
 
@@ -13,14 +15,15 @@ class PushExecutionError(Exception):
     """Is raised by push-plugins when the execution flow has failed."""
 
 
-def enveloped(fun):
+def enveloped(fun: Callable[..., Payload]) \
+        -> Callable[['PushBase', Payload], Payload]:
     """Decorator to split the envelope and the actual payload. This is an but a convenience
     decorator for `envelope_payload` of the `PushBase` class."""
 
     Validator.is_function(fun=fun)
 
     @functools.wraps(fun)
-    def _wrapper(self, payload):
+    def _wrapper(self: 'PushBase', payload: Payload) -> Payload:
         Validator.is_instance(PushBase, self=self)
         envelope, real_payload = self.envelope_payload(payload)
         return fun(
@@ -31,15 +34,16 @@ def enveloped(fun):
     return _wrapper
 
 
-def parse_envelope(value):
+def parse_envelope(value: str) -> Callable[..., Payload]:
     """Decorator the parse the given value-key from the envelope. This is but a convenience
     decorator / wrapper for `_parse_envelope_value` of the `PushBase` class."""
 
     Validator.is_instance(str, value=value)
 
-    def _inner(fun):
+    def _inner(fun: Callable[..., Payload]) -> Callable[..., Payload]:
         @functools.wraps(fun)
-        def _wrapper(self, envelope=None, payload=None, **kwargs):
+        def _wrapper(self: 'PushBase', envelope: Optional[Envelope] = None, payload: Payload = None,
+                     **kwargs: Any) -> Payload:
             Validator.is_instance(PushBase, self=self)
             parsed = self._parse_envelope_value(value, envelope=envelope)
 
@@ -55,18 +59,18 @@ def parse_envelope(value):
     return _inner
 
 
-def drop_envelope(fun):
+def drop_envelope(fun: Callable[..., Payload]) -> Callable[..., Payload]:
     """Decorator to drop the envelope from the arguments before calling the actual `push` method to
     make the linter happy again if necessary (unused-argument)."""
     @functools.wraps(fun)
-    def _wrapper(self, *args, **kwargs):
+    def _wrapper(self: 'PushBase', *args: Any, **kwargs: Any) -> Any:
         Validator.is_instance(PushBase, self=self)
         kwargs.pop('envelope', None)
         return fun(self, *args, **kwargs)
     return _wrapper
 
 
-def _lookup(instance, lookups):
+def _lookup(instance: object, lookups: Union[str, Iterable[str]]) -> Optional[Any]:
     """
     Will lookup the instance for the given attribute names in `lookups`.
     Returns the first occurrence found.
@@ -99,7 +103,7 @@ def _lookup(instance, lookups):
         Returns the value of the first found attribute name in lookups. If none is found, simply
         None is returned.
     """
-    lookups = utils.make_list(lookups)
+    lookups = cast(List[str], utils.make_list(lookups) or [])
     # There might be some name mangling for private attributes - add them as lookups
     privates = ['_{classname}{attrname}'.format(classname=type(instance).__name__, attrname=x)
                 for x in lookups if x.startswith('__') and not x.endswith('__')]
@@ -114,11 +118,11 @@ def _lookup(instance, lookups):
 
 class PushBase(Plugin):
     """Base class for all push plugins."""
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
 
     @abstractmethod
-    def push(self, payload):
+    def push(self, payload: Payload) -> Payload:
         """
         This is where the hard work happens.
 
@@ -127,7 +131,11 @@ class PushBase(Plugin):
         """
         raise NotImplementedError()  # pragma: no cover
 
-    def _parse_envelope_value(self, name, envelope=None, parse_fun=None, instance_lookup_fun=None):
+    def _parse_envelope_value(
+            self, name: str, envelope: Optional[Envelope] = None,
+            parse_fun: Optional[Callable[[Any], Any]] = None,
+            instance_lookup_fun: Optional[Callable[..., Optional[Any]]] = None
+    ) -> Any:
         """
         Parse the envelope for the given `name`. If present in the envelope the extracted value will
         be tested / parsed by the given `parse_fun`. If no `parse_fun` is explicitly given, it will
@@ -152,7 +160,8 @@ class PushBase(Plugin):
         Validator.is_function(allow_none=True, parse_fun=parse_fun)
         Validator.is_function(allow_none=True, instance_lookup_fun=instance_lookup_fun)
 
-        lookups = utils.make_public_protected_private_attr_lookup(name, as_dict=True)
+        lookups = cast(Dict[str, str],
+                       utils.make_public_protected_private_attr_lookup(name, as_dict=True))
 
         if envelope is None or name not in envelope:
             return (instance_lookup_fun(name)
@@ -180,7 +189,7 @@ class PushBase(Plugin):
                     else _lookup(self, list(lookups.values())))
 
     @staticmethod
-    def envelope_payload(payload):
+    def envelope_payload(payload: Payload) -> Tuple[Envelope, Payload]:
         """
         A payload might be enveloped (but actually it even may not). The actual payload will be
         available via data or payload inside the dictionary. All other keys are the envelope.

@@ -14,11 +14,13 @@ from datetime import datetime, timedelta
 from functools import partial
 from functools import wraps
 from threading import Timer
-from typing import Union, Any, Optional, Iterable, Pattern, overload, Dict, Callable
+from typing import Union, Any, Optional, Iterable, Pattern, Dict, Callable, cast, Set, List, \
+    Hashable, Tuple
 
 from binaryornot.check import is_binary  # type: ignore
 from box import Box, BoxKeyError  # type: ignore
 
+from .typing import DurationLiteral
 from .validator import Validator
 
 FILE_MODES = ['binary', 'text', 'auto']
@@ -37,7 +39,7 @@ class StopCycleError(Exception):
     """A callback of interruptible_sleep should call this, when the sleep should be interrupted."""
 
 
-def make_list(item_or_items: Any) -> Optional[Iterable[Any]]:
+def make_list(item_or_items: Any) -> Optional[List[Any]]:
     """
     Makes a list out of the given items.
     Examples:
@@ -98,15 +100,8 @@ def camel_to_snake(name: str) -> str:
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', _str).lower()
 
 
-@overload
-def wildcards_to_regex(wildcard_patterns: Optional[str]) -> Optional[Pattern[str]]: ...
-
-
-@overload
-def wildcards_to_regex(wildcard_patterns: Iterable[str]) -> Iterable[Pattern[str]]: ...
-
-
-def wildcards_to_regex(wildcard_patterns):
+def wildcards_to_regex(wildcard_patterns: Union[str, Iterable[str]]) \
+        -> Union[Pattern[str], Iterable[Pattern[str]]]:
     """
     Examples:
 
@@ -119,21 +114,23 @@ def wildcards_to_regex(wildcard_patterns):
         >>> wildcards_to_regex('sensor.lamp') == re.compile(fnmatch.translate('sensor.lamp'))
         True
         >>> print(wildcards_to_regex(None))
-        None
+        Traceback (most recent call last):
+        ...
+        ValueError: Argument 'wildcard_patterns' is expected to be not none
         >>> wildcards_to_regex([])
         []
     """
 
-    if not wildcard_patterns:
-        return wildcard_patterns
+    Validator.is_not_none(wildcard_patterns=wildcard_patterns)
     import fnmatch
     if is_iterable_but_no_str(wildcard_patterns):
         return [re.compile(fnmatch.translate(item)) for item in wildcard_patterns]
     Validator.is_instance(str, wildcard_patterns=wildcard_patterns)
+    wildcard_patterns = cast(str, wildcard_patterns)
     return re.compile(fnmatch.translate(wildcard_patterns))
 
 
-def include_or_exclude(item, include_regex: Optional[Iterable[Pattern[str]]] = None,
+def include_or_exclude(item: str, include_regex: Optional[Iterable[Pattern[str]]] = None,
                        exclude_regex: Optional[Iterable[Pattern[str]]] = None) -> bool:
     """
 
@@ -167,8 +164,7 @@ def include_or_exclude(item, include_regex: Optional[Iterable[Pattern[str]]] = N
     return include_regex is None
 
 
-def transform_dict_items(dct: Dict[Any, Any], keys_fun: Optional[Callable[[Any], str]] = None,
-                         vals_fun: Optional[Callable[[Any], str]] = None):
+def transform_dict_items(dct, keys_fun=None, vals_fun=None):  # type: ignore
     """
     Transforms keys and/or values of the given dictionary by applying the given function.
 
@@ -185,7 +181,7 @@ def transform_dict_items(dct: Dict[Any, Any], keys_fun: Optional[Callable[[Any],
     if not keys_fun and not vals_fun:
         return dct
 
-    def apply(kov, fun):
+    def apply(kov: Any, fun: Optional[Callable[[Any], Any]]) -> Any:
         return kov if not fun else fun(kov)
 
     return {apply(k, keys_fun): apply(v, vals_fun) for k, v in dct.items()}
@@ -258,14 +254,14 @@ def sleep_until_interrupt(sleep_time: float, interrupt_fun: Callable[[], bool],
     True."""
     Validator.is_function(interrupt_fun=interrupt_fun)
 
-    def callback():
+    def callback() -> None:
         if interrupt_fun():
             raise StopCycleError()
     interruptible_sleep(sleep_time, callback, interval=interval)
 
 
-def make_public_protected_private_attr_lookup(attr_name: str,
-                                              as_dict: bool = False) -> Iterable[str]:
+def make_public_protected_private_attr_lookup(attr_name: str, as_dict: bool = False) \
+        -> Union[Dict[str, str], List[str]]:
     """
     Given an attribute name this function will generate names of public, private and protected
     attribute names. The order is of lookups is always the given attr_name first and then
@@ -469,7 +465,7 @@ def on_off(value: Any) -> str:
     return 'on' if try_parse_bool(value, default=False) else 'off'
 
 
-def get_file_mode(file_path: 'os.PathLike[Any]', mode: str) -> str:
+def get_file_mode(file_path: str, mode: str) -> str:
     """
     Returns 'rb' if mode = 'binary'.
     Returns 'r' if mode = 'text'
@@ -502,7 +498,7 @@ def get_file_mode(file_path: 'os.PathLike[Any]', mode: str) -> str:
     raise ValueError("Argument 'mode' is expected to be one of: auto, binary, text")
 
 
-def load_file(fp, mode='auto', base64=False):
+def load_file(fp: str, mode: str = 'auto', base64: bool = False) -> Dict[str, Any]:
     """
     Loads a file by the given file path into memory.
     The read mode can either be binary, text or auto. Auto will try to guess the read mode
@@ -528,7 +524,7 @@ def load_file(fp, mode='auto', base64=False):
     return dict(file_name=os.path.basename(fp), content=contents, mode=read_mode, base64=base64)
 
 
-def get_first_existing_file(*file_list):
+def get_first_existing_file(*file_list: str) -> Optional[str]:
     """
     Given is a list of possible files. The function returns the first item that exists.
     If none of the candidates exists `None` is returned.
@@ -546,7 +542,7 @@ def get_first_existing_file(*file_list):
     return None
 
 
-def get_bytes(stream_or_file):
+def get_bytes(stream_or_file: Any) -> Union[bytes, str]:
     """
     Returns the bytes of the given stream or file argument. If it is a file, it will be opened
     in binary mode.
@@ -571,7 +567,7 @@ def get_bytes(stream_or_file):
         Bytes of ``stream_or_file``
     """
     if getattr(stream_or_file, 'read', None):
-        return stream_or_file.read()
+        return cast(Union[bytes, str], stream_or_file.read())
     from pathlib import Path
     if Path(stream_or_file).is_file():
         with open(stream_or_file, 'rb') as file:
@@ -580,10 +576,7 @@ def get_bytes(stream_or_file):
     raise ValueError("Argument 'stream_or_file' is neither a stream nor a file")
 
 
-DurationLiteral = Union[str, int]
-
-
-def parse_duration_literal(literal: DurationLiteral):
+def parse_duration_literal(literal: DurationLiteral) -> int:
     """
     Converts duration literals as '1m', '1h', and so on to an actual duration in seconds.
     Supported are 's' (seconds), 'm' (minutes), 'h' (hours), 'd' (days) and 'w' (weeks).
@@ -631,7 +624,7 @@ def parse_duration_literal(literal: DurationLiteral):
         return value * seconds_per_unit[unit]
 
 
-def safe_get(dct, *keys, default=None):
+def safe_get(dct: Dict[Any, Any], *keys: Any, default: Any = None) -> Any:
     """
     Get the value inside the dictionary that is accessible by the given keys or - if a key doesn't
     exists - the default.
@@ -665,7 +658,7 @@ def safe_get(dct, *keys, default=None):
     return dct
 
 
-def get_field_mro(cls, field_name):
+def get_field_mro(cls: type, field_name: str) -> Set[str]:
     """
     Goes up the mro (method resolution order) of the given class and returns the union of a given
     field.
@@ -699,7 +692,7 @@ def get_field_mro(cls, field_name):
     Returns:
 
     """
-    res = set()
+    res = set()  # type: Set[str]
     if not hasattr(cls, '__mro__'):
         # cls might be an instance. mro is only available on classes
         if not hasattr(type(cls), '__mro__'):
@@ -710,11 +703,11 @@ def get_field_mro(cls, field_name):
     for clazz in inspect.getmro(cls):
         values_ = getattr(clazz, field_name, None)
         if values_ is not None:
-            res = res.union(set(make_list(values_)))
+            res = res.union(set(cast(Iterable[str], make_list(values_))))
     return res
 
 
-def auto_str(__repr__=False):
+def auto_str(__repr__: bool = False) -> Callable[[type], type]:
     """
     Use this decorator to auto implement __str__() and optionally __repr__() methods on classes.
 
@@ -747,8 +740,8 @@ def auto_str(__repr__=False):
         >>> print(dut.__repr__())
         Demo(i=10, l=[1, 2, 3], s='abc', t=(1, 2, 3))
     """
-    def decorator(cls):
-        def __str__(self):
+    def decorator(cls: type) -> type:
+        def __str__(self: object) -> str:
             items = [
                 "{name}={value}".format(
                     name=name,
@@ -760,16 +753,16 @@ def auto_str(__repr__=False):
                 clazz=str(type(self).__name__),
                 items=', '.join(items)
             )
-        cls.__str__ = __str__
+        cls.__str__ = __str__  # type: ignore
         if __repr__:
-            cls.__repr__ = __str__
+            cls.__repr__ = __str__  # type: ignore
 
         return cls
 
     return decorator
 
 
-def auto_str_ignore(ignore_list):
+def auto_str_ignore(ignore_list: Union[Iterable[str], str]) -> Callable[[type], type]:
     """
     Use this decorator to suppress any fields that should not be part of the dynamically created
     `__str__` or `__repr__` function of `auto_str`.
@@ -794,9 +787,9 @@ def auto_str_ignore(ignore_list):
     Returns:
         Returns a decorator.
     """
-    def decorator(cls):
+    def decorator(cls: type) -> type:
         ignored = make_list(ignore_list)
-        cls.__auto_str_ignore__ = ignored
+        cls.__auto_str_ignore__ = ignored  # type: ignore
         return cls
     return decorator
 
@@ -823,7 +816,7 @@ class classproperty(property):  # pylint: disable=invalid-name
         >>> Foo._instance
         15
     """
-    def __get__(self, cls, owner):
+    def __get__(self, cls, owner):  # type: ignore
         return classmethod(self.fget).__get__(None, owner)()
 
 
@@ -840,7 +833,7 @@ class Loggable:
         >>> dut.do('mymessage')
     """
     @classproperty
-    def logger(cls):  # pylint: disable=no-self-argument
+    def logger(cls: Any) -> logging.Logger:  # pylint: disable=no-self-argument
         """
         Configures and returns a logger instance for further use.
         Returns:
@@ -850,7 +843,7 @@ class Loggable:
         return logging.getLogger(component)
 
 
-class FallbackBox(Box):
+class FallbackBox(Box):  # type: ignore
     """
     In some cases we want to handle integers and floats as string when accessing
     a boxed dictionary. For example we would like to mimic access paths like the zway api can:
@@ -868,7 +861,7 @@ class FallbackBox(Box):
         >>> dut.devices[1].instances[1]
         'instance1'
     """
-    def __getitem__(self, item, _ignore_default=False):
+    def __getitem__(self, item, _ignore_default=False):  # type: ignore
         try:
             return super().__getitem__(item, _ignore_default=_ignore_default)
         except BoxKeyError as kerr:
@@ -910,27 +903,27 @@ class Debounce:
 
 
     """
-    def __init__(self, fun, wait=0.5):
+    def __init__(self, fun: Callable[..., Any], wait: float = 0.5):
         Validator.is_function(fun=fun)
         self.fun = fun
         self.wait = float(wait)
-        self.timer = None
+        self.timer = None  # type: Optional[Timer]
 
-    def _safe_stop_timer(self):
+    def _safe_stop_timer(self) -> None:
         if self.timer is not None:
             self.timer.cancel()
 
-    def execute_now(self):
+    def execute_now(self) -> None:
         """Execute the debounced function call now. No matter what."""
         # Without checking self.timer.finished.is_set(), in rare situations the actual function
         # would get executed twice.
-        if self.timer is not None and not self.timer.finished.is_set():
+        if self.timer is not None and not self.timer.finished.is_set():  # type: ignore
             self._safe_stop_timer()
-            self.timer.function(*self.timer.args, **self.timer.kwargs)
+            self.timer.function(*self.timer.args, **self.timer.kwargs)  # type: ignore
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args: Any, **kwargs: Any) -> None:
         self._safe_stop_timer()
-        self.timer = Timer(self.wait, self.fun, args, kwargs)
+        self.timer = Timer(self.wait, self.fun, list(args), kwargs)
         self.timer.start()
 
 
@@ -968,7 +961,7 @@ class Singleton:
         >>> print(g.state)
         new_state
     """
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *args: Any, **kwargs: Any) -> Any:
         instance = cls.__dict__.get("__singleton__")
         if instance is None:
             # Create the singleton
@@ -980,13 +973,13 @@ class Singleton:
             cls.init = cls.__init__
             # .. and then forget about it...
 
-            def empty_init(self, *args, **kwargs):  # pylint: disable=unused-argument
+            def empty_init(self, *args, **kwargs):  # type: ignore # pylint: disable=unused-argument
                 pass
-            cls.__init__ = empty_init
+            cls.__init__ = empty_init  # type: ignore
         return instance
 
     @classproperty
-    def instance(cls):  # pylint: disable=no-self-argument
+    def instance(cls: Any) -> Any:  # pylint: disable=no-self-argument
         """
         Returns the singleton instance. If there is none yet, it will be created by
         calling the `init` method without any arguments.
@@ -1048,7 +1041,7 @@ class FileLock:
     class TimeoutError(Exception):
         """Is raised when a timeout occurs when waiting for the file lock."""
 
-    def __init__(self, file_name, timeout=10, delay=.05):
+    def __init__(self, file_name: str, timeout: float = 10, delay: float = .05):
         """
         Prepare the file locker. Specify the file to lock and optionally the maximum timeout
         (seconds) and the delay between each attempt to lock.
@@ -1064,9 +1057,9 @@ class FileLock:
         self.file_name = file_name
         self.timeout = timeout
         self.delay = delay
-        self.fd = None  # pylint: disable=invalid-name
+        self.fd = None  # type: Optional[int]  # pylint: disable=invalid-name
 
-    def acquire(self):
+    def acquire(self) -> None:
         """
         Acquires the lock, if possible. If the file is already locked, the algorithm tries to
         acquire the lock until it either gets the lock or the timeout threshold is exceeded.
@@ -1094,7 +1087,7 @@ class FileLock:
                     raise FileLock.TimeoutError("Timeout occurred")
                 time.sleep(self.delay)
 
-    def release(self):
+    def release(self) -> None:
         """
         Unlocks the file when the exclusive lock is no longer needed.
 
@@ -1107,11 +1100,12 @@ class FileLock:
 
         self.lock_counter -= 1
         if self.lock_counter == 0:
-            os.close(self.fd)
+            if self.fd:
+                os.close(self.fd)
             os.unlink(self.lockfile)
 
     @property
-    def locked(self):
+    def locked(self) -> bool:
         """
         Checks whether the file is currently locked by any process.
 
@@ -1120,7 +1114,7 @@ class FileLock:
         """
         return os.path.isfile(self.lockfile)
 
-    def __enter__(self):
+    def __enter__(self) -> 'FileLock':
         """
         Context manager acquire lock.
 
@@ -1130,7 +1124,7 @@ class FileLock:
         self.acquire()
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
         """
         Context manager release.
 
@@ -1144,7 +1138,7 @@ class FileLock:
         """
         self.release()
 
-    def __del__(self):
+    def __del__(self) -> None:
         """
         Make sure that this instance doesn't leave a lockfile lying around when garbage collected.
 
@@ -1152,6 +1146,15 @@ class FileLock:
             None
         """
         self.release()
+
+
+# pylint: disable=invalid-name
+TFun = Callable[..., Any]
+TCallback = Optional[Callable[[Any], Any]]
+TKey = Optional[Hashable]
+TArgs = Tuple[Any, ...]
+TKwargs = Dict[str, Any]
+# pylint: enable=invalid-name
 
 
 class Parallel:
@@ -1186,25 +1189,29 @@ class Parallel:
         >>> memory == {1, 2, 3}
         True
     """
-    def __init__(self, workers=2):
-        self.funcs = []
+
+    def __init__(self, workers: int = 2):
+        self.funcs = []  # type: List[Tuple[TFun, TCallback, TKey, TArgs, TKwargs]]
         self.workers = int(workers)
         if self.workers <= 0:
             self.workers = 1
-        self._results = {}
+        self._results = {}  # type: Dict[Hashable, Any]
 
     @property
-    def results(self):
+    def results(self) -> Dict[Hashable, Any]:
         """Return the results of the parallel run."""
         import copy
         return copy.copy(self._results)
 
-    def __call__(self, fun, *args, callback=None, fun_key=None, **kwargs):
+    def __call__(self, fun: TFun, *args: TArgs, callback: TCallback = None, fun_key: TKey = None,
+                 **kwargs: TKwargs) -> None:
         Validator.is_function(fun=fun)
         Validator.is_function(allow_none=True, callback=callback)
         self.funcs.append((fun, callback, fun_key, args, kwargs))
 
-    def _intercept(self, future, callback, fun_key):
+    def _intercept(self, future: Any,
+                   callback: TCallback,
+                   fun_key: TKey) -> None:
         if fun_key:
             try:
                 self._results[fun_key] = future.result()
@@ -1218,7 +1225,7 @@ class Parallel:
                 import traceback
                 _LOGGER.warning("Parallel callback raised an error\n%s", traceback.format_exc())
 
-    def run_until_complete(self):
+    def run_until_complete(self) -> List[str]:
         """Run the scheduled tasks until all are completed."""
         self._results.clear()
         futures = []
@@ -1249,14 +1256,14 @@ class Throttle:
         'Called'
 
     """
-    def __init__(self, delta):
+    def __init__(self, delta: timedelta):
         self.throttle_period = delta
         Validator.is_instance(timedelta, delta=delta)
         self.time_of_last_call = datetime.min
 
-    def __call__(self, fun):
+    def __call__(self, fun: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(fun)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Optional[Any]:
             now = datetime.now()
             time_since_last_call = now - self.time_of_last_call
 

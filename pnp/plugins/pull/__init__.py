@@ -4,12 +4,13 @@ import multiprocessing as proc
 import time
 from abc import abstractmethod
 from datetime import datetime
+from typing import Any, Callable, Optional
 
-from schedule import Scheduler
+from schedule import Scheduler  # type: ignore
 
 from .. import Plugin
 from ...utils import (auto_str_ignore, parse_duration_literal, StopCycleError,
-                      interruptible_sleep, try_parse_bool)
+                      interruptible_sleep, try_parse_bool, DurationLiteral)
 
 
 @auto_str_ignore(['stopped', '_stopped', 'on_payload'])
@@ -18,17 +19,17 @@ class PullBase(Plugin):
     Base class for pull plugins.
     The plugin has to implements `pull` to do the actual data retrieval / task.
     """
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
         self._stopped = proc.Event()
 
     @property
-    def stopped(self):
+    def stopped(self) -> bool:
         """Returns True if the pull is considered stopped; otherwise False."""
         return self._stopped.is_set()
 
     @abstractmethod
-    def pull(self):
+    def pull(self) -> None:
         """
         Performs the actual data retrieval / task.
         Returns:
@@ -36,20 +37,20 @@ class PullBase(Plugin):
         """
         raise NotImplementedError()  # pragma: no cover
 
-    def on_payload(self, payload):
+    def on_payload(self, payload: Any) -> None:
         """Callback for execution engine."""
 
-    def notify(self, payload):
+    def notify(self, payload: Any) -> None:
         """Call in subclass to emit some payload to the execution engine."""
-        self.on_payload(self, payload)  # pylint: disable=too-many-function-args
+        self.on_payload(self, payload)  # type: ignore  # pylint: disable=too-many-function-args
 
-    def stop(self):
+    def stop(self) -> None:
         """Stops the plugin."""
         self._stopped.set()
 
-    def _sleep(self, sleep_time=10):
+    def _sleep(self, sleep_time: float = 10) -> None:
         """Call in subclass to perform some sleeping."""
-        def callback():
+        def callback() -> None:
             if self.stopped:
                 raise StopCycleError()
         interruptible_sleep(sleep_time, callback, interval=0.5)
@@ -73,22 +74,23 @@ class Polling(PullBase):
     """
     __prefix__ = 'poll'
 
-    def __init__(self, interval=60, instant_run=False, **kwargs):
+    def __init__(self, interval: DurationLiteral = 60, instant_run: bool = False, **kwargs: Any):
         super().__init__(**kwargs)
+
         try:
             # Literals such as 60s, 1m, 1h, ...
-            self._interval = parse_duration_literal(interval)
+            self._poll_interval = parse_duration_literal(interval)
             self.is_cron = False
         except TypeError:
             # ... or a cron-like expression is valid
-            from cronex import CronExpression
-            self._interval = CronExpression(interval)
+            from cronex import CronExpression  # type: ignore
+            self._cron_interval = CronExpression(interval)
             self.is_cron = True
 
-        self._scheduler = None
+        self._scheduler = None  # type: Optional[Scheduler]
         self._instant_run = try_parse_bool(instant_run, False)
 
-    def pull(self):
+    def pull(self) -> None:
         self._scheduler = Scheduler()
         self._configure_scheduler(self._scheduler, self._run_schedule)
 
@@ -99,12 +101,12 @@ class Polling(PullBase):
             self._scheduler.run_pending()
             time.sleep(0.5)
 
-    def _run_schedule(self):
+    def _run_schedule(self) -> None:
         try:
             if self.is_cron:
                 dtime = datetime.now()
-                if not self._interval.check_trigger((dtime.year, dtime.month,
-                                                     dtime.day, dtime.hour, dtime.minute)):
+                if not self._cron_interval.check_trigger((dtime.year, dtime.month,
+                                                          dtime.day, dtime.hour, dtime.minute)):
                     return  # It is not the time for the cron to trigger
             payload = self.poll()
             if payload is not None:
@@ -115,7 +117,7 @@ class Polling(PullBase):
             import traceback
             self.logger.error("\n%s", traceback.format_exc())
 
-    def _configure_scheduler(self, scheduler, callback):
+    def _configure_scheduler(self, scheduler: Scheduler, callback: Callable[[], None]) -> None:
         """
         Configures the scheduler. You have to differ between "normal" intervals and
         cron like expressions by checking `self.is_cron`.
@@ -134,10 +136,10 @@ class Polling(PullBase):
             scheduler.every().minute.at(":00").do(callback)
         else:
             # Scheduler executes every interval seconds to execute the poll
-            scheduler.every(self._interval).seconds.do(callback)
+            scheduler.every(self._poll_interval).seconds.do(callback)
 
     @abstractmethod
-    def poll(self):
+    def poll(self) -> None:
         """
         Implement in plugin components to do the actual polling.
 

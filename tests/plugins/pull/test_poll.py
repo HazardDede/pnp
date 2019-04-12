@@ -16,7 +16,7 @@ def test_poll():
 
     dut = CustomPolling(name='pytest', interval="1s", scheduled_callable=poll)
     assert not dut.is_cron
-    assert dut._interval == 1
+    assert dut._poll_interval == 1
     runner = make_runner(dut, callback)
     with start_runner(runner):
         time.sleep(3)
@@ -47,5 +47,5 @@ def test_poll_with_cron_expression():
 
     dut = CustomPolling(name='pytest', interval="*/1 * * * *", scheduled_callable=poll)
     assert dut.is_cron
-    assert isinstance(dut._interval, CronExpression)
-    assert dut._interval.string_tab == ['*/1', '*', '*', '*', '*']
+    assert isinstance(dut._cron_interval, CronExpression)
+    assert dut._cron_interval.string_tab == ['*/1', '*', '*', '*', '*']

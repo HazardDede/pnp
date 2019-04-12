@@ -1,7 +1,8 @@
 """Utility classes for the building block 'selector'."""
-from typing import Any
+from typing import List, Callable, Dict, Any, Iterable
 
 from .models import UDFModel
+from .typing import SelectorExpression, Payload
 from .utils import Singleton, safe_eval, FallbackBox, EvaluationError
 from .validator import Validator
 
@@ -13,23 +14,23 @@ class PayloadSelector(Singleton):
     simple and complex selector expressions.
     """
 
-    def __init__(self):  # pylint: disable=super-init-not-called
+    def __init__(self: 'PayloadSelector') -> None:  # pylint: disable=super-init-not-called
         self._suppress_literal = object()
-        self._custom = {}
+        self._custom = {}  # type: Dict[str, Callable[..., Any]]
         self._register_globals()
 
     @property
-    def suppress(self):
+    def suppress(self) -> object:
         """Return the suppress literal."""
         return self._suppress_literal
 
     @property
-    def suppress_aliases(self):
+    def suppress_aliases(self) -> List[str]:
         """Returns available aliases for the suppress literal."""
         uppers = ["SUPPRESS", "SUPPRESSME", "SUPPRESSPUSH", "SUPPRESS_ME", "SUPPRESS_PUSH"]
         return uppers + [item.lower() for item in uppers]
 
-    def _register_globals(self):
+    def _register_globals(self) -> None:
         self._custom["abs"] = abs
         self._custom["bool"] = bool
         self._custom["dict"] = dict
@@ -59,7 +60,7 @@ class PayloadSelector(Singleton):
         from .utils import on_off
         self._custom["on_off"] = on_off
 
-    def register_custom_global(self, name, fun):
+    def register_custom_global(self, name: str, fun: Callable[..., Any]) -> None:
         """
         Register a custom function that should be available in the context of the selector.
 
@@ -75,14 +76,14 @@ class PayloadSelector(Singleton):
         if name not in self._custom:  # Overriding a already existing custom will silently fail!
             self._custom[name] = fun
 
-    def register_udfs(self, udfs):
+    def register_udfs(self, udfs: Iterable[UDFModel]) -> None:
         """Register the given user-definied function."""
         Validator.is_iterable_but_no_str(udfs=udfs)
         for i, udf in enumerate(udfs):
-            Validator.is_instance(UDFModel, **{'udfs.item_{i}'.format(i=i): udf})
+            Validator.is_instance(UDFModel, **{'udfs.item_{i}'.format(i=i): udf})  # type: ignore
             self.register_custom_global(udf.name, udf.callable)
 
-    def _eval_wrapper(self, selector, payload):
+    def _eval_wrapper(self, selector: str, payload: Payload) -> Payload:
         suppress_kwargs = {alias: self.suppress for alias in self.suppress_aliases}
         return safe_eval(
             source=selector,
@@ -93,11 +94,11 @@ class PayloadSelector(Singleton):
         )
 
     @staticmethod
-    def _isalambda(v):
+    def _isalambda(v: Any) -> bool:
         lambda_ = lambda: 0
         return isinstance(v, type(lambda_)) and v.__name__ == lambda_.__name__
 
-    def _e(self, snippet, payload):
+    def _e(self, snippet: SelectorExpression, payload: Payload) -> Payload:
         # There might be nested dicts or lists inside the complex structure... Eval them recursively
         if isinstance(snippet, dict):
             return {self._e(k, payload): self._e(v, payload) for k, v in snippet.items()}
@@ -107,7 +108,7 @@ class PayloadSelector(Singleton):
         # Test if the snippet constructs a lambda
         # -> assumes to be callable code with payload argument
         try:
-            possible_fun = self._eval_wrapper(snippet, payload)
+            possible_fun = self._eval_wrapper(str(snippet), payload)
         except EvaluationError:
             if str(snippet).startswith('lambda'):
                 raise EvaluationError("Your lambda is errorneous: '{snippet}'".format(
@@ -129,7 +130,7 @@ class PayloadSelector(Singleton):
             raise EvaluationError("Error when running the selector lambda: '{snippet}'".format(
                 **locals()))
 
-    def eval_selector(self, selector, payload):
+    def eval_selector(self, selector: SelectorExpression, payload: Payload) -> Payload:
         """Applies the specified selector to the given payload."""
         # Wrap payload inside a Box -> this makes dot accessable dictionaries possible
         # We create a dictionary cause payload might not be an actual dictionary.
@@ -142,4 +143,4 @@ class PayloadSelector(Singleton):
             return self._e(selector, payload)  # Complex. Need additional magic
 
         # No complex structure. We assume that is an expression and we try to evaluate it
-        return self._eval_wrapper(selector, payload)
+        return self._eval_wrapper(str(selector), payload)

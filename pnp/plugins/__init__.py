@@ -2,8 +2,9 @@
 import logging
 import warnings
 from importlib import import_module
+from typing import Any, Dict, Tuple, Optional, Union, cast, Callable
 
-from argresolver import EnvironmentResolver
+from argresolver import EnvironmentResolver  # type: ignore
 
 from ..utils import auto_str, auto_str_ignore
 from ..validator import Validator
@@ -16,11 +17,11 @@ warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 
 class InstallOptionalExtraError(ImportError):
     """Is raised when an optional extra is not installed, but a plugin requires it."""
-    def __init__(self, extra_name):
+    def __init__(self, extra_name: str):
         super().__init__("You have to install extra '{}' to use this plugin".format(extra_name))
 
 
-def load_optional_module(namespace, extra):
+def load_optional_module(namespace: str, extra: str) -> Any:
     """Load an optional module. If the module does not exist an `InstallOptionalExtraError` is
     raised."""
     try:
@@ -36,21 +37,21 @@ class PluginStoppedError(RuntimeError):
 class PluginMeta(type):
     """Metaclasses for plugins. Hooks up the `argresolver`-package to inject any missing arguments
     at runtime if provided as an environment variable."""
-    def __new__(cls, name, bases, dct):
+    def __new__(cls, name: str, bases: Any, dct: Dict[Any, Any]) -> type:
         newly = super().__new__(cls, name, bases, dct)
         # Force all __init__ of plugins to be decorated with envargs
-        newly.__init__ = EnvironmentResolver(default_override=True)(newly.__init__)
+        newly.__init__ = EnvironmentResolver(default_override=True)(newly.__init__)  # type: ignore
         return newly
 
 
 class PluginLogAdapter(logging.LoggerAdapter):
     """Logging adapter for plugin classes. Will put the name of the plugin in front of the
     message."""
-    def __init__(self, logger, prefix):
+    def __init__(self, logger: logging.Logger, prefix: str):
         super().__init__(logger, {})
         self.prefix = prefix
 
-    def process(self, msg, kwargs):
+    def process(self, msg: str, kwargs: Any) -> Tuple[str, Any]:
         return '[{prefix}] {message}'.format(prefix=self.prefix, message=msg), kwargs
 
 
@@ -59,7 +60,7 @@ class PluginLogAdapter(logging.LoggerAdapter):
 class Plugin(metaclass=PluginMeta):
     """Base class for a plugin."""
 
-    def __init__(self, name, base_path=None, **kwargs):  # pylint: disable=unused-argument
+    def __init__(self, name: str, base_path: Optional[str] = None, **kwargs: Any):  # pylint: disable=unused-argument
         """
         Initializer.
 
@@ -73,7 +74,7 @@ class Plugin(metaclass=PluginMeta):
         self._base_path = base_path and str(base_path)
 
     @property
-    def base_path(self):
+    def base_path(self) -> str:
         """Return the base path of the plugin."""
         # Base path is whether injected (most probably were the loaded config is located
         if self._base_path is None:
@@ -83,11 +84,11 @@ class Plugin(metaclass=PluginMeta):
         return self._base_path
 
     @property
-    def logger(self):
+    def logger(self) -> logging.Logger:
         """Return the logger of this instance."""
         component = "{}.{}".format(type(self).__module__, type(self).__name__)
         logger = logging.getLogger(component)
-        return PluginLogAdapter(logger, self.name)
+        return cast(logging.Logger, PluginLogAdapter(logger, self.name))
 
 
 class ClassNotFoundError(Exception):
@@ -106,7 +107,8 @@ class PluginTypeError(Exception):
     """Is raised when the plugin does not meet the requested plugin type or is no plugin at all."""
 
 
-def load_plugin(plugin_path, plugin_type, instantiate=True, **kwargs):
+def load_plugin(plugin_path: str, plugin_type: Union[type, str], instantiate: bool = True,
+                **kwargs: Any) -> Union[Plugin, Callable[..., Any]]:
     """
     Loads a plugin by using a fully qualified identifier (<module_path>.<class_name>,
     e.g. pnp.plugins.pull.simple.Repeat).
@@ -149,13 +151,13 @@ def load_plugin(plugin_path, plugin_type, instantiate=True, **kwargs):
             if not callable(clazz):
                 raise PluginTypeError("The plugin is requested to be a callable, but it is not.")
         else:
-            if not issubclass(clazz, plugin_type):
+            if not issubclass(clazz, cast(type, plugin_type)):
                 raise PluginTypeError(
                     "The plugin is requested to inherit from '{}', but it does not."
                     .format(plugin_type)
                 )
 
-        return clazz(**kwargs) if instantiate else clazz
+        return cast(Plugin, clazz(**kwargs)) if instantiate else cast(Callable[..., Any], clazz)
     except AttributeError:
         raise ClassNotFoundError('Class {} was not found in namespace {}'
                                  .format(clazz_name, namespace))
