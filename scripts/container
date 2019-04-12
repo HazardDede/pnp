@@ -1,0 +1,18 @@
+#!/bin/bash
+
+PACKAGE=$(dirname `which $0`)
+
+. ${PACKAGE}/util
+
+function run() {
+    VERSION=$1
+    echo "Running version: ${VERSION}"
+
+    SOURCE=`abspath "${PACKAGE}/.."`
+    docker run -it --rm \
+        -v ${SOURCE}:/src \
+        python:${VERSION}-stretch \
+        bash -c "cd /src && pip install -e .[ftp] && pip install -r requirements.dev && bash"
+}
+
+run 3.5

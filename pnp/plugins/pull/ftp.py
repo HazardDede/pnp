@@ -112,7 +112,7 @@ class Server(PullBase):
         self.logger.debug("Setting up server on 127.0.0.1:%s", str(self.port))
         servers = load_optional_module('pyftpdlib.servers', self.EXTRA)
         address = ('', self.port)
-        server = servers.FTPServer(address, handler)
+        server = servers.ThreadedFTPServer(address, handler)
         server.max_cons = self.max_cons
         server.max_cons_per_ip = self.max_cons_ip
         return server
