@@ -28,6 +28,27 @@ class QueuePutGet(QueuePut):
         ...
 
 
+class StopSignal(Protocol):
+    """Stopping signal."""
+    def set(self) -> None:  # pylint: disable=unused-argument,missing-docstring,no-self-use
+        ...
+
+    def is_set(self) -> bool:  # pylint: disable=unused-argument,missing-docstring,no-self-use
+        ...
+
+
+class ThreadLike(Protocol):
+    """Thread like interface."""
+    def is_alive(self) -> bool:  # pylint: disable=unused-argument,missing-docstring,no-self-use
+        ...
+
+    def join(self, timeout: Optional[float]) -> None:  # pylint: disable=unused-argument,missing-docstring,no-self-use
+        ...
+
+    def start(self) -> None:  # pylint: disable=unused-argument,missing-docstring,no-self-use
+        ...
+
+
 @auto_str(__repr__=True)
 @auto_str_ignore(ignore_list=["queue", "stopped", "_runner"])
 class StoppableRunner(Loggable):
@@ -60,10 +81,10 @@ class StoppableRunner(Loggable):
         self.stopped = self._make_shutdown_event()
         Validator.is_instance(RetryHandler, retry_handler=retry_handler)
         self.retry_handler = retry_handler
-        self._runner = None  # type: Optional[threading.Thread]
+        self._runner = None  # type: Optional[ThreadLike]
 
     @staticmethod
-    def _make_shutdown_event() -> threading.Event:
+    def _make_shutdown_event() -> StopSignal:
         """Create an event that can signal if this task should stop. The event should provide
         `is_set()` and `set()` methods (like the `Event` from `threading` does)."""
         return threading.Event()
@@ -193,7 +214,7 @@ class StoppableWorker(Loggable):
         """
         self.queue = queue
         self.stop_working_item = stop_working_item
-        self._worker = None  # type: Optional[threading.Thread]
+        self._worker = None  # type: Optional[ThreadLike]
 
     @staticmethod
     def get_ident() -> str:
@@ -284,7 +305,7 @@ class ParallelEngine(Engine):
     def _make_queue(self) -> QueuePutGet:  # pylint: disable=no-self-use
         return cast(QueuePutGet, Queue())
 
-    def _make_shutdown_event(self) -> Any:  # pylint: disable=no-self-use
+    def _make_shutdown_event(self) -> StopSignal:  # pylint: disable=no-self-use
         # We might run the Engine in an isolated process.
         # So the multiprocessing.Event() is better suited.
         return multiprocessing.Event()

@@ -61,8 +61,7 @@ lint:
 		mypy --strict $(SOURCE_PATH)/utils.py $(SOURCE_PATH)/validator.py \
 		    $(SOURCE_PATH)/plugins/__init__.py $(SOURCE_PATH)/plugins/pull/__init__.py \
 		    $(SOURCE_PATH)/plugins/udf/__init__.py $(SOURCE_PATH)/models.py \
-		    $(SOURCE_PATH)/selector.py $(SOURCE_PATH)/engines/__init__.py \
-		    $(SOURCE_PATH)/engines/parallel.py
+		    $(SOURCE_PATH)/selector.py $(SOURCE_PATH)/engines/*.py
 
 test:
 		pytest --verbose --color=yes \
