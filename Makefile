@@ -55,13 +55,14 @@ docs:
 		python ./scripts/process_docs.py
 
 lint:
-		flake8 --exclude=.tox --max-line-length 120 --ignore=W503,E722,E731 $(SOURCE_PATH)
+		flake8 --exclude=.tox --max-line-length 120 --ignore=E704,E722,E731,W503 $(SOURCE_PATH)
 		pylint $(SOURCE_PATH)
 		yamllint -c .yamllint $(DOCS_PATH) $(CONFIG_PATH)
 		mypy --strict $(SOURCE_PATH)/utils.py $(SOURCE_PATH)/validator.py \
 		    $(SOURCE_PATH)/plugins/__init__.py $(SOURCE_PATH)/plugins/pull/__init__.py \
 		    $(SOURCE_PATH)/plugins/udf/__init__.py $(SOURCE_PATH)/models.py \
-		    $(SOURCE_PATH)/selector.py
+		    $(SOURCE_PATH)/selector.py $(SOURCE_PATH)/engines/__init__.py \
+		    $(SOURCE_PATH)/engines/parallel.py
 
 test:
 		pytest --verbose --color=yes \

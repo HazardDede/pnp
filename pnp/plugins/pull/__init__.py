@@ -9,6 +9,7 @@ from typing import Any, Callable, Optional
 from schedule import Scheduler  # type: ignore
 
 from .. import Plugin
+from ...typing import Payload
 from ...utils import (auto_str_ignore, parse_duration_literal, StopCycleError,
                       interruptible_sleep, try_parse_bool, DurationLiteral)
 
@@ -37,10 +38,10 @@ class PullBase(Plugin):
         """
         raise NotImplementedError()  # pragma: no cover
 
-    def on_payload(self, payload: Any) -> None:
+    def on_payload(self, payload: Payload) -> None:
         """Callback for execution engine."""
 
-    def notify(self, payload: Any) -> None:
+    def notify(self, payload: Payload) -> None:
         """Call in subclass to emit some payload to the execution engine."""
         self.on_payload(self, payload)  # type: ignore  # pylint: disable=too-many-function-args
 

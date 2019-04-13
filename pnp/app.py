@@ -1,12 +1,14 @@
 """The actual application wrapper around tasks and engine."""
 
 import os
+from typing import Optional
 
 from .config import load_config
 from .engines import Engine, AdvancedRetryHandler
 from .engines.thread import ThreadEngine
 from .models import TaskSet, TaskModel, UDFModel, tasks_to_str
 from .selector import PayloadSelector
+from .shared.exc import NoEngineError
 from .utils import Loggable
 from .validator import Validator
 
@@ -15,19 +17,21 @@ class Application(Loggable):
     """The wrapper that knows about tasks and engine."""
     def __init__(self, tasks: TaskSet):
         self._tasks = tasks
-        self._engine = None
+        self._engine: Optional[Engine] = None
 
-    def start(self):
+    def start(self) -> None:
         """Starts the application."""
+        if not self._engine:
+            raise NoEngineError()
         self._engine.run(self._tasks)
 
-    def bind(self, engine: Engine):
+    def bind(self, engine: Engine) -> None:
         """Binds an engine to the application."""
         Validator.is_instance(Engine, engine=engine)
         self._engine = engine
 
     @classmethod
-    def from_file(cls, file_path: str):
+    def from_file(cls, file_path: str) -> 'Application':
         """Loads the application from a configuration file."""
         udfs, engine, task_cfg = load_config(file_path)
         base_path = os.path.dirname(file_path)

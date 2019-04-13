@@ -9,6 +9,7 @@ import attr
 
 from ..models import TaskSet, PushModel
 from ..selector import PayloadSelector
+from ..typing import Payload
 from ..utils import (Loggable, Singleton, parse_duration_literal, DurationLiteral, auto_str,
                      is_iterable_but_no_str)
 from ..validator import Validator
@@ -16,6 +17,9 @@ from ..validator import Validator
 
 class NotSupportedError(Exception):
     """Is raised when a task is not supported by an engine."""
+
+
+PushResultCallback = Callable[[Payload, PushModel], None]
 
 
 @auto_str(__repr__=True)
@@ -27,25 +31,25 @@ class Engine(Loggable):
     A call to to an engine's `run(...)` method will block the calling thread until the engine
     decides the job is done (normally an external SIGTERM occurs)
     """
-    def __init__(self):
+    def __init__(self: 'Engine'):
         pass
 
-    def run(self, tasks: TaskSet):
+    def run(self, tasks: TaskSet) -> None:
         """Run the given task set inside the engine."""
         return self._run(tasks)
 
     @abstractmethod
-    def _run(self, tasks: TaskSet):
+    def _run(self, tasks: TaskSet) -> None:
         """Run the given task set inside the engine. Override in child classes to do the hard
         work."""
         raise NotImplementedError()
 
-    def stop(self):
+    def stop(self) -> None:
         """Stop the engine."""
         self._stop()
 
     @abstractmethod
-    def _stop(self):
+    def _stop(self) -> None:
         """Stop the engine. Override in child classes."""
         raise NotImplementedError()
 
@@ -55,11 +59,11 @@ class RetryDirective:
     """Contains directive information for engines on how to proceed in erroneous cases."""
 
     # If set to True, instructs the engine to abort the pull; otherwise retry the pull
-    abort = attr.ib(converter=bool, type=bool, default=True)
+    abort = attr.ib(converter=bool, type=bool, default=True)  # type: bool
     # Instructs the engine to wait some time before retrying the pull again
-    wait_for = attr.ib(converter=parse_duration_literal, type=int, default=0)
+    wait_for = attr.ib(converter=parse_duration_literal, type=int, default=0)  # type: int
     # Just contextual information how many retries occurred so far
-    retry_cnt = attr.ib(converter=int, type=int, default=0)
+    retry_cnt = attr.ib(converter=int, type=int, default=0)  # type: int
 
 
 @auto_str(__repr__=True)
@@ -69,6 +73,9 @@ class RetryHandler:
     the actual loop or by error. The `RetryHandler` decides how to proceed further (wait and retry
     the pull or more sophisticated logic).
     """
+    def __init__(self, **kwargs: Any):
+        pass
+
     @abstractmethod
     def handle_error(self) -> RetryDirective:
         """
@@ -90,12 +97,12 @@ class NoRetryHandler(RetryHandler):
 class SimpleRetryHandler(RetryHandler):
     """Simply instructs the engine to wait for the given amount of time after an error."""
 
-    def __init__(self, retry_wait: DurationLiteral = 60, **kwargs):
+    def __init__(self, retry_wait: DurationLiteral = 60, **kwargs: Any):
         super().__init__(**kwargs)
         self.retry_wait = parse_duration_literal(retry_wait)
         self.retry_count = 0
 
-    def _incr_retry(self):
+    def _incr_retry(self) -> None:
         self.retry_count += 1
 
     def handle_error(self) -> RetryDirective:
@@ -107,16 +114,16 @@ class LimitedRetryHandler(SimpleRetryHandler):
     """Instructs the engine to wait for the given amout of time after an error. If the specified
      `max_retries` is hit the engine is instructed to abort the `pull`."""
 
-    def __init__(self, max_retries: Optional[int] = 3, **kwargs):
+    def __init__(self, max_retries: Optional[int] = 3, **kwargs: Any):
         super().__init__(**kwargs)
-        self.max_retries = Validator.cast_or_none(int, max_retries)
+        self.max_retries = Validator.cast_or_none(int, max_retries)  # type: Optional[int]
 
     def _eval_abort(self, retry_count: int) -> bool:
         if self.max_retries is None or self.max_retries < 0:
             return False
         return retry_count > self.max_retries
 
-    def handle_error(self):
+    def handle_error(self) -> RetryDirective:
         super().handle_error()
         abort = self._eval_abort(self.retry_count)
         return RetryDirective(abort=abort, wait_for=self.retry_wait, retry_cnt=self.retry_count)
@@ -126,11 +133,11 @@ class AdvancedRetryHandler(LimitedRetryHandler):
     """Works like the `LimitedRetryHandler` but will reset the retry count when a given amount of
     time between the current failure and the previous failure has passed."""
 
-    def __init__(self, reset_retry_threshold: DurationLiteral = 60, **kwargs):
+    def __init__(self, reset_retry_threshold: DurationLiteral = 60, **kwargs: Any):
         super().__init__(**kwargs)
         # Reset retry_count after x seconds of successful running
         self.reset_retry_threshold = parse_duration_literal(reset_retry_threshold)
-        self.last_error = None
+        self.last_error: Optional[datetime] = None
 
     def handle_error(self) -> RetryDirective:
         # Handles two cases:
@@ -167,8 +174,8 @@ class PushExecutor(Loggable, Singleton):
 
     """
 
-    def _execute_internal(self, ident: str, payload: Any, push: PushModel,
-                          result_callback: Callable = None) -> None:
+    def _execute_internal(self, ident: str, payload: Payload, push: PushModel,
+                          result_callback: Optional[PushResultCallback] = None) -> None:
         self.logger.debug("[%s] Selector: Applying '%s' to '%s'", ident, push.selector, payload)
         payload = PayloadSelector.instance.eval_selector(  # pylint: disable=no-member
             push.selector,
@@ -199,8 +206,8 @@ class PushExecutor(Loggable, Singleton):
                 "[%s] Selector evaluated to suppress literal. Skipping the push", ident
             )
 
-    def execute(self, ident: str, payload: Any, push: PushModel,
-                result_callback: Callable = None) -> None:
+    def execute(self, ident: str, payload: Payload, push: PushModel,
+                result_callback: Optional[PushResultCallback] = None) -> None:
         """
         Executes the given push by passing the specified payload.
         In concurrent environments there might be multiple executions in parallel.

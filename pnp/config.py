@@ -3,9 +3,9 @@
 import os
 from functools import partial
 
-from ruamel import yaml
-from schema import Schema, Use, Optional, Or, And
-from box import Box
+from ruamel import yaml  # type: ignore
+from schema import Schema, Use, Optional, Or, And  # type: ignore
+from box import Box  # type: ignore
 
 from .engines import Engine, RetryHandler
 from .plugins import load_plugin
@@ -124,7 +124,7 @@ def custom_constructor(loader, node, clstype):
 
 def make_mentor(config_path):
     """Creates an instance of the dictmentor with configured plugins."""
-    from dictmentor import DictMentor, ext
+    from dictmentor import DictMentor, ext  # type: ignore
     return DictMentor(
         ext.Environment(fail_on_unset=True),
         ext.ExternalResource(base_path=os.path.dirname(config_path)),

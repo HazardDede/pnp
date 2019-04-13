@@ -5,11 +5,27 @@ import multiprocessing
 import threading
 import time
 from queue import Queue
+from typing import Any, Optional, cast, List
+
+from typing_extensions import Protocol
 
 from . import RetryHandler, PushExecutor, Engine, SimpleRetryHandler
 from ..models import TaskModel, TaskSet
+from ..typing import Payload
 from ..utils import Loggable, auto_str, auto_str_ignore, sleep_until_interrupt
 from ..validator import Validator
+
+
+class QueuePut(Protocol):
+    """Queue that supports put."""
+    def put(self, item: Any) -> None:  # pylint: disable=unused-argument,missing-docstring,no-self-use
+        ...
+
+
+class QueuePutGet(QueuePut):
+    """Queue that supports put and get."""
+    def get(self) -> Any:  # pylint: disable=unused-argument,missing-docstring,no-self-use
+        ...
 
 
 @auto_str(__repr__=True)
@@ -29,7 +45,7 @@ class StoppableRunner(Loggable):
         after `stop()` was called.
     """
 
-    def __init__(self, task, queue, retry_handler):
+    def __init__(self, task: TaskModel, queue: QueuePut, retry_handler: RetryHandler):
         """
         Initializer.
         Args:
@@ -44,49 +60,49 @@ class StoppableRunner(Loggable):
         self.stopped = self._make_shutdown_event()
         Validator.is_instance(RetryHandler, retry_handler=retry_handler)
         self.retry_handler = retry_handler
-        self._runner = None
+        self._runner = None  # type: Optional[threading.Thread]
 
     @staticmethod
-    def _make_shutdown_event():
+    def _make_shutdown_event() -> threading.Event:
         """Create an event that can signal if this task should stop. The event should provide
         `is_set()` and `set()` methods (like the `Event` from `threading` does)."""
         return threading.Event()
 
     @staticmethod
-    def get_ident():
+    def get_ident() -> str:
         """Return some unique identifier for this runner."""
-        return threading.get_ident()
+        return str(threading.get_ident())
 
-    def start(self):
+    def start(self) -> None:
         """Start the runner and the processing of the enveloped task."""
         if self._runner:
             raise RuntimeError("Runner is already started and cannot restart...")
         self._runner = threading.Thread(target=self._start_pull)
         self._runner.start()
 
-    def join(self, timeout=None):
+    def join(self, timeout: Optional[float] = None) -> None:
         """Wait for the runner to exit."""
         self._assert_runner()
-        self._runner.join(timeout=timeout)
+        cast(threading.Thread, self._runner).join(timeout=timeout)
 
-    def is_alive(self):
+    def is_alive(self) -> bool:
         """Check if the runner is still alive."""
         self._assert_runner()
-        return self._runner.is_alive()
+        return cast(threading.Thread, self._runner).is_alive()
 
-    def terminate(self):
+    def terminate(self) -> None:
         """Terminates the runner."""
         self.logger.warning(
             "Method terminate() on basic StoppableRunner is not supported.\n"
             "The thread will NOT terminate."
         )
 
-    def _assert_runner(self):
+    def _assert_runner(self) -> None:
         if not self._runner:
             raise RuntimeError("Runner is is not started")
 
-    def _start_pull(self):
-        def on_payload(plugin, payload):  # pylint: disable=unused-argument
+    def _start_pull(self) -> None:
+        def on_payload(plugin: Any, payload: Payload) -> None:  # pylint: disable=unused-argument
             for push in self.task.pushes:
                 self.logger.debug(
                     "[Task-%s] Queing item '%s' for push '%s'",
@@ -96,7 +112,7 @@ class StoppableRunner(Loggable):
                 )
                 self.queue.put((payload, push))
 
-        self.task.pull.instance.on_payload = on_payload
+        self.task.pull.instance.on_payload = on_payload  # type: ignore
 
         while not self.stopped.is_set():
             try:
@@ -126,7 +142,7 @@ class StoppableRunner(Loggable):
             finally:
                 self._handle_pull_exit()
 
-    def _handle_pull_exit(self):
+    def _handle_pull_exit(self) -> None:
         if not self.stopped.is_set():
             directive = self.retry_handler.handle_error()
             if directive.abort:
@@ -139,7 +155,7 @@ class StoppableRunner(Loggable):
             else:
                 sleep_until_interrupt(directive.wait_for, self.stopped.is_set)
 
-    def stop(self):
+    def stop(self) -> None:
         """Stop the runner gracefully."""
         self.logger.info(
             "[Task-%s] Got stopping signal: '%s'",
@@ -167,7 +183,7 @@ class StoppableWorker(Loggable):
     * terminate(): Terminate the worker. Will only be called when the worker does not stop after
         receiving the `stop_working_item`.
     """
-    def __init__(self, queue, stop_working_item):
+    def __init__(self, queue: QueuePutGet, stop_working_item: Any):
         """
         Initializer.
 
@@ -177,40 +193,40 @@ class StoppableWorker(Loggable):
         """
         self.queue = queue
         self.stop_working_item = stop_working_item
-        self._worker = None
+        self._worker = None  # type: Optional[threading.Thread]
 
     @staticmethod
-    def get_ident():
+    def get_ident() -> str:
         """Return a unique identifier for this worker."""
-        return threading.get_ident()
+        return str(threading.get_ident())
 
-    def start(self):
+    def start(self) -> None:
         """Start this worker and begin to pull from the queue."""
         if self._worker:
             raise RuntimeError("Worker is already started and cannot restart...")
         self._worker = threading.Thread(target=self._process_queue)
         self._worker.start()
 
-    def join(self, timeout=None):
+    def join(self, timeout: Optional[float] = None) -> None:
         """Wait for the worker to exit."""
         self._assert_runner()
-        self._worker.join(timeout=timeout)
+        cast(threading.Thread, self._worker).join(timeout=timeout)
 
-    def is_alive(self):
+    def is_alive(self) -> bool:
         """Check if the worker is still running and alive."""
         self._assert_runner()
-        return self._worker.is_alive()
+        return cast(threading.Thread, self._worker).is_alive()
 
-    def terminate(self):
+    def terminate(self) -> None:
         """Termintes the worker forcefully."""
         self.logger.warning("Method terminate() on basic StoppableWorker is not supported.\n"
                             "The thread will NOT terminate.")
 
-    def _assert_runner(self):
+    def _assert_runner(self) -> None:
         if not self._worker:
             raise RuntimeError("Worker is is not started")
 
-    def _process_queue(self):
+    def _process_queue(self) -> None:
         while True:
             try:
                 payload = self.queue.get()
@@ -244,7 +260,8 @@ class ParallelEngine(Engine):
     Spawns runner to process tasks and workers to handle any emitted results from `pull`
     components."""
 
-    def __init__(self, queue_worker=3, retry_handler=None, stop_timeout=5):
+    def __init__(self, queue_worker: int = 3, retry_handler: Optional[RetryHandler] = None,
+                 stop_timeout: Optional[int] = 5):
         super().__init__()
         self.queue_worker = max(int(queue_worker), 1)
         self.retry_handler = retry_handler
@@ -253,26 +270,26 @@ class ParallelEngine(Engine):
         Validator.is_instance(RetryHandler, retry_handler=self.retry_handler)
         self.stop_working_item = object()
         self.queue = self._make_queue()
-        self.runner = []
-        self.worker = []
+        self.runner = []  # type: List[StoppableRunner]
+        self.worker = []  # type: List[StoppableWorker]
         self.shutdown = self._make_shutdown_event()
         self.stop_timeout = Validator.cast_or_none(int, stop_timeout) or 5
 
-    def _make_worker(self):
+    def _make_worker(self) -> StoppableWorker:
         return StoppableWorker(self.queue, self.stop_working_item)
 
-    def _make_runner(self, task, retry_handler):
+    def _make_runner(self, task: TaskModel, retry_handler: RetryHandler) -> StoppableRunner:
         return StoppableRunner(task, self.queue, retry_handler=retry_handler)
 
-    def _make_queue(self):  # pylint: disable=no-self-use
-        return Queue()
+    def _make_queue(self) -> QueuePutGet:  # pylint: disable=no-self-use
+        return cast(QueuePutGet, Queue())
 
-    def _make_shutdown_event(self):  # pylint: disable=no-self-use
+    def _make_shutdown_event(self) -> Any:  # pylint: disable=no-self-use
         # We might run the Engine in an isolated process.
         # So the multiprocessing.Event() is better suited.
         return multiprocessing.Event()
 
-    def _run_queue_worker(self):
+    def _run_queue_worker(self) -> None:
         n_worker = self.queue_worker
         for i in range(n_worker):
             thr = self._make_worker()
@@ -280,34 +297,34 @@ class ParallelEngine(Engine):
             self.logger.info("[Worker-%s] Started (%s/%s)", thr.get_ident(), i + 1, n_worker)
             self.worker.append(thr)
 
-    def _run_tasks(self, tasks):
+    def _run_tasks(self, tasks: TaskSet) -> None:
         for _, task in tasks.items():
-            thr = self._make_runner(task, copy.deepcopy(self.retry_handler))
+            thr = self._make_runner(task, copy.deepcopy(cast(RetryHandler, self.retry_handler)))
             thr.start()
             self.logger.info("[Task-%s] Started for task '%s'", thr.get_ident(), task.name)
             self.runner.append(thr)
 
-    def _stop_runner(self):
+    def _stop_runner(self) -> None:
         for runner in self.runner:
             self.logger.debug("Stopping runner: %s", runner)
             runner.stop()
 
-    def _stop_worker(self):
+    def _stop_worker(self) -> None:
         self.logger.debug("Pushing stop_working_item on queue")
         self.queue.put(self.stop_working_item)
 
-    def _stop_all(self):
+    def _stop_all(self) -> None:
         self._stop_runner()
         self._stop_worker()
 
-    def _wait_for_all(self):
-        for thr in self.runner + self.worker:
+    def _wait_for_all(self) -> None:
+        for thr in self.runner + self.worker:  # type: ignore
             thr.join(timeout=self.stop_timeout)
             if thr.is_alive():
                 self.logger.warning("%s did not respond to stop command. Terminating...", thr)
                 thr.terminate()
 
-    def _run(self, tasks: TaskSet):
+    def _run(self, tasks: TaskSet) -> None:
         for _, thr in tasks.items():
             if not isinstance(thr, TaskModel):
                 raise TypeError("All items of argument 'tasks' are expected to be an instance "
@@ -324,5 +341,5 @@ class ParallelEngine(Engine):
         self._stop_all()
         self._wait_for_all()
 
-    def _stop(self):
+    def _stop(self) -> None:
         self.shutdown.set()

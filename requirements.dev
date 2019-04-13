@@ -9,5 +9,6 @@ pytest>=3.6
 pytest-cov
 setuptools
 twine
+typing_extensions
 websockets
 yamllint>=1.15.0
