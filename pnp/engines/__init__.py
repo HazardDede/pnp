@@ -137,7 +137,7 @@ class AdvancedRetryHandler(LimitedRetryHandler):
         super().__init__(**kwargs)
         # Reset retry_count after x seconds of successful running
         self.reset_retry_threshold = parse_duration_literal(reset_retry_threshold)
-        self.last_error: Optional[datetime] = None
+        self.last_error = None  # type: Optional[datetime]
 
     def handle_error(self) -> RetryDirective:
         # Handles two cases:
