@@ -17,7 +17,7 @@ class Application(Loggable):
     """The wrapper that knows about tasks and engine."""
     def __init__(self, tasks: TaskSet):
         self._tasks = tasks
-        self._engine: Optional[Engine] = None
+        self._engine = None  # type: Optional[Engine]
 
     def start(self) -> None:
         """Starts the application."""
