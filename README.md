@@ -3116,6 +3116,7 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 * Adds `pull.ftp.Server` plugin
 * Adds lazy configuration property to `push.ml.FaceR` (basically to test initialization of FaceR without installing face-recognition and dlib)
 * Adds `pull.fs.Size` plugin
+* Adds typing for most of the core and adds mypy as linter
 
 **0.16.0**
 * Adds `ignore_overflow` argument to `pull.sensor.Sound` to ignore buffer overflows errors on slow devices
