@@ -4,8 +4,8 @@ import multiprocessing as proc
 import os
 from typing import cast
 
-from .parallel import StoppableRunner, StoppableWorker, ParallelEngine, RetryHandler, QueuePutGet, \
-    StopSignal
+from .parallel import (StoppableRunner, StoppableWorker, ParallelEngine, RetryHandler,
+                       QueuePutGet, StopSignal)
 from ..models import TaskModel
 
 

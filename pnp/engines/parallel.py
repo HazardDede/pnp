@@ -7,46 +7,11 @@ import time
 from queue import Queue
 from typing import Any, Optional, cast, List
 
-from typing_extensions import Protocol
-
 from . import RetryHandler, PushExecutor, Engine, SimpleRetryHandler
 from ..models import TaskModel, TaskSet
-from ..typing import Payload
+from ..typing import Payload, QueuePutGet, StopSignal, ThreadLike
 from ..utils import Loggable, auto_str, auto_str_ignore, sleep_until_interrupt
 from ..validator import Validator
-
-
-class QueuePut(Protocol):
-    """Queue that supports put."""
-    def put(self, item: Any) -> None:  # pylint: disable=unused-argument,missing-docstring,no-self-use
-        ...
-
-
-class QueuePutGet(QueuePut):
-    """Queue that supports put and get."""
-    def get(self) -> Any:  # pylint: disable=unused-argument,missing-docstring,no-self-use
-        ...
-
-
-class StopSignal(Protocol):
-    """Stopping signal."""
-    def set(self) -> None:  # pylint: disable=unused-argument,missing-docstring,no-self-use
-        ...
-
-    def is_set(self) -> bool:  # pylint: disable=unused-argument,missing-docstring,no-self-use
-        ...
-
-
-class ThreadLike(Protocol):
-    """Thread like interface."""
-    def is_alive(self) -> bool:  # pylint: disable=unused-argument,missing-docstring,no-self-use
-        ...
-
-    def join(self, timeout: Optional[float]) -> None:  # pylint: disable=unused-argument,missing-docstring,no-self-use
-        ...
-
-    def start(self) -> None:  # pylint: disable=unused-argument,missing-docstring,no-self-use
-        ...
 
 
 @auto_str(__repr__=True)
@@ -66,7 +31,7 @@ class StoppableRunner(Loggable):
         after `stop()` was called.
     """
 
-    def __init__(self, task: TaskModel, queue: QueuePut, retry_handler: RetryHandler):
+    def __init__(self, task: TaskModel, queue: QueuePutGet, retry_handler: RetryHandler):
         """
         Initializer.
         Args:
