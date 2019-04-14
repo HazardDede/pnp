@@ -1,6 +1,6 @@
 import json
 import time
-from threading import Thread
+from threading import Thread, Event
 
 import asyncio
 import websockets
@@ -49,13 +49,20 @@ class WebSocketFakeServer:
         self.loop = event_loop
         event_loop.run_until_complete(websockets.serve(self._handler, port=8123, loop=event_loop))
         event_loop.run_forever()
+        self.stopped.set()
 
     def start(self):
         self._thr = Thread(target=self._loop)
+        self.stopped = Event()
         self._thr.start()
 
     def stop(self):
         self.loop.call_soon_threadsafe(self.loop.stop)
+        for _ in range(10):  # Wait for the fake server to go down
+            if self.stopped.is_set():
+                break
+            time.sleep(0.25)
+        assert self.stopped.is_set()
 
 
 def test_hass_state_for_smoke():
