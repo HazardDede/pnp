@@ -9,7 +9,20 @@ import pnp.plugins.pull.hass as hass
 from . import start_runner, make_runner
 
 
+def wait_for_event(evt):
+    for _ in range(10):  # Wait for the fake server to go down
+        if evt.is_set():
+            break
+        time.sleep(0.25)
+    assert evt.is_set()
+
+
 class WebSocketFakeServer:
+    def __init__(self):
+        self.stopped = Event()
+        self.started = Event()
+        self._thr = None
+
     async def _handler(self, websocket, path):
         # First send that auth is required
         await websocket.send(json.dumps({'type': 'auth_required', 'ha_version': '0.88.2'}))
@@ -48,26 +61,23 @@ class WebSocketFakeServer:
         event_loop = asyncio.new_event_loop()
         self.loop = event_loop
         event_loop.run_until_complete(websockets.serve(self._handler, port=8123, loop=event_loop))
+        self.started.set()
         event_loop.run_forever()
         self.stopped.set()
 
     def start(self):
         self._thr = Thread(target=self._loop)
-        self.stopped = Event()
         self._thr.start()
 
     def stop(self):
         self.loop.call_soon_threadsafe(self.loop.stop)
-        for _ in range(10):  # Wait for the fake server to go down
-            if self.stopped.is_set():
-                break
-            time.sleep(0.25)
-        assert self.stopped.is_set()
+        wait_for_event(self.stopped)
 
 
 def test_hass_state_for_smoke():
     fake = WebSocketFakeServer()
     fake.start()
+    wait_for_event(fake.started)
 
     events = []
     def callback(plugin, payload):
