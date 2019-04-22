@@ -1,11 +1,12 @@
 """Basic stuff for implementing pull plugins."""
-
+import concurrent
 import multiprocessing as proc
 import time
 from abc import abstractmethod
 from datetime import datetime
 from typing import Any, Callable, Optional
 
+import asyncio
 from schedule import Scheduler  # type: ignore
 
 from .. import Plugin
@@ -28,6 +29,10 @@ class PullBase(Plugin):
     def stopped(self) -> bool:
         """Returns True if the pull is considered stopped; otherwise False."""
         return self._stopped.is_set()
+
+    @property
+    def supports_async(self) -> bool:
+        return hasattr(self, 'async_pull')
 
     @abstractmethod
     def pull(self) -> None:
@@ -55,6 +60,34 @@ class PullBase(Plugin):
             if self.stopped:
                 raise StopCycleError()
         interruptible_sleep(sleep_time, callback, interval=0.5)
+
+    def _call_async_pull_from_sync(self):
+        """Calls the async pull from a sync context."""
+        if not self.supports_async:
+            raise RuntimeError(
+                "Cannot run async pull version, cause async implementation is missing")
+
+        async def _wrap(call_result):
+            """
+            Wraps the awaitable with something that puts the result into the
+            result/exception future.
+            """
+            try:
+                result = await self.async_pull()
+            except Exception as e:
+                call_result.set_exception(e)
+            else:
+                call_result.set_result(result)
+
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        call_result = concurrent.futures.Future()
+        try:
+            loop.run_until_complete(_wrap(call_result))
+        finally:
+            loop.close()
+
+        return call_result.result()
 
 
 class PollingError(Exception):

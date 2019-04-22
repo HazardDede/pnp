@@ -121,6 +121,10 @@ class PushBase(Plugin):
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
 
+    @property
+    def supports_async(self) -> bool:
+        return hasattr(self, 'async_push')
+
     @abstractmethod
     def push(self, payload: Payload) -> Payload:
         """

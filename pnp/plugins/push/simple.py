@@ -27,9 +27,14 @@ class Echo(PushBase):
 
     @enveloped
     def push(self, envelope, payload):  # pylint: disable=arguments-differ
+        print("======> SYNC")
         self.logger.info("Got '%s' with envelope '%s'", payload, envelope)
         # Payload as is. With envelope (if any)
         return {'data': payload, **envelope} if envelope else payload
+
+    def async_push(self, payload):
+        print("======> ASYNC")
+        return self.push(payload)
 
 
 class Nop(PushBase):

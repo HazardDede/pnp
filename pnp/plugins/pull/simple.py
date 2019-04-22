@@ -26,8 +26,12 @@ class Count(PullBase):
         self.wait = float(wait)
 
     def pull(self):
+        self._call_async_pull_from_sync()
+
+    async def async_pull(self):
+        import asyncio
         for i in range(self.from_cnt, self.to_cnt or sys.maxsize):
-            self._sleep(self.wait)
+            await asyncio.sleep(self.wait)
             self.notify(i)
             if self.stopped:
                 break
@@ -99,6 +103,10 @@ class Repeat(PullBase):
         self.wait = float(wait)
 
     def pull(self):
+        self._call_async_pull_from_sync()
+
+    async def async_pull(self):
+        import asyncio
         while not self.stopped:
-            self._sleep(self.wait)
+            await asyncio.sleep(self.wait)
             self.notify(self.repeat)
