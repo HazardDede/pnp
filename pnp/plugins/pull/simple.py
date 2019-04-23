@@ -4,12 +4,12 @@ import sys
 import time
 from datetime import datetime
 
-from . import PullBase, Polling
+from . import PullBase, Polling, AsyncPullBase
 from ...utils import make_list, auto_str_ignore
 from ...validator import Validator
 
 
-class Count(PullBase):
+class Count(AsyncPullBase):
     """
     Emits every `wait` seconds a counting value which runs from `from_cnt` to `to_cnt`.
     If `to_cnt` is None will to count to infinity.
@@ -88,7 +88,7 @@ class Infinite(PullBase):
             time.sleep(0.5)
 
 
-class Repeat(PullBase):
+class Repeat(AsyncPullBase):
     """
     Emits every `wait` seconds the same `repeat`.
 

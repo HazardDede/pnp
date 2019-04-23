@@ -2,13 +2,13 @@
 
 from functools import partial
 
-from . import PushBase, enveloped
+from . import PushBase, enveloped, AsyncPushBase
 from ...shared.exc import TemplateError
 from ...utils import parse_duration_literal, make_list
 from ...validator import Validator
 
 
-class Echo(PushBase):
+class Echo(AsyncPushBase):
     """
     This push simply logs the `payload` via the `logging` module.
 
@@ -27,17 +27,15 @@ class Echo(PushBase):
 
     @enveloped
     def push(self, envelope, payload):  # pylint: disable=arguments-differ
-        print("======> SYNC")
         self.logger.info("Got '%s' with envelope '%s'", payload, envelope)
         # Payload as is. With envelope (if any)
         return {'data': payload, **envelope} if envelope else payload
 
-    def async_push(self, payload):
-        print("======> ASYNC")
-        return self.push(payload)
+    async def async_push(self, payload):
+        return self.push(payload)  # pylint: disable=no-value-for-parameter
 
 
-class Nop(PushBase):
+class Nop(AsyncPushBase):
     """
     Executes no operation at all. A call to push(...) just returns the payload.
     This push is useful when you only need the power of the selector for dependent pushes.
@@ -60,6 +58,9 @@ class Nop(PushBase):
     def push(self, payload):
         self.last_payload = payload
         return payload
+
+    async def async_push(self, payload):
+        return self.push(payload)
 
 
 class Execute(PushBase):

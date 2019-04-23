@@ -54,27 +54,37 @@ setup:
 docs:
 		python ./scripts/process_docs.py
 
-lint:
+flake8:
 		flake8 --exclude=.tox --max-line-length 120 --ignore=E704,E722,E731,W503 $(SOURCE_PATH)
+
+pylint:
 		pylint $(SOURCE_PATH)
-		yamllint -c .yamllint $(DOCS_PATH) $(CONFIG_PATH)
+
+mypy:
 		mypy --strict $(SOURCE_PATH)/utils.py $(SOURCE_PATH)/validator.py \
 		    $(SOURCE_PATH)/plugins/__init__.py $(SOURCE_PATH)/plugins/pull/__init__.py \
 		    $(SOURCE_PATH)/plugins/udf/__init__.py $(SOURCE_PATH)/models.py \
 		    $(SOURCE_PATH)/selector.py $(SOURCE_PATH)/engines/*.py
 
-test:
+yamllint:
+		yamllint -c .yamllint $(DOCS_PATH) $(CONFIG_PATH)
+
+lint: flake8 pylint yamllint mypy
+
+test-configs:
+		python scripts/test_configs.py
+
+pytest:
 		pytest --verbose --color=yes \
 		    --durations=10 \
 			--doctest-modules \
 			--cov=$(SOURCE_PATH) --cov-report html --cov-report term $(TEST_PATH) \
 			$(SOURCE_PATH)
 
-test-configs:
-		python scripts/test_configs.py
-
 doctest:
 		pytest --verbose --color=yes --doctest-modules $(SOURCE_PATH)
+
+test: test-configs pytest
 
 docker:
 	docker build \

@@ -1,7 +1,6 @@
 """Utility / helper functions, classes, decorators, ..."""
 
 # pylint: disable=too-many-lines
-
 import inspect
 import logging
 import os
@@ -9,7 +8,7 @@ import re
 import time
 from base64 import b64encode
 from collections import OrderedDict
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, Future
 from datetime import datetime, timedelta
 from functools import partial
 from functools import wraps
@@ -17,6 +16,7 @@ from threading import Timer
 from typing import Union, Any, Optional, Iterable, Pattern, Dict, Callable, cast, Set, List, \
     Hashable, Tuple
 
+import asyncio
 from binaryornot.check import is_binary  # type: ignore
 from box import Box, BoxKeyError  # type: ignore
 
@@ -37,6 +37,31 @@ class EvaluationError(Exception):
 
 class StopCycleError(Exception):
     """A callback of interruptible_sleep should call this, when the sleep should be interrupted."""
+
+
+def async_from_sync(fun: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
+    """Calls an async function from a sync context."""
+    async def _wrap(call_result: Any) -> None:
+        """
+        Wraps the awaitable with something that puts the result into the
+        result/exception future.
+        """
+        try:
+            result = await fun(*args, **kwargs)
+        except Exception as exc:  # pylint: disable=broad-except
+            call_result.set_exception(exc)
+        else:
+            call_result.set_result(result)
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    call_result = Future()  # type: Any
+    try:
+        loop.run_until_complete(_wrap(call_result))
+    finally:
+        loop.close()
+
+    return call_result.result()
 
 
 def make_list(item_or_items: Any) -> Optional[List[Any]]:

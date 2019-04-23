@@ -123,6 +123,7 @@ class PushBase(Plugin):
 
     @property
     def supports_async(self) -> bool:
+        """Returns True if the async engine is fully supported; otherwise False."""
         return hasattr(self, 'async_push')
 
     @abstractmethod
@@ -232,3 +233,14 @@ class PushBase(Plugin):
 
         # We popped the real payload -> all what is left in payload is the envelope
         return payload, real_payload
+
+
+class AsyncPushBase(PushBase):
+    """Base class for push plugins that fully support the async engine."""
+    def __init__(self, **kwargs: Any):  # pylint: disable=useless-super-delegation
+        # Doesn't work without the useless-super-delegation
+        super().__init__(**kwargs)
+
+    async def async_push(self, payload: Payload) -> Payload:
+        """Performs the push in an asynchronous compatible (non-blocking) way."""
+        raise NotImplementedError()

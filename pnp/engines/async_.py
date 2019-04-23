@@ -5,8 +5,9 @@ import asyncio
 
 from . import Engine, RetryHandler, SimpleRetryHandler, PushExecutor
 from ..models import TaskSet, TaskModel, PushModel
-from ..typing import Payload
+from ..plugins.pull import AsyncPullBase
 from ..plugins.push import PushBase
+from ..typing import Payload
 
 
 class AsyncEngine(Engine):
@@ -14,7 +15,7 @@ class AsyncEngine(Engine):
     def __init__(self, retry_handler: Optional[RetryHandler] = None):
         super().__init__()
         if not retry_handler:
-            self.retry_handler = SimpleRetryHandler()
+            self.retry_handler = SimpleRetryHandler()  # type: RetryHandler
         else:
             self.retry_handler = retry_handler
         self.loop = asyncio.get_event_loop()
@@ -34,14 +35,16 @@ class AsyncEngine(Engine):
             # This check is only needed for Python 3.5 and below
             if hasattr(self.loop, "shutdown_asyncgens"):
                 self.loop.run_until_complete(self.loop.shutdown_asyncgens())
-            self.loop.close()
+            if self.loop.is_running():
+                self.loop.call_soon_threadsafe(self.loop.stop)
 
     def _stop(self) -> None:
         if not self.tasks:
             return
         self._shutdown()
 
-    async def _start_task(self, task: TaskModel):
+    async def _start_task(self, task: TaskModel) -> None:
+        """Start the given task."""
         def on_payload(plugin: Any, payload: Payload) -> None:  # pylint: disable=unused-argument
             for push in task.pushes:
                 self.logger.debug(
@@ -50,13 +53,14 @@ class AsyncEngine(Engine):
                     payload,
                     push
                 )
-                self.loop.call_soon_threadsafe(self._schedule_push, payload, push)
+                self.loop.create_task(self._schedule_push(payload, push))
 
         task.pull.instance.on_payload = on_payload  # type: ignore
 
         while not task.pull.instance.stopped:
             try:
-                if task.pull.instance.supports_async:
+                if task.pull.instance.supports_async \
+                        and isinstance(task.pull.instance, AsyncPullBase):
                     await task.pull.instance.async_pull()
                 else:
                     await self.loop.run_in_executor(None, task.pull.instance.pull)
@@ -84,33 +88,48 @@ class AsyncEngine(Engine):
                     traceback.format_exc()
                 )
             finally:
-                # TODO: Handle pull exit
-                pass
+                await self._handle_pull_exit(task)
 
-    async def _stop_task(self, task):
+    async def _handle_pull_exit(self, task: TaskModel) -> None:
+        if not task.pull.instance.stopped:
+            directive = self.retry_handler.handle_error()
+            if directive.abort:
+                self.logger.error(
+                    "[Task-%s] Pulling of '%s' exited due to retry limitation",
+                    task.name,
+                    task.pull.instance,
+                )
+            else:
+                await asyncio.sleep(directive.wait_for, loop=self.loop)
+
+    async def _stop_task(self, task: TaskModel) -> None:
         await self.loop.run_in_executor(None, task.pull.instance.stop)
 
-    def _schedule_push(self, payload, push):
+    async def _schedule_push(self, payload: Payload, push: PushModel) -> None:
         assert isinstance(push, PushModel)
         assert isinstance(push.instance, PushBase)
 
-        self.loop.run_in_executor(
-            None, PushExecutor().execute,
-            'ident',
+        def _callback(result: Payload, dependency: PushModel) -> None:
+            self.loop.create_task(self._schedule_push(result, dependency))
+
+        await PushExecutor().async_execute(
+            push.instance.name,
             payload,
             push,
-            lambda res, dep: self.loop.call_soon_threadsafe(self._schedule_push, res, dep)
+            _callback
         )
 
-    def _shutdown(self):
+    def _shutdown(self) -> None:
+        assert self.tasks and isinstance(self.tasks, dict)
+
         loop = self.loop
+
         # Optionally show a message if the shutdown may take a while
-        print("Attempting graceful shutdown, press Ctrl+C again to exit...",
-              flush=True)
+        self.logger.info("Attempting graceful shutdown, press Ctrl+C again to exit...")
 
         # Do not show `asyncio.CancelledError` exceptions during shutdown
         # a lot of these may be generated, skip this if you prefer to see them
-        def shutdown_exception_handler(loop, context):
+        def shutdown_exception_handler(loop, context):  # type: ignore
             if "exception" not in context \
                     or not isinstance(context["exception"], asyncio.CancelledError):
                 loop.default_exception_handler(context)
@@ -121,7 +140,10 @@ class AsyncEngine(Engine):
             *[self._stop_task(task) for _, task in self.tasks.items()],
             loop=loop
         )
-        loop.run_until_complete(stop_tasks)
+        if loop.is_running():
+            loop.create_task(stop_tasks)
+        else:
+            loop.run_until_complete(stop_tasks)
 
         # Handle shutdown gracefully by waiting for all tasks to be cancelled
         tasks = asyncio.gather(*asyncio.Task.all_tasks(loop=loop), loop=loop,
@@ -132,4 +154,5 @@ class AsyncEngine(Engine):
         # Keep the event loop running until it is either destroyed or all
         # tasks have really terminated
         while not tasks.done() and not loop.is_closed():
-            loop.run_forever()
+            if not loop.is_running():
+                loop.run_forever()

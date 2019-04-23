@@ -1,18 +1,16 @@
 """Basic stuff for implementing pull plugins."""
-import concurrent
 import multiprocessing as proc
 import time
 from abc import abstractmethod
 from datetime import datetime
 from typing import Any, Callable, Optional
 
-import asyncio
 from schedule import Scheduler  # type: ignore
 
 from .. import Plugin
 from ...typing import Payload
 from ...utils import (auto_str_ignore, parse_duration_literal, StopCycleError,
-                      interruptible_sleep, try_parse_bool, DurationLiteral)
+                      interruptible_sleep, try_parse_bool, DurationLiteral, async_from_sync)
 
 
 @auto_str_ignore(['stopped', '_stopped', 'on_payload'])
@@ -32,6 +30,7 @@ class PullBase(Plugin):
 
     @property
     def supports_async(self) -> bool:
+        """Returns True if the pull supports the asyncio engine; otherwise False."""
         return hasattr(self, 'async_pull')
 
     @abstractmethod
@@ -61,33 +60,26 @@ class PullBase(Plugin):
                 raise StopCycleError()
         interruptible_sleep(sleep_time, callback, interval=0.5)
 
-    def _call_async_pull_from_sync(self):
+
+class AsyncPullBase(PullBase):
+    """
+    Base class for pulls that support the async engine.
+    """
+    def __init__(self, **kwargs: Any):  # pylint: disable=useless-super-delegation
+        # Doesn't work without the useless-super-delegation
+        super().__init__(**kwargs)
+
+    async def async_pull(self) -> None:
+        """Performs the actual data retrieval in a way that is compatible with the async engine."""
+        raise NotImplementedError()
+
+    def _call_async_pull_from_sync(self) -> None:
         """Calls the async pull from a sync context."""
         if not self.supports_async:
             raise RuntimeError(
                 "Cannot run async pull version, cause async implementation is missing")
 
-        async def _wrap(call_result):
-            """
-            Wraps the awaitable with something that puts the result into the
-            result/exception future.
-            """
-            try:
-                result = await self.async_pull()
-            except Exception as e:
-                call_result.set_exception(e)
-            else:
-                call_result.set_result(result)
-
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        call_result = concurrent.futures.Future()
-        try:
-            loop.run_until_complete(_wrap(call_result))
-        finally:
-            loop.close()
-
-        return call_result.result()
+        async_from_sync(self.async_pull)
 
 
 class PollingError(Exception):

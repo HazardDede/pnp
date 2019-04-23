@@ -5,13 +5,15 @@ from abc import abstractmethod
 from datetime import datetime
 from typing import Any, Callable, Optional
 
+import asyncio
 import attr
 
 from ..models import TaskSet, PushModel
+from ..plugins.push import AsyncPushBase
 from ..selector import PayloadSelector
 from ..typing import Payload
 from ..utils import (Loggable, Singleton, parse_duration_literal, DurationLiteral, auto_str,
-                     is_iterable_but_no_str)
+                     is_iterable_but_no_str, async_from_sync)
 from ..validator import Validator
 
 
@@ -31,9 +33,6 @@ class Engine(Loggable):
     A call to to an engine's `run(...)` method will block the calling thread until the engine
     decides the job is done (normally an external SIGTERM occurs)
     """
-    def __init__(self: 'Engine'):
-        pass
-
     def run(self, tasks: TaskSet) -> None:
         """Run the given task set inside the engine."""
         return self._run(tasks)
@@ -174,18 +173,23 @@ class PushExecutor(Loggable, Singleton):
 
     """
 
-    def _execute_internal(self, ident: str, payload: Payload, push: PushModel,
-                          result_callback: Optional[PushResultCallback] = None) -> None:
+    async def _execute_internal(self, ident: str, payload: Payload, push: PushModel,
+                                result_callback: Optional[PushResultCallback] = None) -> None:
         self.logger.debug("[%s] Selector: Applying '%s' to '%s'", ident, push.selector, payload)
-        payload = PayloadSelector.instance.eval_selector(  # pylint: disable=no-member
-            push.selector,
-            copy.deepcopy(payload)
-        )
+        loop = asyncio.get_event_loop()
+        # The selector expression has no async support
+        # pylint: disable=no-member
+        payload = await loop.run_in_executor(None, PayloadSelector.instance.eval_selector,
+                                             push.selector, copy.deepcopy(payload))
+        # pylint: enable=no-member
 
         # Only make the push if the selector wasn't evaluated to suppress the push
         if payload is not PayloadSelector.instance.suppress:  # pylint: disable=no-member
             self.logger.debug("[%s] Emitting '%s' to push '%s'", ident, payload, push.instance)
-            push_result = push.instance.push(payload=payload)
+            if push.instance.supports_async and isinstance(push.instance, AsyncPushBase):
+                push_result = await push.instance.async_push(payload=payload)
+            else:
+                push_result = await loop.run_in_executor(None, push.instance.push, payload)
 
             # Trigger any dependent pushes
             for dependency in push.deps:
@@ -200,7 +204,7 @@ class PushExecutor(Loggable, Singleton):
                     self.logger.debug(
                         "[%s] No callback is given. Recursively process dependencies", ident
                     )
-                    self.execute(ident, push_result, dependency)
+                    await self.async_execute(ident, push_result, dependency)
         else:
             self.logger.debug(
                 "[%s] Selector evaluated to suppress literal. Skipping the push", ident
@@ -222,10 +226,27 @@ class PushExecutor(Loggable, Singleton):
             payload (Any): The payload to pass to the push.
             push (PushModel): The push instance that has to process the payload.
             result_callback (callable): See explanation above.
-
-        Returns:
-            None.
         """
+        async_from_sync(self.async_execute, ident, payload, push, result_callback)
+
+    async def async_execute(self, ident: str, payload: Payload, push: PushModel,
+                            result_callback: Optional[PushResultCallback] = None) -> None:
+        """
+        Executes the given push (in an asynchronous context) by passing the specified payload.
+        In concurrent environments there might be multiple executions in parallel.
+        You may specify an `id` argument to identify related execution steps in the logs.
+        Use the `result_callback` when the engine can take care of dependent pushes as well.
+        The result and a dependent push will be passed via the callback. If the callback is not
+        specified the PushExecute will execute them in a recursive manner.
+
+        Args:
+            ident (str): ID to identify related execution steps in the logs
+                (makes sense in concurrent environments).
+            payload (Any): The payload to pass to the push.
+            push (PushModel): The push instance that has to process the payload.
+            result_callback (callable): See explanation above.
+        """
+
         Validator.is_instance(PushModel, push=push)
 
         if result_callback and not callable(result_callback):
@@ -238,6 +259,6 @@ class PushExecutor(Loggable, Singleton):
             length = len(payload)
             self.logger.debug("[%s] Unwrapping payload to %s individual items", ident, str(length))
             for item in payload:
-                self._execute_internal(ident, item, push, result_callback)
+                await self._execute_internal(ident, item, push, result_callback)
         else:
-            self._execute_internal(ident, payload, push, result_callback)
+            await self._execute_internal(ident, payload, push, result_callback)
