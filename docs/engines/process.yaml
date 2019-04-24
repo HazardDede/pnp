@@ -1,7 +1,7 @@
 # Will use multiprocessing to accomplish concurrency
 # Drawback: Some plugins might not work or need to be aware of
 engine: !engine
-  type: pnp.engines.process.ProcessEngine
+  type: pnp.engines.ProcessEngine
   queue_worker: 1
   retry_handler: !retry
     type: pnp.engines.SimpleRetryHandler

@@ -124,7 +124,7 @@ Back to our example let's assume we want to print out the path to the created fi
 As you can see we just add a dependant push to the previous one.
 
 
-### Envelope (>= 0.7.1)
+### Envelope (0.7.1+)
 
 Using envelopes it is possible to change the behaviour of `pushes` during runtime.
 Best examples are the `pnp.plugins.push.fs.FileDump` and `pnp.plugins.push.mqtt.MQTTPush` plugins, where
@@ -186,7 +186,7 @@ If you need the selector to augment your list, use a `push.simple.Nop` with `unw
 !INCLUDECODE "config/readme/07_unwrapping_nop.yaml" (yaml)
 
 
-### Engines (>= 0.10.0)
+### Engines (0.10.0+)
 
 !INCLUDE "docs/engines/index.md", 3
 
@@ -201,7 +201,7 @@ the initializer but not execute the configuration.
 pnp --check <pnp_configuration>
 ```
 
-### Logging (>= 0.11.0)
+### Logging (0.11.0+)
 
 You can use different logging configurations in two ways:
 
@@ -218,7 +218,7 @@ A simple logging configuration that will log severe errors to a separate rotatin
 !INCLUDECODE "config/logging/severe.logging" (yaml)
 
 
-### dictmentor (>= 0.11.0)
+### dictmentor (0.11.0+)
 
 You can augment the configuration by extensions from the `dictmentor` package.
 Please see [DictMentor](https://github.com/HazardDede/dictmentor) for further reference.
@@ -242,7 +242,7 @@ Example:
 
 !INCLUDECODE "config/dictmentor/nop.pull" (yaml)
 
-### Advanced selector expressions (>= 0.12.0)
+### Advanced selector expressions (0.12.0+)
 
 Instead of string-only selector expressions, you may now use complex dictionary and/or list constructs in your yaml
 to define a selector expression. If you use a dictionary or a list make sure to provide "real" selectors as a
@@ -275,7 +275,7 @@ Additional example:
 
 !INCLUDECODE "config/03_lambda_selector.yaml" (yaml)
 
-### UDF Throttle (>= 0.15.0)
+### UDF Throttle (0.15.0+)
 
 Consider the following situation: You have a selector that uses a udf to fetch a state from an external system.
 The state won't change so often, but your selector will fetch the state every time a pull transports a payload to

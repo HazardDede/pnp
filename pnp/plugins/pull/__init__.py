@@ -1,16 +1,18 @@
 """Basic stuff for implementing pull plugins."""
 import multiprocessing as proc
-import time
 from abc import abstractmethod
 from datetime import datetime
 from typing import Any, Callable, Optional
 
+import asyncio
 from schedule import Scheduler  # type: ignore
 
 from .. import Plugin
+from ...shared.async_ import async_from_sync
+from ...shared.async_ import async_sleep_until_interrupt
 from ...typing import Payload
-from ...utils import (auto_str_ignore, parse_duration_literal, StopCycleError,
-                      interruptible_sleep, try_parse_bool, DurationLiteral, async_from_sync)
+from ...utils import (auto_str_ignore, parse_duration_literal, try_parse_bool, DurationLiteral,
+                      sleep_until_interrupt)
 
 
 @auto_str_ignore(['stopped', '_stopped', 'on_payload'])
@@ -55,10 +57,7 @@ class PullBase(Plugin):
 
     def _sleep(self, sleep_time: float = 10) -> None:
         """Call in subclass to perform some sleeping."""
-        def callback() -> None:
-            if self.stopped:
-                raise StopCycleError()
-        interruptible_sleep(sleep_time, callback, interval=0.5)
+        sleep_until_interrupt(sleep_time, lambda: self.stopped, interval=0.5)
 
 
 class AsyncPullBase(PullBase):
@@ -81,6 +80,12 @@ class AsyncPullBase(PullBase):
 
         async_from_sync(self.async_pull)
 
+    async def _async_sleep(self, sleep_time: float = 10) -> None:
+        """Call in subclass to perform some sleeping."""
+        async def _interrupt() -> bool:
+            return self.stopped
+        await async_sleep_until_interrupt(sleep_time, _interrupt, interval=0.5)
+
 
 class PollingError(Exception):
     """Base class for errors that occur during polling."""
@@ -91,7 +96,7 @@ class StopPollingError(Exception):
 
 
 @auto_str_ignore(['_scheduler'])
-class Polling(PullBase):
+class Polling(AsyncPullBase):
     """
     Base class for polling plugins.
 
@@ -113,10 +118,14 @@ class Polling(PullBase):
             self._cron_interval = CronExpression(interval)
             self.is_cron = True
 
+        self._is_running = False
         self._scheduler = None  # type: Optional[Scheduler]
         self._instant_run = try_parse_bool(instant_run, False)
 
     def pull(self) -> None:
+        self._call_async_pull_from_sync()
+
+    async def async_pull(self) -> None:
         self._scheduler = Scheduler()
         self._configure_scheduler(self._scheduler, self._run_schedule)
 
@@ -125,16 +134,37 @@ class Polling(PullBase):
 
         while not self.stopped:
             self._scheduler.run_pending()
-            time.sleep(0.5)
+            await self._async_sleep(0.5)
+
+        while self._is_running:  # Keep the loop alive until the job is finished
+            await asyncio.sleep(0.5)
 
     def _run_schedule(self) -> None:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            asyncio.run_coroutine_threadsafe(self._async_run_schedule(), loop=loop)
+
+    async def _async_run_schedule(self) -> None:
+        if self._is_running:
+            self.logger.warning("Polling job is still running. Skipping current run")
+            return
+
         try:
             if self.is_cron:
                 dtime = datetime.now()
                 if not self._cron_interval.check_trigger((dtime.year, dtime.month,
                                                           dtime.day, dtime.hour, dtime.minute)):
                     return  # It is not the time for the cron to trigger
-            payload = self.poll()
+
+            self._is_running = True
+            try:
+                if isinstance(self, AsyncPolling) and hasattr(self, 'async_poll'):
+                    payload = await self.async_poll()  # pylint: disable=no-member
+                else:
+                    payload = await asyncio.get_event_loop().run_in_executor(None, self.poll)
+            finally:
+                self._is_running = False
+
             if payload is not None:
                 self.notify(payload)
         except StopPollingError:
@@ -165,11 +195,38 @@ class Polling(PullBase):
             scheduler.every(self._poll_interval).seconds.do(callback)
 
     @abstractmethod
-    def poll(self) -> None:
+    def poll(self) -> Payload:
         """
         Implement in plugin components to do the actual polling.
 
         Returns: Returns the data for the downstream pipeline.
+        """
+        raise NotImplementedError()  # pragma: no cover
 
+
+class AsyncPolling(Polling):
+    """
+    Base class for polling plugins who can poll asynchronous.
+
+    You may specify duration literals such as 60 (60 secs), 1m, 1h (...) to realize a periodic
+    polling or cron expressions (*/1 * * * * > every min) to realize cron like behaviour.
+    """
+    def __init__(self, **kwargs: Any):
+        super().__init__(**kwargs)
+
+    def _call_async_poll_from_sync(self) -> Payload:
+        """Calls the async pull from a sync context."""
+        if isinstance(self, AsyncPolling) and hasattr(self, 'async_poll'):
+            raise RuntimeError(
+                "Cannot run async poll version, cause async implementation is missing.")
+
+        return async_from_sync(self.async_poll)
+
+    @abstractmethod
+    async def async_poll(self) -> Payload:
+        """
+        Implement in plugin components to do the actual polling.
+
+        Returns: Returns the data for the downstream pipeline.
         """
         raise NotImplementedError()  # pragma: no cover

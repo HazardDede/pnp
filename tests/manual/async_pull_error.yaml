@@ -1,0 +1,11 @@
+engine: !engine
+  type: pnp.engines.async_.AsyncEngine
+  retry_handler: !retry
+    type: pnp.engines.LimitedRetryHandler
+    retry_wait: "5s"
+tasks:
+  - name: pull_error
+    pull:
+      plugin: tests.manual.plugins.ErroneousPull
+    push:
+      - plugin: pnp.plugins.push.simple.Echo

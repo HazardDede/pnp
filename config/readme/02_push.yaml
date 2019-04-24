@@ -1,4 +1,3 @@
----
 - name: example
   pull:
     plugin: pnp.plugins.pull.mqtt.Subscribe

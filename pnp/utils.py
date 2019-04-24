@@ -8,15 +8,14 @@ import re
 import time
 from base64 import b64encode
 from collections import OrderedDict
-from concurrent.futures import ThreadPoolExecutor, Future
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 from functools import partial
 from functools import wraps
 from threading import Timer
-from typing import Union, Any, Optional, Iterable, Pattern, Dict, Callable, cast, Set, List, \
-    Hashable, Tuple
+from typing import (Union, Any, Optional, Iterable, Pattern, Dict, Callable, cast, Set, List,
+                    Hashable, Tuple)
 
-import asyncio
 from binaryornot.check import is_binary  # type: ignore
 from box import Box, BoxKeyError  # type: ignore
 
@@ -37,31 +36,6 @@ class EvaluationError(Exception):
 
 class StopCycleError(Exception):
     """A callback of interruptible_sleep should call this, when the sleep should be interrupted."""
-
-
-def async_from_sync(fun: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
-    """Calls an async function from a sync context."""
-    async def _wrap(call_result: Any) -> None:
-        """
-        Wraps the awaitable with something that puts the result into the
-        result/exception future.
-        """
-        try:
-            result = await fun(*args, **kwargs)
-        except Exception as exc:  # pylint: disable=broad-except
-            call_result.set_exception(exc)
-        else:
-            call_result.set_result(result)
-
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    call_result = Future()  # type: Any
-    try:
-        loop.run_until_complete(_wrap(call_result))
-    finally:
-        loop.close()
-
-    return call_result.result()
 
 
 def make_list(item_or_items: Any) -> Optional[List[Any]]:
@@ -229,7 +203,6 @@ def is_iterable_but_no_str(candidate: Any) -> bool:
 
 def interruptible_sleep(wait: float, callback: Callable[[], None], interval: float = 0.5) -> None:
     """
-
     Waits the specified amount of time. The waiting can be interrupted when the callback raises a
     `StopCycleError`. The argument `interval` defines after how much wait time the callback
     should be called.
@@ -254,15 +227,17 @@ def interruptible_sleep(wait: float, callback: Callable[[], None], interval: flo
     Args:
         wait (float): Wait for this amount of time, if not interrupted (same semantics as in
             `time.sleep(wait)`.
+        callback: Callback that should raise an `StopCycleError` if the sleeps should be
+            interrupted.
         interval (float): How often the callback should be called.
 
     Returns:
         None
     """
-    wait = float(wait)
-    interval = float(interval)
+    def _cycles() -> int:
+        return int(float(wait) // float(interval))
 
-    complete_cycles = int(wait // interval)
+    complete_cycles = _cycles()
     try:
         for _ in range(0, complete_cycles):
             callback()  # Should raise a StopCycleError error when waiting should be aborted

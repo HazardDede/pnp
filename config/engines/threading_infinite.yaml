@@ -1,5 +1,5 @@
 engine: !engine
-  type: pnp.engines.thread.ThreadEngine
+  type: pnp.engines.ThreadEngine
   queue_worker: 1
   retry_handler: !retry
     type: pnp.engines.SimpleRetryHandler

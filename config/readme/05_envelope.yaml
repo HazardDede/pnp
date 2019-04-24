@@ -1,4 +1,3 @@
----
 - name: envelope
   pull:
     plugin: pnp.plugins.pull.simple.Count
