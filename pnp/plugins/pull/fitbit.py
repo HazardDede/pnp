@@ -163,8 +163,10 @@ class Current(_FitbitBase):
 
     async def async_poll(self):
         loop = asyncio.get_event_loop()
+        coros = [loop.run_in_executor(None, self._call, res) for res in self._resources]
+        results = await asyncio.gather(*coros)
         return transform_dict_items({
-            res: await loop.run_in_executor(None, self._call, res) for res in self._resources
+            res: results[i] for i, res in enumerate(self._resources)
         }, keys_fun=camel_to_snake)
 
 
@@ -240,6 +242,8 @@ class Goal(_FitbitBase):
 
     async def async_poll(self):
         loop = asyncio.get_event_loop()
+        coros = [loop.run_in_executor(None, self._call, goal) for goal in self._goals]
+        results = await asyncio.gather(*coros)
         return transform_dict_items({
-            goal: await loop.run_in_executor(None, self._call, goal) for goal in self._goals
+            goal: results[i] for i, goal in enumerate(self._goals)
         }, keys_fun=camel_to_snake)
