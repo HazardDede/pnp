@@ -1,8 +1,10 @@
 """MQTT related plugins."""
 
 from . import PullBase
+from ...utils import auto_str_ignore
 
 
+@auto_str_ignore(['password'])
 class Subscribe(PullBase):
     """
     Pulls messages from the specified topic from the given mosquitto mqtt

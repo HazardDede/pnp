@@ -97,6 +97,13 @@ class AsyncEngine(Engine):
                 )
                 task.pull.instance.stop()
             else:
+                self.logger.info(
+                    "[Task-%s] Pulling of '%s' will restart in %s seconds",
+                    task.name,
+                    task.pull.instance,
+                    directive.wait_for
+                )
+
                 async def _interrupt() -> bool:
                     return task.pull.instance.stopped
                 await async_sleep_until_interrupt(directive.wait_for, _interrupt)

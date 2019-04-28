@@ -9,6 +9,15 @@ from .base import (Engine, RetryDirective, RetryHandler, NoRetryHandler, SimpleR
                    LimitedRetryHandler, AdvancedRetryHandler, PushExecutor, NotSupportedError)
 
 
+DEFAULT_ENGINES = {
+    'async': AsyncEngine(retry_handler=AdvancedRetryHandler()),
+    'process': ProcessEngine(queue_worker=3, retry_handler=AdvancedRetryHandler()),
+    'thread': ThreadEngine(queue_worker=3, retry_handler=AdvancedRetryHandler()),
+    'sequential': SequentialEngine(retry_handler=AdvancedRetryHandler())
+}
+
+
 __all__ = ['Engine', 'AsyncEngine', 'ProcessEngine', 'SequentialEngine', 'ThreadEngine',
            'RetryDirective', 'RetryHandler', 'NoRetryHandler', 'SimpleRetryHandler',
-           'LimitedRetryHandler', 'AdvancedRetryHandler', 'PushExecutor', 'NotSupportedError']
+           'LimitedRetryHandler', 'AdvancedRetryHandler', 'PushExecutor', 'NotSupportedError',
+           'DEFAULT_ENGINES']
