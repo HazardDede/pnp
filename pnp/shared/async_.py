@@ -1,9 +1,9 @@
 """Asyncio helper."""
 
-from concurrent.futures import Future
 from typing import Callable, Any, Coroutine
 
 import asyncio
+from syncasync import async_to_sync  # type: ignore
 
 from ..utils import StopCycleError
 from ..validator import Validator
@@ -12,31 +12,7 @@ from ..validator import Validator
 def async_from_sync(fun: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
     """Calls an async function from a synchronous context."""
 
-    async def _wrap(call_result: Any) -> None:
-        """
-        Wraps the awaitable with something that puts the result into the
-        result/exception future.
-        """
-        try:
-            result = await fun(*args, **kwargs)
-        except Exception as exc:  # pylint: disable=broad-except
-            call_result.set_exception(exc)
-        else:
-            call_result.set_result(result)
-
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    call_result = Future()  # type: Any
-    try:
-        loop.run_until_complete(_wrap(call_result))
-    finally:
-        try:
-            if hasattr(loop, "shutdown_asyncgens"):
-                loop.run_until_complete(loop.shutdown_asyncgens())  # type: ignore
-        finally:
-            loop.close()
-
-    return call_result.result()
+    return async_to_sync(fun)(*args, **kwargs)
 
 
 async def async_interruptible_sleep(wait: float,
