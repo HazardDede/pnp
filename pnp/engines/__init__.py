@@ -13,7 +13,7 @@ DEFAULT_ENGINES = {
     'async': AsyncEngine(retry_handler=AdvancedRetryHandler()),
     'process': ProcessEngine(queue_worker=3, retry_handler=AdvancedRetryHandler()),
     'thread': ThreadEngine(queue_worker=3, retry_handler=AdvancedRetryHandler()),
-    'sequential': SequentialEngine(retry_handler=AdvancedRetryHandler())
+    'sequential': SequentialEngine(retry_handler=NoRetryHandler())
 }
 
 
