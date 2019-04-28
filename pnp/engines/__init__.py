@@ -10,10 +10,10 @@ from .base import (Engine, RetryDirective, RetryHandler, NoRetryHandler, SimpleR
 
 
 DEFAULT_ENGINES = {
-    'async': AsyncEngine(retry_handler=AdvancedRetryHandler()),
-    'process': ProcessEngine(queue_worker=3, retry_handler=AdvancedRetryHandler()),
-    'thread': ThreadEngine(queue_worker=3, retry_handler=AdvancedRetryHandler()),
-    'sequential': SequentialEngine(retry_handler=NoRetryHandler())
+    'async': lambda: AsyncEngine(retry_handler=AdvancedRetryHandler()),
+    'process': lambda: ProcessEngine(queue_worker=3, retry_handler=AdvancedRetryHandler()),
+    'thread': lambda: ThreadEngine(queue_worker=3, retry_handler=AdvancedRetryHandler()),
+    'sequential': lambda: SequentialEngine(retry_handler=NoRetryHandler())
 }
 
 

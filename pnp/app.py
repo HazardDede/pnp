@@ -48,10 +48,10 @@ class Application(Loggable):
             task.name: TaskModel.from_dict(task, base_path) for task in task_cfg
         }
         if engine_override:
-            engine = DEFAULT_ENGINES[engine_override]
+            engine = DEFAULT_ENGINES[engine_override]()
         elif engine is None:
             # Backward compatibility
-            engine = DEFAULT_ENGINES['thread']
+            engine = DEFAULT_ENGINES['thread']()
         if udfs is not None:
             udfs = [UDFModel.from_config(udf) for udf in udfs]
             PayloadSelector.instance.register_udfs(udfs)  # pylint: disable=no-member
