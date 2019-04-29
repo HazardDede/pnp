@@ -1,5 +1,5 @@
 """Basic push plugins."""
-
+import asyncio
 from functools import partial
 
 from . import PushBase, enveloped, AsyncPushBase
@@ -147,6 +147,25 @@ class Execute(PushBase):
         finally:
             proc.stdout.close()
             proc.stderr.close()
+
+    async def _async_execute(self, command_str):
+        def _output(response):
+            return [line.strip('\n\r') for line in response]
+
+        # TODO: cwd
+        proc = await asyncio.create_subprocess_shell(
+            cmd=command_str,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+
+        # TODO: timeout
+        stdout, stderr = await proc.communicate()
+
+        res = {'return_code': proc.returncode}
+        if self._capture:
+            res = {**res, 'stdout': _output(stdout), 'stderr': _output(stderr)}
+        return res
 
     def push(self, payload):
         if isinstance(payload, dict):
