@@ -7,6 +7,7 @@ from typing import Any, Callable, Optional, Dict, Iterable, Union, cast, List, T
 
 from .. import Plugin
 from ... import utils
+from ...shared.async_ import async_from_sync
 from ...typing import Envelope, Payload
 from ...validator import Validator
 
@@ -240,6 +241,14 @@ class AsyncPushBase(PushBase):
     def __init__(self, **kwargs: Any):  # pylint: disable=useless-super-delegation
         # Doesn't work without the useless-super-delegation
         super().__init__(**kwargs)
+
+    def _call_async_push_from_sync(self) -> None:
+        """Calls the async pull from a sync context."""
+        if not self.supports_async:
+            raise RuntimeError(
+                "Cannot run async push version, cause async implementation is missing")
+
+        async_from_sync(self.async_push)
 
     async def async_push(self, payload: Payload) -> Payload:
         """Performs the push in an asynchronous compatible (non-blocking) way."""

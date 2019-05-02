@@ -1,8 +1,9 @@
 """Basic push plugins."""
-import asyncio
 from functools import partial
 
-from . import PushBase, enveloped, AsyncPushBase
+import asyncio
+
+from . import enveloped, AsyncPushBase
 from ...shared.exc import TemplateError
 from ...utils import parse_duration_literal, make_list
 from ...validator import Validator
@@ -63,7 +64,7 @@ class Nop(AsyncPushBase):
         return self.push(payload)
 
 
-class Execute(PushBase):
+class Execute(AsyncPushBase):
     """
     Executes a command with given arguments in a shell of the operating system.
     Both `command` and `args` may include placeholders (e.g. `{{placeholder}}`) which are injected
@@ -121,46 +122,20 @@ class Execute(PushBase):
         args = [arg for arg in args if arg != '']
         return " ".join(args)
 
-    def _execute(self, command_str):
-        def _output(response):
-            return [line.strip('\n\r') for line in response]
-
-        import subprocess
-        self.logger.info("Running command in shell: %s", command_str)
-        proc = subprocess.Popen(
-            args=command_str,
-            shell=True,
-            cwd=self._cwd,
-            universal_newlines=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        try:
-            if self._timeout:
-                proc.wait(timeout=int(self._timeout))
-
-            res = dict(return_code=proc.returncode)
-            if self._capture:
-                res['stdout'] = _output(proc.stdout)
-                res['stderr'] = _output(proc.stderr)
-            return res
-        finally:
-            proc.stdout.close()
-            proc.stderr.close()
-
     async def _async_execute(self, command_str):
         def _output(response):
-            return [line.strip('\n\r') for line in response]
+            response = response.decode('utf-8')
+            # Does this work for windows as well?!
+            return [line for line in response.split('\n') if line]
 
-        # TODO: cwd
         proc = await asyncio.create_subprocess_shell(
             cmd=command_str,
             stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
+            stderr=asyncio.subprocess.PIPE,
+            cwd=self._cwd,
         )
 
-        # TODO: timeout
-        stdout, stderr = await proc.communicate()
+        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=int(self._timeout))
 
         res = {'return_code': proc.returncode}
         if self._capture:
@@ -168,6 +143,9 @@ class Execute(PushBase):
         return res
 
     def push(self, payload):
+        return self._call_async_push_from_sync()
+
+    async def async_push(self, payload):
         if isinstance(payload, dict):
             subs = payload
         else:
@@ -181,4 +159,4 @@ class Execute(PushBase):
             )
             command_str = "{command_str} {args}".format(command_str=command_str, args=args)
 
-        return self._execute(command_str)
+        return await self._async_execute(command_str)
