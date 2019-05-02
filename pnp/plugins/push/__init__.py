@@ -242,13 +242,13 @@ class AsyncPushBase(PushBase):
         # Doesn't work without the useless-super-delegation
         super().__init__(**kwargs)
 
-    def _call_async_push_from_sync(self) -> None:
+    def _call_async_push_from_sync(self, payload) -> None:
         """Calls the async pull from a sync context."""
         if not self.supports_async:
             raise RuntimeError(
                 "Cannot run async push version, cause async implementation is missing")
 
-        async_from_sync(self.async_push)
+        async_from_sync(self.async_push, payload=payload)
 
     async def async_push(self, payload: Payload) -> Payload:
         """Performs the push in an asynchronous compatible (non-blocking) way."""
