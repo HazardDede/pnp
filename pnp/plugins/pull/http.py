@@ -124,11 +124,11 @@ class Server(PullBase):
 
         """
         def _make_flat(item):
+            if not item:
+                return None
             if not isinstance(item, list):
                 return item
             # item -> list
-            if not item:
-                return None
             if len(item) == 1:
                 return item[0] if item[0] else None  # Empty string -> None
             return [x if x else None for x in item]
