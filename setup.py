@@ -70,7 +70,7 @@ setup(
     ],
     extras_require={
         'dht': ['Adafruit_DHT>=1.3.2'],
-        'dropbox': ['dropbox>=9.0.0', 'urllib3>=1.20'],
+        'dropbox': ['dropbox>=9.0.0', 'urllib3<1.25,>=1.20'],
         'faceR': ['image>=1.5.24', 'face-recognition>=1.2.2'],
         'fitbit': ['fitbit>=0.3.0'],
         'fswatcher': ['watchdog>=0.8.3'],
@@ -79,7 +79,7 @@ setup(
         'gpio': ['RPi.GPIO>=0.6.5'],
         'http-server': ['Flask>=1.0.2', 'gevent>=1.3.4'],
         'miflora': ['miflora>=0.4.0'],
-        'pushbullet': ['pushbullet.py>=0.10.0', 'urllib3>=1.20'],
+        'pushbullet': ['pushbullet.py>=0.10.0', 'urllib3<1.25,>=1.20'],
         'sound': ['PyAudio>=0.2.11', 'scipy>=1.2.0']
     },
     python_requires='>=3.5',
