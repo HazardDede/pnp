@@ -65,6 +65,7 @@ setup(
         'ruamel.yaml>=0.15.37',
         'schedule>=0.5.0',
         'schema>=0.6.7',
+        'typing-extensions>=3.7.2',
         'tzlocal>=1.5.0'
     ],
     extras_require={
