@@ -3122,6 +3122,10 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 
     pip install pnp==0.10.0
 
+**0.17.1**
+* Fixes missing typing-extensions dependency
+* Fixes urllib3 versions due to requests incompatibilities
+
 **0.17.0**
 * Adjusts inline documentation - refers to github documentation
 * Refactors a majority of codebase to comply to pylint linter
