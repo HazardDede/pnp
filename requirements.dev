@@ -5,7 +5,7 @@ MarkdownPP==1.4
 mock
 mypy
 pylint>=2.2.2
-pytest>=3.6
+pytest<=4.6.5
 pytest-cov
 setuptools
 twine
