@@ -3122,6 +3122,9 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 
     pip install pnp==0.10.0
 
+**0.18.0**
+* Integrates an asyncio featured/powered engine. I think this will be the default in the future. Stay tuned!
+
 **0.17.1**
 * Fixes missing typing-extensions dependency
 * Fixes urllib3 versions due to requests incompatibilities
