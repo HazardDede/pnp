@@ -1,4 +1,3 @@
----
 udfs:
   - name: count  # Instantiate a Counter user defined function
     plugin: pnp.plugins.udf.simple.Counter

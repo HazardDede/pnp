@@ -1,10 +1,11 @@
+# Will use asyncio to accomplish concurrency
+
 engine: !engine
-  type: pnp.engines.ThreadEngine
-  queue_worker: 1
+  type: pnp.engines.AsyncEngine
   retry_handler: !retry
     type: pnp.engines.SimpleRetryHandler
 tasks:
-  - name: threading
+  - name: async
     pull:
       plugin: pnp.plugins.pull.simple.Repeat
       args:

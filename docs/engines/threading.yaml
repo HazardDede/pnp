@@ -1,7 +1,7 @@
 # Will use threads to accomplish concurrency
 # Drawback: If a plugin does not stop gracefully the termination will hang...
 engine: !engine
-  type: pnp.engines.thread.ThreadEngine
+  type: pnp.engines.ThreadEngine
   queue_worker: 1
   retry_handler: !retry
     type: pnp.engines.SimpleRetryHandler

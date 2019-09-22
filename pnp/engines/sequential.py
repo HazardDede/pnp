@@ -3,8 +3,8 @@
 import multiprocessing
 from typing import Optional
 
-from . import (Engine, RetryHandler, PushExecutor, NotSupportedError, SimpleRetryHandler,
-               NoRetryHandler)
+from .base import (Engine, RetryHandler, PushExecutor, NotSupportedError, SimpleRetryHandler,
+                   NoRetryHandler)
 from ..models import TaskSet, TaskModel
 from ..typing import Payload
 from ..utils import sleep_until_interrupt

@@ -1,12 +1,14 @@
 """Pull 'n' Push
 
 Usage:
-  pnp [(-c | --check)] [(-v | --verbose)] [--log=<log_conf>] <configuration>
+  pnp [(--engine=<engine>)] [(-v | --verbose)] [--log=<log_conf>] <configuration>
+  pnp (-c | --check) <configuration>
   pnp (-h | --help)
   pnp --version
 
 Options:
   -c --check        Only check configuration and do not run it.
+  --engine=<engine> Override engine from configuration file (thread, process, sequential, async).
   -v --verbose      Switches log level to debug.
   --log=<log_conf>  Specify logging configuration to load.
   -h --help         Show this screen.
@@ -22,6 +24,7 @@ from ruamel import yaml
 from schema import Schema, Use, And, Or
 
 from ..app import Application
+from ..engines import DEFAULT_ENGINES
 from ..utils import get_first_existing_file
 
 
@@ -45,11 +48,19 @@ def _setup_logging(*candidates, default_level=logging.INFO, env_key='PNP_LOG_CON
 
 
 def _validate_args(args):
+    possible_engines = list(DEFAULT_ENGINES.keys())
+    engine_schema = Or(
+        None,
+        And(Use(str), lambda n: n in possible_engines,
+            error='Not a valid engine. Use one of {}'.format(list(possible_engines)))
+    )
+
     validator = Schema({
         "--help": Use(bool),
         "--verbose": Use(bool),
         "--version": Use(str),
         "--check": Use(bool),
+        "--engine": engine_schema,
         "--log": Or(None, And(os.path.isfile, Use(os.path.abspath))),
         "<configuration>": And(os.path.isfile, Use(os.path.abspath))
     })
@@ -65,7 +76,7 @@ def run(args):
         args['--log'], 'logging.yaml', os.path.join(os.path.dirname(pnp_cfg_path), 'logging.yaml'),
         default_level=default_log_level, verbose=validated['--verbose']
     )
-    app = Application.from_file(pnp_cfg_path)
+    app = Application.from_file(pnp_cfg_path, engine_override=validated['--engine'])
     if not validated['--check']:
         app.start()
 

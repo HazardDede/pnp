@@ -7,7 +7,7 @@ import time
 from queue import Queue
 from typing import Any, Optional, cast, List
 
-from . import RetryHandler, PushExecutor, Engine, SimpleRetryHandler
+from .base import RetryHandler, PushExecutor, Engine, SimpleRetryHandler
 from ..models import TaskModel, TaskSet
 from ..typing import Payload, QueuePutGet, StopSignal, ThreadLike
 from ..utils import Loggable, auto_str, auto_str_ignore, sleep_until_interrupt

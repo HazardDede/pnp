@@ -4,8 +4,7 @@ import os
 from typing import Optional
 
 from .config import load_config
-from .engines import Engine, AdvancedRetryHandler
-from .engines.thread import ThreadEngine
+from .engines import Engine, DEFAULT_ENGINES
 from .models import TaskSet, TaskModel, UDFModel, tasks_to_str
 from .selector import PayloadSelector
 from .shared.exc import NoEngineError
@@ -31,16 +30,28 @@ class Application(Loggable):
         self._engine = engine
 
     @classmethod
-    def from_file(cls, file_path: str) -> 'Application':
-        """Loads the application from a configuration file."""
+    def from_file(cls, file_path: str, engine_override: Optional[str] = None) -> 'Application':
+        """
+        Loads the application from a configuration file.
+
+        Args:
+            file_path (str): Where the configuration file is located.
+            engine_override (str): If given overwrites the engine that is specified inside the
+                configuration file.
+        """
+        Validator.one_of(list(DEFAULT_ENGINES.keys()), allow_none=True,
+                         engine_override=engine_override)
+
         udfs, engine, task_cfg = load_config(file_path)
         base_path = os.path.dirname(file_path)
         tasks = {
             task.name: TaskModel.from_dict(task, base_path) for task in task_cfg
         }
-        if engine is None:
+        if engine_override:
+            engine = DEFAULT_ENGINES[engine_override]()
+        elif engine is None:
             # Backward compatibility
-            engine = ThreadEngine(queue_worker=3, retry_handler=AdvancedRetryHandler())
+            engine = DEFAULT_ENGINES['thread']()
         if udfs is not None:
             udfs = [UDFModel.from_config(udf) for udf in udfs]
             PayloadSelector.instance.register_udfs(udfs)  # pylint: disable=no-member

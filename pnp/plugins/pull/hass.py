@@ -5,12 +5,12 @@ import json
 
 import asyncws
 
-from . import PullBase
+from . import AsyncPullBase
 from ...utils import make_list, auto_str_ignore, include_or_exclude, wildcards_to_regex
 
 
 @auto_str_ignore(['token', '_websocket', '_loop', '_include_regex', '_exclude_regex'])
-class State(PullBase):
+class State(AsyncPullBase):
     """
     Connects to the home assistant websocket api and listens for state changes.
     If no include or exclude is defined it will report all state changes.
@@ -60,7 +60,7 @@ class State(PullBase):
     def _emit(self, message):
         payload = self._layout_message(message)
         if include_or_exclude(payload['entity_id'], self._include_regex, self._exclude_regex):
-            self.on_payload(self, payload)  # pylint: disable=too-many-function-args
+            self.notify(payload)
 
     async def _receive_states(self):
         self._websocket = await asyncws.connect('{self.url}/api/websocket'.format(**locals()))
@@ -68,6 +68,8 @@ class State(PullBase):
         while True:
             message = await self._websocket.recv()
             if message is None:
+                await self._websocket.close()
+                self._websocket = None
                 break
             message = json.loads(message)
             if message.get('type', '') == 'auth_required':
@@ -98,20 +100,12 @@ class State(PullBase):
 
     def stop(self):
         super().stop()
-        if self._loop:
+        if self._loop and self._websocket:
             asyncio.run_coroutine_threadsafe(self._websocket.close(), self._loop)
 
     def pull(self):
-        try:
-            self._loop = asyncio.get_event_loop()
-            is_new = False
-        except RuntimeError:
-            self._loop = asyncio.new_event_loop()
-            is_new = True
-        try:
-            self._loop.run_until_complete(self._receive_states())
-        finally:
-            if is_new:
-                self._loop.close()
-            self._loop = None
-            self._websocket = None
+        self._call_async_pull_from_sync()
+
+    async def async_pull(self):
+        self._loop = asyncio.get_event_loop()
+        await self._receive_states()

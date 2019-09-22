@@ -2,7 +2,16 @@
 
 PACKAGE=$(dirname `which $0`)
 
+# Import helper
 . ${PACKAGE}/util
+
+function help {
+    if [ ! -z "$1" ]; then
+        echo "$1"
+    fi
+    echo "Usage: $0 pyVersion"
+    echo "- pyVersion: Python version to ramp up (e.g. 3.5, 3.6, ...)"
+}
 
 function run() {
     VERSION=$1
@@ -12,7 +21,14 @@ function run() {
     docker run -it --rm \
         -v ${SOURCE}:/src \
         python:${VERSION}-stretch \
-        bash -c "cd /src && pip install -e .[ftp] && pip install -r requirements.dev && bash"
+        bash -c "cd /src && pip install -e .[dropbox,fitbit,fswatcher,ftp,gmail,http-server,miflora,pushbullet] && pip install -r requirements.dev && bash"
 }
 
-run 3.5
+PYVERSION=$1
+
+if [ -z "$PYVERSION" ]; then
+    help "Please specify the python version"
+    exit 1
+fi
+
+run ${PYVERSION}

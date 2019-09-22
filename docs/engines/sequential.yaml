@@ -1,7 +1,7 @@
 # Simple sequential handler
 # Counts from 1 to 3 and then terminates
 engine: !engine
-  type: pnp.engines.sequential.SequentialEngine
+  type: pnp.engines.SequentialEngine
   retry_handler: !retry
     # Is the key to termination after counting has finished
     type: pnp.engines.NoRetryHandler

@@ -1,18 +1,20 @@
 If you do not specify any engine the `ThreadEngine` is chosen by default accompanied by the `AdvancedRetryHandler`.
 This keeps maximum backwards compatibility.
 
-# pnp.engines.sequential.SequentialEngine
+Remark: This will probably change in the near future in favor to the `AsyncEngine`.
+
+# pnp.engines.SequentialEngine
 
 By using the `Sequential` engine you can run your configs as scripts. Given the example below, the "script" will
 end when it has finished counting to 3. Make sure to use the `NoRetryHandler` to actually end the runner when
 the pull has finished instead of retrying the "failed" `pull`. You cn only run a single task not multiple.
-When you want to run multiple task in a concurrent manner you have to use the `ThreadEngine` or the `ProcessEngine`.
+When you want to run multiple task in a concurrent manner you have to use the `ThreadEngine`, `ProcessEngine` or `AsyncEngine`.
 
 ```yaml
 # Simple sequential handler
 # Counts from 1 to 3 and then terminates
 engine: !engine
-  type: pnp.engines.sequential.SequentialEngine
+  type: pnp.engines.SequentialEngine
   retry_handler: !retry
     # Is the key to termination after counting has finished
     type: pnp.engines.NoRetryHandler
@@ -29,13 +31,13 @@ tasks:
 
 ```
 
-# pnp.engines.thread.ThreadEngine
+# pnp.engines.ThreadEngine
 
 ```yaml
 # Will use threads to accomplish concurrency
 # Drawback: If a plugin does not stop gracefully the termination will hang...
 engine: !engine
-  type: pnp.engines.thread.ThreadEngine
+  type: pnp.engines.ThreadEngine
   queue_worker: 1
   retry_handler: !retry
     type: pnp.engines.SimpleRetryHandler
@@ -51,18 +53,39 @@ tasks:
 
 ```
 
-# pnp.engines.process.ProcessEngine
+# pnp.engines.ProcessEngine
 
 ```yaml
 # Will use multiprocessing to accomplish concurrency
 # Drawback: Some plugins might not work or need to be aware of
 engine: !engine
-  type: pnp.engines.process.ProcessEngine
+  type: pnp.engines.ProcessEngine
   queue_worker: 1
   retry_handler: !retry
     type: pnp.engines.SimpleRetryHandler
 tasks:
   - name: process
+    pull:
+      plugin: pnp.plugins.pull.simple.Repeat
+      args:
+        wait: 1
+        repeat: "Hello World"
+    push:
+      - plugin: pnp.plugins.push.simple.Echo
+
+```
+
+# pnp.engines.AsyncEngine (0.18.0+)
+
+```yaml
+# Will use asyncio to accomplish concurrency
+
+engine: !engine
+  type: pnp.engines.AsyncEngine
+  retry_handler: !retry
+    type: pnp.engines.SimpleRetryHandler
+tasks:
+  - name: async
     pull:
       plugin: pnp.plugins.pull.simple.Repeat
       args:

@@ -4,12 +4,12 @@ import sys
 import time
 from datetime import datetime
 
-from . import PullBase, Polling
+from . import PullBase, Polling, AsyncPullBase
 from ...utils import make_list, auto_str_ignore
 from ...validator import Validator
 
 
-class Count(PullBase):
+class Count(AsyncPullBase):
     """
     Emits every `wait` seconds a counting value which runs from `from_cnt` to `to_cnt`.
     If `to_cnt` is None will to count to infinity.
@@ -26,8 +26,11 @@ class Count(PullBase):
         self.wait = float(wait)
 
     def pull(self):
+        self._call_async_pull_from_sync()
+
+    async def async_pull(self):
         for i in range(self.from_cnt, self.to_cnt or sys.maxsize):
-            self._sleep(self.wait)
+            await self._async_sleep(self.wait)
             self.notify(i)
             if self.stopped:
                 break
@@ -84,7 +87,7 @@ class Infinite(PullBase):
             time.sleep(0.5)
 
 
-class Repeat(PullBase):
+class Repeat(AsyncPullBase):
     """
     Emits every `wait` seconds the same `repeat`.
 
@@ -99,6 +102,9 @@ class Repeat(PullBase):
         self.wait = float(wait)
 
     def pull(self):
+        self._call_async_pull_from_sync()
+
+    async def async_pull(self):
         while not self.stopped:
-            self._sleep(self.wait)
+            await self._async_sleep(self.wait)
             self.notify(self.repeat)

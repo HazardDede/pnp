@@ -7,6 +7,7 @@ from typing import Any, Callable, Optional, Dict, Iterable, Union, cast, List, T
 
 from .. import Plugin
 from ... import utils
+from ...shared.async_ import async_from_sync
 from ...typing import Envelope, Payload
 from ...validator import Validator
 
@@ -121,6 +122,11 @@ class PushBase(Plugin):
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
 
+    @property
+    def supports_async(self) -> bool:
+        """Returns True if the async engine is fully supported; otherwise False."""
+        return hasattr(self, 'async_push')
+
     @abstractmethod
     def push(self, payload: Payload) -> Payload:
         """
@@ -228,3 +234,22 @@ class PushBase(Plugin):
 
         # We popped the real payload -> all what is left in payload is the envelope
         return payload, real_payload
+
+
+class AsyncPushBase(PushBase):
+    """Base class for push plugins that fully support the async engine."""
+    def __init__(self, **kwargs: Any):  # pylint: disable=useless-super-delegation
+        # Doesn't work without the useless-super-delegation
+        super().__init__(**kwargs)
+
+    def _call_async_push_from_sync(self, payload: Payload) -> None:
+        """Calls the async pull from a sync context."""
+        if not self.supports_async:
+            raise RuntimeError(
+                "Cannot run async push version, cause async implementation is missing")
+
+        async_from_sync(self.async_push, payload=payload)
+
+    async def async_push(self, payload: Payload) -> Payload:
+        """Performs the push in an asynchronous compatible (non-blocking) way."""
+        raise NotImplementedError()

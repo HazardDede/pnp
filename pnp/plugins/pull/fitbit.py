@@ -3,19 +3,19 @@
 import os
 import pathlib
 from functools import partial
+
+import asyncio
+import schema
 from ruamel import yaml
 
-import schema
-
-from . import Polling
+from . import AsyncPolling
 from .. import load_optional_module
-from ...utils import (auto_str_ignore, camel_to_snake, transform_dict_items, make_list, FileLock,
-                      Parallel)
+from ...utils import auto_str_ignore, camel_to_snake, transform_dict_items, make_list, FileLock
 from ...validator import Validator
 
 
 @auto_str_ignore(['_tokens', '_client', '_tokens_tstamp', '_client_lock'])
-class _FitbitBase(Polling):
+class _FitbitBase(AsyncPolling):
     __prefix__ = 'fitbit'
 
     EXTRA = 'fitbit'
@@ -92,6 +92,9 @@ class _FitbitBase(Polling):
     def poll(self):
         raise NotImplementedError()  # pragma: no cover
 
+    async def async_poll(self):
+        raise NotImplementedError()  # pragma: no cover
+
 
 @auto_str_ignore(['_resource_map'])
 class Current(_FitbitBase):
@@ -156,11 +159,15 @@ class Current(_FitbitBase):
         return self._resource_map.get(resource)(resource)
 
     def poll(self):
-        runner = Parallel(workers=4)
-        for res in self._resources:
-            runner(self._call, fun_key=res, resource=res)
-        runner.run_until_complete()
-        return transform_dict_items(runner.results, keys_fun=camel_to_snake)
+        return self._call_async_poll_from_sync()
+
+    async def async_poll(self):
+        loop = asyncio.get_event_loop()
+        coros = [loop.run_in_executor(None, self._call, res) for res in self._resources]
+        results = await asyncio.gather(*coros)
+        return transform_dict_items({
+            res: results[i] for i, res in enumerate(self._resources)
+        }, keys_fun=camel_to_snake)
 
 
 class Devices(_FitbitBase):
@@ -175,7 +182,11 @@ class Devices(_FitbitBase):
         super().__init__(**kwargs)
 
     def poll(self):
-        return [transform_dict_items(d, keys_fun=camel_to_snake) for d in self.client.get_devices()]
+        return self._call_async_poll_from_sync()
+
+    async def async_poll(self):
+        devices = await asyncio.get_event_loop().run_in_executor(None, self.client.get_devices)
+        return [transform_dict_items(d, keys_fun=camel_to_snake) for d in devices]
 
 
 @auto_str_ignore(['_goals_map'])
@@ -227,8 +238,12 @@ class Goal(_FitbitBase):
         return self._goals_map.get(goal)(goal)
 
     def poll(self):
-        runner = Parallel(workers=4)
-        for goal in self._goals:
-            runner(self._call, fun_key=goal, goal=goal)
-        runner.run_until_complete()
-        return transform_dict_items(runner.results, keys_fun=camel_to_snake)
+        return self._call_async_poll_from_sync()
+
+    async def async_poll(self):
+        loop = asyncio.get_event_loop()
+        coros = [loop.run_in_executor(None, self._call, goal) for goal in self._goals]
+        results = await asyncio.gather(*coros)
+        return transform_dict_items({
+            goal: results[i] for i, goal in enumerate(self._goals)
+        }, keys_fun=camel_to_snake)
