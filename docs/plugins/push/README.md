@@ -1,4 +1,4 @@
-# Push
+# Pushes
 
 ## pnp.plugins.push.fs.FileDump
 

@@ -1,9 +1,13 @@
 # Engines
 
+!TOC
+
+## General remarks
+
 If you do not specify any engine the `ThreadEngine` is chosen by default accompanied by the `AdvancedRetryHandler`.
 This keeps maximum backwards compatibility.
 
-Remark: This will probably change in the near future in favor to the `AsyncEngine`.
+This will probably change in the near future in favor to the `AsyncEngine`.
 
 ## pnp.engines.SequentialEngine
 

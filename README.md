@@ -352,7 +352,7 @@ If you need the selector to augment your list, use a `push.simple.Nop` with `unw
 An engine is the actual code that executes the workflow of pnp (`pull` -> `selector` -> `push`).
 There are different engines for different use cases.
 
-Click [here](https://github.com/HazardDede/pnp/blob/master/docs/engines/README.md) to get a complete overview of all available engines.
+Click [here](https://github.com/HazardDede/pnp/blob/master/docs/engines/README.md) to get a complete overview of all available engines
 
 <a name="usefulhints"></a>
 
@@ -575,7 +575,7 @@ docker run --rm \
 
 ## 6\. Plugins
 
-A complete list of plugins is available [here](https://github.com/HazardDede/pnp/blob/master/docs/plugins/README.md).
+A complete list of plugins is available [here](https://github.com/HazardDede/pnp/blob/master/docs/plugins/README.md)
 
 
 <a name="changelog"></a>

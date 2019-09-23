@@ -1,13 +1,9 @@
 # Plugins
 
-## Pull
+!TOC
 
-Click [here](https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/README.md)
+!INCLUDE "docs/plugins/pull/README.md", 1
 
-## Push
+!INCLUDE "docs/plugins/push/README.md", 1
 
-Click [here](https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/README.md)
-
-## UDF
-
-Click [here](https://github.com/HazardDede/pnp/blob/master/docs/plugins/udf/README.md)
+!INCLUDE "docs/plugins/udf/README.md", 1

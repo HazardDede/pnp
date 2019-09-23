@@ -1,4 +1,4 @@
-# UDF (User defined function)
+# UDFs (User defined function)
 
 ## pnp.plugins.udf.hass.State
 

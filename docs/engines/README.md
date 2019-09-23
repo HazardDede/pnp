@@ -1,11 +1,23 @@
 # Engines
 
+1\.  [General remarks](#generalremarks)  
+2\.  [pnp.engines.SequentialEngine](#pnp.engines.sequentialengine)  
+3\.  [pnp.engines.ThreadEngine](#pnp.engines.threadengine)  
+4\.  [pnp.engines.ProcessEngine](#pnp.engines.processengine)  
+5\.  [pnp.engines.AsyncEngine (0.18.0+)](#pnp.engines.asyncengine0.18.0+)  
+
+<a name="generalremarks"></a>
+
+## 1\. General remarks
+
 If you do not specify any engine the `ThreadEngine` is chosen by default accompanied by the `AdvancedRetryHandler`.
 This keeps maximum backwards compatibility.
 
-Remark: This will probably change in the near future in favor to the `AsyncEngine`.
+This will probably change in the near future in favor to the `AsyncEngine`.
 
-## pnp.engines.SequentialEngine
+<a name="pnp.engines.sequentialengine"></a>
+
+## 2\. pnp.engines.SequentialEngine
 
 By using the `Sequential` engine you can run your configs as scripts. Given the example below, the "script" will
 end when it has finished counting to 3. Make sure to use the `NoRetryHandler` to actually end the runner when
@@ -33,7 +45,9 @@ tasks:
 
 ```
 
-## pnp.engines.ThreadEngine
+<a name="pnp.engines.threadengine"></a>
+
+## 3\. pnp.engines.ThreadEngine
 
 ```yaml
 # Will use threads to accomplish concurrency
@@ -55,7 +69,9 @@ tasks:
 
 ```
 
-## pnp.engines.ProcessEngine
+<a name="pnp.engines.processengine"></a>
+
+## 4\. pnp.engines.ProcessEngine
 
 ```yaml
 # Will use multiprocessing to accomplish concurrency
@@ -77,7 +93,9 @@ tasks:
 
 ```
 
-## pnp.engines.AsyncEngine (0.18.0+)
+<a name="pnp.engines.asyncengine0.18.0+"></a>
+
+## 5\. pnp.engines.AsyncEngine (0.18.0+)
 
 ```yaml
 # Will use asyncio to accomplish concurrency
