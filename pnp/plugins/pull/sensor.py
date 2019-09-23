@@ -290,7 +290,7 @@ class Sound(PullBase):
             while not self.stopped:
                 data = np.fromstring(stream.read(
                     self.CHUNK_SIZE,
-                    exception_on_overflow=self.ignore_overflow
+                    exception_on_overflow=not self.ignore_overflow
                 ), dtype=np.int16)
                 buffer = data if buffer is None else np.concatenate((buffer, data), axis=None)
                 lbuf = len(buffer)
