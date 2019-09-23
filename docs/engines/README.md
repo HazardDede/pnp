@@ -1,9 +1,11 @@
+# Engines
+
 If you do not specify any engine the `ThreadEngine` is chosen by default accompanied by the `AdvancedRetryHandler`.
 This keeps maximum backwards compatibility.
 
 Remark: This will probably change in the near future in favor to the `AsyncEngine`.
 
-# pnp.engines.SequentialEngine
+## pnp.engines.SequentialEngine
 
 By using the `Sequential` engine you can run your configs as scripts. Given the example below, the "script" will
 end when it has finished counting to 3. Make sure to use the `NoRetryHandler` to actually end the runner when
@@ -31,7 +33,7 @@ tasks:
 
 ```
 
-# pnp.engines.ThreadEngine
+## pnp.engines.ThreadEngine
 
 ```yaml
 # Will use threads to accomplish concurrency
@@ -53,7 +55,7 @@ tasks:
 
 ```
 
-# pnp.engines.ProcessEngine
+## pnp.engines.ProcessEngine
 
 ```yaml
 # Will use multiprocessing to accomplish concurrency
@@ -75,7 +77,7 @@ tasks:
 
 ```
 
-# pnp.engines.AsyncEngine (0.18.0+)
+## pnp.engines.AsyncEngine (0.18.0+)
 
 ```yaml
 # Will use asyncio to accomplish concurrency

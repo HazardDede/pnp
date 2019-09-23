@@ -1,0 +1,6 @@
+# UDF (User defined function)
+
+!INCLUDE "docs/plugins/udf/hass.State/index.md", 1
+!INCLUDE "docs/plugins/udf/simple.Counter/index.md", 1
+!INCLUDE "docs/plugins/udf/simple.FormatSize/index.md", 1
+!INCLUDE "docs/plugins/udf/simple.Memory/index.md", 1

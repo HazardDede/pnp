@@ -21,8 +21,9 @@ def main():
     process_directory('docs/plugins/pull')
     process_directory('docs/plugins/push')
     process_directory('docs/plugins/udf')
-    process_file('docs/plugins/index.mdpp')
-    process_file('docs/engines/index.mdpp')
+    process_file('docs/plugins/README.mdpp')
+    process_file('docs/engines/README.mdpp')
+    process_file('docs/README.mdpp')
     process_file('README.mdpp')
 
 
