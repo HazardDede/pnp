@@ -71,8 +71,8 @@ class SlackerLogHandler(Handler):
 
         # Optional ping user related stuff
         if str(ping_level).upper() not in _nameToLevel:
-            raise ValueError(f"The passed ping_level {str(ping_level)} is not a valid"
-                             f"level")
+            raise ValueError("The passed ping_level {} is not a valid"
+                             "level".format(str(ping_level)))
         self.ping_level = _nameToLevel[str(ping_level).upper()]  # type: int
         if not self.ping_level:
             raise ValueError(
