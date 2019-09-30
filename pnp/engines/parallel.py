@@ -118,12 +118,10 @@ class StoppableRunner(Loggable):
                 )
             except:  # pylint: disable=bare-except
                 # Bad thing... Pulling exited with exception
-                import traceback
-                self.logger.error(
-                    "[Task-%s] Pulling of '%s' raised an error\n%s",
+                self.logger.exception(
+                    "[Task-%s] Pulling of '%s' raised an error",
                     self.get_ident(),
-                    self.task.pull.instance,
-                    traceback.format_exc()
+                    self.task.pull.instance.name
                 )
             finally:
                 self._handle_pull_exit()
@@ -236,8 +234,7 @@ class StoppableWorker(Loggable):
             except KeyboardInterrupt:  # pragma: no cover
                 pass
             except Exception:  # pragma: no cover, pylint: disable=broad-except
-                import traceback
-                self.logger.error("\n%s", traceback.format_exc())
+                self.logger.exception("Processing the push queue failed")
 
 
 @auto_str_ignore(ignore_list=["stop_working_item", "queue", "shutdown", "runner", "worker"])

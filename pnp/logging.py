@@ -50,7 +50,7 @@ class NoStacktraceFormatter(Formatter):
         return None
 
 
-class SlackerLogHandler(Handler):
+class SlackHandler(Handler):
     """
     Implements a logging handler that sends formatted messages to slack.
     """
@@ -75,8 +75,8 @@ class SlackerLogHandler(Handler):
                              "level".format(str(ping_level)))
         self.ping_level = _nameToLevel[str(ping_level).upper()]  # type: int
         if not self.ping_level:
-            raise ValueError(
-                f"Argument ping_level '{ping_level}' is not a valid logging level")
+            raise ValueError("Argument ping_level '{}' is not a valid logging "
+                             "level".format(str(ping_level)))
         self.ping_user_ids = []  # type: List[int]
 
         if ping_users:
@@ -125,7 +125,12 @@ class SlackerLogHandler(Handler):
 
         # Use the executor to fire and forget about the message to post
         # and don't block the workflow just for logging...
-        asyncio.get_event_loop().run_in_executor(
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+
+        loop.run_in_executor(
             None,
             partial(
                 self.slacker.chat.post_message,

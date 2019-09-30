@@ -76,12 +76,10 @@ class AsyncEngine(Engine):
                 self.loop.call_soon_threadsafe(task.pull.instance.stop)
             except:  # pylint: disable=bare-except
                 # Bad thing... Pulling exited with exception
-                import traceback
-                self.logger.error(
-                    "[Task-%s] Pulling of '%s' raised an error\n%s",
+                self.logger.exception(
+                    "[Task-%s] Pulling of '%s' raised an error",
                     task.name,
-                    task.pull.instance,
-                    traceback.format_exc()
+                    task.pull.instance.name
                 )
             finally:
                 await self._handle_pull_exit(task)
@@ -129,8 +127,7 @@ class AsyncEngine(Engine):
         except KeyboardInterrupt:  # pragma: no cover
             pass
         except Exception:  # pragma: no cover, pylint: disable=broad-except
-            import traceback
-            self.logger.error("\n%s", traceback.format_exc())
+            self.logger.exception("Push '%s' failed", push.instance.name)
 
     def _shutdown(self) -> None:
         assert self.tasks and isinstance(self.tasks, dict)
