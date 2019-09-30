@@ -71,12 +71,9 @@ class SlackHandler(Handler):
 
         # Optional ping user related stuff
         if str(ping_level).upper() not in _nameToLevel:
-            raise ValueError("The passed ping_level {} is not a valid"
-                             "level".format(str(ping_level)))
+            raise ValueError("The passed ping_level {ping_level} is not a valid"
+                             "level".format(ping_level=str(ping_level)))
         self.ping_level = _nameToLevel[str(ping_level).upper()]  # type: int
-        if not self.ping_level:
-            raise ValueError("Argument ping_level '{}' is not a valid logging "
-                             "level".format(str(ping_level)))
         self.ping_user_ids = []  # type: List[int]
 
         if ping_users:
@@ -109,7 +106,7 @@ class SlackHandler(Handler):
         }
         if record.exc_info:
             trace = '\n'.join(traceback.format_exception(*record.exc_info))
-            field['value'] = f"```{trace}```"
+            field['value'] = "```{trace}```".format(trace=trace)
         return {
             'color': COLORS.get(record.levelno, INFO_COLOR),
             'fields': [field]
@@ -119,7 +116,7 @@ class SlackHandler(Handler):
         text = ''
         if self.ping_user_ids and record.levelno >= self.ping_level:
             for user in self.ping_user_ids:
-                text = f"<@{user}> {text}"
+                text = "<@{user}> {text}".format(user=user, text=text)
 
         attachments = [self._build_attachment(record)]
 
