@@ -58,6 +58,4 @@ class PortProbe(Polling):
                 sock.listen(0)
             return False
         except socket.error:
-            import traceback
-            traceback.print_exc()
             return True
