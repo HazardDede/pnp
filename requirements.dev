@@ -4,7 +4,7 @@ coveralls
 flake8
 MarkdownPP==1.4
 mock
-mypy
+mypy==0.701
 pylint==2.3.1
 pytest<=4.6.5
 pytest-cov
