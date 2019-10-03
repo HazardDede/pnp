@@ -622,6 +622,7 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 
 **Next release (~0.18.1)**
 * Fixes `ignore_overflow` of `pull.sensor.Sound` plugin (which actually has the opposite effect)
+* Adds slack logging handler to log messages to a slack channel and optionally ping users
 
 **0.18.0**
 * Integrates an asyncio featured/powered engine. I think this will be the default in the future. Stay tuned!
