@@ -58,10 +58,11 @@ class SlackHandler(Handler):
     def __init__(self, api_key: str, channel: str, username: str = DEFAULT_USERNAME,
                  icon_url: Optional[str] = None, icon_emoji: Optional[str] = None,
                  ping_users: Optional[Iterable[str]] = None,
-                 ping_level: str = DEFAULT_PING_LEVEL):
+                 ping_level: str = DEFAULT_PING_LEVEL, fire_and_forget: bool = True):
         super().__init__()
         self.formatter = NoStacktraceFormatter()
         self.slacker = slacker.Slacker(api_key)
+        self.fire_and_forget = bool(fire_and_forget)
         self.username = str(username)
         self.icon_url = icon_url and str(icon_url)
         self.icon_emoji = icon_emoji if (icon_emoji or icon_url) else DEFAULT_EMOJI
@@ -127,15 +128,16 @@ class SlackHandler(Handler):
         except RuntimeError:
             loop = asyncio.new_event_loop()
 
-        loop.run_in_executor(
-            None,
-            partial(
-                self.slacker.chat.post_message,
-                text=text if text != '' else None,
-                channel=self.channel,
-                username=self.username,
-                icon_url=self.icon_url,
-                icon_emoji=self.icon_emoji,
-                attachments=attachments
-            )
+        slacker_call = partial(
+            self.slacker.chat.post_message,
+            text=text if text != '' else None,
+            channel=self.channel,
+            username=self.username,
+            icon_url=self.icon_url,
+            icon_emoji=self.icon_emoji,
+            attachments=attachments
         )
+        if self.fire_and_forget:
+            loop.run_in_executor(None, slacker_call)  # Don't wait and don't check errors
+        else:
+            slacker_call()  # Wait for the call to finish; this will block asyncio

@@ -220,6 +220,10 @@ A simple logging configuration that will log severe errors to a separate rotatin
 
 !INCLUDECODE "config/logging/severe.logging" (yaml)
 
+A simple slack logging confiuration that will log warnings and errors to a slack channel looks like this;
+
+!INCLUDECODE "config/logging/slack.logging" (yaml)
+
 
 ### dictmentor (0.11.0+)
 

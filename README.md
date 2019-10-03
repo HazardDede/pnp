@@ -414,6 +414,38 @@ root:
     handlers: [console, error_file_handler]
 ```
 
+A simple slack logging confiuration that will log warnings and errors to a slack channel looks like this;
+
+```yaml
+version: 1
+disable_existing_loggers: False
+
+formatters:
+    simple:
+        format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+handlers:
+    console:
+        class: logging.StreamHandler
+        formatter: simple
+        stream: ext://sys.stdout
+
+    slack:
+        level: WARNING  # Do not use DEBUG - This will result in a recursion (cause slacker is using urllib which uses logging)
+        api_key: '<your_api_key>'  # Retrieve from api.slack.com
+        class: pnp.logging.SlackHandler  # Do not change
+        channel: '#alerts'  # The channel to use
+        ping_level: ERROR  # Ping users when the message has this severity
+        ping_users:  # Ping these users (can be real name, display name, internal name, ...)
+          - dede
+
+root:
+    level: INFO
+    handlers:
+        - slack
+        - console
+```
+
 
 <a name="dictmentor0.11.0+"></a>
 
