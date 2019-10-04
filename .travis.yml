@@ -1,9 +1,9 @@
 language: python
+dist: xenial
 python:
   - 3.5
   - 3.6
-  - 3.7-dev
-  # - nightly
+  - 3.7
 before_install:
   - sudo apt-get install -yy gcc
   - sudo apt-get install -yy portaudio19-dev
