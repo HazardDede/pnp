@@ -37,8 +37,7 @@ class SequentialEngine(Engine):
                 try:
                     PushExecutor().execute('sequential', payload, push)
                 except:  # pylint: disable=bare-except
-                    import traceback
-                    self.logger.error("\n%s", traceback.format_exc())
+                    self.logger.exception("Push '%s' failed", push.instance.name)
 
         task.pull.instance.on_payload = on_payload  # type: ignore
         task.pull.instance._stopped = self.stopped  # pylint: disable=protected-access
@@ -59,11 +58,9 @@ class SequentialEngine(Engine):
                 self.stopped.set()
             except:   # pylint: disable=bare-except
                 # Bad thing... Pulling exited with exception
-                import traceback
-                self.logger.error(
-                    "Pulling of '%s' raised an error\n%s",
-                    task.pull.instance,
-                    traceback.format_exc()
+                self.logger.exception(
+                    "Pulling of '%s' raised an error",
+                    task.pull.instance.name
                 )
             finally:
                 if not self.stopped.is_set():

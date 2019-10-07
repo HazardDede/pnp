@@ -170,8 +170,7 @@ class Polling(AsyncPullBase):
         except StopPollingError:
             self.stop()
         except Exception:  # pragma: no cover, pylint: disable=broad-except
-            import traceback
-            self.logger.error("\n%s", traceback.format_exc())
+            self.logger.exception("Polling of '%s' failed", self.name)
 
     def _configure_scheduler(self, scheduler: Scheduler, callback: Callable[[], None]) -> None:
         """

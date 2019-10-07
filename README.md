@@ -414,6 +414,38 @@ root:
     handlers: [console, error_file_handler]
 ```
 
+A simple slack logging confiuration that will log warnings and errors to a slack channel looks like this;
+
+```yaml
+version: 1
+disable_existing_loggers: False
+
+formatters:
+    simple:
+        format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+handlers:
+    console:
+        class: logging.StreamHandler
+        formatter: simple
+        stream: ext://sys.stdout
+
+    slack:
+        level: WARNING  # Do not use DEBUG - This will result in a recursion (cause slacker is using urllib which uses logging)
+        api_key: '<your_api_key>'  # Retrieve from api.slack.com
+        class: pnp.logging.SlackHandler  # Do not change
+        channel: '#alerts'  # The channel to use
+        ping_level: ERROR  # Ping users when the message has this severity
+        ping_users:  # Ping these users (can be real name, display name, internal name, ...)
+          - dede
+
+root:
+    level: INFO
+    handlers:
+        - slack
+        - console
+```
+
 
 <a name="dictmentor0.11.0+"></a>
 
@@ -588,8 +620,9 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 
     pip install pnp==0.10.0
 
-**Next release (probably 0.18.1)**
+**Next release (~0.18.1)**
 * Breaking: Fixes `ignore_overflow` of `pull.sensor.Sound` plugin (which actually has the opposite effect)
+* Adds slack logging handler to log messages to a slack channel and optionally ping users
 * Adds `pull.net.PortProbe` plugin to probe a specific port if it's being used
 
 **0.18.0**

@@ -110,3 +110,6 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# Private logging configurations
+*.logging

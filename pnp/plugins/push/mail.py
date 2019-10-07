@@ -96,8 +96,7 @@ class GMail(PushBase):
         try:
             return service.users().messages().send(userId=user_id, body=message).execute()
         except:  # pylint: disable=bare-except
-            import traceback
-            self.logger.error("Error: %s", traceback.format_exc())
+            self.logger.exception("Sending the e-mail via gmail failed")
 
     @enveloped
     @parse_envelope('recipient')
