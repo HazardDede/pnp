@@ -13,15 +13,16 @@
 1.10\.  [pnp.plugins.pull.http.Server](#pnp.plugins.pull.http.server)  
 1.11\.  [pnp.plugins.pull.monitor.Stats](#pnp.plugins.pull.monitor.stats)  
 1.12\.  [pnp.plugins.pull.mqtt.Subscribe](#pnp.plugins.pull.mqtt.subscribe)  
-1.13\.  [pnp.plugins.pull.sensor.DHT](#pnp.plugins.pull.sensor.dht)  
-1.14\.  [pnp.plugins.pull.sensor.MiFlora](#pnp.plugins.pull.sensor.miflora)  
-1.15\.  [pnp.plugins.pull.sensor.OpenWeather](#pnp.plugins.pull.sensor.openweather)  
-1.16\.  [pnp.plugins.pull.sensor.Sound](#pnp.plugins.pull.sensor.sound)  
-1.17\.  [pnp.plugins.pull.simple.Count](#pnp.plugins.pull.simple.count)  
-1.18\.  [pnp.plugins.pull.simple.Cron](#pnp.plugins.pull.simple.cron)  
-1.19\.  [pnp.plugins.pull.simple.Repeat](#pnp.plugins.pull.simple.repeat)  
-1.20\.  [pnp.plugins.pull.zway.ZwayPoll](#pnp.plugins.pull.zway.zwaypoll)  
-1.21\.  [pnp.plugins.pull.zway.ZwayReceiver](#pnp.plugins.pull.zway.zwayreceiver)  
+1.13\.  [pnp.plugins.pull.net.PortProbe](#pnp.plugins.pull.net.portprobe)  
+1.14\.  [pnp.plugins.pull.sensor.DHT](#pnp.plugins.pull.sensor.dht)  
+1.15\.  [pnp.plugins.pull.sensor.MiFlora](#pnp.plugins.pull.sensor.miflora)  
+1.16\.  [pnp.plugins.pull.sensor.OpenWeather](#pnp.plugins.pull.sensor.openweather)  
+1.17\.  [pnp.plugins.pull.sensor.Sound](#pnp.plugins.pull.sensor.sound)  
+1.18\.  [pnp.plugins.pull.simple.Count](#pnp.plugins.pull.simple.count)  
+1.19\.  [pnp.plugins.pull.simple.Cron](#pnp.plugins.pull.simple.cron)  
+1.20\.  [pnp.plugins.pull.simple.Repeat](#pnp.plugins.pull.simple.repeat)  
+1.21\.  [pnp.plugins.pull.zway.ZwayPoll](#pnp.plugins.pull.zway.zwaypoll)  
+1.22\.  [pnp.plugins.pull.zway.ZwayReceiver](#pnp.plugins.pull.zway.zwayreceiver)  
 2\.  [Pushes](#pushes)  
 2.1\.  [pnp.plugins.push.fs.FileDump](#pnp.plugins.push.fs.filedump)  
 2.2\.  [pnp.plugins.push.hass.Service](#pnp.plugins.push.hass.service)  
@@ -994,9 +995,47 @@ __Examples__
 
 ```
 
+<a name="pnp.plugins.pull.net.portprobe"></a>
+
+### 1.13\. pnp.plugins.pull.net.PortProbe
+
+Periodically establishes socket connection to check if anybody is listening on a given
+server on a specific port.
+
+__Arguments__
+
+- **port (int)**: The port to probe if somebody is listening.</br>
+- **server (str, optional)**: Server name or ip address. Default is localhost.<br/>
+- **timeout (float, optional)**: Timeout for remote operations. Default is 1.0.
+
+__Result__
+
+```yaml
+{
+    "server": "www.google.de",
+    "port": 80,
+    "reachable": True
+}
+```
+
+__Examples__
+
+```yaml
+- name: port_probe
+  pull:
+    plugin: pnp.plugins.pull.net.PortProbe
+    args:
+      server: localhost  # Server name or ip address, default is localhost
+      port: 9999  # The port to probe if somebody is listening
+      interval: 5s  # Probe the port every five seconds ...
+      instant_run: true  # ... and run as soon as pnp starts
+  push:
+    - plugin: pnp.plugins.push.simple.Echo
+
+```
 <a name="pnp.plugins.pull.sensor.dht"></a>
 
-### 1.13\. pnp.plugins.pull.sensor.DHT
+### 1.14\. pnp.plugins.pull.sensor.DHT
 
 Periodically polls a dht11 or dht22 (aka am2302) for temperature and humidity readings.
 Polling interval is controlled by `interval`.
@@ -1041,7 +1080,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.sensor.miflora"></a>
 
-### 1.14\. pnp.plugins.pull.sensor.MiFlora
+### 1.15\. pnp.plugins.pull.sensor.MiFlora
 
 Periodically polls a `xiaomi miflora plant sensor` for sensor readings (temperature, conductivity, light, ...) via btle.
 
@@ -1094,7 +1133,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.sensor.openweather"></a>
 
-### 1.15\. pnp.plugins.pull.sensor.OpenWeather
+### 1.16\. pnp.plugins.pull.sensor.OpenWeather
 
 Periodically polls weather data from the `OpenWeatherMap` api.
 
@@ -1192,7 +1231,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.sensor.sound"></a>
 
-### 1.16\. pnp.plugins.pull.sensor.Sound
+### 1.17\. pnp.plugins.pull.sensor.Sound
 
 Listens to the microphone in realtime and searches the stream for a specific sound pattern.
 Practical example: I use this plugin to recognize my doorbell without tampering with the electrical device ;-)
@@ -1249,7 +1288,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.simple.count"></a>
 
-### 1.17\. pnp.plugins.pull.simple.Count
+### 1.18\. pnp.plugins.pull.simple.Count
 
 Emits every `wait` seconds a counting value which runs from `from_cnt` to `to_cnt`.
 If `to_cnt` is None the counter will count to infinity.
@@ -1280,7 +1319,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.simple.cron"></a>
 
-### 1.18\. pnp.plugins.pull.simple.Cron
+### 1.19\. pnp.plugins.pull.simple.Cron
 
 Execute push-components based on time constraints configured by cron-like expressions.
 
@@ -1320,7 +1359,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.simple.repeat"></a>
 
-### 1.19\. pnp.plugins.pull.simple.Repeat
+### 1.20\. pnp.plugins.pull.simple.Repeat
 
 Emits every `wait` seconds the same `repeat`.
 
@@ -1348,7 +1387,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.zway.zwaypoll"></a>
 
-### 1.20\. pnp.plugins.pull.zway.ZwayPoll
+### 1.21\. pnp.plugins.pull.zway.ZwayPoll
 
 Pulls the specified json content from the zway rest api. The content is specified by the url, e.g.
 `http://<host>:8083/ZWaveAPI/Run/devices` will pull all devices and serve the result as a json.
@@ -1423,7 +1462,7 @@ Below are some common selector examples to fetch various metrics from various de
 
 <a name="pnp.plugins.pull.zway.zwayreceiver"></a>
 
-### 1.21\. pnp.plugins.pull.zway.ZwayReceiver
+### 1.22\. pnp.plugins.pull.zway.ZwayReceiver
 
 Setups a http server to process incoming GET-requests from the Zway-App [`HttpGet`](https://github.com/hplato/Zway-HTTPGet/blob/master/index.js).
 

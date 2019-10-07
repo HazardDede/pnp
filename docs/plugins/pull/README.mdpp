@@ -12,6 +12,7 @@
 !INCLUDE "docs/plugins/pull/http.Server/index.md", 1
 !INCLUDE "docs/plugins/pull/monitor.Stats/index.md", 1
 !INCLUDE "docs/plugins/pull/mqtt.Subscribe/index.md", 1
+!INCLUDE "docs/plugins/pull/net.PortProbe/index.md", 1
 !INCLUDE "docs/plugins/pull/sensor.DHT/index.md", 1
 !INCLUDE "docs/plugins/pull/sensor.MiFlora/index.md", 1
 !INCLUDE "docs/plugins/pull/sensor.OpenWeather/index.md", 1
