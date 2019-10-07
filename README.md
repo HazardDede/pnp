@@ -621,8 +621,9 @@ You are encouraged to specify explicitly the version in your dependency tools, e
     pip install pnp==0.10.0
 
 **Next release (~0.18.1)**
-* Fixes `ignore_overflow` of `pull.sensor.Sound` plugin (which actually has the opposite effect)
+* Breaking: Fixes `ignore_overflow` of `pull.sensor.Sound` plugin (which actually has the opposite effect)
 * Adds slack logging handler to log messages to a slack channel and optionally ping users
+* Adds `pull.net.PortProbe` plugin to probe a specific port if it's being used
 
 **0.18.0**
 * Integrates an asyncio featured/powered engine. I think this will be the default in the future. Stay tuned!
