@@ -932,7 +932,7 @@ server on a specific port.
 
 __Arguments__
 
-- **port (int)**: The port to probe if somebody is listening.</br>
+- **port (int)**: The port to probe if something is listening.</br>
 - **server (str, optional)**: Server name or ip address. Default is localhost.<br/>
 - **timeout (float, optional)**: Timeout for remote operations. Default is 1.0.
 
