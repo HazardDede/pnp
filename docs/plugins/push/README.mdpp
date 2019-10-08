@@ -10,5 +10,6 @@
 !INCLUDE "docs/plugins/push/notify.Pushbullet/index.md", 1
 !INCLUDE "docs/plugins/push/simple.Echo/index.md", 1
 !INCLUDE "docs/plugins/push/simple.Execute/index.md", 1
+!INCLUDE "docs/plugins/push/simple.Wait/index.md", 1
 !INCLUDE "docs/plugins/push/storage.Dropbox/index.md", 1
 !INCLUDE "docs/plugins/push/timedb.InfluxPush/index.md", 1

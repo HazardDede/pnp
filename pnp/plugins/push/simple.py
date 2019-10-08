@@ -1,5 +1,6 @@
 """Basic push plugins."""
 from functools import partial
+from typing import Union, Any
 
 from . import enveloped, PushBase, AsyncPushBase
 from ...shared.exc import TemplateError
@@ -60,6 +61,35 @@ class Nop(AsyncPushBase):
 
     async def async_push(self, payload):
         return self.push(payload)
+
+
+class Wait(AsyncPushBase):
+    """
+    Performs a sleep operation and wait for some time to go by.
+
+    IMPORTANT: Some engines do have a worker pool (like ThreadEngine).
+        This push will use a slot in this pool and will first release it when the waiting
+        time interval is over. Use with caution.
+
+    See Also:
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/simple.Wait/index.md
+    """
+    def __init__(self, wait_for: Union[str, float, int], **kwargs: Any):
+        super().__init__(**kwargs)
+        if isinstance(wait_for, float):
+            self.waiting_interval = float(wait_for)
+        else:
+            self.waiting_interval = float(parse_duration_literal(wait_for))
+
+    def push(self, payload):
+        import time
+        time.sleep(self.waiting_interval)
+        return payload
+
+    async def async_push(self, payload):
+        import asyncio
+        await asyncio.sleep(self.waiting_interval)
+        return payload
 
 
 class Execute(PushBase):
