@@ -34,8 +34,9 @@
 2.8\.  [pnp.plugins.push.notify.Pushbullet](#pnp.plugins.push.notify.pushbullet)  
 2.9\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
 2.10\.  [pnp.plugins.push.simple.Execute](#pnp.plugins.push.simple.execute)  
-2.11\.  [pnp.plugins.push.storage.Dropbox](#pnp.plugins.push.storage.dropbox)  
-2.12\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
+2.11\.  [pnp.plugins.push.simple.Wait](#pnp.plugins.push.simple.wait)  
+2.12\.  [pnp.plugins.push.storage.Dropbox](#pnp.plugins.push.storage.dropbox)  
+2.13\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
 3\.  [UDFs (User defined function)](#udfsuserdefinedfunction)  
 3.1\.  [pnp.plugins.udf.hass.State](#pnp.plugins.udf.hass.state)  
 3.2\.  [pnp.plugins.udf.simple.Counter](#pnp.plugins.udf.simple.counter)  
@@ -2201,9 +2202,55 @@ __Examples__
       - plugin: pnp.plugins.push.simple.Echo
 
 ```
+<a name="pnp.plugins.push.simple.wait"></a>
+
+### 2.11\. pnp.plugins.push.simple.Wait
+
+Performs a sleep operation and waits for some time to pass by.
+
+IMPORTANT: Some engines do have a worker pool (like the `ThreadEngine`).
+This push will use a slot in this pool and will only release it when the waiting
+interval is over. Use with caution.
+It is safe to use with the `AsyncEngine`.
+
+__Arguments__
+
+- **wait_for (str or int or float)**: The time to wait for before proceeding. You can pass
+literals such as 5s, 1m; ints such as 1, 2, 3 or floats such as 0.5. In the end everything
+will be converted to it's float representation (1 => 1.0; 5s => 5.0; 1m => 60.0; 0.5 => 0.5)
+
+__Result__
+
+Will return the payload as it is for easy chaining of dependencies (see example).
+
+__Examples__
+
+```yaml
+engine: !engine  # Practically only safe to use with the AsyncEngine
+  type: pnp.engines.AsyncEngine
+  retry_handler: !retry
+    type: pnp.engines.NoRetryHandler
+tasks:
+  - name: wait
+    pull:
+      plugin: pnp.plugins.pull.simple.Count  # Let's count
+      args:
+        wait: 1
+    push:
+      - plugin: pnp.plugins.push.simple.Echo
+        selector: "'START WAITING: {}'.format(payload)"
+        deps:
+          - plugin: pnp.plugins.push.simple.Wait
+            args:
+              wait_for: 3s
+            deps:
+              - plugin: pnp.plugins.push.simple.Echo
+                selector: "'END WAITING: {}'.format(payload)"
+
+```
 <a name="pnp.plugins.push.storage.dropbox"></a>
 
-### 2.11\. pnp.plugins.push.storage.Dropbox
+### 2.12\. pnp.plugins.push.storage.Dropbox
 
 Uploads provided file to the specified dropbox account.
 
@@ -2261,7 +2308,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.timedb.influxpush"></a>
 
-### 2.12\. pnp.plugins.push.timedb.InfluxPush
+### 2.13\. pnp.plugins.push.timedb.InfluxPush
 
 Pushes the given `payload` to an influx database using the line `protocol`.
 You have to specify `host`, `port`, `user`, `password` and the `database`.
