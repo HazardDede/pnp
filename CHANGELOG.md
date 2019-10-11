@@ -8,6 +8,7 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 
 **Next release (~0.18.1)**
 * Adds `push.simple.Wait` to interrupt the execution for some specified amount of time
+* Breaking: Component `pull.sensor.Sound` can now check multiple sound files for similarity. The configurational arguments changed. Have a look at the docs.
 * Breaking: Fixes `ignore_overflow` of `pull.sensor.Sound` plugin (which actually has the opposite effect)
 * Adds slack logging handler to log messages to a slack channel and optionally ping users
 * Adds `pull.net.PortProbe` plugin to probe a specific port if it's being used

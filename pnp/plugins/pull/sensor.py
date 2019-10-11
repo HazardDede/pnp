@@ -1,14 +1,24 @@
 """Useful sensor stuff."""
 
 import logging
-import os
 from datetime import datetime, timedelta
 
 import requests
+import schema as sc
 
 from . import PullBase, Polling, PollingError
 from .. import load_optional_module
-from ...utils import safe_get, auto_str_ignore, parse_duration_literal, Throttle
+from ...shared.sound import (
+    WavFile,
+    similarity_pearson,
+    similarity_std
+)
+from ...utils import (
+    safe_get,
+    auto_str_ignore,
+    parse_duration_literal,
+    Throttle
+)
 from ...validator import Validator
 
 
@@ -193,7 +203,7 @@ class OpenWeather(Polling):
 
 
 # pylint: disable=too-many-instance-attributes
-@auto_str_ignore(ignore_list=['cool_down_secs', 'notify', 'signal_fft', 'signal_length'])
+@auto_str_ignore(ignore_list=['cool_down_secs', 'notify'])
 class Sound(PullBase):
     """
     Listens to the microphone in realtime and searches the stream for a specific sound pattern.
@@ -213,63 +223,65 @@ class Sound(PullBase):
     PEARSON_THRESHOLD = 0.5
     STD_THRESHOLD = 1.4
 
-    def __init__(self, wav_file, device_index=None, mode='pearson', sensitivity_offset=0.0,
-                 cool_down="10s", ignore_overflow=False, **kwargs):
+    CONF_PATH = 'path'
+    CONF_MODE = 'mode'
+    CONF_OFFSET = 'offset'
+
+    WAV_FILE_SCHEMA = sc.Schema([{
+        CONF_PATH: sc.Use(str),
+        sc.Optional(CONF_MODE, default=MODE_PEARSON): sc.Use(str),
+        sc.Optional(CONF_OFFSET, default=0.0): sc.Use(float)
+    }])
+
+    def __init__(self, wav_files, device_index=None, cool_down="10s", ignore_overflow=False,
+                 **kwargs):
         super().__init__(**kwargs)
-        self.wav_file = str(wav_file)
-        if not os.path.isabs(self.wav_file):
-            self.wav_file = os.path.join(self.base_path, self.wav_file)
-        Validator.is_file(wav_file=self.wav_file)
+        self._check_dependencies()
+
+        validated = self.WAV_FILE_SCHEMA.validate(wav_files)
+        self.wav_files = [
+            (
+                WavFile.from_path(config[self.CONF_PATH], self.base_path),
+                self._check_mode(config[self.CONF_MODE]),
+                config[self.CONF_OFFSET]
+            )
+            for config in validated
+        ]
+
         self.device_index = device_index and int(device_index)
-        self.wav_file_name = os.path.basename(os.path.splitext(self.wav_file)[0])
-        self.signal_length, self.signal_fft = self._load_wav_fft()
-        self.mode = str(mode)
-        Validator.one_of(self.ALLOWED_MODES, mode=self.mode)
-        self.sensitivity_offset = float(sensitivity_offset)
         self.cool_down = cool_down
         self.cool_down_secs = cool_down and parse_duration_literal(cool_down)  # Might be None
         self.ignore_overflow = bool(ignore_overflow)
         # Override notify with a throttled version
         self.notify = Throttle(timedelta(seconds=self.cool_down_secs or 0))(self.notify)
 
-    def _load_wav_fft(self):
-        wavfile = load_optional_module('scipy.io.wavfile', self.EXTRA)
-        self.logger.debug("Loading wav file from '%s'", self.wav_file)
-        sample_rate, signal = wavfile.read(self.wav_file)
-        N, secs, signal_fft = self._perform_fft(signal, sample_rate)
-        self.logger.debug("Loaded %s seconds wav file @ %s hz", secs, sample_rate)
-        return N, signal_fft
+    def _check_dependencies(self):
+        load_optional_module('scipy.io.wavfile', self.EXTRA)
+        load_optional_module('numpy', self.EXTRA)
+        load_optional_module('scipy', self.EXTRA)
+        load_optional_module('scipy.stats.stats', self.EXTRA)
 
-    def _perform_fft(self, signal, rate, add_zeros=True):
-        np = load_optional_module('numpy', self.EXTRA)
-        scipy = load_optional_module('scipy', self.EXTRA)
+    @classmethod
+    def _check_mode(cls, mode):
+        Validator.one_of(cls.ALLOWED_MODES, mode=mode)
+        return mode
 
-        chn = len(signal.shape)
-        if chn >= 2:  # Make mono channel
-            signal = signal.sum(axis=1) / 2
-        N = int(signal.shape[0])
-        secs = N / float(rate)
-        if add_zeros:
-            signal = np.concatenate((signal, np.zeros(len(signal))), axis=None)
-        trans_fft = abs(scipy.fft(signal))
-
-        return N, secs, trans_fft
-
-    def _similarity(self, buffer):
-        _, _, current_fft = self._perform_fft(buffer[:self.signal_length], self.RATE, True)
-        if self.mode == self.MODE_PEARSON:
-            pearsonr = load_optional_module('scipy.stats.stats', self.EXTRA).pearsonr
-            corrcoef = pearsonr(self.signal_fft, current_fft)[0]
-            threshold = self.PEARSON_THRESHOLD + self.sensitivity_offset
-        else:
-            np = load_optional_module('numpy', self.EXTRA)
-            corrcoef = np.correlate(
-                self.signal_fft / self.signal_fft.std(),
-                current_fft / current_fft.std()
-            )[0] / len(self.signal_fft)
-            threshold = self.STD_THRESHOLD + self.sensitivity_offset
-
-        return corrcoef >= threshold, corrcoef, threshold
+    def _similarity(self, mode, offset, buffer, wav_file: WavFile):
+        if mode == self.MODE_PEARSON:
+            return similarity_pearson(
+                buffer,
+                wav_file,
+                self.RATE,
+                self.PEARSON_THRESHOLD + offset
+            )
+        if mode == self.MODE_STD:
+            return similarity_std(
+                buffer,
+                wav_file,
+                self.RATE,
+                self.STD_THRESHOLD + offset
+            )
+        raise ValueError("The given mode '{}' is unsupported".format(mode))
 
     def pull(self):
         np = load_optional_module('numpy', self.EXTRA)
@@ -285,30 +297,40 @@ class Sound(PullBase):
             frames_per_buffer=self.CHUNK_SIZE
         )
         try:
-            buffer = None
-            N = self.signal_length
+            buffers = [None for _ in self.wav_files]  # Init buffer foreach wav_file
             while not self.stopped:
                 data = np.fromstring(stream.read(
                     self.CHUNK_SIZE,
                     exception_on_overflow=not self.ignore_overflow
                 ), dtype=np.int16)
-                buffer = data if buffer is None else np.concatenate((buffer, data), axis=None)
-                lbuf = len(buffer)
-                if lbuf >= N:
-                    self.logger.debug("Buffer (%s) >= size of wav file (%s)",
-                                      lbuf, N)
-                    flag, corrcoef, threshold = self._similarity(buffer)
-                    self.logger.debug("Correlation: %s >= %s = %s",
-                                      corrcoef, threshold, flag)
-                    if flag:
-                        self.notify({
-                            'data': self.wav_file_name,
-                            'corrcoef': corrcoef,
-                            'threshold': threshold
-                        })
-                        buffer = None
-                    else:
-                        buffer = buffer[int(len(buffer) * 0.75):]
+
+                for i, buffer in enumerate(buffers):
+                    config = self.wav_files[i]
+                    buffer = self._process_single(buffer, data, np, config)
+                    buffers[i] = buffer
         finally:
             stream.close()
             pa.terminate()
+
+    def _process_single(self, buffer, data, np, config):
+        wav_file, mode, offset = config
+        N = wav_file.signal_length
+        buffer = data if buffer is None else np.concatenate((buffer, data), axis=None)
+        lbuf = len(buffer)
+        if lbuf >= N:
+            self.logger.debug("Buffer (%s): %s (Buffer) >= %s (Wav)",
+                              wav_file.file_name, lbuf, N)
+            flag, corrcoef, threshold = self._similarity(mode, offset, buffer, wav_file)
+            self.logger.debug("Correlation (%s): %s >= %s = %s",
+                              wav_file.file_name, corrcoef, threshold, flag)
+            if flag:
+                self.notify({
+                    'data': wav_file.file_name,
+                    'corrcoef': corrcoef,
+                    'threshold': threshold
+                })
+                buffer = None
+            else:
+                buffer = buffer[int(len(buffer) * 0.75):]
+
+        return buffer

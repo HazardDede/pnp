@@ -27,7 +27,8 @@ def _package_installed():
 @pytest.mark.skipif(not _package_installed(), reason="requires package pyaudio, numpy, scipy")
 @patch('pyaudio.PyAudio', mock)
 def test_for_smoke_with_mode_pearson():
-    dut = Sound(name='pytest', wav_file=ding_sound, cool_down=0)
+    config = [{Sound.CONF_PATH: ding_sound}]
+    dut = Sound(name='pytest', wav_files=config, cool_down=0)
 
     events = []
     def callback(sender, payload):
@@ -47,7 +48,8 @@ def test_for_smoke_with_mode_pearson():
 @pytest.mark.skipif(not _package_installed(), reason="requires package pyaudio, numpy, scipy")
 @patch('pyaudio.PyAudio', mock)
 def test_for_smoke_with_mode_std():
-    dut = Sound(name='pytest', wav_file=ding_sound, mode='std', cool_down=0)
+    config = [{Sound.CONF_PATH: ding_sound, Sound.CONF_MODE: Sound.MODE_STD}]
+    dut = Sound(name='pytest', wav_files=config, cool_down=0)
 
     events = []
     def callback(sender, payload):

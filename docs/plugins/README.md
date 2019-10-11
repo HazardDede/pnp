@@ -1241,12 +1241,14 @@ Requires extra `sound`.
 
 __Arguments__
 
-- **wav_file (str/filepath)**: The file that contains the original sound pattern to listen for.
-- **device_index (int, optional)**: The index of the microphone device. Run `pnp_record_sound --list` to get the index.
-If not specified pyAudio will try to find a capable device.</br>
-- **mode (Union[pearson,std], optional)**: Correlation/similarity method. Default is pearson.</br>
-- **sensitivity_offset (float, optional)**: Adjusts sensitivity for similarity.
+- **wav_files (List[Dict])**: A list of dictionaries containing the configuration for each file that contains a original sound pattern to listen for.
+The configuration consists of the following keys:
+    * path (str): The path to the original sound file. Maybe absolute or relative to the configuration.
+    * mode (Union[pearson,std], optional): Correlation/similarity method. Default is pearson.
+    * **offset (float, optional)**: Adjusts sensitivity for similarity.
 Positive means less sensitive; negative is more sensitive. You should try out 0.1 steps. Default is 0.0.
+- **device_index (int, optional)**: The index of the microphone device. Run `pnp_record_sound --list` to get the index.
+If not specified pyAudio will try to find a capable device.
 - **cool_down (duration literal, optional)**: Prevents the pull to emit more than one sound detection event per
 cool down duration. Default is 10 seconds.
 - **ignore_overflow (bool, optional)**: If set to True any buffer overflows due to slow realtime processing will be ignored.
@@ -1277,10 +1279,13 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.sensor.Sound
     args:
-      wav_file: doorbell.wav  # The file to compare for similarity
+      wav_files:  # The files to compare for similarity
+        - path: ding.wav
+          mode: std  # Use pearson correlation coefficient [pearson, std]
+          offset: 0.1  # Adjust sensitivity. Positive means less sensitive; negative is more sensitive
+        - path: doorbell.wav  # This will use default values for mode and offset (pearson, 0.0)
       device_index:  # The index of the microphone devices. If not specified pyAudio will try to find a capable device
       mode: pearson  # Use pearson correlation coefficient [pearson, std]
-      sensitivity_offset: 0.1  # Adjust sensitivity. Positive means less sensitive; negative is more sensitive
       cool_down: 3s  # Prevents the pull to emit more than one sound detection event every 3 seconds
       ignore_overflow: true  # Some devices might be too slow to process the stream in realtime. Ignore any buffer overflow errors.
   push:
