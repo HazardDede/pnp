@@ -938,21 +938,94 @@ class Debounce:
         self.timer = None  # type: Optional[Timer]
 
     def _safe_stop_timer(self) -> None:
-        if self.timer is not None:
+        if self.timer is not None and not self.timer.finished.is_set():  # type: ignore
             self.timer.cancel()
+        self.timer = None
 
     def execute_now(self) -> None:
         """Execute the debounced function call now. No matter what."""
         # Without checking self.timer.finished.is_set(), in rare situations the actual function
         # would get executed twice.
         if self.timer is not None and not self.timer.finished.is_set():  # type: ignore
-            self._safe_stop_timer()
-            self.timer.function(*self.timer.args, **self.timer.kwargs)  # type: ignore
+            self._on_timer(*self.timer.args, **self.timer.kwargs)  # type: ignore
+
+    def _setup_timer(self, *args: Any, **kwargs: Any) -> None:
+        self._safe_stop_timer()
+        self.timer = Timer(self.wait, self._on_timer, list(args), kwargs)
+        self.timer.start()
+
+    def _on_timer(self, *args: Any, **kwargs: Any) -> None:
+        self._safe_stop_timer()
+        self.fun(*args, **kwargs)
 
     def __call__(self, *args: Any, **kwargs: Any) -> None:
+        self._setup_timer(*args, **kwargs)
+
+
+class Cooldown(Debounce):
+    """Executes the function once. Succeeding calls will be ignored until the cool down
+    interval is expired. Will emit a callback when the cool down interval has expired.
+
+    Example:
+        >>> results = []
+        >>> def foo(counter):
+        ...     results.append(counter)
+        >>> def cool_down():
+        ...     results.append("cool_down")
+
+        >>> dut = Cooldown(foo, 0.1, cool_down, True)
+        >>> for cnt in range(5): dut(cnt)
+        >>> time.sleep(0.15)
+        >>> results
+        [0, 'cool_down']
+
+        >>> results = []
+        >>> dut = Cooldown(foo, 0.10, cool_down, False)
+        >>> dut(1)
+        >>> time.sleep(0.05)
+        >>> dut(2)
+        >>> results
+        [1]
+        >>> time.sleep(0.03)
+        >>> results
+        [1]
+        >>> time.sleep(0.03)
+        >>> results
+        [1, 'cool_down']
+        >>> dut(3)
+        >>> dut(4)
+        >>> dut(5)
+        >>> results
+        [1, 'cool_down', 3]
+        >>> time.sleep(0.11)
+        >>> results
+        [1, 'cool_down', 3, 'cool_down']
+    """
+
+    def __init__(
+            self,
+            fun: Callable[..., Any], cool_down: float = 0.5,
+            cool_down_callback: Optional[Callable[[], None]] = None,
+            renew_cooldown: bool = True
+    ):
+        super().__init__(fun, cool_down)
+        Validator.is_function(allow_none=True, cool_down_callback=cool_down_callback)
+        self.cool_down_callback = cool_down_callback
+        self.renew_cooldown = bool(renew_cooldown)
+
+    def _setup_timer(self, *args: Any, **kwargs: Any) -> None:
+        if self.renew_cooldown or self.timer is None:
+            super()._setup_timer()
+
+    def _on_timer(self, *args: Any, **kwargs: Any) -> None:
         self._safe_stop_timer()
-        self.timer = Timer(self.wait, self.fun, list(args), kwargs)
-        self.timer.start()
+        if self.cool_down_callback:
+            self.cool_down_callback()
+
+    def __call__(self, *args: Any, **kwargs: Any) -> None:
+        if self.timer is None:  # No timer running -> first call
+            self.fun(*args, **kwargs)
+        self._setup_timer()  # Setup or renew the cooldown
 
 
 class Singleton:

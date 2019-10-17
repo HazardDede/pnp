@@ -3,13 +3,14 @@
     plugin: pnp.plugins.pull.sensor.Sound
     args:
       wav_files:  # The files to compare for similarity
-        - path: ding.wav
-          mode: std  # Use pearson correlation coefficient [pearson, std]
-          offset: 0.1  # Adjust sensitivity. Positive means less sensitive; negative is more sensitive
+        - path: ding.wav  # Absolute or relative (from the config) path to the wav file
+          mode: std  # Use std correlation coefficient [pearson, std]; optional default is pearson
+          offset: -0.5  # Adjust sensitivity. Positive means less sensitive; negative is more sensitive. Default is 0.0
         - path: doorbell.wav  # This will use default values for mode and offset (pearson, 0.0)
+          cooldown:
+            period: 10s  # Prevents the pull to emit more than one sound detection event every 10 seconds
+            emit_event: true  # Fire an event after the actual cool down - Useful for binary_sensors to return to their 'off' state
       device_index:  # The index of the microphone devices. If not specified pyAudio will try to find a capable device
-      mode: pearson  # Use pearson correlation coefficient [pearson, std]
-      cool_down: 3s  # Prevents the pull to emit more than one sound detection event every 3 seconds
       ignore_overflow: true  # Some devices might be too slow to process the stream in realtime. Ignore any buffer overflow errors.
   push:
     - plugin: pnp.plugins.push.simple.Echo

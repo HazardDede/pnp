@@ -11,6 +11,11 @@ from ..validator import Validator
 _LOGGER = logging.getLogger(__file__)
 
 
+MODE_PEARSON = 'pearson'
+MODE_STD = 'std'
+ALLOWED_MODES = [MODE_PEARSON, MODE_STD]
+
+
 def perform_fft(signal, rate, add_zeros=True):
     """Perform a fast fournier transformation on a given signal."""
     import numpy as np
