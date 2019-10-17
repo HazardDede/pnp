@@ -621,6 +621,7 @@ You are encouraged to specify explicitly the version in your dependency tools, e
     pip install pnp==0.10.0
 
 **Next release (~0.18.1)**
+* Adds `pull.traffic.DeutscheBahn` to poll the `Deutsche Bahn` website using the `schiene` package to find the next scheduled trains
 * Adds `push.simple.Wait` to interrupt the execution for some specified amount of time
 * Breaking: Fixes `ignore_overflow` of `pull.sensor.Sound` plugin (which actually has the opposite effect)
 * Adds slack logging handler to log messages to a slack channel and optionally ping users
