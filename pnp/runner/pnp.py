@@ -83,7 +83,7 @@ def run(args):
 
 def main():
     """Main entry point into pnp application."""
-    arguments = docopt(__doc__, version='0.18.0')
+    arguments = docopt(__doc__, version='0.19.0')
     run(arguments)
 
 
