@@ -620,7 +620,7 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 
     pip install pnp==0.10.0
 
-**Next release (~0.18.1)**
+**0.19.0**
 * Adds `pull.traffic.DeutscheBahn` to poll the `Deutsche Bahn` website using the `schiene` package to find the next scheduled trains
 * Adds `push.simple.Wait` to interrupt the execution for some specified amount of time
 * Breaking: Component `pull.sensor.Sound` can now check multiple sound files for similarity. The configurational arguments changed. Have a look at the docs
