@@ -1,14 +1,28 @@
 """Useful sensor stuff."""
 
 import logging
-import os
-from datetime import datetime, timedelta
+from datetime import datetime
+from functools import partial
 
+import attr
 import requests
+import schema as sc
 
 from . import PullBase, Polling, PollingError
 from .. import load_optional_module
-from ...utils import safe_get, auto_str_ignore, parse_duration_literal, Throttle
+from ...shared.sound import (
+    WavFile,
+    similarity_pearson,
+    similarity_std,
+    MODE_PEARSON,
+    MODE_STD,
+    ALLOWED_MODES
+)
+from ...utils import (
+    safe_get,
+    auto_str_ignore,
+    parse_duration_literal,
+    Cooldown)
 from ...validator import Validator
 
 
@@ -193,7 +207,7 @@ class OpenWeather(Polling):
 
 
 # pylint: disable=too-many-instance-attributes
-@auto_str_ignore(ignore_list=['cool_down_secs', 'notify', 'signal_fft', 'signal_length'])
+@auto_str_ignore(ignore_list=[])
 class Sound(PullBase):
     """
     Listens to the microphone in realtime and searches the stream for a specific sound pattern.
@@ -203,73 +217,125 @@ class Sound(PullBase):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/sensor.Sound/index.md
     """
+    @attr.s
+    class WavConfig:
+        """Wav configuration entity."""
+        wav_file = attr.ib(type=WavFile)
+        mode = attr.ib()
+        offset = attr.ib()
+        cooldown_period = attr.ib()
+        cooldown_event = attr.ib()
+        notify = attr.ib(repr=False)
+
+        CONF_COOLDOWN = 'cooldown'
+        CONF_COOLDOWN_PERIOD = 'period'
+        CONF_COOLDOWN_EVENT = 'emit_event'
+        CONF_PATH = 'path'
+        CONF_MODE = 'mode'
+        CONF_OFFSET = 'offset'
+
+        DEFAULT_COOLDOWN_PERIOD = 10
+        DEFAULT_COOLDOWN = {
+            CONF_COOLDOWN_PERIOD: DEFAULT_COOLDOWN_PERIOD,
+            CONF_COOLDOWN_EVENT: False
+        }
+        DEFAULT_MODE = MODE_PEARSON
+        DEFAULT_OFFSET = 0.0
+
+        WAV_FILE_SCHEMA = sc.Schema({
+            CONF_PATH: sc.Use(str),
+            sc.Optional(CONF_MODE, default=DEFAULT_MODE): sc.Use(str),
+            sc.Optional(CONF_OFFSET, default=DEFAULT_OFFSET): sc.Use(float),
+            sc.Optional(CONF_COOLDOWN, default=DEFAULT_COOLDOWN): {
+                sc.Optional(CONF_COOLDOWN_PERIOD, default=DEFAULT_COOLDOWN_PERIOD):
+                    sc.Use(parse_duration_literal),
+                sc.Optional(CONF_COOLDOWN_EVENT, default=False): sc.Use(bool)
+            }
+        })
+
+        WAV_FILE_LIST_SCHEMA = sc.Schema([WAV_FILE_SCHEMA])
+
+        @classmethod
+        def _check_mode(cls, mode):
+            Validator.one_of(ALLOWED_MODES, mode=mode)
+            return mode
+
+        @classmethod
+        def from_dict(cls, dct_config, base_path, notify_fun, cooldown_fun):
+            """Loads a wav configuration from a dictionary."""
+            config = cls.WAV_FILE_SCHEMA.validate(dct_config)
+            wav_file = WavFile.from_path(config[cls.CONF_PATH], base_path)
+            cooldown_cfg = config[cls.CONF_COOLDOWN]
+            cooldown_cb = None
+            if cooldown_cfg[cls.CONF_COOLDOWN_EVENT]:
+                cooldown_cb = partial(cooldown_fun, file_name=wav_file.file_name)
+            return cls(
+                wav_file=wav_file,
+                mode=cls._check_mode(config[cls.CONF_MODE]),
+                offset=config[cls.CONF_OFFSET],
+                cooldown_period=cooldown_cfg[cls.CONF_COOLDOWN_PERIOD],
+                cooldown_event=cooldown_cfg[cls.CONF_COOLDOWN_EVENT],
+                notify=Cooldown(
+                    notify_fun,
+                    cool_down=cooldown_cfg[cls.CONF_COOLDOWN_PERIOD],
+                    cool_down_callback=cooldown_cb
+                )
+            )
+
+        @classmethod
+        def from_list(cls, list_config, base_path, notify_fun, cooldown_fun):
+            """Loads multiple wav configurations from a list."""
+            validated = cls.WAV_FILE_LIST_SCHEMA.validate(list_config)
+            return [
+                cls.from_dict(wav_file, base_path, notify_fun, cooldown_fun)
+                for wav_file in validated
+            ]
+
     EXTRA = 'sound'
 
-    MODE_PEARSON = 'pearson'
-    MODE_STD = 'std'
-    ALLOWED_MODES = [MODE_PEARSON, MODE_STD]
     RATE = 44100
     CHUNK_SIZE = 1024 * 4
     PEARSON_THRESHOLD = 0.5
     STD_THRESHOLD = 1.4
 
-    def __init__(self, wav_file, device_index=None, mode='pearson', sensitivity_offset=0.0,
-                 cool_down="10s", ignore_overflow=False, **kwargs):
+    def __init__(self, wav_files, device_index=None, ignore_overflow=False,
+                 **kwargs):
         super().__init__(**kwargs)
-        self.wav_file = str(wav_file)
-        if not os.path.isabs(self.wav_file):
-            self.wav_file = os.path.join(self.base_path, self.wav_file)
-        Validator.is_file(wav_file=self.wav_file)
+        self._check_dependencies()
+        self.wav_files = self.WavConfig.from_list(
+            wav_files, self.base_path, self.notify, self._on_cooldown
+        )
         self.device_index = device_index and int(device_index)
-        self.wav_file_name = os.path.basename(os.path.splitext(self.wav_file)[0])
-        self.signal_length, self.signal_fft = self._load_wav_fft()
-        self.mode = str(mode)
-        Validator.one_of(self.ALLOWED_MODES, mode=self.mode)
-        self.sensitivity_offset = float(sensitivity_offset)
-        self.cool_down = cool_down
-        self.cool_down_secs = cool_down and parse_duration_literal(cool_down)  # Might be None
         self.ignore_overflow = bool(ignore_overflow)
-        # Override notify with a throttled version
-        self.notify = Throttle(timedelta(seconds=self.cool_down_secs or 0))(self.notify)
 
-    def _load_wav_fft(self):
-        wavfile = load_optional_module('scipy.io.wavfile', self.EXTRA)
-        self.logger.debug("Loading wav file from '%s'", self.wav_file)
-        sample_rate, signal = wavfile.read(self.wav_file)
-        N, secs, signal_fft = self._perform_fft(signal, sample_rate)
-        self.logger.debug("Loaded %s seconds wav file @ %s hz", secs, sample_rate)
-        return N, signal_fft
+    def _check_dependencies(self):
+        load_optional_module('scipy.io.wavfile', self.EXTRA)
+        load_optional_module('numpy', self.EXTRA)
+        load_optional_module('scipy', self.EXTRA)
+        load_optional_module('scipy.stats.stats', self.EXTRA)
 
-    def _perform_fft(self, signal, rate, add_zeros=True):
-        np = load_optional_module('numpy', self.EXTRA)
-        scipy = load_optional_module('scipy', self.EXTRA)
+    def _similarity(self, buffer, config: WavConfig):
+        if config.mode == MODE_PEARSON:
+            return similarity_pearson(
+                buffer,
+                config.wav_file,
+                self.RATE,
+                self.PEARSON_THRESHOLD + config.offset
+            )
+        if config.mode == MODE_STD:
+            return similarity_std(
+                buffer,
+                config.wav_file,
+                self.RATE,
+                self.STD_THRESHOLD + config.offset
+            )
+        raise ValueError("The given mode '{}' is unsupported".format(config.mode))
 
-        chn = len(signal.shape)
-        if chn >= 2:  # Make mono channel
-            signal = signal.sum(axis=1) / 2
-        N = int(signal.shape[0])
-        secs = N / float(rate)
-        if add_zeros:
-            signal = np.concatenate((signal, np.zeros(len(signal))), axis=None)
-        trans_fft = abs(scipy.fft(signal))
-
-        return N, secs, trans_fft
-
-    def _similarity(self, buffer):
-        _, _, current_fft = self._perform_fft(buffer[:self.signal_length], self.RATE, True)
-        if self.mode == self.MODE_PEARSON:
-            pearsonr = load_optional_module('scipy.stats.stats', self.EXTRA).pearsonr
-            corrcoef = pearsonr(self.signal_fft, current_fft)[0]
-            threshold = self.PEARSON_THRESHOLD + self.sensitivity_offset
-        else:
-            np = load_optional_module('numpy', self.EXTRA)
-            corrcoef = np.correlate(
-                self.signal_fft / self.signal_fft.std(),
-                current_fft / current_fft.std()
-            )[0] / len(self.signal_fft)
-            threshold = self.STD_THRESHOLD + self.sensitivity_offset
-
-        return corrcoef >= threshold, corrcoef, threshold
+    def _on_cooldown(self, file_name):
+        self.notify({
+            'type': 'cooldown',
+            'sound': file_name
+        })
 
     def pull(self):
         np = load_optional_module('numpy', self.EXTRA)
@@ -285,30 +351,45 @@ class Sound(PullBase):
             frames_per_buffer=self.CHUNK_SIZE
         )
         try:
-            buffer = None
-            N = self.signal_length
+            buffers = [None for _ in self.wav_files]  # Init buffer foreach wav_file
             while not self.stopped:
                 data = np.fromstring(stream.read(
                     self.CHUNK_SIZE,
                     exception_on_overflow=not self.ignore_overflow
                 ), dtype=np.int16)
-                buffer = data if buffer is None else np.concatenate((buffer, data), axis=None)
-                lbuf = len(buffer)
-                if lbuf >= N:
-                    self.logger.debug("Buffer (%s) >= size of wav file (%s)",
-                                      lbuf, N)
-                    flag, corrcoef, threshold = self._similarity(buffer)
-                    self.logger.debug("Correlation: %s >= %s = %s",
-                                      corrcoef, threshold, flag)
-                    if flag:
-                        self.notify({
-                            'data': self.wav_file_name,
-                            'corrcoef': corrcoef,
-                            'threshold': threshold
-                        })
-                        buffer = None
-                    else:
-                        buffer = buffer[int(len(buffer) * 0.75):]
+
+                for i, buffer in enumerate(buffers):
+                    config = self.wav_files[i]
+                    buffer = self._process_single(buffer, data, np, config)
+                    buffers[i] = buffer
         finally:
             stream.close()
             pa.terminate()
+
+            # Emit any pending cooldown events
+            for config in self.wav_files:
+                config.notify.execute_now()
+
+    def _process_single(self, buffer, data, np, config):
+        wav_file = config.wav_file
+        N = wav_file.signal_length
+        buffer = data if buffer is None else np.concatenate((buffer, data), axis=None)
+        lbuf = len(buffer)
+        if lbuf >= N:
+            self.logger.debug("Buffer (%s): %s (Buffer) >= %s (Wav)",
+                              wav_file.file_name, lbuf, N)
+            flag, corrcoef, threshold = self._similarity(buffer, config)
+            self.logger.debug("Correlation (%s): %s >= %s = %s",
+                              wav_file.file_name, corrcoef, threshold, flag)
+            if flag:
+                config.notify({
+                    'type': 'sound',
+                    'sound': wav_file.file_name,
+                    'corrcoef': corrcoef,
+                    'threshold': threshold
+                })
+                buffer = None
+            else:
+                buffer = buffer[int(len(buffer) * 0.75):]
+
+        return buffer
