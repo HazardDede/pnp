@@ -1,4 +1,5 @@
 """Contains traffic (trains, cars, flights, ...) related pulls."""
+from datetime import datetime
 
 from glom import glom, Coalesce
 from schiene import Schiene
@@ -37,6 +38,7 @@ class DeutscheBahn(Polling):
         connections = api.connections(
             self.origin,
             self.destination,
-            only_direct=self.only_direct
+            only_direct=self.only_direct,
+            dt=datetime.now()
         )
         return [glom(conn, self.SPEC) for conn in connections]
