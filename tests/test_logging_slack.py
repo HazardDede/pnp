@@ -49,7 +49,7 @@ def test_logger_emit_with_trace(slacker_mock):
         channel='pytest',
         fire_and_forget=False
     )
-    dut.MAX_ATTACHMENT_CHARS = 1000
+    dut.MAX_ATTACHMENT_CHARS = 46
     try:
         raise Exception("EXCEPTION RAISED ON PURPOSE!")
     except Exception:
@@ -74,47 +74,7 @@ def test_logger_emit_with_trace(slacker_mock):
             'fields': [{
                 'title': 'LogRecord from pytest',
                 'short': False,
-                'value': '```Traceback (most recent call last):\n\n  File "/Users/dennismuth/private/pnp/tests/test_logging_slack.py", line 54, in test_logger_emit_with_trace\n    raise Exception("EXCEPTION RAISED ON PURPOSE!")\n\nException: EXCEPTION RAISED ON PURPOSE!\n```'
-            }]
-        }]
-    )
-
-
-@patch('pnp.logging.slacker.Slacker')
-def test_logger_emit_with_big_trace(slacker_mock):
-    slacker_mock.return_value = MagicMock()
-
-    dut = SlackHandler(
-        api_key='doesnt_matter',
-        channel='pytest',
-        fire_and_forget=False
-    )
-    dut.MAX_ATTACHMENT_CHARS = 26
-    try:
-        raise Exception("EXCEPTION RAISED ON PURPOSE!")
-    except Exception:
-        dut.emit(LogRecord(
-            name='pytest',
-            level=logging.ERROR,
-            pathname='doesnt_matter',
-            lineno=42,
-            msg='LogRecord from pytest',
-            args=None,
-            exc_info=sys.exc_info()
-        ))
-
-    slacker_mock.return_value.chat.post_message.assert_called_once_with(
-        text=None,
-        channel='#pytest',
-        username=SlackHandler.DEFAULT_USERNAME,
-        icon_url=None,
-        icon_emoji=SlackHandler.DEFAULT_EMOJI,
-        attachments=[{
-            'color': 'danger',
-            'fields': [{
-                'title': 'LogRecord from pytest',
-                'short': False,
-                'value': '``` RAISED ON PURPOSE!\n```'
+                'value': '```Exception: EXCEPTION RAISED ON PURPOSE!\n```'
             }]
         }]
     )
