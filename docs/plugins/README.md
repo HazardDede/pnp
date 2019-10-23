@@ -33,11 +33,12 @@
 2.6\.  [pnp.plugins.push.mqtt.Discovery](#pnp.plugins.push.mqtt.discovery)  
 2.7\.  [pnp.plugins.push.mqtt.Publish](#pnp.plugins.push.mqtt.publish)  
 2.8\.  [pnp.plugins.push.notify.Pushbullet](#pnp.plugins.push.notify.pushbullet)  
-2.9\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
-2.10\.  [pnp.plugins.push.simple.Execute](#pnp.plugins.push.simple.execute)  
-2.11\.  [pnp.plugins.push.simple.Wait](#pnp.plugins.push.simple.wait)  
-2.12\.  [pnp.plugins.push.storage.Dropbox](#pnp.plugins.push.storage.dropbox)  
-2.13\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
+2.9\.  [pnp.plugins.push.notify.Slack](#pnp.plugins.push.notify.slack)  
+2.10\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
+2.11\.  [pnp.plugins.push.simple.Execute](#pnp.plugins.push.simple.execute)  
+2.12\.  [pnp.plugins.push.simple.Wait](#pnp.plugins.push.simple.wait)  
+2.13\.  [pnp.plugins.push.storage.Dropbox](#pnp.plugins.push.storage.dropbox)  
+2.14\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
 3\.  [UDFs (User defined function)](#udfsuserdefinedfunction)  
 3.1\.  [pnp.plugins.udf.hass.State](#pnp.plugins.udf.hass.state)  
 3.2\.  [pnp.plugins.udf.simple.Counter](#pnp.plugins.udf.simple.counter)  
@@ -2172,9 +2173,62 @@ __Examples__
     selector: "'New file: {}'.format(data.source)"
 
 ```
+<a name="pnp.plugins.push.notify.slack"></a>
+
+### 2.9\. pnp.plugins.push.notify.Slack
+
+Sends a message to a given [Slack](http://www.slack.com) channel.
+
+You can specify the channel, the name of the poster, the icon of the poster
+and a list of users to ping.
+
+__Arguments__
+
+- **api_key (str)**: The api key of your slack oauth token
+- **channel (str)**: The channel to post the message to
+- **username (str, optional)**: The username of the message poster. Defaults to PnP
+- **emoji (str, optional)**: The emoji of the message poster. Defaults to :robot:
+- **ping_users (List[str], optional)**: A list of users to ping when the message is posted. By default non one is ping'd.
+
+You can override the `channel`, `username`, `emoji` and the `ping_users` list by the envelope. See the example for more details.
+
+__Result__
+
+Will return the payload as it is for easy chaining of dependencies.
+
+__Examples__
+
+```yaml
+- name: slack
+  pull:
+    plugin: pnp.plugins.pull.simple.Count  # Let's count
+    args:
+      wait: 10
+  push:
+    - plugin: pnp.plugins.push.notify.Slack
+      selector:
+        data: "lambda data: 'This is the counter: {}'.format(data)"
+        # You can override the channel if necessary
+        # channel: "lambda data: 'test_even' if int(data) % 2 == 0 else 'test_odd'"
+        # You can override the username if necessary
+        # username: the_new_user
+        # You can override the emoji if necessary
+        # emoji: ':see_no_evil:'
+        # You can override the ping users if necessary
+        # ping_users:
+        #   - clone_dede
+      args:
+        api_key: "{{env::SLACK_API_KEY}}"  # Your slack api key.
+        channel: test  # The channel to post to. Mandatory. Overridable by envelope.
+        username: slack_tester  # The username to show. Default is PnP. Overridable by envelope
+        emoji: ':pig:'  # The emoji to use. Default is :robot: . Overridable by envelope
+        ping_users:  # The users you want to ping when the message is send. Overridable by envelope
+          - dede
+
+```
 <a name="pnp.plugins.push.simple.echo"></a>
 
-### 2.9\. pnp.plugins.push.simple.Echo
+### 2.10\. pnp.plugins.push.simple.Echo
 
 Simply log the passed payload to the default logging instance.
 
@@ -2202,7 +2256,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.simple.execute"></a>
 
-### 2.10\. pnp.plugins.push.simple.Execute
+### 2.11\. pnp.plugins.push.simple.Execute
 
 Executes a command with given arguments in a shell of the operating system.
 Both `command` and `args` may include placeholders (e.g. `{{placeholder}}`) which are injected at runtime
@@ -2289,7 +2343,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.simple.wait"></a>
 
-### 2.11\. pnp.plugins.push.simple.Wait
+### 2.12\. pnp.plugins.push.simple.Wait
 
 Performs a sleep operation and waits for some time to pass by.
 
@@ -2335,7 +2389,7 @@ tasks:
 ```
 <a name="pnp.plugins.push.storage.dropbox"></a>
 
-### 2.12\. pnp.plugins.push.storage.Dropbox
+### 2.13\. pnp.plugins.push.storage.Dropbox
 
 Uploads provided file to the specified dropbox account.
 
@@ -2393,7 +2447,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.timedb.influxpush"></a>
 
-### 2.13\. pnp.plugins.push.timedb.InfluxPush
+### 2.14\. pnp.plugins.push.timedb.InfluxPush
 
 Pushes the given `payload` to an influx database using the line `protocol`.
 You have to specify `host`, `port`, `user`, `password` and the `database`.
