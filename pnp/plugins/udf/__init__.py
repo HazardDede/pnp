@@ -5,9 +5,11 @@ from datetime import datetime, timedelta
 from typing import Optional, Any
 
 from .. import Plugin
-from ...utils import parse_duration_literal, DurationLiteral
+from ...metrics import UDFMetrics, track_call
+from ...utils import auto_str_ignore, parse_duration_literal, DurationLiteral
 
 
+@auto_str_ignore(['_metrics', '__call__'])
 class UserDefinedFunction(Plugin):
     """Base class for a user defined expression."""
 
@@ -20,11 +22,22 @@ class UserDefinedFunction(Plugin):
                 called functions will be cached for the amount of time.
         """
         super().__init__(**kwargs)
+        self._metrics = None  # type: Optional[UDFMetrics]
         self.throttle = throttle and parse_duration_literal(throttle)
         self._cache = None
         self._last_call = None  # type: Optional[datetime]
 
-    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        self.__call__ = track_call(self.metrics)(self.__call__)  # type: ignore
+
+    @property
+    def metrics(self) -> UDFMetrics:
+        """Return the metrics tracker. Override if necessary to provide custom
+        implementation."""
+        if not self._metrics:
+            self._metrics = UDFMetrics(self)
+        return self._metrics
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:  # type: ignore
         if not self.throttle:
             return self.action(*args, **kwargs)
 

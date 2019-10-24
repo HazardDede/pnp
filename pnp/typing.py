@@ -11,6 +11,13 @@ Payload = Any  # pylint: disable=invalid-name
 SelectorExpression = Union[str, Dict[str, str], List[str]]
 
 
+class Component(Protocol):
+    """Component (pull/push/udf) features."""
+    @property
+    def name(self) -> str:  # pylint: disable=unused-argument,missing-docstring,no-self-use
+        ...
+
+
 class QueuePutGet(Protocol):
     """Queue that supports put and get."""
     def get(self) -> Any:  # pylint: disable=unused-argument,missing-docstring,no-self-use

@@ -1,7 +1,7 @@
 """Pull 'n' Push
 
 Usage:
-  pnp [(--engine=<engine>)] [(-v | --verbose)] [--log=<log_conf>] <configuration>
+  pnp [(--engine=<engine>)] [(-v | --verbose)] [--log=<log_conf>] [--metrics=<port>] <configuration>
   pnp (-c | --check) <configuration>
   pnp (-h | --help)
   pnp --version
@@ -9,9 +9,10 @@ Usage:
 Options:
   -c --check        Only check configuration and do not run it.
   --engine=<engine> Override engine from configuration file (thread, process, sequential, async).
-  -v --verbose      Switches log level to debug.
-  --log=<log_conf>  Specify logging configuration to load.
   -h --help         Show this screen.
+  --log=<log_conf>  Specify logging configuration to load.
+  --metrics=<port>  Enable prometheus metrics server on the specified port.
+  -v --verbose      Switches log level to debug.
   --version         Show version.
 """
 
@@ -25,6 +26,7 @@ from schema import Schema, Use, And, Or
 
 from ..app import Application
 from ..engines import DEFAULT_ENGINES
+from ..metrics import start_httpd
 from ..utils import get_first_existing_file
 
 
@@ -56,13 +58,14 @@ def _validate_args(args):
     )
 
     validator = Schema({
-        "--help": Use(bool),
-        "--verbose": Use(bool),
-        "--version": Use(str),
+        "<configuration>": And(os.path.isfile, Use(os.path.abspath)),
         "--check": Use(bool),
         "--engine": engine_schema,
+        "--help": Use(bool),
         "--log": Or(None, And(os.path.isfile, Use(os.path.abspath))),
-        "<configuration>": And(os.path.isfile, Use(os.path.abspath))
+        "--metrics": Or(None, Use(int)),
+        "--verbose": Use(bool),
+        "--version": Use(str)
     })
     return validator.validate(args)
 
@@ -78,6 +81,8 @@ def run(args):
     )
     app = Application.from_file(pnp_cfg_path, engine_override=validated['--engine'])
     if not validated['--check']:
+        if validated['--metrics']:
+            start_httpd(validated['--metrics'])
         app.start()
 
 

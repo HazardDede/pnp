@@ -57,6 +57,7 @@ setup(
         'docopt>=0.6.2',
         'glom>=19.2.0',
         'Jinja2>=2.0',
+        'prometheus_client>=0.7.0',
         'psutil>=5.4.8',
         'python-box>=3.2.0',
         'pytz>=2018.4',

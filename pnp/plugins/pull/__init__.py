@@ -8,14 +8,17 @@ import asyncio
 from schedule import Scheduler  # type: ignore
 
 from .. import Plugin
+from ...metrics import PullMetrics
 from ...shared.async_ import async_from_sync
 from ...shared.async_ import async_sleep_until_interrupt
 from ...typing import Payload
-from ...utils import (auto_str_ignore, parse_duration_literal, try_parse_bool, DurationLiteral,
-                      sleep_until_interrupt)
+from ...utils import (
+    auto_str_ignore, parse_duration_literal, try_parse_bool, DurationLiteral,
+    sleep_until_interrupt
+)
 
 
-@auto_str_ignore(['stopped', '_stopped', 'on_payload'])
+@auto_str_ignore(['stopped', '_stopped', 'on_payload', '_metrics'])
 class PullBase(Plugin):
     """
     Base class for pull plugins.
@@ -24,6 +27,15 @@ class PullBase(Plugin):
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
         self._stopped = proc.Event()
+        self._metrics = None  # type: Optional[PullMetrics]
+
+    @property
+    def metrics(self) -> PullMetrics:
+        """Return the metrics tracker. Override if necessary to provide custom
+        implementation."""
+        if not self._metrics:
+            self._metrics = PullMetrics(self)
+        return self._metrics
 
     @property
     def stopped(self) -> bool:
@@ -49,6 +61,7 @@ class PullBase(Plugin):
 
     def notify(self, payload: Payload) -> None:
         """Call in subclass to emit some payload to the execution engine."""
+        self.metrics.track_event()
         self.on_payload(self, payload)  # type: ignore  # pylint: disable=too-many-function-args
 
     def stop(self) -> None:
@@ -170,6 +183,7 @@ class Polling(AsyncPullBase):
         except StopPollingError:
             self.stop()
         except Exception:  # pragma: no cover, pylint: disable=broad-except
+            self.metrics.track_fail()
             self.logger.exception("Polling of '%s' failed", self.name)
 
     def _configure_scheduler(self, scheduler: Scheduler, callback: Callable[[], None]) -> None:
