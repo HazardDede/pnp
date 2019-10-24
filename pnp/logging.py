@@ -20,24 +20,6 @@ from typing import Optional, Iterable, Dict, Any, List
 import asyncio
 import slacker  # type: ignore
 
-ERROR_COLOR = 'danger'  # color name is built in to Slack API
-WARNING_COLOR = 'warning'  # color name is built in to Slack API
-INFO_COLOR = '#439FE0'
-
-COLORS = {
-    CRITICAL: ERROR_COLOR,
-    FATAL: ERROR_COLOR,
-    ERROR: ERROR_COLOR,
-    WARNING: WARNING_COLOR,
-    INFO: INFO_COLOR,
-    DEBUG: INFO_COLOR,
-    NOTSET: INFO_COLOR,
-}
-
-DEFAULT_EMOJI = ':robot:'
-DEFAULT_USERNAME = 'PnP'
-DEFAULT_PING_LEVEL = 'ERROR'
-
 
 class NoStacktraceFormatter(Formatter):
     """
@@ -55,6 +37,25 @@ class SlackHandler(Handler):
     Implements a logging handler that sends formatted messages to slack.
     """
 
+    ERROR_COLOR = 'danger'  # color name is built in to Slack API
+    WARNING_COLOR = 'warning'  # color name is built in to Slack API
+    INFO_COLOR = '#439FE0'
+
+    COLORS = {
+        CRITICAL: ERROR_COLOR,
+        FATAL: ERROR_COLOR,
+        ERROR: ERROR_COLOR,
+        WARNING: WARNING_COLOR,
+        INFO: INFO_COLOR,
+        DEBUG: INFO_COLOR,
+        NOTSET: INFO_COLOR,
+    }
+
+    DEFAULT_EMOJI = ':robot:'
+    DEFAULT_USERNAME = 'PnP'
+    DEFAULT_PING_LEVEL = 'ERROR'
+    MAX_ATTACHMENT_CHARS = 1000
+
     def __init__(self, api_key: str, channel: str, username: str = DEFAULT_USERNAME,
                  icon_url: Optional[str] = None, icon_emoji: Optional[str] = None,
                  ping_users: Optional[Iterable[str]] = None,
@@ -65,7 +66,7 @@ class SlackHandler(Handler):
         self.fire_and_forget = bool(fire_and_forget)
         self.username = str(username)
         self.icon_url = icon_url and str(icon_url)
-        self.icon_emoji = icon_emoji if (icon_emoji or icon_url) else DEFAULT_EMOJI
+        self.icon_emoji = icon_emoji if (icon_emoji or icon_url) else self.DEFAULT_EMOJI
         self.channel = channel
         if not self.channel.startswith('#') and not self.channel.startswith('@'):
             self.channel = '#' + self.channel
@@ -107,9 +108,17 @@ class SlackHandler(Handler):
         }
         if record.exc_info:
             trace = '\n'.join(traceback.format_exception(*record.exc_info))
+            # Attachments have a character limit. They get truncated by slack
+            # automagically, but this will also truncate the code blocks (```).
+            # Se we do it on our own and we take the truncate the beginning cause
+            # we assume that the end of the trace will contain the mor important
+            # information.
+            trace_size = len(trace) + 6  # 6 extra chars for backticks
+            trace = (trace if trace_size <= self.MAX_ATTACHMENT_CHARS
+                     else trace[trace_size - self.MAX_ATTACHMENT_CHARS:])
             field['value'] = "```{trace}```".format(trace=trace)
         return {
-            'color': COLORS.get(record.levelno, INFO_COLOR),
+            'color': self.COLORS.get(record.levelno, self.INFO_COLOR),
             'fields': [field]
         }
 

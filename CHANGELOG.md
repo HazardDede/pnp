@@ -8,6 +8,7 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 
 **0.19.1**
 * Bugfix: Adds bug workaround in `schiene` package used by `pull.traffic.DeutscheBahn`
+* Bugfix: Adds exception message truncation for `logging.SlackHandler` to ensure starting and ending backticks (code-view)
 
 **0.19.0**
 * Adds `pull.traffic.DeutscheBahn` to poll the `Deutsche Bahn` website using the `schiene` package to find the next scheduled trains
