@@ -8,17 +8,17 @@ import asyncio
 from schedule import Scheduler  # type: ignore
 
 from .. import Plugin
-from ...metrics import PullMetrics
+from ...metrics import PullMetrics, track_pull
 from ...shared.async_ import async_from_sync
 from ...shared.async_ import async_sleep_until_interrupt
 from ...typing import Payload
 from ...utils import (
     auto_str_ignore, parse_duration_literal, try_parse_bool, DurationLiteral,
-    sleep_until_interrupt
+    sleep_until_interrupt, CallbackTimer
 )
 
 
-@auto_str_ignore(['stopped', '_stopped', 'on_payload', '_metrics'])
+@auto_str_ignore(['stopped', '_stopped', 'on_payload', '_metrics', 'pull'])
 class PullBase(Plugin):
     """
     Base class for pull plugins.
@@ -28,6 +28,7 @@ class PullBase(Plugin):
         super().__init__(**kwargs)
         self._stopped = proc.Event()
         self._metrics = None  # type: Optional[PullMetrics]
+        self.pull = track_pull(self.metrics)(self.pull)
 
     @property
     def metrics(self) -> PullMetrics:
@@ -73,6 +74,7 @@ class PullBase(Plugin):
         sleep_until_interrupt(sleep_time, lambda: self.stopped, interval=0.5)
 
 
+@auto_str_ignore(['async_pull'])
 class AsyncPullBase(PullBase):
     """
     Base class for pulls that support the async engine.
@@ -80,8 +82,9 @@ class AsyncPullBase(PullBase):
     def __init__(self, **kwargs: Any):  # pylint: disable=useless-super-delegation
         # Doesn't work without the useless-super-delegation
         super().__init__(**kwargs)
+        self.async_pull = track_pull(self.metrics)(self.async_pull)  # type: ignore
 
-    async def async_pull(self) -> None:
+    async def async_pull(self) -> None:  # type: ignore
         """Performs the actual data retrieval in a way that is compatible with the async engine."""
         raise NotImplementedError()
 
@@ -172,9 +175,14 @@ class Polling(AsyncPullBase):
             self._is_running = True
             try:
                 if isinstance(self, AsyncPolling) and hasattr(self, 'async_poll'):
-                    payload = await self.async_poll()  # pylint: disable=no-member
+                    coro = self.async_poll()  # pylint: disable=no-member
                 else:
-                    payload = await asyncio.get_event_loop().run_in_executor(None, self.poll)
+                    coro = asyncio.get_event_loop().run_in_executor(None, self.poll)  # type: ignore
+
+                # pylint: disable=unnecessary-lambda
+                with CallbackTimer(lambda elapsed: self.metrics.track_execution_time(elapsed)):
+                    payload = await coro
+                # pylint: enable=unnecessary-lambda
             finally:
                 self._is_running = False
 

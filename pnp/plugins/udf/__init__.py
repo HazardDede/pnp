@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from typing import Optional, Any
 
 from .. import Plugin
-from ...metrics import UDFMetrics, track_call
+from ...metrics import UDFMetrics, track_event
 from ...utils import auto_str_ignore, parse_duration_literal, DurationLiteral
 
 
@@ -27,7 +27,7 @@ class UserDefinedFunction(Plugin):
         self._cache = None
         self._last_call = None  # type: Optional[datetime]
 
-        self.__call__ = track_call(self.metrics)(self.__call__)  # type: ignore
+        self.__call__ = track_event(self.metrics)(self.__call__)  # type: ignore
 
     @property
     def metrics(self) -> UDFMetrics:

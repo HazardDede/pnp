@@ -7,7 +7,7 @@ from typing import Any, Callable, Optional, Dict, Iterable, Union, cast, List, T
 
 from .. import Plugin
 from ... import utils
-from ...metrics import PushMetrics, track_call, async_track_call
+from ...metrics import PushMetrics, track_event
 from ...shared.async_ import async_from_sync
 from ...typing import Envelope, Payload
 from ...validator import Validator
@@ -124,7 +124,7 @@ class PushBase(Plugin):
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
         self._metrics = None  # type: Optional[PushMetrics]
-        self.push = track_call(self.metrics)(self.push)  # Make the push trackable
+        self.push = track_event(self.metrics)(self.push)  # Make the push trackable
 
     @property
     def metrics(self) -> PushMetrics:
@@ -254,7 +254,7 @@ class AsyncPushBase(PushBase):
         # Doesn't work without the useless-super-delegation
         super().__init__(**kwargs)
         # Make the async_push trackable
-        self.async_push = async_track_call(self.metrics)(self.async_push)  # type: ignore
+        self.async_push = track_event(self.metrics)(self.async_push)  # type: ignore
 
     def _call_async_push_from_sync(self, payload: Payload) -> None:
         """Calls the async pull from a sync context."""

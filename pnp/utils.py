@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 from functools import partial
 from functools import wraps
 from threading import Timer
+from timeit import default_timer
 from typing import (Union, Any, Optional, Iterable, Pattern, Dict, Callable, cast, Set, List,
                     Hashable, Tuple)
 
@@ -1337,6 +1338,28 @@ class Parallel:
                 futures.append(future)
 
         return ['finished' if f.exception() is None else 'error' for f in futures]
+
+
+class CallbackTimer:
+    """Context manager to determine function block timings.
+
+
+    """
+    def __init__(self, callback: Callable[[float], None]):
+        self.callback = callback
+        self.timer = default_timer
+        self.start: Optional[float] = None
+        self.elapsed = 0.0
+
+    def __enter__(self) -> 'CallbackTimer':
+        self.start = self.timer()
+        return self
+
+    def __exit__(self, *args: Any) -> None:
+        assert self.start
+        end = self.timer()
+        elapsed_secs = end - self.start
+        self.callback(elapsed_secs)
 
 
 class Throttle:

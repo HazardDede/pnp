@@ -5,8 +5,7 @@ from typing import Optional, Callable, Any
 import prometheus_client as metric  # type: ignore
 
 from .typing import Component, Payload
-from .utils import Loggable
-
+from .utils import CallbackTimer, Loggable
 
 PULL_LABELS = ['pull']
 
@@ -16,15 +15,27 @@ PULL_EVENTS_EMITTED_TOTAL = metric.Counter(
     labelnames=PULL_LABELS
 )
 
+PULL_EXITS_TOTAL = metric.Counter(
+    name='pull_exits_total',
+    documentation="Number of times the pull was restarted",
+    labelnames=PULL_LABELS
+)
+
 PULL_FAILS_TOTAL = metric.Counter(
     name='pull_fails_total',
     documentation="Number of times the pull has failed",
     labelnames=PULL_LABELS
 )
 
-PULL_RESTARTS_TOTAL = metric.Counter(
-    name='pull_restarts_total',
-    documentation="Number of times the pull was restarted",
+PULL_POLL_EXECUTION_SECONDS = metric.Histogram(
+    name='pull_poll_execution_time_seconds',
+    documentation="Measures execution time of a pull poll operation",
+    labelnames=PULL_LABELS
+)
+
+PULL_STARTS_TOTAL = metric.Counter(
+    name='pull_starts_total',
+    documentation="Number of times the pull has started",
     labelnames=PULL_LABELS
 )
 
@@ -43,6 +54,12 @@ PUSH_EVENTS_FAILED_TOTAL = metric.Counter(
     labelnames=PUSH_LABELS
 )
 
+PUSH_EXECUTION_TIME_SECONDS = metric.Histogram(
+    name='push_execution_time_seconds',
+    documentation="Measures execution time of a push operation",
+    labelnames=PUSH_LABELS
+)
+
 UDF_LABELS = ['udf']
 
 UDF_EVENTS_PROCESSED_TOTAL = metric.Counter(
@@ -54,6 +71,12 @@ UDF_EVENTS_PROCESSED_TOTAL = metric.Counter(
 UDF_EVENTS_FAILED_TOTAL = metric.Counter(
     name='udf_events_failed_total',
     documentation="Number of events the udf has failed to process",
+    labelnames=UDF_LABELS
+)
+
+UDF_EXECUTION_TIME_SECONDS = metric.Histogram(
+    name='udf_execution_time_seconds',
+    documentation="Measures execution time of a udf operation",
     labelnames=UDF_LABELS
 )
 
@@ -69,6 +92,7 @@ class ComponentMetrics(Loggable):
     from this."""
 
     EVENTS_TOTAL_METRIC = None  # type: Optional[metric.Counter]
+    EXECUTION_TIME_METRIC = None  # type: Optional[metric.Histogram]
     FAILS_TOTAL_METRIC = None  # type: Optional[metric.Counter]
 
     def __init__(self, **labels: str):
@@ -101,21 +125,42 @@ class ComponentMetrics(Loggable):
 
         self.FAILS_TOTAL_METRIC.labels(**self._labels).inc()
 
+    def track_execution_time(self, elapsed: float) -> None:
+        """Tracks the execution time of the component primary operation."""
+        if not self.EXECUTION_TIME_METRIC:
+            return
+        self.EXECUTION_TIME_METRIC.labels(**self._labels).observe(elapsed)
+
 
 class PullMetrics(ComponentMetrics):
     """Pull related metrics."""
 
     EVENTS_TOTAL_METRIC = PULL_EVENTS_EMITTED_TOTAL
+    EXECUTION_TIME_METRIC = PULL_POLL_EXECUTION_SECONDS
     FAILS_TOTAL_METRIC = PULL_FAILS_TOTAL
 
     def __init__(self, pull: Component):
         super().__init__(pull=pull.name)
+
+    def _reset_metrics(self) -> None:
+        super()._reset_metrics()
+        PULL_EXITS_TOTAL.labels(**self._labels).inc(0)
+        PULL_STARTS_TOTAL.labels(**self._labels).inc(0)
+
+    def track_start(self) -> None:
+        """Track the start of a pull."""
+        PULL_STARTS_TOTAL.labels(**self._labels).inc()
+
+    def track_exit(self) -> None:
+        """Track the exit of a pull."""
+        PULL_EXITS_TOTAL.labels(**self._labels).inc()
 
 
 class PushMetrics(ComponentMetrics):
     """Push related metrics."""
 
     EVENTS_TOTAL_METRIC = PUSH_EVENTS_PROCESSED_TOTAL
+    EXECUTION_TIME_METRIC = PUSH_EXECUTION_TIME_SECONDS
     FAILS_TOTAL_METRIC = PUSH_EVENTS_FAILED_TOTAL
 
     def __init__(self, push: Component):
@@ -126,40 +171,60 @@ class UDFMetrics(ComponentMetrics):
     """User-defined-functions related metrics."""
 
     EVENTS_TOTAL_METRIC = UDF_EVENTS_PROCESSED_TOTAL
+    EXECUTION_TIME_METRIC = UDF_EXECUTION_TIME_SECONDS
     FAILS_TOTAL_METRIC = UDF_EVENTS_FAILED_TOTAL
 
     def __init__(self, udf: Component):
         super().__init__(udf=udf.name)
 
 
-def track_call(metrics: ComponentMetrics) -> Callable[..., Payload]:
+def _track_call(fun_enter: Callable[[], None], fun_exit: Callable[[], None],
+                fun_runtime: Callable[[float], None]) -> Callable[..., Payload]:
     """Decorator to track related metrics when calling a method.
-    Will track the event and if error count."""
+    Will track the increase the event counter, the error count (if any) and observe the
+    operation execution time."""
     def _inner(fun: Callable[..., Payload]) -> Callable[..., Payload]:
+        def _observe(elapsed: float) -> None:
+            fun_runtime(elapsed)
+
         @functools.wraps(fun)
         def _wrapper(*args: Any, **kwargs: Any) -> Any:
-            metrics.track_event()
+            fun_enter()
             try:
-                return fun(*args, **kwargs)
+                with CallbackTimer(_observe):
+                    return fun(*args, **kwargs)
             except:
-                metrics.track_fail()
+                fun_exit()
                 raise
-        return _wrapper
-    return _inner
 
-
-def async_track_call(metrics: ComponentMetrics) -> Callable[..., Payload]:
-    """Async decorator to track related metrics when calling an async method.
-    Will track the event and if error count."""
-    def _inner(fun: Callable[..., Payload]) -> Callable[..., Payload]:
         @functools.wraps(fun)
-        async def _wrapper(*args: Any, **kwargs: Any) -> Any:
-            metrics.track_event()
+        async def _async_wrapper(*args: Any, **kwargs: Any) -> Any:
+            fun_enter()
             try:
-                return await fun(*args, **kwargs)
+                with CallbackTimer(_observe):
+                    return await fun(*args, **kwargs)
             except:
-                metrics.track_fail()
+                fun_exit()
                 raise
 
+        import inspect
+        if inspect.iscoroutinefunction(fun):
+            return _async_wrapper
         return _wrapper
+
     return _inner
+
+
+def track_pull(metrics: PullMetrics) -> Callable[..., Payload]:
+    """Decorator to track pull related metrics when running a pull.
+    Will track the number of starts (maybe multiple due to errors) and the number of exits.
+    """
+    return _track_call(metrics.track_start, metrics.track_exit, lambda elapsed: None)
+
+
+def track_event(metrics: ComponentMetrics) -> Callable[..., Payload]:
+    """Decorator to track related metrics when calling a method.
+    Will track the increase the event counter, the error count (if any) and observe the
+    operation execution time."""
+
+    return _track_call(metrics.track_event, metrics.track_fail, metrics.track_execution_time)
