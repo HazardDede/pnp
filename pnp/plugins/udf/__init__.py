@@ -2,7 +2,7 @@
 
 from abc import abstractmethod
 from datetime import datetime, timedelta
-from typing import Optional, Any
+from typing import Optional, Any, Callable
 
 from .. import Plugin
 from ...metrics import UDFMetrics, track_event
@@ -27,7 +27,7 @@ class UserDefinedFunction(Plugin):
         self._cache = None
         self._last_call = None  # type: Optional[datetime]
 
-        self.__call__ = track_event(self.metrics)(self.__call__)  # type: ignore
+        self._call = track_event(self.metrics)(self._call)  # type: Callable[..., Any]
 
     @property
     def metrics(self) -> UDFMetrics:
@@ -37,7 +37,7 @@ class UserDefinedFunction(Plugin):
             self._metrics = UDFMetrics(self)
         return self._metrics
 
-    def __call__(self, *args: Any, **kwargs: Any) -> Any:  # type: ignore
+    def _call(self, *args: Any, **kwargs: Any) -> Any:  # type: ignore
         if not self.throttle:
             return self.action(*args, **kwargs)
 
@@ -59,6 +59,9 @@ class UserDefinedFunction(Plugin):
 
         # Invariant: span < delta(throttle)
         return self._cache
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        return self._call(*args, **kwargs)
 
     @abstractmethod
     def action(self, *args: Any, **kwargs: Any) -> Any:

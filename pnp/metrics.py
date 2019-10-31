@@ -5,9 +5,9 @@ from typing import Optional, Callable, Any
 import prometheus_client as metric  # type: ignore
 
 from .typing import Component, Payload
-from .utils import CallbackTimer, Loggable
+from .utils import CallbackTimer, Loggable, class_fullname
 
-PULL_LABELS = ['pull']
+PULL_LABELS = ['pull', 'classname']
 
 PULL_EVENTS_EMITTED_TOTAL = metric.Counter(
     name='pull_events_emitted_total',
@@ -40,7 +40,7 @@ PULL_STARTS_TOTAL = metric.Counter(
 )
 
 
-PUSH_LABELS = ['push']
+PUSH_LABELS = ['push', 'classname']
 
 PUSH_EVENTS_PROCESSED_TOTAL = metric.Counter(
     name='push_events_processed_total',
@@ -60,7 +60,7 @@ PUSH_EXECUTION_TIME_SECONDS = metric.Histogram(
     labelnames=PUSH_LABELS
 )
 
-UDF_LABELS = ['udf']
+UDF_LABELS = ['udf', 'classname']
 
 UDF_EVENTS_PROCESSED_TOTAL = metric.Counter(
     name='udf_events_processed_total',
@@ -140,7 +140,7 @@ class PullMetrics(ComponentMetrics):
     FAILS_TOTAL_METRIC = PULL_FAILS_TOTAL
 
     def __init__(self, pull: Component):
-        super().__init__(pull=pull.name)
+        super().__init__(pull=pull.name, classname=class_fullname(pull))
 
     def _reset_metrics(self) -> None:
         super()._reset_metrics()
@@ -164,7 +164,7 @@ class PushMetrics(ComponentMetrics):
     FAILS_TOTAL_METRIC = PUSH_EVENTS_FAILED_TOTAL
 
     def __init__(self, push: Component):
-        super().__init__(push=push.name)
+        super().__init__(push=push.name, classname=class_fullname(push))
 
 
 class UDFMetrics(ComponentMetrics):
@@ -175,7 +175,7 @@ class UDFMetrics(ComponentMetrics):
     FAILS_TOTAL_METRIC = UDF_EVENTS_FAILED_TOTAL
 
     def __init__(self, udf: Component):
-        super().__init__(udf=udf.name)
+        super().__init__(udf=udf.name, classname=class_fullname(udf))
 
 
 def _track_call(fun_enter: Callable[[], None], fun_exit: Callable[[], None],

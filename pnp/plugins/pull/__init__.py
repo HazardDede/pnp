@@ -179,10 +179,8 @@ class Polling(AsyncPullBase):
                 else:
                     coro = asyncio.get_event_loop().run_in_executor(None, self.poll)  # type: ignore
 
-                # pylint: disable=unnecessary-lambda
-                with CallbackTimer(lambda elapsed: self.metrics.track_execution_time(elapsed)):
+                with CallbackTimer(self.metrics.track_execution_time):
                     payload = await coro
-                # pylint: enable=unnecessary-lambda
             finally:
                 self._is_running = False
 
