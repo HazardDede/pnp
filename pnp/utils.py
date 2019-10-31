@@ -744,6 +744,8 @@ def class_fullname(obj: Any) -> str:
         >>> obj = Echo(name='doctest')
         >>> class_fullname(obj)
         'pnp.plugins.push.simple.Echo'
+        >>> class_fullname(str)
+        'type'
     """
 
     module = obj.__class__.__module__
