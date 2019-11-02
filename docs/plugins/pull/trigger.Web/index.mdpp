@@ -1,0 +1,41 @@
+# pnp.plugins.pull.trigger.Web
+
+Wraps a poll-based pull and provides a rest-endpoint to externally trigger the poll action.
+This will disable the cron-like / scheduling features of the polling component and simply
+provides you an interface to call the component anytime you see fit.
+
+
+__Arguments__
+
+- **poll (Polling component)**: The polling component that you want to trigger externally. See example for configuration.
+- **port (int)**: The port for the server to listen on.
+- **endpoint (str, optional)**: The name of the endpoint. Default is `/trigger`.
+
+Assume you set `port = 8080` and `endpoint = trigger` then your corresponding `curl` command
+to trigger the polling externally would look like this:
+
+```bash
+curl http://localhost:8080/trigger
+```
+
+In case of success you get back a `200`. In case of error it's a `500`.
+
+__Result__
+
+The component will simply forward the result of the underlying component to dependent pushes.
+
+__Examples__
+
+!INCLUDECODE "docs/plugins/pull/trigger.Web/example.yaml" (yaml)
+
+Test it out:
+```bash
+curl http://localhost:8080/
+```
+
+!INCLUDECODE "docs/plugins/pull/trigger.Web/example_traffic.yaml" (yaml)
+
+Test it out:
+```bash
+curl http://localhost:8080/trigger
+```

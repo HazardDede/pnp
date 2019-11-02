@@ -22,27 +22,22 @@
 1.19\.  [pnp.plugins.pull.simple.Cron](#pnp.plugins.pull.simple.cron)  
 1.20\.  [pnp.plugins.pull.simple.Repeat](#pnp.plugins.pull.simple.repeat)  
 1.21\.  [pnp.plugins.pull.traffic.DeutscheBahn](#pnp.plugins.pull.traffic.deutschebahn)  
-1.22\.  [pnp.plugins.pull.zway.ZwayPoll](#pnp.plugins.pull.zway.zwaypoll)  
-1.23\.  [pnp.plugins.pull.zway.ZwayReceiver](#pnp.plugins.pull.zway.zwayreceiver)  
-2\.  [Pushes](#pushes)  
-2.1\.  [pnp.plugins.push.fs.FileDump](#pnp.plugins.push.fs.filedump)  
-2.2\.  [pnp.plugins.push.hass.Service](#pnp.plugins.push.hass.service)  
-2.3\.  [pnp.plugins.push.http.Call](#pnp.plugins.push.http.call)  
-2.4\.  [pnp.plugins.push.mail.GMail](#pnp.plugins.push.mail.gmail)  
-2.5\.  [pnp.plugins.push.ml.FaceR](#pnp.plugins.push.ml.facer)  
-2.6\.  [pnp.plugins.push.mqtt.Discovery](#pnp.plugins.push.mqtt.discovery)  
-2.7\.  [pnp.plugins.push.mqtt.Publish](#pnp.plugins.push.mqtt.publish)  
-2.8\.  [pnp.plugins.push.notify.Pushbullet](#pnp.plugins.push.notify.pushbullet)  
-2.9\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
-2.10\.  [pnp.plugins.push.simple.Execute](#pnp.plugins.push.simple.execute)  
-2.11\.  [pnp.plugins.push.simple.Wait](#pnp.plugins.push.simple.wait)  
-2.12\.  [pnp.plugins.push.storage.Dropbox](#pnp.plugins.push.storage.dropbox)  
-2.13\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
-3\.  [UDFs (User defined function)](#udfsuserdefinedfunction)  
-3.1\.  [pnp.plugins.udf.hass.State](#pnp.plugins.udf.hass.state)  
-3.2\.  [pnp.plugins.udf.simple.Counter](#pnp.plugins.udf.simple.counter)  
-3.3\.  [pnp.plugins.udf.simple.FormatSize](#pnp.plugins.udf.simple.formatsize)  
-3.4\.  [pnp.plugins.udf.simple.Memory](#pnp.plugins.udf.simple.memory)  
+1.22\.  [pnp.plugins.pull.trigger.Web](#pnp.plugins.pull.trigger.web)  
+1.23\.  [Please make sure to adjust url and device ids](#pleasemakesuretoadjusturlanddeviceids)  
+1.24\.  [Username and Password are injected from environment variables:](#usernameandpasswordareinjectedfromenvironmentvariables:)  
+1.25\.  [export ZWAY_USER=admin](#exportzway_user=admin)  
+1.26\.  [export ZWAY_PASSWORD=secret_one](#exportzway_password=secret_one)  
+1.27\.  [Calls the frontend.set_theme service to oscillate between a "light" and a "dark" theme](#callsthefrontend.set_themeservicetooscillatebetweena"light"anda"dark"theme)  
+1.28\.  [Calls the notify.pushbullet service to send a message with the actual counter](#callsthenotify.pushbulletservicetosendamessagewiththeactualcounter)  
+1.29\.  [Simple example calling the built-in rest server](#simpleexamplecallingthebuilt-inrestserver)  
+1.30\.  [Oscillates between http method GET and POST. Depending on the fact if the counter is even or not.](#oscillatesbetweenhttpmethodgetandpost.dependingonthefactifthecounterisevenornot.)  
+1.31\.  [Demonstrates the use of `provide_response` set to True.](#demonstratestheuseof`provide_response`settotrue.)  
+1.32\.  [Call will return a response object to dependent push instances.](#callwillreturnaresponseobjecttodependentpushinstances.)  
+1.33\.  [Pull triggers when a file is created in the specified directory](#pulltriggerswhenafileiscreatedinthespecifieddirectory)  
+1.34\.  [The GMail push will send an e-mail to a specific recipient with the created file attached](#thegmailpushwillsendane-mailtoaspecificrecipientwiththecreatedfileattached)  
+1.35\.  [Please point your environment variable `FITBIT_AUTH` to your authentication configuration](#pleasepointyourenvironmentvariable`fitbit_auth`toyourauthenticationconfiguration)  
+1.36\.  [Make sure that you provided PUSHBULETT_API_KEY as an environment variable](#makesurethatyouprovidedpushbulett_api_keyasanenvironmentvariable)  
+1.37\.  [Make sure that you provided DROPBOX_API_KEY as an environment variable](#makesurethatyouprovideddropbox_api_keyasanenvironmentvariable)  
 
 <a name="pulls"></a>
 
@@ -1471,9 +1466,81 @@ __Examples__
     plugin: pnp.plugins.push.simple.Echo
 
 ```
-<a name="pnp.plugins.pull.zway.zwaypoll"></a>
+<a name="pnp.plugins.pull.trigger.web"></a>
 
-### 1.22\. pnp.plugins.pull.zway.ZwayPoll
+### 1.22\. pnp.plugins.pull.trigger.Web
+
+Wraps a poll-based pull and provides a rest-endpoint to externally trigger the poll action.
+This will disable the cron-like / scheduling features of the polling component and simply
+provides you an interface to call the component anytime you see fit.
+
+
+__Arguments__
+
+- **poll (Polling component)**: The polling component that you want to trigger externally. See example for configuration.
+- **port (int)**: The port for the server to listen on.
+- **endpoint (str, optional)**: The name of the endpoint. Default is `/trigger`.
+
+Assume you set `port = 8080` and `endpoint = trigger` then your corresponding `curl` command
+to trigger the polling externally would look like this:
+
+```bash
+curl http://localhost:8080/trigger
+```
+
+In case of success you get back a `200`. In case of error it's a `500`.
+
+__Result__
+
+The component will simply forward the result of the underlying component to dependent pushes.
+
+__Examples__
+
+```yaml
+engine: !engine
+  type: pnp.engines.AsyncEngine
+  retry_handler: !retry
+    type: pnp.engines.NoRetryHandler
+tasks:
+  - name: trigger_web
+    pull:
+      plugin: pnp.plugins.pull.trigger.Web
+      args:
+        port: 8080
+        endpoint: '/'
+        poll:
+          plugin: pnp.plugins.pull.monitor.Stats
+    push:
+      plugin: pnp.plugins.push.simple.Echo
+
+```
+
+Test it out:
+```bash
+curl http://localhost:8080/
+```
+
+```yaml
+- name: trigger_web
+  pull:
+    plugin: pnp.plugins.pull.trigger.Web
+    args:
+      port: 8080
+      poll:
+        plugin: pnp.plugins.pull.traffic.DeutscheBahn
+        args:
+          origin: Hamburg Hbf
+          destination: München Hbf
+          only_direct: true  # Only show direct transfers wo change. Default is False.
+  push:
+    plugin: pnp.plugins.push.simple.Echo
+
+```
+
+Test it out:
+```bash
+curl http://localhost:8080/trigger
+```## pnp.plugins.pull.zway.ZwayPoll
 
 Pulls the specified json content from the zway rest api. The content is specified by the url, e.g.
 `http://<host>:8083/ZWaveAPI/Run/devices` will pull all devices and serve the result as a json.
@@ -1503,10 +1570,18 @@ Emits the content of the fetched url as it is.
 __Examples__
 
 ```yaml
-### Please make sure to adjust url and device ids
-### Username and Password are injected from environment variables:
-###     export ZWAY_USER=admin
-###     export ZWAY_PASSWORD=secret_one
+<a name="pleasemakesuretoadjusturlanddeviceids"></a>
+
+### 1.23\. Please make sure to adjust url and device ids
+<a name="usernameandpasswordareinjectedfromenvironmentvariables:"></a>
+
+### 1.24\. Username and Password are injected from environment variables:
+<a name="exportzway_user=admin"></a>
+
+###     1.25\. export ZWAY_USER=admin
+<a name="exportzway_password=secret_one"></a>
+
+###     1.26\. export ZWAY_PASSWORD=secret_one
 - name: zway
   pull:
     plugin: pnp.plugins.pull.zway.ZwayPoll
@@ -1546,9 +1621,7 @@ Below are some common selector examples to fetch various metrics from various de
 * Battery level
 `payload[deviceid].instances[0].commandClasses[128].data.last.value`
 
-<a name="pnp.plugins.pull.zway.zwayreceiver"></a>
-
-### 1.23\. pnp.plugins.pull.zway.ZwayReceiver
+### pnp.plugins.pull.zway.ZwayReceiver
 
 Setups a http server to process incoming GET-requests from the Zway-App [`HttpGet`](https://github.com/hplato/Zway-HTTPGet/blob/master/index.js).
 
@@ -1625,13 +1698,9 @@ __Examples__
 
 ```
 
-<a name="pushes"></a>
+## Pushes
 
-## 2\. Pushes
-
-<a name="pnp.plugins.push.fs.filedump"></a>
-
-### 2.1\. pnp.plugins.push.fs.FileDump
+### pnp.plugins.push.fs.FileDump
 
 This push dumps the given `payload` to a file to the specified `directory`.
 If argument `file_name` is None, a name will be generated based on the current datetime (%Y%m%d-%H%M%S).
@@ -1697,9 +1766,7 @@ __Examples__
       - plugin: pnp.plugins.push.simple.Echo
 
 ```
-<a name="pnp.plugins.push.hass.service"></a>
-
-### 2.2\. pnp.plugins.push.hass.Service
+### pnp.plugins.push.hass.Service
 
 Calls a home assistant service providing the payload as service-data.
 
@@ -1718,7 +1785,9 @@ Returns the payload as-is for better chaining (this plugin can't add any useful 
 __Examples__
 
 ```yaml
-### Calls the frontend.set_theme service to oscillate between a "light" and a "dark" theme
+<a name="callsthefrontend.set_themeservicetooscillatebetweena"light"anda"dark"theme"></a>
+
+### 1.27\. Calls the frontend.set_theme service to oscillate between a "light" and a "dark" theme
 - name: hass_service
   pull:
     plugin: pnp.plugins.pull.simple.Count
@@ -1737,7 +1806,9 @@ __Examples__
 ```
 
 ```yaml
-### Calls the notify.pushbullet service to send a message with the actual counter
+<a name="callsthenotify.pushbulletservicetosendamessagewiththeactualcounter"></a>
+
+### 1.28\. Calls the notify.pushbullet service to send a message with the actual counter
 - name: hass_service
   pull:
     plugin: pnp.plugins.pull.simple.Count
@@ -1754,9 +1825,7 @@ __Examples__
       service: pushbullet
 
 ```
-<a name="pnp.plugins.push.http.call"></a>
-
-### 2.3\. pnp.plugins.push.http.Call
+### pnp.plugins.push.http.Call
 
 Makes a request to a http resource.
 
@@ -1791,8 +1860,12 @@ the payload 'fetched url content' by other push instances in the dependency chai
 __Examples__
 
 ```yaml
-### Simple example calling the built-in rest server
-### Oscillates between http method GET and POST. Depending on the fact if the counter is even or not.
+<a name="simpleexamplecallingthebuilt-inrestserver"></a>
+
+### 1.29\. Simple example calling the built-in rest server
+<a name="oscillatesbetweenhttpmethodgetandpost.dependingonthefactifthecounterisevenornot."></a>
+
+### 1.30\. Oscillates between http method GET and POST. Depending on the fact if the counter is even or not.
 - name: http_call
   pull:
     plugin: pnp.plugins.pull.simple.Count
@@ -1820,8 +1893,12 @@ __Examples__
 ```
 
 ```yaml
-### Demonstrates the use of `provide_response` set to True.
-### Call will return a response object to dependent push instances.
+<a name="demonstratestheuseof`provide_response`settotrue."></a>
+
+### 1.31\. Demonstrates the use of `provide_response` set to True.
+<a name="callwillreturnaresponseobjecttodependentpushinstances."></a>
+
+### 1.32\. Call will return a response object to dependent push instances.
 - name: http_call
   pull:
     plugin: pnp.plugins.pull.simple.Count
@@ -1845,9 +1922,7 @@ __Examples__
     plugin: pnp.plugins.push.simple.Nop
 
 ```
-<a name="pnp.plugins.push.mail.gmail"></a>
-
-### 2.4\. pnp.plugins.push.mail.GMail
+### pnp.plugins.push.mail.GMail
 
 Sends an e-mail via the `gmail api`.
 
@@ -1881,8 +1956,12 @@ Will return the payload as it is for easy chaining of dependencies.
 __Examples__
 
 ```yaml
-### Pull triggers when a file is created in the specified directory
-### The GMail push will send an e-mail to a specific recipient with the created file attached
+<a name="pulltriggerswhenafileiscreatedinthespecifieddirectory"></a>
+
+### 1.33\. Pull triggers when a file is created in the specified directory
+<a name="thegmailpushwillsendane-mailtoaspecificrecipientwiththecreatedfileattached"></a>
+
+### 1.34\. The GMail push will send an e-mail to a specific recipient with the created file attached
 - name: gmail
   pull:
     plugin: pnp.plugins.pull.fs.FileSystemWatcher
@@ -1905,9 +1984,7 @@ __Examples__
       sender: "pnp"  # Overridable with envelope
 
 ```
-<a name="pnp.plugins.push.ml.facer"></a>
-
-### 2.5\. pnp.plugins.push.ml.FaceR
+### pnp.plugins.push.ml.FaceR
 
 FaceR (short one for face recognition) tags known faces in images. Output is the image with all faces tagged whether
 with the known name or an `unknown_label`. Default for unknown ones is 'Unknown'.
@@ -1968,9 +2045,7 @@ __Examples__
       lazy: true
 
 ```
-<a name="pnp.plugins.push.mqtt.discovery"></a>
-
-### 2.6\. pnp.plugins.push.mqtt.Discovery
+### pnp.plugins.push.mqtt.Discovery
 
 TBD
 
@@ -1987,7 +2062,9 @@ For chaining of pushes the payload is simply returned as is.
 __Examples__
 
 ```yaml
-### Please point your environment variable `FITBIT_AUTH` to your authentication configuration
+<a name="pleasepointyourenvironmentvariable`fitbit_auth`toyourauthenticationconfiguration"></a>
+
+### 1.35\. Please point your environment variable `FITBIT_AUTH` to your authentication configuration
 - name: fitbit_steps
   pull:
     plugin: pnp.plugins.pull.fitbit.Current
@@ -2043,9 +2120,7 @@ __Examples__
           name: "{{var::object_id}}"
 
 ```
-<a name="pnp.plugins.push.mqtt.publish"></a>
-
-### 2.7\. pnp.plugins.push.mqtt.Publish
+### pnp.plugins.push.mqtt.Publish
 
 Will push the given `payload` to a mqtt broker (in this case mosquitto).
 The broker is specified by `host` and `port`. In addition a topic needs to be specified were the payload
@@ -2130,9 +2205,7 @@ __Examples__
       multi: true
 
 ```
-<a name="pnp.plugins.push.notify.pushbullet"></a>
-
-### 2.8\. pnp.plugins.push.notify.Pushbullet
+### pnp.plugins.push.notify.Pushbullet
 
 Sends a message to the [Pushbullet](http://www.pushbullet.com) service.
 The type of the message will guessed:
@@ -2155,7 +2228,9 @@ Will return the payload as it is for easy chaining of dependencies.
 __Examples__
 
 ```yaml
-### Make sure that you provided PUSHBULETT_API_KEY as an environment variable
+<a name="makesurethatyouprovidedpushbulett_api_keyasanenvironmentvariable"></a>
+
+### 1.36\. Make sure that you provided PUSHBULETT_API_KEY as an environment variable
 - name: pushbullet
   pull:
     plugin: pnp.plugins.pull.fs.FileSystemWatcher
@@ -2172,9 +2247,7 @@ __Examples__
     selector: "'New file: {}'.format(data.source)"
 
 ```
-<a name="pnp.plugins.push.simple.echo"></a>
-
-### 2.9\. pnp.plugins.push.simple.Echo
+### pnp.plugins.push.simple.Echo
 
 Simply log the passed payload to the default logging instance.
 
@@ -2200,9 +2273,7 @@ __Examples__
     plugin: pnp.plugins.push.simple.Echo
 
 ```
-<a name="pnp.plugins.push.simple.execute"></a>
-
-### 2.10\. pnp.plugins.push.simple.Execute
+### pnp.plugins.push.simple.Execute
 
 Executes a command with given arguments in a shell of the operating system.
 Both `command` and `args` may include placeholders (e.g. `{{placeholder}}`) which are injected at runtime
@@ -2287,9 +2358,7 @@ __Examples__
       - plugin: pnp.plugins.push.simple.Echo
 
 ```
-<a name="pnp.plugins.push.simple.wait"></a>
-
-### 2.11\. pnp.plugins.push.simple.Wait
+### pnp.plugins.push.simple.Wait
 
 Performs a sleep operation and waits for some time to pass by.
 
@@ -2333,9 +2402,7 @@ tasks:
                 selector: "'END WAITING: {}'.format(payload)"
 
 ```
-<a name="pnp.plugins.push.storage.dropbox"></a>
-
-### 2.12\. pnp.plugins.push.storage.Dropbox
+### pnp.plugins.push.storage.Dropbox
 
 Uploads provided file to the specified dropbox account.
 
@@ -2371,7 +2438,9 @@ the raw file (without the dropbox overhead). Both are `None` if `create_shared_l
 __Examples__
 
 ```yaml
-### Make sure that you provided DROPBOX_API_KEY as an environment variable
+<a name="makesurethatyouprovideddropbox_api_keyasanenvironmentvariable"></a>
+
+### 1.37\. Make sure that you provided DROPBOX_API_KEY as an environment variable
 - name: dropbox
   pull:
     plugin: pnp.plugins.pull.fs.FileSystemWatcher
@@ -2391,9 +2460,7 @@ __Examples__
         target_file_name: "lambda data: basename(data.source)"  # File name only
 
 ```
-<a name="pnp.plugins.push.timedb.influxpush"></a>
-
-### 2.13\. pnp.plugins.push.timedb.InfluxPush
+### pnp.plugins.push.timedb.InfluxPush
 
 Pushes the given `payload` to an influx database using the line `protocol`.
 You have to specify `host`, `port`, `user`, `password` and the `database`.
@@ -2441,13 +2508,9 @@ __Examples__
 
 ```
 
-<a name="udfsuserdefinedfunction"></a>
+## UDFs (User defined function)
 
-## 3\. UDFs (User defined function)
-
-<a name="pnp.plugins.udf.hass.state"></a>
-
-### 3.1\. pnp.plugins.udf.hass.State
+### pnp.plugins.udf.hass.State
 
 Fetches the state of an entity from home assistant by a rest-api request.
 
@@ -2494,9 +2557,7 @@ tasks:
         selector: "'above_horizon' if hass_state('sun.sun') == 'above_horizon' else SUPPRESS"
 
 ```
-<a name="pnp.plugins.udf.simple.counter"></a>
-
-### 3.2\. pnp.plugins.udf.simple.Counter
+### pnp.plugins.udf.simple.Counter
 
 Memories a counter value which is increased everytime you call the udf.
 
@@ -2531,9 +2592,7 @@ tasks:
           count: "lambda data: counter()"  # Calls the udf
 
 ```
-<a name="pnp.plugins.udf.simple.formatsize"></a>
-
-### 3.3\. pnp.plugins.udf.simple.FormatSize
+### pnp.plugins.udf.simple.FormatSize
 
 Returns the size of a file (or whatever) as a human readable size (e.g. bytes, KB, MB, GB, TB, PB).
 The input is expected to be at byte scale.
@@ -2577,9 +2636,7 @@ tasks:
           data: "lambda d: fsize(d[1])"
 
 ```
-<a name="pnp.plugins.udf.simple.memory"></a>
-
-### 3.4\. pnp.plugins.udf.simple.Memory
+### pnp.plugins.udf.simple.Memory
 
 Returns a previously memorized value when called.
 
