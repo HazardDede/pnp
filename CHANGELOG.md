@@ -6,6 +6,10 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 
     pip install pnp==0.10.0
 
+**0.20.0**
+* Adds `push.notify.Slack` to push a message to a specified slack channel
+* Adds `pull.trigger.Web` to externally trigger poll actions
+
 **0.19.1**
 * Bugfix: Adds bug workaround in `schiene` package used by `pull.traffic.DeutscheBahn`
 * Bugfix: Adds exception message truncation for `logging.SlackHandler` to ensure starting and ending backticks (code-view)
