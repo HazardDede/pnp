@@ -122,6 +122,11 @@ class Polling(AsyncPullBase):
         self._scheduler = None  # type: Optional[Scheduler]
         self._instant_run = try_parse_bool(instant_run, False)
 
+    @property
+    def supports_async_poll(self) -> bool:
+        """Returns True if the poll natively supports async polling."""
+        return hasattr(self, 'async_poll')
+
     def pull(self) -> None:
         self._call_async_pull_from_sync()
 
