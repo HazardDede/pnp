@@ -1387,7 +1387,6 @@ Wraps a poll-based pull and provides a rest-endpoint to externally trigger the p
 This will disable the cron-like / scheduling features of the polling component and simply
 provides you an interface to call the component anytime you see fit.
 
-
 __Arguments__
 
 - **poll (Polling component)**: The polling component that you want to trigger externally. See example for configuration.
@@ -1429,6 +1428,7 @@ tasks:
 ```
 
 Test it out:
+
 ```bash
 curl http://localhost:8080/
 ```
@@ -1451,6 +1451,7 @@ curl http://localhost:8080/
 ```
 
 Test it out:
+
 ```bash
 curl http://localhost:8080/trigger
 ```
