@@ -1453,7 +1453,8 @@ curl http://localhost:8080/
 Test it out:
 ```bash
 curl http://localhost:8080/trigger
-```## pnp.plugins.pull.zway.ZwayPoll
+```
+## pnp.plugins.pull.zway.ZwayPoll
 
 Pulls the specified json content from the zway rest api. The content is specified by the url, e.g.
 `http://<host>:8083/ZWaveAPI/Run/devices` will pull all devices and serve the result as a json.

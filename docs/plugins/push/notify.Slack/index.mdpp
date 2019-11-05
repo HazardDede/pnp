@@ -1,0 +1,24 @@
+# pnp.plugins.push.notify.Slack
+
+Sends a message to a given [Slack](http://www.slack.com) channel.
+
+You can specify the channel, the name of the poster, the icon of the poster
+and a list of users to ping.
+
+__Arguments__
+
+- **api_key (str)**: The api key of your slack oauth token
+- **channel (str)**: The channel to post the message to
+- **username (str, optional)**: The username of the message poster. Defaults to PnP
+- **emoji (str, optional)**: The emoji of the message poster. Defaults to :robot:
+- **ping_users (List[str], optional)**: A list of users to ping when the message is posted. By default non one is ping'd.
+
+You can override the `channel`, `username`, `emoji` and the `ping_users` list by the envelope. See the example for more details.
+
+__Result__
+
+Will return the payload as it is for easy chaining of dependencies.
+
+__Examples__
+
+!INCLUDECODE "docs/plugins/push/notify.Slack/example.yaml" (yaml)
