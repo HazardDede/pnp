@@ -27,6 +27,7 @@
 5.4\.  [Advanced selector expressions (0.12.0+)](#advancedselectorexpressions0.12.0+)  
 5.5\.  [UDF Throttle (0.15.0+)](#udfthrottle0.15.0+)  
 5.6\.  [Docker images](#dockerimages)  
+5.7\.  [Prometheus metrics](#prometheusmetrics)  
 6\.  [Plugins](#plugins)  
 7\.  [Changelog](#changelog)  
 
@@ -93,15 +94,18 @@ Tip: You can validate your config without actually executing it with
 Pull 'n' Push
 
 Usage:
-  pnp [(-c | --check)] [(-v | --verbose)] [--log=<log_conf>] <configuration>
+  pnp [(--engine=<engine>)] [(-v | --verbose)] [--log=<log_conf>] [--metrics=<port>] <configuration>
+  pnp (-c | --check) <configuration>
   pnp (-h | --help)
   pnp --version
 
 Options:
   -c --check        Only check configuration and do not run it.
-  -v --verbose      Switches log level to debug.
-  --log=<log_conf>  Specify logging configuration to load.
+  --engine=<engine> Override engine from configuration file (thread, process, sequential, async).
   -h --help         Show this screen.
+  --log=<log_conf>  Specify logging configuration to load.
+  --metrics=<port>  Enable prometheus metrics server on the specified port.
+  -v --verbose      Switches log level to debug.
   --version         Show version.
 ```
 
@@ -602,6 +606,16 @@ docker run --rm \
     -v /path/to/logging/config/file.logging:/config/logging.yaml \
     hazard/pnp:latest
 ```
+
+<a name="prometheusmetrics"></a>
+
+### 5.7\. Prometheus metrics
+
+By passing `--metrics=<port>` to `pnp` at the command line level or by setting the `exporting PNP_METRICS=<port>`
+pull 'n' push will start a prometheus server to serve various metrics to a prometheus scraper.
+
+Please see [this](https://prometheus.io/docs/prometheus/latest/configuration/configuration/) how to configure
+prometheus correctly.
 
 <a name="plugins"></a>
 

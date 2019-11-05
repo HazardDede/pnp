@@ -94,7 +94,13 @@ class AsyncPullBase(PullBase):
             raise RuntimeError(
                 "Cannot run async pull version, cause async implementation is missing")
 
-        async_from_sync(self.async_pull)
+        fun = self.async_pull
+        # Our loop hole to avoid the tracking decorator. If we miss this code we will
+        # track certain stuff two times (or even more).
+        if hasattr(fun, 'original_'):
+            fun = getattr(fun, 'original_')
+
+        async_from_sync(fun)
 
     async def _async_sleep(self, sleep_time: float = 10) -> None:
         """Call in subclass to perform some sleeping."""
@@ -239,7 +245,7 @@ class AsyncPolling(Polling):
             raise RuntimeError(
                 "Cannot run async poll version, cause async implementation is missing.")
 
-        return async_from_sync(self.async_poll)
+        async_from_sync(self.async_poll)
 
     @abstractmethod
     async def async_poll(self) -> Payload:

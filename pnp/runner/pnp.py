@@ -26,8 +26,11 @@ from schema import Schema, Use, And, Or
 
 from ..app import Application
 from ..engines import DEFAULT_ENGINES
-from ..metrics import start_httpd
-from ..utils import get_first_existing_file
+from .. import metrics
+from ..utils import (
+    get_first_existing_file,
+    try_parse_int
+)
 
 
 def _setup_logging(*candidates, default_level=logging.INFO, env_key='PNP_LOG_CONF', verbose=False):
@@ -47,6 +50,29 @@ def _setup_logging(*candidates, default_level=logging.INFO, env_key='PNP_LOG_CON
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                             level=logging.DEBUG if verbose else default_level)
         logging.info("Logging loaded with basic configuration")
+
+
+def _setup_metrics_server(config, env_key='PNP_METRICS'):
+    # Check for command line argument passin'
+    port_to_use = None
+    if config['--metrics']:
+        port_to_use = config['--metrics']
+        logging.debug("Specified --metrics to start metrics server @ %s", port_to_use)
+
+    # Check for environment variable passing
+    elif not port_to_use and os.environ.get(env_key):
+        port_to_use = os.environ.get(env_key)
+        logging.debug("Specified %s to start metrics server @ %s", env_key, port_to_use)
+
+    if port_to_use:
+        final_port = try_parse_int(port_to_use)
+        if not final_port:
+            logging.warning("Metrics Server: Specified port '%s' is not valid. "
+                            "Aborting ...", port_to_use)
+            return
+
+        logging.info("Starting metrics server @ http://localhost:%s", str(final_port))
+        metrics.start_httpd(final_port)
 
 
 def _validate_args(args):
@@ -81,8 +107,7 @@ def run(args):
     )
     app = Application.from_file(pnp_cfg_path, engine_override=validated['--engine'])
     if not validated['--check']:
-        if validated['--metrics']:
-            start_httpd(validated['--metrics'])
+        _setup_metrics_server(validated)
         app.start()
 
 

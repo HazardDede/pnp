@@ -208,9 +208,13 @@ def _track_call(fun_enter: Callable[[], None], fun_exit: Callable[[], None],
                 raise
 
         import inspect
+        wrap_fun = _wrapper
         if inspect.iscoroutinefunction(fun):
-            return _async_wrapper
-        return _wrapper
+            wrap_fun = _async_wrapper
+
+        # Keep a loop hole to avoid this decorator
+        wrap_fun.original_ = fun  # type: ignore
+        return wrap_fun
 
     return _inner
 
