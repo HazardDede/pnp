@@ -88,7 +88,7 @@ def test_pull(wrapped):
     dut = trigger.Web(name='pytest', port=free_port, poll=wrapped)
     runner = make_runner(dut, callback)
     with start_runner(runner):
-        time.sleep(0.2)
+        time.sleep(0.5)
         response = requests.get('http://localhost:{port}/trigger'.format(port=free_port))
         assert response.status_code == 200
         assert response.json() == {'success': True, 'payload': 42}
@@ -108,7 +108,7 @@ def test_pull_for_error():
     dut = trigger.Web(name='pytest', port=free_port, poll=wrapped)
     runner = make_runner(dut, lambda: None)
     with start_runner(runner):
-        time.sleep(0.2)
+        time.sleep(0.5)
         response = requests.get('http://localhost:{port}/trigger'.format(port=free_port))
         assert response.status_code == 500
         assert response.json() == {'success': False, 'error': "Crash on purpose!"}
