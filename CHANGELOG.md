@@ -9,6 +9,7 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 **0.20.0**
 * Adds `push.notify.Slack` to push a message to a specified slack channel
 * Adds `pull.trigger.Web` to externally trigger poll actions
+* Breaking: Slightly changes the behaviour of `udf.simple.Memory`. See [docs](https://github.com/HazardDede/pnp/blob/master/docs/plugins/udf/simple.Memory/index.md)
 
 **0.19.1**
 * Bugfix: Adds bug workaround in `schiene` package used by `pull.traffic.DeutscheBahn`

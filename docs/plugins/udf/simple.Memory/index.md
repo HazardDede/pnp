@@ -4,7 +4,8 @@ Returns a previously memorized value when called.
 
 __Arguments__
 
-- **init (any, optional)**: The initial memory of the plugin. Default is None.
+- **init (any, optional)**: The initial memory of the plugin. When not set initially the first call
+will return the value of `new_memory`, if specified; otherwise `None`.
 
 __Call Arguments__
 

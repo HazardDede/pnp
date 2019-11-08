@@ -118,13 +118,16 @@ class Memory(UserDefinedFunction):
     """
     _MISSING = object()
 
-    def __init__(self, init=None, **kwargs):
+    def __init__(self, init=_MISSING, **kwargs):
         super().__init__(**kwargs)
-        self.init = init
+        self.current = init
 
     def action(self, new_memory=_MISSING):  # pylint: disable=arguments-differ
         try:
-            return self.init
+            if self.current is self._MISSING:
+                return None if new_memory is self._MISSING else new_memory
+
+            return self.current
         finally:
             if new_memory is not self._MISSING:
-                self.init = new_memory
+                self.current = new_memory
