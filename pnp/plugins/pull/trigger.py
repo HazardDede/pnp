@@ -65,8 +65,6 @@ class Web(TriggerBase, AsyncPullBase):
         return self._call_async_pull_from_sync()
 
     async def async_pull(self) -> None:
-        print(self.__class__.__mro__)
-
         app = self._make_app()
         server = app.create_server(host='0.0.0.0', port=self.port)
         asyncio.ensure_future(server)
