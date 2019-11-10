@@ -620,6 +620,9 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 
     pip install pnp==0.10.0
 
+**0.20.1**
+* Bugfix: Socket shutdown of `pull.net.PortProbe` sometimes fails in rare occasions. Is now handled properly
+
 **0.20.0**
 * Adds `push.notify.Slack` to push a message to a specified slack channel
 * Adds `pull.trigger.Web` to externally trigger poll actions

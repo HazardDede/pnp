@@ -42,7 +42,11 @@ class PortProbe(Polling):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.settimeout(self.timeout)
             result = sock.connect_ex((self.server, self.port))
-            sock.shutdown(socket.SHUT_RDWR)
+            try:
+                # This might fail if the socket couldn't connect
+                sock.shutdown(socket.SHUT_RDWR)
+            except OSError:
+                pass
             return result == 0
 
     def _local_probe(self):
