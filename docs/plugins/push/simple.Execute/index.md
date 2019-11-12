@@ -36,7 +36,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 1
+      interval: 1s
       from_cnt: 1
   push:
     plugin: pnp.plugins.push.simple.Execute
@@ -65,7 +65,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 1
+      interval: 1s
       from_cnt: 1
   push:
     plugin: pnp.plugins.push.simple.Execute

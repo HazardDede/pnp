@@ -5,32 +5,38 @@ import time
 from datetime import datetime
 
 from . import PullBase, Polling, AsyncPullBase
-from ...utils import make_list, auto_str_ignore
+from ...utils import make_list, auto_str_ignore, parse_duration_literal_float
 from ...validator import Validator
 
 
 class Count(AsyncPullBase):
     """
     Emits every `wait` seconds a counting value which runs from `from_cnt` to `to_cnt`.
-    If `to_cnt` is None will to count to infinity.
+    If `to_cnt` is None will to count to infinity (or more precise sys.maxsize).
 
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/simple.Count/index.md
 
     """
+    DEFAULT_INTERVAL = 5
 
-    def __init__(self, from_cnt=0, to_cnt=None, wait=5, **kwargs):
+    def __init__(self, from_cnt=0, to_cnt=None, wait=None, interval=None, **kwargs):
         super().__init__(**kwargs)
         self.from_cnt = int(from_cnt)
         self.to_cnt = to_cnt and int(to_cnt)
-        self.wait = float(wait)
+        self.interval = float(parse_duration_literal_float(
+            interval or wait or self.DEFAULT_INTERVAL
+        ))
 
     def pull(self):
         self._call_async_pull_from_sync()
 
     async def async_pull(self):
-        for i in range(self.from_cnt, self.to_cnt or sys.maxsize):
-            await self._async_sleep(self.wait)
+        to_cnt = sys.maxsize
+        if self.to_cnt:
+            to_cnt = self.to_cnt + 1
+        for i in range(self.from_cnt, to_cnt):
+            await self._async_sleep(self.interval)
             self.notify(i)
             if self.stopped:
                 break
@@ -96,15 +102,19 @@ class Repeat(AsyncPullBase):
 
     """
 
-    def __init__(self, repeat, wait=5, **kwargs):
+    DEFAULT_INTERVAL = 5
+
+    def __init__(self, repeat, wait=None, interval=None, **kwargs):
         super().__init__(**kwargs)
         self.repeat = repeat
-        self.wait = float(wait)
+        self.interval = float(parse_duration_literal_float(
+            interval or wait or self.DEFAULT_INTERVAL
+        ))
 
     def pull(self):
         self._call_async_pull_from_sync()
 
     async def async_pull(self):
         while not self.stopped:
-            await self._async_sleep(self.wait)
+            await self._async_sleep(self.interval)
             self.notify(self.repeat)

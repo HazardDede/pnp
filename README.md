@@ -65,7 +65,7 @@ It is up to you. I prefer yaml...
   pull:
     plugin: pnp.plugins.pull.simple.Repeat
     args:
-      wait: 1
+      interval: 1s
       repeat: "Hello World"
   push:
     - plugin: pnp.plugins.push.simple.Echo
@@ -245,7 +245,7 @@ Given the example ...
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 1
+      interval: 1s
   push:
     plugin: pnp.plugins.push.fs.FileDump
     selector:
@@ -309,7 +309,7 @@ you can perform for each loops for pushes.
   pull:
     plugin: pnp.plugins.pull.simple.Repeat
     args:
-      wait: 1
+      interval: 1s
       repeat:
         - 1
         - 2
@@ -329,7 +329,7 @@ If you need the selector to augment your list, use a `push.simple.Nop` with `unw
   pull:
     plugin: pnp.plugins.pull.simple.Repeat
     args:
-      wait: 1
+      interval: 1s
       repeat:
         - 1
         - 2
@@ -534,7 +534,7 @@ Additional example:
   pull:
     plugin: pnp.plugins.pull.simple.Repeat
     args:
-      wait: 1
+      interval: 1s
       repeat: "Hello World"
   push:
     - plugin: pnp.plugins.push.simple.Echo
@@ -581,7 +581,7 @@ tasks:
     pull:
       plugin: pnp.plugins.pull.simple.Repeat
       args:
-        wait: 1
+        interval: 1s
         repeat: "Hello World"
     push:
       - plugin: pnp.plugins.push.simple.Echo

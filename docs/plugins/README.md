@@ -1312,12 +1312,13 @@ __Examples__
 
 ### 1.18\. pnp.plugins.pull.simple.Count
 
-Emits every `wait` seconds a counting value which runs from `from_cnt` to `to_cnt`.
-If `to_cnt` is None the counter will count to infinity.
+Emits every `interval` seconds a counting value which runs from `from_cnt` to `to_cnt`.
+If `to_cnt` is None the counter will count to infinity (or more precise to sys.maxsize).
 
 __Arguments__
 
-- **wait (int)**: Wait the amount of seconds before emitting the next counter.
+- **interval (duration literal)**: Wait the amount of seconds before emitting the next counter.
+- **wait (int)**: DEPRECATED! Use `interval` instead.
 - **from_cnt (int)**: Starting value of the counter.
 - **to_cnt (int, optional)**: End value of the counter. If not passed set to "infinity" (precise: int.max).
 
@@ -1332,7 +1333,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 1
+      interval: 1s
       from_cnt: 1
       to_cnt: 10
   push:
@@ -1383,11 +1384,12 @@ __Examples__
 
 ### 1.20\. pnp.plugins.pull.simple.Repeat
 
-Emits every `wait` seconds the same `repeat`.
+Emits every `interval` seconds the same `repeat`.
 
 __Arguments__
 
-- **wait (int)**: Wait the amount of seconds before emitting the next repeat.
+- **interval (duration literal)**: Wait the amount of seconds before emitting the next `repeat`.
+- **wait (int)**: DEPRECATED! Use `interval` instead.
 - **repeat (any)**: The object to emit.
 
 __Result__
@@ -1402,7 +1404,7 @@ __Examples__
     plugin: pnp.plugins.pull.simple.Repeat
     args:
       repeat: "Hello World"  # Repeats 'Hello World'
-      wait: 1  # Every second
+      interval: 1s  # Every second
   push:
     plugin: pnp.plugins.push.simple.Echo
 
@@ -1801,7 +1803,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 10
+      interval: 10s
   push:
     plugin: pnp.plugins.push.hass.Service
     selector:
@@ -1820,7 +1822,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 10
+      interval: 10s
   push:
     plugin: pnp.plugins.push.hass.Service
     selector:
@@ -1875,7 +1877,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 5
+      interval: 5s
   push:
     plugin: pnp.plugins.push.http.Call
     selector:
@@ -1904,7 +1906,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 5
+      interval: 5s
   push:
     plugin: pnp.plugins.push.http.Call
     args:
@@ -2172,7 +2174,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 1
+      interval: 1s
   push:
     plugin: pnp.plugins.push.mqtt.Publish
     # Lets override the topic via envelope mechanism
@@ -2324,7 +2326,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 1
+      interval: 1s
       from_cnt: 1
       to_cnt: 10
   push:
@@ -2371,7 +2373,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 1
+      interval: 1s
       from_cnt: 1
   push:
     plugin: pnp.plugins.push.simple.Execute
@@ -2400,7 +2402,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 1
+      interval: 1s
       from_cnt: 1
   push:
     plugin: pnp.plugins.push.simple.Execute
@@ -2451,7 +2453,7 @@ tasks:
     pull:
       plugin: pnp.plugins.pull.simple.Count  # Let's count
       args:
-        wait: 1
+        interval: 1s
     push:
       - plugin: pnp.plugins.push.simple.Echo
         selector: "'START WAITING: {}'.format(payload)"
@@ -2615,7 +2617,7 @@ tasks:
       plugin: pnp.plugins.pull.simple.Repeat
       args:
         repeat: "Hello World"  # Repeats 'Hello World'
-        wait: 1  # Every second
+        interval: 1s  # Every second
     push:
       - plugin: pnp.plugins.push.simple.Echo
         # Will only print the data when attribute azimuth of the sun component is above 200
@@ -2654,7 +2656,7 @@ tasks:
       plugin: pnp.plugins.pull.simple.Repeat
       args:
         repeat: "Hello World"  # Repeats 'Hello World'
-        wait: 1  # Every second
+        interval: 1s  # Every second
     push:
       - plugin: pnp.plugins.push.simple.Echo
         selector:
@@ -2742,7 +2744,7 @@ tasks:
       plugin: pnp.plugins.pull.simple.Count
       args:
         from_cnt: 1
-        wait: 1  # Every second
+        interval: 1s  # Every second
     push:
       - plugin: pnp.plugins.push.simple.Echo
         # Will memorize every uneven count

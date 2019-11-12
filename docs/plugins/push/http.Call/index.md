@@ -39,7 +39,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 5
+      interval: 5s
   push:
     plugin: pnp.plugins.push.http.Call
     selector:
@@ -68,7 +68,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 5
+      interval: 5s
   push:
     plugin: pnp.plugins.push.http.Call
     args:

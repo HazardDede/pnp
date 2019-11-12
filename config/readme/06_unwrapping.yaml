@@ -2,7 +2,7 @@
   pull:
     plugin: pnp.plugins.pull.simple.Repeat
     args:
-      wait: 1
+      interval: 1s
       repeat:
         - 1
         - 2

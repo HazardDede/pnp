@@ -1226,12 +1226,13 @@ __Examples__
 ```
 ## pnp.plugins.pull.simple.Count
 
-Emits every `wait` seconds a counting value which runs from `from_cnt` to `to_cnt`.
-If `to_cnt` is None the counter will count to infinity.
+Emits every `interval` seconds a counting value which runs from `from_cnt` to `to_cnt`.
+If `to_cnt` is None the counter will count to infinity (or more precise to sys.maxsize).
 
 __Arguments__
 
-- **wait (int)**: Wait the amount of seconds before emitting the next counter.
+- **interval (duration literal)**: Wait the amount of seconds before emitting the next counter.
+- **wait (int)**: DEPRECATED! Use `interval` instead.
 - **from_cnt (int)**: Starting value of the counter.
 - **to_cnt (int, optional)**: End value of the counter. If not passed set to "infinity" (precise: int.max).
 
@@ -1246,7 +1247,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 1
+      interval: 1s
       from_cnt: 1
       to_cnt: 10
   push:
@@ -1293,11 +1294,12 @@ __Examples__
 ```
 ## pnp.plugins.pull.simple.Repeat
 
-Emits every `wait` seconds the same `repeat`.
+Emits every `interval` seconds the same `repeat`.
 
 __Arguments__
 
-- **wait (int)**: Wait the amount of seconds before emitting the next repeat.
+- **interval (duration literal)**: Wait the amount of seconds before emitting the next `repeat`.
+- **wait (int)**: DEPRECATED! Use `interval` instead.
 - **repeat (any)**: The object to emit.
 
 __Result__
@@ -1312,7 +1314,7 @@ __Examples__
     plugin: pnp.plugins.pull.simple.Repeat
     args:
       repeat: "Hello World"  # Repeats 'Hello World'
-      wait: 1  # Every second
+      interval: 1s  # Every second
   push:
     plugin: pnp.plugins.push.simple.Echo
 
