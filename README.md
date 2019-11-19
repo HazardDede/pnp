@@ -620,6 +620,10 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 
     pip install pnp==0.10.0
 
+**0.20.2**
+* Bugfix: Fixes udf throttling to take arguments into account for result caching
+* Refactors udf throttling / caching code to be more pythonic
+
 **0.20.1**
 * Bugfix: Socket shutdown of `pull.net.PortProbe` sometimes fails in rare occasions. Is now handled properly
 
