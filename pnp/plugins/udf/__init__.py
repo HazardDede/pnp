@@ -1,15 +1,18 @@
 """Contains base stuff for user-defined functions in selector expressions."""
 
 from abc import abstractmethod
-from datetime import datetime, timedelta
 from typing import Optional, Any
 
+import cachetools  # type: ignore
+
 from .. import Plugin
-from ...utils import parse_duration_literal, DurationLiteral
+from ...utils import parse_duration_literal, DurationLiteral, make_hashable
 
 
 class UserDefinedFunction(Plugin):
     """Base class for a user defined expression."""
+
+    MAX_CACHE_SIZE = 12
 
     def __init__(self, throttle: Optional[DurationLiteral] = None, **kwargs: Any):
         """
@@ -22,30 +25,20 @@ class UserDefinedFunction(Plugin):
         super().__init__(**kwargs)
         self.throttle = throttle and parse_duration_literal(throttle)
         self._cache = None
-        self._last_call = None  # type: Optional[datetime]
+        if self.throttle:
+            self._cache = cachetools.TTLCache(self.MAX_CACHE_SIZE, ttl=self.throttle)
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
-        if not self.throttle:
+        if self._cache is None:
             return self.action(*args, **kwargs)
 
-        # Invariant: self.throttle is not None
-        now = datetime.now()
-        if self._last_call is None:
+        hashable_args = (make_hashable(args), make_hashable(kwargs))
+        try:
+            return self._cache[hashable_args]
+        except KeyError:
             res = self.action(*args, **kwargs)
-            self._cache = res
-            self._last_call = now
+            self._cache[hashable_args] = res
             return res
-
-        # Invariant: self._last_call is not None
-        span = now - self._last_call
-        if span >= timedelta(seconds=self.throttle):
-            res = self.action(*args, **kwargs)
-            self._cache = res
-            self._last_call = now
-            return res
-
-        # Invariant: span < delta(throttle)
-        return self._cache
 
     @abstractmethod
     def action(self, *args: Any, **kwargs: Any) -> Any:
