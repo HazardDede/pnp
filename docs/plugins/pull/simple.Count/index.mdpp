@@ -1,11 +1,12 @@
 # pnp.plugins.pull.simple.Count
 
-Emits every `wait` seconds a counting value which runs from `from_cnt` to `to_cnt`.
-If `to_cnt` is None the counter will count to infinity.
+Emits every `interval` seconds a counting value which runs from `from_cnt` to `to_cnt`.
+If `to_cnt` is None the counter will count to infinity (or more precise to sys.maxsize).
 
 __Arguments__
 
-- **wait (int)**: Wait the amount of seconds before emitting the next counter.
+- **interval (duration literal)**: Wait the amount of seconds before emitting the next counter.
+- **wait (int)**: DEPRECATED! Use `interval` instead.
 - **from_cnt (int)**: Starting value of the counter.
 - **to_cnt (int, optional)**: End value of the counter. If not passed set to "infinity" (precise: int.max).
 

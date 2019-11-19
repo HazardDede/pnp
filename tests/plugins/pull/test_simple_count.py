@@ -9,12 +9,12 @@ def test_count_pull():
     def callback(plugin, payload):
         events.append(payload)
 
-    dut = Count(name='pytest', from_cnt=0, to_cnt=5, wait=0.1)
+    dut = Count(name='pytest', from_cnt=0, to_cnt=5, wait=0.001)
     runner = make_runner(dut, callback)
     with start_runner(runner):
-        time.sleep(1)
+        time.sleep(0.05)
 
-    assert events == [0, 1, 2, 3, 4]
+    assert events == [0, 1, 2, 3, 4, 5]
 
 
 def test_count_pull_infinity():
@@ -22,10 +22,23 @@ def test_count_pull_infinity():
     def callback(plugin, payload):
         events.append(payload)
 
-    dut = Count(name='pytest', from_cnt=0, to_cnt=None, wait=0.1)
+    dut = Count(name='pytest', from_cnt=0, to_cnt=None, wait=0.001)
     runner = make_runner(dut, callback)
     with start_runner(runner):
-        time.sleep(1)
+        time.sleep(0.01)
 
     expected = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     assert all([exp == actual for exp, actual in zip(expected, events)])
+
+
+def test_count_wait_compat():
+    dut = Count(name='pytest', wait=0.5)
+    assert dut.interval == 0.5
+    dut = Count(name='pytest', wait="1m")
+    assert dut.interval == 60
+    dut = Count(name='pytest', interval="1m")
+    assert dut.interval == 60
+    dut = Count(name='pytest', wait="2m", interval="1m")
+    assert dut.interval == 60
+    dut = Count(name='pytest')
+    assert dut.interval == 5

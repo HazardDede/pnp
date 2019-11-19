@@ -25,7 +25,7 @@ tasks:
       plugin: pnp.plugins.pull.simple.Repeat
       args:
         repeat: "Hello World"  # Repeats 'Hello World'
-        wait: 1  # Every second
+        interval: 1s  # Every second
     push:
       - plugin: pnp.plugins.push.simple.Echo
         selector:

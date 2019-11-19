@@ -4,7 +4,8 @@ Returns a previously memorized value when called.
 
 __Arguments__
 
-- **init (any, optional)**: The initial memory of the plugin. Default is None.
+- **init (any, optional)**: The initial memory of the plugin. When not set initially the first call
+will return the value of `new_memory`, if specified; otherwise `None`.
 
 __Call Arguments__
 
@@ -29,7 +30,7 @@ tasks:
       plugin: pnp.plugins.pull.simple.Count
       args:
         from_cnt: 1
-        wait: 1  # Every second
+        interval: 1s  # Every second
     push:
       - plugin: pnp.plugins.push.simple.Echo
         # Will memorize every uneven count

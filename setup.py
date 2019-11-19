@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 
-VERSION = '0.19.1'
+VERSION = '0.20.2'
 
 
 def readme():
@@ -82,7 +82,7 @@ setup(
         'ftp': ['pyftpdlib>=1.5.0'],
         'gmail': ['google-api-python-client>=1.7.7', 'google-auth-httplib2>=0.0.3', 'google-auth-oauthlib>=0.2.0'],
         'gpio': ['RPi.GPIO>=0.6.5'],
-        'http-server': ['Flask>=1.0.2', 'gevent>=1.3.4'],
+        'http-server': ['Flask>=1.0.2', 'gevent>=1.3.4', 'sanic<=18.12.0'],
         'miflora': ['miflora>=0.4.0'],
         'pushbullet': ['pushbullet.py>=0.10.0', 'urllib3<1.25,>=1.20'],
         'sound': ['PyAudio>=0.2.11', 'scipy>=1.2.0']

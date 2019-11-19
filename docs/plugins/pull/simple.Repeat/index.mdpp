@@ -1,10 +1,11 @@
 # pnp.plugins.pull.simple.Repeat
 
-Emits every `wait` seconds the same `repeat`.
+Emits every `interval` seconds the same `repeat`.
 
 __Arguments__
 
-- **wait (int)**: Wait the amount of seconds before emitting the next repeat.
+- **interval (duration literal)**: Wait the amount of seconds before emitting the next `repeat`.
+- **wait (int)**: DEPRECATED! Use `interval` instead.
 - **repeat (any)**: The object to emit.
 
 __Result__

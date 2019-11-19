@@ -1226,12 +1226,13 @@ __Examples__
 ```
 ## pnp.plugins.pull.simple.Count
 
-Emits every `wait` seconds a counting value which runs from `from_cnt` to `to_cnt`.
-If `to_cnt` is None the counter will count to infinity.
+Emits every `interval` seconds a counting value which runs from `from_cnt` to `to_cnt`.
+If `to_cnt` is None the counter will count to infinity (or more precise to sys.maxsize).
 
 __Arguments__
 
-- **wait (int)**: Wait the amount of seconds before emitting the next counter.
+- **interval (duration literal)**: Wait the amount of seconds before emitting the next counter.
+- **wait (int)**: DEPRECATED! Use `interval` instead.
 - **from_cnt (int)**: Starting value of the counter.
 - **to_cnt (int, optional)**: End value of the counter. If not passed set to "infinity" (precise: int.max).
 
@@ -1246,7 +1247,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 1
+      interval: 1s
       from_cnt: 1
       to_cnt: 10
   push:
@@ -1293,11 +1294,12 @@ __Examples__
 ```
 ## pnp.plugins.pull.simple.Repeat
 
-Emits every `wait` seconds the same `repeat`.
+Emits every `interval` seconds the same `repeat`.
 
 __Arguments__
 
-- **wait (int)**: Wait the amount of seconds before emitting the next repeat.
+- **interval (duration literal)**: Wait the amount of seconds before emitting the next `repeat`.
+- **wait (int)**: DEPRECATED! Use `interval` instead.
 - **repeat (any)**: The object to emit.
 
 __Result__
@@ -1312,7 +1314,7 @@ __Examples__
     plugin: pnp.plugins.pull.simple.Repeat
     args:
       repeat: "Hello World"  # Repeats 'Hello World'
-      wait: 1  # Every second
+      interval: 1s  # Every second
   push:
     plugin: pnp.plugins.push.simple.Echo
 
@@ -1380,6 +1382,80 @@ __Examples__
   push:
     plugin: pnp.plugins.push.simple.Echo
 
+```
+## pnp.plugins.pull.trigger.Web
+
+Wraps a poll-based pull and provides a rest-endpoint to externally trigger the poll action.
+This will disable the cron-like / scheduling features of the polling component and simply
+provides you an interface to call the component anytime you see fit.
+
+__Arguments__
+
+- **poll (Polling component)**: The polling component that you want to trigger externally. See example for configuration.
+- **port (int)**: The port for the server to listen on.
+- **endpoint (str, optional)**: The name of the endpoint. Default is `/trigger`.
+
+Assume you set `port = 8080` and `endpoint = trigger` then your corresponding `curl` command
+to trigger the polling externally would look like this:
+
+```bash
+curl http://localhost:8080/trigger
+```
+
+In case of success you get back a `200`. In case of error it's a `500`.
+
+__Result__
+
+The component will simply forward the result of the underlying component to dependent pushes.
+
+__Examples__
+
+```yaml
+engine: !engine
+  type: pnp.engines.AsyncEngine
+  retry_handler: !retry
+    type: pnp.engines.NoRetryHandler
+tasks:
+  - name: trigger_web
+    pull:
+      plugin: pnp.plugins.pull.trigger.Web
+      args:
+        port: 8080
+        endpoint: '/'
+        poll:
+          plugin: pnp.plugins.pull.monitor.Stats
+    push:
+      plugin: pnp.plugins.push.simple.Echo
+
+```
+
+Test it out:
+
+```bash
+curl http://localhost:8080/
+```
+
+```yaml
+- name: trigger_web
+  pull:
+    plugin: pnp.plugins.pull.trigger.Web
+    args:
+      port: 8080
+      poll:
+        plugin: pnp.plugins.pull.traffic.DeutscheBahn
+        args:
+          origin: Hamburg Hbf
+          destination: München Hbf
+          only_direct: true  # Only show direct transfers wo change. Default is False.
+  push:
+    plugin: pnp.plugins.push.simple.Echo
+
+```
+
+Test it out:
+
+```bash
+curl http://localhost:8080/trigger
 ```
 ## pnp.plugins.pull.zway.ZwayPoll
 

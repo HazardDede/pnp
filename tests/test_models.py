@@ -19,7 +19,7 @@ def test_mk_pull():
     assert isinstance(res.instance, Repeat)
     assert res.instance.name == 'pytest_pull'
     assert res.instance.repeat == 'hello'
-    assert res.instance.wait == 1.0
+    assert res.instance.interval == 1.0
 
 
 def test_mk_push():

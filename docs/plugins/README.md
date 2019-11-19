@@ -22,8 +22,9 @@
 1.19\.  [pnp.plugins.pull.simple.Cron](#pnp.plugins.pull.simple.cron)  
 1.20\.  [pnp.plugins.pull.simple.Repeat](#pnp.plugins.pull.simple.repeat)  
 1.21\.  [pnp.plugins.pull.traffic.DeutscheBahn](#pnp.plugins.pull.traffic.deutschebahn)  
-1.22\.  [pnp.plugins.pull.zway.ZwayPoll](#pnp.plugins.pull.zway.zwaypoll)  
-1.23\.  [pnp.plugins.pull.zway.ZwayReceiver](#pnp.plugins.pull.zway.zwayreceiver)  
+1.22\.  [pnp.plugins.pull.trigger.Web](#pnp.plugins.pull.trigger.web)  
+1.23\.  [pnp.plugins.pull.zway.ZwayPoll](#pnp.plugins.pull.zway.zwaypoll)  
+1.24\.  [pnp.plugins.pull.zway.ZwayReceiver](#pnp.plugins.pull.zway.zwayreceiver)  
 2\.  [Pushes](#pushes)  
 2.1\.  [pnp.plugins.push.fs.FileDump](#pnp.plugins.push.fs.filedump)  
 2.2\.  [pnp.plugins.push.hass.Service](#pnp.plugins.push.hass.service)  
@@ -33,11 +34,12 @@
 2.6\.  [pnp.plugins.push.mqtt.Discovery](#pnp.plugins.push.mqtt.discovery)  
 2.7\.  [pnp.plugins.push.mqtt.Publish](#pnp.plugins.push.mqtt.publish)  
 2.8\.  [pnp.plugins.push.notify.Pushbullet](#pnp.plugins.push.notify.pushbullet)  
-2.9\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
-2.10\.  [pnp.plugins.push.simple.Execute](#pnp.plugins.push.simple.execute)  
-2.11\.  [pnp.plugins.push.simple.Wait](#pnp.plugins.push.simple.wait)  
-2.12\.  [pnp.plugins.push.storage.Dropbox](#pnp.plugins.push.storage.dropbox)  
-2.13\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
+2.9\.  [pnp.plugins.push.notify.Slack](#pnp.plugins.push.notify.slack)  
+2.10\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
+2.11\.  [pnp.plugins.push.simple.Execute](#pnp.plugins.push.simple.execute)  
+2.12\.  [pnp.plugins.push.simple.Wait](#pnp.plugins.push.simple.wait)  
+2.13\.  [pnp.plugins.push.storage.Dropbox](#pnp.plugins.push.storage.dropbox)  
+2.14\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
 3\.  [UDFs (User defined function)](#udfsuserdefinedfunction)  
 3.1\.  [pnp.plugins.udf.hass.State](#pnp.plugins.udf.hass.state)  
 3.2\.  [pnp.plugins.udf.simple.Counter](#pnp.plugins.udf.simple.counter)  
@@ -1310,12 +1312,13 @@ __Examples__
 
 ### 1.18\. pnp.plugins.pull.simple.Count
 
-Emits every `wait` seconds a counting value which runs from `from_cnt` to `to_cnt`.
-If `to_cnt` is None the counter will count to infinity.
+Emits every `interval` seconds a counting value which runs from `from_cnt` to `to_cnt`.
+If `to_cnt` is None the counter will count to infinity (or more precise to sys.maxsize).
 
 __Arguments__
 
-- **wait (int)**: Wait the amount of seconds before emitting the next counter.
+- **interval (duration literal)**: Wait the amount of seconds before emitting the next counter.
+- **wait (int)**: DEPRECATED! Use `interval` instead.
 - **from_cnt (int)**: Starting value of the counter.
 - **to_cnt (int, optional)**: End value of the counter. If not passed set to "infinity" (precise: int.max).
 
@@ -1330,7 +1333,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 1
+      interval: 1s
       from_cnt: 1
       to_cnt: 10
   push:
@@ -1381,11 +1384,12 @@ __Examples__
 
 ### 1.20\. pnp.plugins.pull.simple.Repeat
 
-Emits every `wait` seconds the same `repeat`.
+Emits every `interval` seconds the same `repeat`.
 
 __Arguments__
 
-- **wait (int)**: Wait the amount of seconds before emitting the next repeat.
+- **interval (duration literal)**: Wait the amount of seconds before emitting the next `repeat`.
+- **wait (int)**: DEPRECATED! Use `interval` instead.
 - **repeat (any)**: The object to emit.
 
 __Result__
@@ -1400,7 +1404,7 @@ __Examples__
     plugin: pnp.plugins.pull.simple.Repeat
     args:
       repeat: "Hello World"  # Repeats 'Hello World'
-      wait: 1  # Every second
+      interval: 1s  # Every second
   push:
     plugin: pnp.plugins.push.simple.Echo
 
@@ -1471,9 +1475,85 @@ __Examples__
     plugin: pnp.plugins.push.simple.Echo
 
 ```
+<a name="pnp.plugins.pull.trigger.web"></a>
+
+### 1.22\. pnp.plugins.pull.trigger.Web
+
+Wraps a poll-based pull and provides a rest-endpoint to externally trigger the poll action.
+This will disable the cron-like / scheduling features of the polling component and simply
+provides you an interface to call the component anytime you see fit.
+
+__Arguments__
+
+- **poll (Polling component)**: The polling component that you want to trigger externally. See example for configuration.
+- **port (int)**: The port for the server to listen on.
+- **endpoint (str, optional)**: The name of the endpoint. Default is `/trigger`.
+
+Assume you set `port = 8080` and `endpoint = trigger` then your corresponding `curl` command
+to trigger the polling externally would look like this:
+
+```bash
+curl http://localhost:8080/trigger
+```
+
+In case of success you get back a `200`. In case of error it's a `500`.
+
+__Result__
+
+The component will simply forward the result of the underlying component to dependent pushes.
+
+__Examples__
+
+```yaml
+engine: !engine
+  type: pnp.engines.AsyncEngine
+  retry_handler: !retry
+    type: pnp.engines.NoRetryHandler
+tasks:
+  - name: trigger_web
+    pull:
+      plugin: pnp.plugins.pull.trigger.Web
+      args:
+        port: 8080
+        endpoint: '/'
+        poll:
+          plugin: pnp.plugins.pull.monitor.Stats
+    push:
+      plugin: pnp.plugins.push.simple.Echo
+
+```
+
+Test it out:
+
+```bash
+curl http://localhost:8080/
+```
+
+```yaml
+- name: trigger_web
+  pull:
+    plugin: pnp.plugins.pull.trigger.Web
+    args:
+      port: 8080
+      poll:
+        plugin: pnp.plugins.pull.traffic.DeutscheBahn
+        args:
+          origin: Hamburg Hbf
+          destination: München Hbf
+          only_direct: true  # Only show direct transfers wo change. Default is False.
+  push:
+    plugin: pnp.plugins.push.simple.Echo
+
+```
+
+Test it out:
+
+```bash
+curl http://localhost:8080/trigger
+```
 <a name="pnp.plugins.pull.zway.zwaypoll"></a>
 
-### 1.22\. pnp.plugins.pull.zway.ZwayPoll
+### 1.23\. pnp.plugins.pull.zway.ZwayPoll
 
 Pulls the specified json content from the zway rest api. The content is specified by the url, e.g.
 `http://<host>:8083/ZWaveAPI/Run/devices` will pull all devices and serve the result as a json.
@@ -1548,7 +1628,7 @@ Below are some common selector examples to fetch various metrics from various de
 
 <a name="pnp.plugins.pull.zway.zwayreceiver"></a>
 
-### 1.23\. pnp.plugins.pull.zway.ZwayReceiver
+### 1.24\. pnp.plugins.pull.zway.ZwayReceiver
 
 Setups a http server to process incoming GET-requests from the Zway-App [`HttpGet`](https://github.com/hplato/Zway-HTTPGet/blob/master/index.js).
 
@@ -1723,7 +1803,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 10
+      interval: 10s
   push:
     plugin: pnp.plugins.push.hass.Service
     selector:
@@ -1742,7 +1822,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 10
+      interval: 10s
   push:
     plugin: pnp.plugins.push.hass.Service
     selector:
@@ -1797,7 +1877,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 5
+      interval: 5s
   push:
     plugin: pnp.plugins.push.http.Call
     selector:
@@ -1826,7 +1906,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 5
+      interval: 5s
   push:
     plugin: pnp.plugins.push.http.Call
     args:
@@ -2094,7 +2174,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 1
+      interval: 1s
   push:
     plugin: pnp.plugins.push.mqtt.Publish
     # Lets override the topic via envelope mechanism
@@ -2172,9 +2252,62 @@ __Examples__
     selector: "'New file: {}'.format(data.source)"
 
 ```
+<a name="pnp.plugins.push.notify.slack"></a>
+
+### 2.9\. pnp.plugins.push.notify.Slack
+
+Sends a message to a given [Slack](http://www.slack.com) channel.
+
+You can specify the channel, the name of the poster, the icon of the poster
+and a list of users to ping.
+
+__Arguments__
+
+- **api_key (str)**: The api key of your slack oauth token
+- **channel (str)**: The channel to post the message to
+- **username (str, optional)**: The username of the message poster. Defaults to PnP
+- **emoji (str, optional)**: The emoji of the message poster. Defaults to :robot:
+- **ping_users (List[str], optional)**: A list of users to ping when the message is posted. By default non one is ping'd.
+
+You can override the `channel`, `username`, `emoji` and the `ping_users` list by the envelope. See the example for more details.
+
+__Result__
+
+Will return the payload as it is for easy chaining of dependencies.
+
+__Examples__
+
+```yaml
+- name: slack
+  pull:
+    plugin: pnp.plugins.pull.simple.Count  # Let's count
+    args:
+      wait: 10
+  push:
+    - plugin: pnp.plugins.push.notify.Slack
+      selector:
+        data: "lambda data: 'This is the counter: {}'.format(data)"
+        # You can override the channel if necessary
+        # channel: "lambda data: 'test_even' if int(data) % 2 == 0 else 'test_odd'"
+        # You can override the username if necessary
+        # username: the_new_user
+        # You can override the emoji if necessary
+        # emoji: ':see_no_evil:'
+        # You can override the ping users if necessary
+        # ping_users:
+        #   - clone_dede
+      args:
+        api_key: "{{env::SLACK_API_KEY}}"  # Your slack api key.
+        channel: test  # The channel to post to. Mandatory. Overridable by envelope.
+        username: slack_tester  # The username to show. Default is PnP. Overridable by envelope
+        emoji: ':pig:'  # The emoji to use. Default is :robot: . Overridable by envelope
+        ping_users:  # The users you want to ping when the message is send. Overridable by envelope
+          - dede
+
+```
 <a name="pnp.plugins.push.simple.echo"></a>
 
-### 2.9\. pnp.plugins.push.simple.Echo
+### 2.10\. pnp.plugins.push.simple.Echo
 
 Simply log the passed payload to the default logging instance.
 
@@ -2193,7 +2326,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 1
+      interval: 1s
       from_cnt: 1
       to_cnt: 10
   push:
@@ -2202,7 +2335,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.simple.execute"></a>
 
-### 2.10\. pnp.plugins.push.simple.Execute
+### 2.11\. pnp.plugins.push.simple.Execute
 
 Executes a command with given arguments in a shell of the operating system.
 Both `command` and `args` may include placeholders (e.g. `{{placeholder}}`) which are injected at runtime
@@ -2240,7 +2373,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 1
+      interval: 1s
       from_cnt: 1
   push:
     plugin: pnp.plugins.push.simple.Execute
@@ -2269,7 +2402,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 1
+      interval: 1s
       from_cnt: 1
   push:
     plugin: pnp.plugins.push.simple.Execute
@@ -2289,7 +2422,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.simple.wait"></a>
 
-### 2.11\. pnp.plugins.push.simple.Wait
+### 2.12\. pnp.plugins.push.simple.Wait
 
 Performs a sleep operation and waits for some time to pass by.
 
@@ -2320,7 +2453,7 @@ tasks:
     pull:
       plugin: pnp.plugins.pull.simple.Count  # Let's count
       args:
-        wait: 1
+        interval: 1s
     push:
       - plugin: pnp.plugins.push.simple.Echo
         selector: "'START WAITING: {}'.format(payload)"
@@ -2335,7 +2468,7 @@ tasks:
 ```
 <a name="pnp.plugins.push.storage.dropbox"></a>
 
-### 2.12\. pnp.plugins.push.storage.Dropbox
+### 2.13\. pnp.plugins.push.storage.Dropbox
 
 Uploads provided file to the specified dropbox account.
 
@@ -2393,7 +2526,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.timedb.influxpush"></a>
 
-### 2.13\. pnp.plugins.push.timedb.InfluxPush
+### 2.14\. pnp.plugins.push.timedb.InfluxPush
 
 Pushes the given `payload` to an influx database using the line `protocol`.
 You have to specify `host`, `port`, `user`, `password` and the `database`.
@@ -2484,7 +2617,7 @@ tasks:
       plugin: pnp.plugins.pull.simple.Repeat
       args:
         repeat: "Hello World"  # Repeats 'Hello World'
-        wait: 1  # Every second
+        interval: 1s  # Every second
     push:
       - plugin: pnp.plugins.push.simple.Echo
         # Will only print the data when attribute azimuth of the sun component is above 200
@@ -2523,7 +2656,7 @@ tasks:
       plugin: pnp.plugins.pull.simple.Repeat
       args:
         repeat: "Hello World"  # Repeats 'Hello World'
-        wait: 1  # Every second
+        interval: 1s  # Every second
     push:
       - plugin: pnp.plugins.push.simple.Echo
         selector:
@@ -2585,7 +2718,8 @@ Returns a previously memorized value when called.
 
 __Arguments__
 
-- **init (any, optional)**: The initial memory of the plugin. Default is None.
+- **init (any, optional)**: The initial memory of the plugin. When not set initially the first call
+will return the value of `new_memory`, if specified; otherwise `None`.
 
 __Call Arguments__
 
@@ -2610,7 +2744,7 @@ tasks:
       plugin: pnp.plugins.pull.simple.Count
       args:
         from_cnt: 1
-        wait: 1  # Every second
+        interval: 1s  # Every second
     push:
       - plugin: pnp.plugins.push.simple.Echo
         # Will memorize every uneven count

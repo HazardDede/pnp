@@ -75,6 +75,62 @@ def make_list(item_or_items: Any) -> Optional[List[Any]]:
     return [item_or_items]
 
 
+def is_hashable(candidate: Any) -> bool:
+    """
+    Determines whether candidate can be hashed or not.
+
+    Args:
+        candidate: The candidate to test if it is hashable.
+
+    Returns:
+        True if `candidate` is hashable; otherwise False.
+
+    Examples:
+
+        >>> is_hashable("i am")
+        True
+        >>> is_hashable({"I am": "not"})
+        False
+    """
+    try:
+        hash(candidate)
+    except TypeError:
+        return False
+    return True
+
+
+def make_hashable(obj: Any) -> Any:
+    """
+    Converts a non-hashable instance into a hashable instance. Will take care of nested
+    objects (like in iterables, dictionaries) as well. Will not detect a recursion
+    and the function will fail in that case.
+
+    Args:
+        obj: The object to convert to a hashable object.
+
+    Returns:
+        Returns the hashable representation of the passed argument.
+
+    Examples:
+
+        >>> make_hashable("unchanged")
+        'unchanged'
+        >>> make_hashable((1, 2, 3))
+        frozenset({1, 2, 3})
+        >>> make_hashable({1: {2: [3, 4, 5]}})
+        frozenset({(1, frozenset({(2, frozenset({3, 4, 5}))}))})
+    """
+    if isinstance(obj, dict):
+        return frozenset({
+            make_hashable(k): make_hashable(v)
+            for k, v in obj.items()
+        }.items())
+    if is_iterable_but_no_str(obj):
+        return frozenset([make_hashable(item) for item in obj])
+
+    return obj if is_hashable(obj) else str(obj)
+
+
 def camel_to_snake(name: str) -> str:
     """
     Converts camelCase to snake_case.
@@ -605,6 +661,28 @@ def get_bytes(stream_or_file: Any) -> Union[bytes, str]:
     raise ValueError("Argument 'stream_or_file' is neither a stream nor a file")
 
 
+def is_real_float(candidate: Any) -> bool:
+    """
+    Checks if the given candidate is a real float. An integer will return False.
+
+    Examples:
+        >>> is_real_float(1.1)
+        True
+        >>> is_real_float(1.0)
+        False
+        >>> is_real_float(object())
+        False
+        >>> is_real_float(1)
+        False
+        >>> is_real_float("str")
+        False
+    """
+    try:
+        return not float(candidate).is_integer()
+    except (TypeError, ValueError):
+        return False
+
+
 def parse_duration_literal(literal: DurationLiteral) -> int:
     """
     Converts duration literals as '1m', '1h', and so on to an actual duration in seconds.
@@ -613,6 +691,8 @@ def parse_duration_literal(literal: DurationLiteral) -> int:
     Examples:
 
         >>> parse_duration_literal(60)  # Int will be interpreted as seconds
+        60
+        >>> parse_duration_literal(60.5)  # Float gets truncated
         60
         >>> parse_duration_literal('10')  # Any int convertible will be interpreted as seconds
         10
@@ -651,6 +731,33 @@ def parse_duration_literal(literal: DurationLiteral) -> int:
         if value is None or unit not in seconds_per_unit:
             raise TypeError("Interval '{}' is not a valid literal".format(literal))
         return value * seconds_per_unit[unit]
+
+
+def parse_duration_literal_float(literal: DurationLiteral) -> float:
+    """
+    Converts duration literals as '1m', '1h', and so on to an actual duration in seconds.
+    Supported are 's' (seconds), 'm' (minutes), 'h' (hours), 'd' (days) and 'w' (weeks).
+
+    Difference between `parse_duration_literal` and `parse_duration_literal_float` that
+    the `*_float` will return a float and therefore allow fractions
+
+    Examples:
+        >>> parse_duration_literal_float(60.5)  # Float will be preserved
+        60.5
+        >>> parse_duration_literal_float('20s')  # Seconds literal
+        20.0
+
+    Args:
+        literal: Literal to parse.
+
+    Returns:
+        Returns the converted literal's duration in seconds. If conversion is not possible
+        an exception is raised.
+    """
+    if is_real_float(literal):
+        return float(literal)
+
+    return float(parse_duration_literal(literal))
 
 
 def safe_get(dct: Dict[Any, Any], *keys: Any, default: Any = None) -> Any:

@@ -9,7 +9,7 @@ def test_load_plugin():
     plugin = load_plugin("pnp.plugins.pull.simple.Repeat", PullBase, name='pytest', repeat="Hello World", wait=1)
     assert plugin is not None
     assert isinstance(plugin, Repeat)
-    assert str(plugin) == "Repeat(name='pytest', repeat='Hello World', wait=1.0)"
+    assert str(plugin) == "Repeat(interval=1.0, name='pytest', repeat='Hello World')"
 
 
 def test_load_plugin_with_invalid_plugins():

@@ -66,7 +66,7 @@ It is up to you. I prefer yaml...
   pull:
     plugin: pnp.plugins.pull.simple.Repeat
     args:
-      wait: 1
+      interval: 1s
       repeat: "Hello World"
   push:
     - plugin: pnp.plugins.push.simple.Echo
@@ -249,7 +249,7 @@ Given the example ...
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 1
+      interval: 1s
   push:
     plugin: pnp.plugins.push.fs.FileDump
     selector:
@@ -313,7 +313,7 @@ you can perform for each loops for pushes.
   pull:
     plugin: pnp.plugins.pull.simple.Repeat
     args:
-      wait: 1
+      interval: 1s
       repeat:
         - 1
         - 2
@@ -333,7 +333,7 @@ If you need the selector to augment your list, use a `push.simple.Nop` with `unw
   pull:
     plugin: pnp.plugins.pull.simple.Repeat
     args:
-      wait: 1
+      interval: 1s
       repeat:
         - 1
         - 2
@@ -538,7 +538,7 @@ Additional example:
   pull:
     plugin: pnp.plugins.pull.simple.Repeat
     args:
-      wait: 1
+      interval: 1s
       repeat: "Hello World"
   push:
     - plugin: pnp.plugins.push.simple.Echo
@@ -585,7 +585,7 @@ tasks:
     pull:
       plugin: pnp.plugins.pull.simple.Repeat
       args:
-        wait: 1
+        interval: 1s
         repeat: "Hello World"
     push:
       - plugin: pnp.plugins.push.simple.Echo
@@ -633,6 +633,19 @@ intended or by accident. Nevertheless we try to list breaking changes in the cha
 You are encouraged to specify explicitly the version in your dependency tools, e.g.:
 
     pip install pnp==0.10.0
+
+**0.20.2**
+* Bugfix: Fixes udf throttling to take arguments into account for result caching
+* Refactors udf throttling / caching code to be more pythonic
+* Adjusts `pull.simple` components to act like polling components
+
+**0.20.1**
+* Bugfix: Socket shutdown of `pull.net.PortProbe` sometimes fails in rare occasions. Is now handled properly
+
+**0.20.0**
+* Adds `push.notify.Slack` to push a message to a specified slack channel
+* Adds `pull.trigger.Web` to externally trigger poll actions
+* Breaking: Slightly changes the behaviour of `udf.simple.Memory`. See [docs](https://github.com/HazardDede/pnp/blob/master/docs/plugins/udf/simple.Memory/index.md)
 
 **0.19.1**
 * Bugfix: Adds bug workaround in `schiene` package used by `pull.traffic.DeutscheBahn`
