@@ -8,14 +8,17 @@ import asyncio
 from schedule import Scheduler  # type: ignore
 
 from .. import Plugin
+from ...metrics import PullMetrics, track_pull
 from ...shared.async_ import async_from_sync
 from ...shared.async_ import async_sleep_until_interrupt
 from ...typing import Payload
-from ...utils import (auto_str_ignore, parse_duration_literal, try_parse_bool, DurationLiteral,
-                      sleep_until_interrupt)
+from ...utils import (
+    auto_str_ignore, parse_duration_literal, try_parse_bool, DurationLiteral,
+    sleep_until_interrupt, CallbackTimer
+)
 
 
-@auto_str_ignore(['stopped', '_stopped', 'on_payload'])
+@auto_str_ignore(['stopped', '_stopped', 'on_payload', '_metrics', 'pull'])
 class PullBase(Plugin):
     """
     Base class for pull plugins.
@@ -24,6 +27,16 @@ class PullBase(Plugin):
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
         self._stopped = proc.Event()
+        self._metrics = None  # type: Optional[PullMetrics]
+        self.pull = track_pull(self.metrics)(self.pull)
+
+    @property
+    def metrics(self) -> PullMetrics:
+        """Return the metrics tracker. Override if necessary to provide custom
+        implementation."""
+        if not self._metrics:
+            self._metrics = PullMetrics(self)
+        return self._metrics
 
     @property
     def stopped(self) -> bool:
@@ -49,6 +62,7 @@ class PullBase(Plugin):
 
     def notify(self, payload: Payload) -> None:
         """Call in subclass to emit some payload to the execution engine."""
+        self.metrics.track_event()
         self.on_payload(self, payload)  # type: ignore  # pylint: disable=too-many-function-args
 
     def stop(self) -> None:
@@ -60,6 +74,7 @@ class PullBase(Plugin):
         sleep_until_interrupt(sleep_time, lambda: self.stopped, interval=0.5)
 
 
+@auto_str_ignore(['async_pull'])
 class AsyncPullBase(PullBase):
     """
     Base class for pulls that support the async engine.
@@ -67,8 +82,9 @@ class AsyncPullBase(PullBase):
     def __init__(self, **kwargs: Any):  # pylint: disable=useless-super-delegation
         # Doesn't work without the useless-super-delegation
         super().__init__(**kwargs)
+        self.async_pull = track_pull(self.metrics)(self.async_pull)  # type: ignore
 
-    async def async_pull(self) -> None:
+    async def async_pull(self) -> None:  # type: ignore
         """Performs the actual data retrieval in a way that is compatible with the async engine."""
         raise NotImplementedError()
 
@@ -78,7 +94,13 @@ class AsyncPullBase(PullBase):
             raise RuntimeError(
                 "Cannot run async pull version, cause async implementation is missing")
 
-        async_from_sync(self.async_pull)
+        fun = self.async_pull
+        # Our loop hole to avoid the tracking decorator. If we miss this code we will
+        # track certain stuff two times (or even more).
+        if hasattr(fun, 'original_'):
+            fun = getattr(fun, 'original_')
+
+        async_from_sync(fun)
 
     async def _async_sleep(self, sleep_time: float = 10) -> None:
         """Call in subclass to perform some sleeping."""
@@ -164,9 +186,12 @@ class Polling(AsyncPullBase):
             self._is_running = True
             try:
                 if isinstance(self, AsyncPolling) and hasattr(self, 'async_poll'):
-                    payload = await self.async_poll()  # pylint: disable=no-member
+                    coro = self.async_poll()  # pylint: disable=no-member
                 else:
-                    payload = await asyncio.get_event_loop().run_in_executor(None, self.poll)
+                    coro = asyncio.get_event_loop().run_in_executor(None, self.poll)  # type: ignore
+
+                with CallbackTimer(self.metrics.track_execution_time):
+                    payload = await coro
             finally:
                 self._is_running = False
 
@@ -175,6 +200,7 @@ class Polling(AsyncPullBase):
         except StopPollingError:
             self.stop()
         except Exception:  # pragma: no cover, pylint: disable=broad-except
+            self.metrics.track_fail()
             self.logger.exception("Polling of '%s' failed", self.name)
 
     def _configure_scheduler(self, scheduler: Scheduler, callback: Callable[[], None]) -> None:
@@ -224,7 +250,7 @@ class AsyncPolling(Polling):
             raise RuntimeError(
                 "Cannot run async poll version, cause async implementation is missing.")
 
-        return async_from_sync(self.async_poll)
+        async_from_sync(self.async_poll)
 
     @abstractmethod
     async def async_poll(self) -> Payload:

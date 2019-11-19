@@ -63,6 +63,7 @@ pylint:
 mypy:
 	mypy \
 		$(SOURCE_PATH)/logging.py \
+		$(SOURCE_PATH)/metrics.py \
 		$(SOURCE_PATH)/models.py \
 		$(SOURCE_PATH)/selector.py \
 		$(SOURCE_PATH)/utils.py \

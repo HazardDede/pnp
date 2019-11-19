@@ -7,6 +7,7 @@ from typing import Any, Callable, Optional, Dict, Iterable, Union, cast, List, T
 
 from .. import Plugin
 from ... import utils
+from ...metrics import PushMetrics, track_event
 from ...shared.async_ import async_from_sync
 from ...typing import Envelope, Payload
 from ...validator import Validator
@@ -117,10 +118,21 @@ def _lookup(instance: object, lookups: Union[str, Iterable[str]]) -> Optional[An
     return None
 
 
+@utils.auto_str_ignore(['_metrics', 'push'])
 class PushBase(Plugin):
     """Base class for all push plugins."""
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
+        self._metrics = None  # type: Optional[PushMetrics]
+        self.push = track_event(self.metrics)(self.push)  # Make the push trackable
+
+    @property
+    def metrics(self) -> PushMetrics:
+        """Return the metrics tracker. Override if necessary to provide custom
+        implementation."""
+        if not self._metrics:
+            self._metrics = PushMetrics(self)
+        return self._metrics
 
     @property
     def supports_async(self) -> bool:
@@ -235,11 +247,14 @@ class PushBase(Plugin):
         return payload, real_payload
 
 
+@utils.auto_str_ignore(['async_push'])
 class AsyncPushBase(PushBase):
     """Base class for push plugins that fully support the async engine."""
     def __init__(self, **kwargs: Any):  # pylint: disable=useless-super-delegation
         # Doesn't work without the useless-super-delegation
         super().__init__(**kwargs)
+        # Make the async_push trackable
+        self.async_push = track_event(self.metrics)(self.async_push)  # type: ignore
 
     def _call_async_push_from_sync(self, payload: Payload) -> None:
         """Calls the async pull from a sync context."""
@@ -249,6 +264,6 @@ class AsyncPushBase(PushBase):
 
         async_from_sync(self.async_push, payload=payload)
 
-    async def async_push(self, payload: Payload) -> Payload:
+    async def async_push(self, payload: Payload) -> Payload:  # type: ignore
         """Performs the push in an asynchronous compatible (non-blocking) way."""
         raise NotImplementedError()
