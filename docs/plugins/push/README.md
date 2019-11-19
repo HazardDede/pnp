@@ -90,7 +90,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 10
+      interval: 10s
   push:
     plugin: pnp.plugins.push.hass.Service
     selector:
@@ -109,7 +109,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 10
+      interval: 10s
   push:
     plugin: pnp.plugins.push.hass.Service
     selector:
@@ -162,7 +162,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 5
+      interval: 5s
   push:
     plugin: pnp.plugins.push.http.Call
     selector:
@@ -191,7 +191,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 5
+      interval: 5s
   push:
     plugin: pnp.plugins.push.http.Call
     args:
@@ -451,7 +451,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 1
+      interval: 1s
   push:
     plugin: pnp.plugins.push.mqtt.Publish
     # Lets override the topic via envelope mechanism
@@ -597,7 +597,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 1
+      interval: 1s
       from_cnt: 1
       to_cnt: 10
   push:
@@ -642,7 +642,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 1
+      interval: 1s
       from_cnt: 1
   push:
     plugin: pnp.plugins.push.simple.Execute
@@ -671,7 +671,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 1
+      interval: 1s
       from_cnt: 1
   push:
     plugin: pnp.plugins.push.simple.Execute
@@ -720,7 +720,7 @@ tasks:
     pull:
       plugin: pnp.plugins.pull.simple.Count  # Let's count
       args:
-        wait: 1
+        interval: 1s
     push:
       - plugin: pnp.plugins.push.simple.Echo
         selector: "'START WAITING: {}'.format(payload)"

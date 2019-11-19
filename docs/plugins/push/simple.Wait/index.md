@@ -29,7 +29,7 @@ tasks:
     pull:
       plugin: pnp.plugins.pull.simple.Count  # Let's count
       args:
-        wait: 1
+        interval: 1s
     push:
       - plugin: pnp.plugins.push.simple.Echo
         selector: "'START WAITING: {}'.format(payload)"

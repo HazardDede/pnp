@@ -22,7 +22,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 10
+      interval: 10s
   push:
     plugin: pnp.plugins.push.hass.Service
     selector:
@@ -41,7 +41,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 10
+      interval: 10s
   push:
     plugin: pnp.plugins.push.hass.Service
     selector:

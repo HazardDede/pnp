@@ -1,10 +1,11 @@
 # pnp.plugins.pull.simple.Repeat
 
-Emits every `wait` seconds the same `repeat`.
+Emits every `interval` seconds the same `repeat`.
 
 __Arguments__
 
-- **wait (int)**: Wait the amount of seconds before emitting the next repeat.
+- **interval (duration literal)**: Wait the amount of seconds before emitting the next `repeat`.
+- **wait (int)**: DEPRECATED! Use `interval` instead.
 - **repeat (any)**: The object to emit.
 
 __Result__
@@ -19,7 +20,7 @@ __Examples__
     plugin: pnp.plugins.pull.simple.Repeat
     args:
       repeat: "Hello World"  # Repeats 'Hello World'
-      wait: 1  # Every second
+      interval: 1s  # Every second
   push:
     plugin: pnp.plugins.push.simple.Echo
 

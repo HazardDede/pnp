@@ -17,7 +17,7 @@ __Examples__
   pull:
     plugin: pnp.plugins.pull.simple.Count
     args:
-      wait: 1
+      interval: 1s
       from_cnt: 1
       to_cnt: 10
   push:

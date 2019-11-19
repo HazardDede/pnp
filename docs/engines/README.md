@@ -37,7 +37,7 @@ tasks:
     pull:
       plugin: pnp.plugins.pull.simple.Count
       args:
-        wait: 1
+        interval: 1s
         from_cnt: 1
         to_cnt: 4
     push:
@@ -62,7 +62,7 @@ tasks:
     pull:
       plugin: pnp.plugins.pull.simple.Repeat
       args:
-        wait: 1
+        interval: 1s
         repeat: "Hello World"
     push:
       - plugin: pnp.plugins.push.simple.Echo
@@ -86,7 +86,7 @@ tasks:
     pull:
       plugin: pnp.plugins.pull.simple.Repeat
       args:
-        wait: 1
+        interval: 1s
         repeat: "Hello World"
     push:
       - plugin: pnp.plugins.push.simple.Echo
@@ -109,7 +109,7 @@ tasks:
     pull:
       plugin: pnp.plugins.pull.simple.Repeat
       args:
-        wait: 1
+        interval: 1s
         repeat: "Hello World"
     push:
       - plugin: pnp.plugins.push.simple.Echo
