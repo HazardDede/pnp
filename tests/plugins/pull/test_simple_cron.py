@@ -14,4 +14,4 @@ def test_cron_every_minute():
     dut.poll()
 
     assert len(res) == 3
-    assert res[0] == dict(data='every minute')
+    assert res[0] == 'every minute'

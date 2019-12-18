@@ -55,8 +55,12 @@ class PayloadSelector(Singleton):
         from base64 import b64encode, b64decode
         self._custom["b64encode"] = b64encode
         self._custom["b64decode"] = b64decode
+        from datetime import datetime
+        self._custom["now"] = datetime.now
+        self._custom["utcnow"] = datetime.utcnow
         import os
         self._custom["basename"] = os.path.basename
+
         from .utils import on_off
         self._custom["on_off"] = on_off
 

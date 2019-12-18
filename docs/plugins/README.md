@@ -27,19 +27,20 @@
 1.24\.  [pnp.plugins.pull.zway.ZwayReceiver](#pnp.plugins.pull.zway.zwayreceiver)  
 2\.  [Pushes](#pushes)  
 2.1\.  [pnp.plugins.push.fs.FileDump](#pnp.plugins.push.fs.filedump)  
-2.2\.  [pnp.plugins.push.hass.Service](#pnp.plugins.push.hass.service)  
-2.3\.  [pnp.plugins.push.http.Call](#pnp.plugins.push.http.call)  
-2.4\.  [pnp.plugins.push.mail.GMail](#pnp.plugins.push.mail.gmail)  
-2.5\.  [pnp.plugins.push.ml.FaceR](#pnp.plugins.push.ml.facer)  
-2.6\.  [pnp.plugins.push.mqtt.Discovery](#pnp.plugins.push.mqtt.discovery)  
-2.7\.  [pnp.plugins.push.mqtt.Publish](#pnp.plugins.push.mqtt.publish)  
-2.8\.  [pnp.plugins.push.notify.Pushbullet](#pnp.plugins.push.notify.pushbullet)  
-2.9\.  [pnp.plugins.push.notify.Slack](#pnp.plugins.push.notify.slack)  
-2.10\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
-2.11\.  [pnp.plugins.push.simple.Execute](#pnp.plugins.push.simple.execute)  
-2.12\.  [pnp.plugins.push.simple.Wait](#pnp.plugins.push.simple.wait)  
-2.13\.  [pnp.plugins.push.storage.Dropbox](#pnp.plugins.push.storage.dropbox)  
-2.14\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
+2.2\.  [pnp.plugins.push.fs.Zipper](#pnp.plugins.push.fs.zipper)  
+2.3\.  [pnp.plugins.push.hass.Service](#pnp.plugins.push.hass.service)  
+2.4\.  [pnp.plugins.push.http.Call](#pnp.plugins.push.http.call)  
+2.5\.  [pnp.plugins.push.mail.GMail](#pnp.plugins.push.mail.gmail)  
+2.6\.  [pnp.plugins.push.ml.FaceR](#pnp.plugins.push.ml.facer)  
+2.7\.  [pnp.plugins.push.mqtt.Discovery](#pnp.plugins.push.mqtt.discovery)  
+2.8\.  [pnp.plugins.push.mqtt.Publish](#pnp.plugins.push.mqtt.publish)  
+2.9\.  [pnp.plugins.push.notify.Pushbullet](#pnp.plugins.push.notify.pushbullet)  
+2.10\.  [pnp.plugins.push.notify.Slack](#pnp.plugins.push.notify.slack)  
+2.11\.  [pnp.plugins.push.simple.Echo](#pnp.plugins.push.simple.echo)  
+2.12\.  [pnp.plugins.push.simple.Execute](#pnp.plugins.push.simple.execute)  
+2.13\.  [pnp.plugins.push.simple.Wait](#pnp.plugins.push.simple.wait)  
+2.14\.  [pnp.plugins.push.storage.Dropbox](#pnp.plugins.push.storage.dropbox)  
+2.15\.  [pnp.plugins.push.timedb.InfluxPush](#pnp.plugins.push.timedb.influxpush)  
 3\.  [UDFs (User defined function)](#udfsuserdefinedfunction)  
 3.1\.  [pnp.plugins.udf.hass.State](#pnp.plugins.udf.hass.state)  
 3.2\.  [pnp.plugins.udf.simple.Counter](#pnp.plugins.udf.simple.counter)  
@@ -1356,13 +1357,7 @@ __Arguments__
 __Result__
 
 Imagine your cron expressions looks like this: `*/1 * * * * every minute`.
-The pull will emit every minute the same payload:
-
-```yaml
-{
-  'data': 'every minute'
-}
-```
+The pull will emit the text `every minute` every minute.
 
 __Examples__
 
@@ -1777,9 +1772,42 @@ __Examples__
       - plugin: pnp.plugins.push.simple.Echo
 
 ```
+<a name="pnp.plugins.push.fs.zipper"></a>
+
+### 2.2\. pnp.plugins.push.fs.Zipper
+
+The push expects a directory or a file path to be passed as the payload.
+As long it's a valid path it will zip the directory or the single file and return
+the absolute path to the created zip file.
+
+__Arguments__
+
+- **source (str, optional)**: Specifies the source directory or file to zip. If not passed the source can be specified by the envelope at runtime.
+- **out_path (str, optional)**: Specifies the path to the general output path where all target zip files should be generated. If not passed the systems temp directory is used.
+
+__Result__
+
+Will return an absolute path to the zip file created.
+
+__Examples__
+
+```yaml
+- name: cron
+  pull:
+    plugin: pnp.plugins.pull.simple.Cron
+    args:
+      expressions:
+        - "*/1 * * * * /Users/dennismuth/private/sandbox/zipignore/testdir"
+        - "*/1 * * * * /Users/dennismuth/private/sandbox/zipignore/testdir/1.txt"
+  push:
+    plugin: pnp.plugins.push.fs.Zipper
+    deps:
+      plugin: pnp.plugins.push.simple.Echo
+
+```
 <a name="pnp.plugins.push.hass.service"></a>
 
-### 2.2\. pnp.plugins.push.hass.Service
+### 2.3\. pnp.plugins.push.hass.Service
 
 Calls a home assistant service providing the payload as service-data.
 
@@ -1836,7 +1864,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.http.call"></a>
 
-### 2.3\. pnp.plugins.push.http.Call
+### 2.4\. pnp.plugins.push.http.Call
 
 Makes a request to a http resource.
 
@@ -1927,7 +1955,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.mail.gmail"></a>
 
-### 2.4\. pnp.plugins.push.mail.GMail
+### 2.5\. pnp.plugins.push.mail.GMail
 
 Sends an e-mail via the `gmail api`.
 
@@ -1987,7 +2015,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.ml.facer"></a>
 
-### 2.5\. pnp.plugins.push.ml.FaceR
+### 2.6\. pnp.plugins.push.ml.FaceR
 
 FaceR (short one for face recognition) tags known faces in images. Output is the image with all faces tagged whether
 with the known name or an `unknown_label`. Default for unknown ones is 'Unknown'.
@@ -2050,7 +2078,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.mqtt.discovery"></a>
 
-### 2.6\. pnp.plugins.push.mqtt.Discovery
+### 2.7\. pnp.plugins.push.mqtt.Discovery
 
 TBD
 
@@ -2125,7 +2153,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.mqtt.publish"></a>
 
-### 2.7\. pnp.plugins.push.mqtt.Publish
+### 2.8\. pnp.plugins.push.mqtt.Publish
 
 Will push the given `payload` to a mqtt broker (in this case mosquitto).
 The broker is specified by `host` and `port`. In addition a topic needs to be specified were the payload
@@ -2212,7 +2240,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.notify.pushbullet"></a>
 
-### 2.8\. pnp.plugins.push.notify.Pushbullet
+### 2.9\. pnp.plugins.push.notify.Pushbullet
 
 Sends a message to the [Pushbullet](http://www.pushbullet.com) service.
 The type of the message will guessed:
@@ -2254,7 +2282,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.notify.slack"></a>
 
-### 2.9\. pnp.plugins.push.notify.Slack
+### 2.10\. pnp.plugins.push.notify.Slack
 
 Sends a message to a given [Slack](http://www.slack.com) channel.
 
@@ -2307,7 +2335,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.simple.echo"></a>
 
-### 2.10\. pnp.plugins.push.simple.Echo
+### 2.11\. pnp.plugins.push.simple.Echo
 
 Simply log the passed payload to the default logging instance.
 
@@ -2335,7 +2363,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.simple.execute"></a>
 
-### 2.11\. pnp.plugins.push.simple.Execute
+### 2.12\. pnp.plugins.push.simple.Execute
 
 Executes a command with given arguments in a shell of the operating system.
 Both `command` and `args` may include placeholders (e.g. `{{placeholder}}`) which are injected at runtime
@@ -2422,7 +2450,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.simple.wait"></a>
 
-### 2.12\. pnp.plugins.push.simple.Wait
+### 2.13\. pnp.plugins.push.simple.Wait
 
 Performs a sleep operation and waits for some time to pass by.
 
@@ -2468,7 +2496,7 @@ tasks:
 ```
 <a name="pnp.plugins.push.storage.dropbox"></a>
 
-### 2.13\. pnp.plugins.push.storage.Dropbox
+### 2.14\. pnp.plugins.push.storage.Dropbox
 
 Uploads provided file to the specified dropbox account.
 
@@ -2526,7 +2554,7 @@ __Examples__
 ```
 <a name="pnp.plugins.push.timedb.influxpush"></a>
 
-### 2.14\. pnp.plugins.push.timedb.InfluxPush
+### 2.15\. pnp.plugins.push.timedb.InfluxPush
 
 Pushes the given `payload` to an influx database using the line `protocol`.
 You have to specify `host`, `port`, `user`, `password` and the `database`.

@@ -1,6 +1,7 @@
 # Pushes
 
 !INCLUDE "docs/plugins/push/fs.FileDump/index.md", 1
+!INCLUDE "docs/plugins/push/fs.Zipper/index.md", 1
 !INCLUDE "docs/plugins/push/hass.Service/index.md", 1
 !INCLUDE "docs/plugins/push/http.Call/index.md", 1
 !INCLUDE "docs/plugins/push/mail.GMail/index.md", 1
