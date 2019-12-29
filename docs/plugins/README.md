@@ -1792,15 +1792,16 @@ Will return an absolute path to the zip file created.
 __Examples__
 
 ```yaml
-- name: cron
+- name: zipper
   pull:
     plugin: pnp.plugins.pull.simple.Cron
     args:
       expressions:
-        - "*/1 * * * * /Users/dennismuth/private/sandbox/zipignore/testdir"
-        - "*/1 * * * * /Users/dennismuth/private/sandbox/zipignore/testdir/1.txt"
+        - "*/1 * * * * /path/to/backup"
   push:
     plugin: pnp.plugins.push.fs.Zipper
+    args:
+      out_dir: "{{env::BACKUP_DIR}}"
     deps:
       plugin: pnp.plugins.push.simple.Echo
 
