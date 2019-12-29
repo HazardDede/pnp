@@ -72,6 +72,9 @@ The push expects a directory or a file path to be passed as the payload.
 As long it's a valid path it will zip the directory or the single file and return
 the absolute path to the created zip file.
 
+Hint: You can use a so called .zipignore file to exclude files and directories from zipping.
+It works - mostly - like a .gitignore file.
+
 __Arguments__
 
 - **source (str, optional)**: Specifies the source directory or file to zip. If not passed the source can be specified by the envelope at runtime.
