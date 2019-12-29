@@ -12,13 +12,7 @@ __Arguments__
 __Result__
 
 Imagine your cron expressions looks like this: `*/1 * * * * every minute`.
-The pull will emit every minute the same payload:
-
-```yaml
-{
-  'data': 'every minute'
-}
-```
+The pull will emit the text `every minute` every minute.
 
 __Examples__
 

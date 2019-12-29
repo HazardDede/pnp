@@ -62,6 +62,7 @@ setup(
         'pytz>=2018.4',
         'influxdb>=5.0.0',
         'paho-mqtt>=1.3.1',
+        'pathspec>=0.6.0',
         'requests>=2.18.4',
         'ruamel.yaml>=0.15.37',
         'schedule>=0.5.0',

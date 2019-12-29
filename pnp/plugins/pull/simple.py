@@ -65,7 +65,7 @@ class Cron(Polling):
         for job in self.jobs:
             dtime = datetime.now()
             if job.check_trigger((dtime.year, dtime.month, dtime.day, dtime.hour, dtime.minute)):
-                self.notify({'data': job.comment})
+                self.notify(job.comment)
 
 
 class CustomPolling(Polling):

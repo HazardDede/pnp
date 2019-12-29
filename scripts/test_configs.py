@@ -17,6 +17,7 @@ FTPDIR_PATH = '/tmp/ftp'
 
 
 ENV = {
+    'BACKUP_DIR': '/tmp',
     'DROPBOX_API_KEY': 'blub',
     'FITBIT_AUTH': FITBIT_AUTH_PATH,
     'FTP_DIR': FTPDIR_PATH,
