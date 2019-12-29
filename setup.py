@@ -58,7 +58,7 @@ setup(
         'glom>=19.2.0',
         'Jinja2>=2.0',
         'psutil>=5.4.8',
-        'python-box>=3.2.0',
+        'python-box>=3.2.0,<=3.4.6',
         'pytz>=2018.4',
         'influxdb>=5.0.0',
         'paho-mqtt>=1.3.1',
