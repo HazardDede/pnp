@@ -620,6 +620,9 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 
     pip install pnp==0.10.0
 
+**0.21.1**
+* Bugfix: Removes timeout from component `push.storage.Dropbox`
+
 **0.21.0**
 * Adds `push.fs.Zipper` to zip dirs and files in the process chain
 
