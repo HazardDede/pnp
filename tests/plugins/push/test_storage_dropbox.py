@@ -33,7 +33,7 @@ def test_dropbox_push_with_file(dbx_mock):
     assert res.shared_link is None
     assert res.raw_link is None
 
-    dbx_mock.assert_called_with('secret')
+    dbx_mock.assert_called_with('secret', timeout=None)
     dbx_mock.return_value.files_upload.assert_called()
 
 
@@ -49,6 +49,6 @@ def test_dropbox_push_with_file_and_shared_link(dbx_mock):
     assert res.shared_link == 'http://42:42/42?dl=1'
     assert res.raw_link == 'http://42:42/42?raw=1'
 
-    dbx_mock.assert_called_with('secret')
+    dbx_mock.assert_called_with('secret', timeout=None)
     dbx_mock.return_value.files_upload.assert_called()
     dbx_mock.return_value.sharing_create_shared_link.assert_called_with('/42')
