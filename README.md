@@ -621,6 +621,7 @@ You are encouraged to specify explicitly the version in your dependency tools, e
     pip install pnp==0.10.0
 
 **0.21.1**
+* Feature: Enables arm emulator for arm dockerfile to use docker hub autmated build
 * Bugfix: Removes timeout from component `push.storage.Dropbox`
 
 **0.21.0**
