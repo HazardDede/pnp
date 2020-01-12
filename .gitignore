@@ -113,3 +113,6 @@ ENV/
 
 # Private logging configurations
 *.logging
+
+# ARM emulator
+qemu-arm-static

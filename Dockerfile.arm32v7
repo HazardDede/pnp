@@ -3,6 +3,7 @@
 #
 
 FROM arm32v7/python:3.5-slim-stretch
+COPY qemu-arm-static /usr/bin
 
 LABEL maintainer="Dennis Muth <d.muth@gmx.net>"
 
