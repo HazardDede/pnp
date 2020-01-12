@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 
-VERSION = '0.21.0'
+VERSION = '0.21.1'
 
 
 def readme():
