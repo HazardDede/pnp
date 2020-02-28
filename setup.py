@@ -78,6 +78,7 @@ setup(
         'dropbox': ['dropbox>=9.0.0', 'urllib3<1.25,>=1.20'],
         'faceR': ['image>=1.5.24', 'face-recognition>=1.2.2'],
         'fitbit': ['fitbit>=0.3.0'],
+        'fritz': ['fritzconnection>=1.2.0'],
         'fswatcher': ['watchdog>=0.8.3'],
         'ftp': ['pyftpdlib>=1.5.0'],
         'gmail': ['google-api-python-client>=1.7.7', 'google-auth-httplib2>=0.0.3', 'google-auth-oauthlib>=0.2.0'],
