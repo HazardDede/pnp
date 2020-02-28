@@ -2,7 +2,7 @@
 # Notice: Keep this file in sync with Dockerfile.arm32v7
 #
 
-FROM python:3.5-slim-stretch
+FROM python:3.7-slim-stretch
 
 LABEL maintainer="Dennis Muth <d.muth@gmx.net>"
 
