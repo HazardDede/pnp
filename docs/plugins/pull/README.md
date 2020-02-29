@@ -965,6 +965,8 @@ __Examples__
 
 Periodically asks a Fritz!Box router for the devices that were connected in the past or right now.
 
+Requires extra `fritz` (`pip install pnp[fritz]`) , which is only compatible with python 3.6 or newer.
+
 __Arguments__
 
 - **host (str, optional)**: The IP address of your Fritz!Box. Default is 169.254.1.1</br>
