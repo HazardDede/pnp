@@ -93,6 +93,35 @@ class GPIOMock:  # pragma: no cover
                 cback(channel)
 
 
+class FritzBoxHostsMock:  # pragma: no cover
+    """Mocks the fritzconnection.FritzHosts class."""
+    def __init__(self):
+        self.address = None
+        self.user = None
+        self.password = None
+
+    def __call__(self, address, user, password):
+        """The actual instantiation of mock from a client perspective."""
+        self.address = address
+        self.user = user
+        self.password = password
+        return self
+
+    @property
+    def modelname(self):
+        """Return the name of the fritzbox model / make."""
+        return "Fritz!Box Mock v1.0"
+
+    def get_hosts_info(self):
+        """Return the known hosts."""
+        _ = self  # Fake usage
+        return [
+            {"mac": "12:34:56:78:12", 'ip': '192.168.178.10', 'name': 'pc1', 'status': 'active'},
+            {"mac": "12:34:56:78:13", 'ip': '192.168.178.11', 'name': 'pc2', 'status': ''},
+            {"mac": "12:34:56:78:14", 'ip': '192.168.178.12', 'name': 'pc3', 'status': 'active'}
+        ]
+
+
 class PyAudioMock:  # pragma: no cover
     """Mocks the pyaudio package (only available with audio devices)."""
     class _StreamMock:
