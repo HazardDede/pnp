@@ -29,7 +29,7 @@ class FritzBoxTracker(Polling):
         if self.offline_delay < 0:
             self.offline_delay = 0
         self.fritz_box = None
-        self._cache = defaultdict(int)
+        self._cache = {}
 
     def _setup(self):
         if not self.fritz_box:
@@ -62,6 +62,10 @@ class FritzBoxTracker(Polling):
             return device
 
         # Status = offline
+        if mac not in self._cache:
+            self._cache[mac] = self.offline_delay
+            return device  # Never seen before -> no adjustment
+
         if self._cache[mac] < self.offline_delay:
             self._cache[mac] += 1
             device['status'] = True  # Fake online

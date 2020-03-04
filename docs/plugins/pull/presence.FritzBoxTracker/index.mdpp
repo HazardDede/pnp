@@ -9,6 +9,9 @@ __Arguments__
 - **host (str, optional)**: The IP address of your Fritz!Box. Default is 169.254.1.1</br>
 - **user (str, optional)**: The user to use. Default is admin.<br/>
 - **password (str, optional)**: The password to use. Default is an empty string.
+- **offline_delay (int, optional)**: Defines how many intervals to wait before marking a device as not connected after the
+ Fritz!Box reported the device as not connected anymore. This is useful for mobile devices that go temporarily to sleep and
+ drop connection. Default is 0 -> Disconnected devices will be instantly reported as disconnected.
 
 Hint: By using the default values you should be able to connect to your Fritz!Box, because the necessary operation
 can be performed anonymously.

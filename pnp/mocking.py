@@ -99,6 +99,7 @@ class FritzBoxHostsMock:  # pragma: no cover
         self.address = None
         self.user = None
         self.password = None
+        self.calls = 0
 
     def __call__(self, address, user, password):
         """The actual instantiation of mock from a client perspective."""
@@ -115,10 +116,11 @@ class FritzBoxHostsMock:  # pragma: no cover
     def get_hosts_info(self):
         """Return the known hosts."""
         _ = self  # Fake usage
+        self.calls += 1
         return [
             {"mac": "12:34:56:78:12", 'ip': '192.168.178.10', 'name': 'pc1', 'status': True},
             {"mac": "12:34:56:78:13", 'ip': '192.168.178.11', 'name': 'pc2', 'status': False},
-            {"mac": "12:34:56:78:14", 'ip': '192.168.178.12', 'name': 'pc3', 'status': True}
+            {"mac": "12:34:56:78:14", 'ip': '192.168.178.12', 'name': 'pc3', 'status': self.calls <= 1}
         ]
 
 

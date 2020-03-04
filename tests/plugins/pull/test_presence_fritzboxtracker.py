@@ -22,6 +22,11 @@ def test_polling():
             {"mac": "12:34:56:78:13", 'ip': '192.168.178.11', 'name': 'pc2', 'status': False},
             {"mac": "12:34:56:78:14", 'ip': '192.168.178.12', 'name': 'pc3', 'status': True}
         ]
+        assert dut.poll() == [
+            {"mac": "12:34:56:78:12", 'ip': '192.168.178.10', 'name': 'pc1', 'status': True},
+            {"mac": "12:34:56:78:13", 'ip': '192.168.178.11', 'name': 'pc2', 'status': False},
+            {"mac": "12:34:56:78:14", 'ip': '192.168.178.12', 'name': 'pc3', 'status': False}
+        ]
         assert fritzmock.address == dut.CONF_DEFAULT_IP
         assert fritzmock.user == dut.CONF_DEFAULT_USER
         assert fritzmock.password == dut.CONF_DEFAULT_PASSWORD
@@ -33,12 +38,12 @@ def test_polling_with_offline_delay():
         dut = FritzBoxTracker(name='pytest', offline_delay=2)
         assert dut.poll() == [
             {"mac": "12:34:56:78:12", 'ip': '192.168.178.10', 'name': 'pc1', 'status': True},
-            {"mac": "12:34:56:78:13", 'ip': '192.168.178.11', 'name': 'pc2', 'status': True},
+            {"mac": "12:34:56:78:13", 'ip': '192.168.178.11', 'name': 'pc2', 'status': False},
             {"mac": "12:34:56:78:14", 'ip': '192.168.178.12', 'name': 'pc3', 'status': True}
         ]
         assert dut.poll() == [
             {"mac": "12:34:56:78:12", 'ip': '192.168.178.10', 'name': 'pc1', 'status': True},
-            {"mac": "12:34:56:78:13", 'ip': '192.168.178.11', 'name': 'pc2', 'status': True},
+            {"mac": "12:34:56:78:13", 'ip': '192.168.178.11', 'name': 'pc2', 'status': False},
             {"mac": "12:34:56:78:14", 'ip': '192.168.178.12', 'name': 'pc3', 'status': True}
         ]
         assert dut.poll() == [
@@ -49,5 +54,5 @@ def test_polling_with_offline_delay():
         assert dut.poll() == [
             {"mac": "12:34:56:78:12", 'ip': '192.168.178.10', 'name': 'pc1', 'status': True},
             {"mac": "12:34:56:78:13", 'ip': '192.168.178.11', 'name': 'pc2', 'status': False},
-            {"mac": "12:34:56:78:14", 'ip': '192.168.178.12', 'name': 'pc3', 'status': True}
+            {"mac": "12:34:56:78:14", 'ip': '192.168.178.12', 'name': 'pc3', 'status': False}
         ]
