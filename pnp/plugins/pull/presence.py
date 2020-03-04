@@ -1,5 +1,4 @@
 """Presence / Occupancy related plugins."""
-from collections import defaultdict
 from typing import Dict, Any
 
 from . import Polling

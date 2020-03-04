@@ -120,7 +120,8 @@ class FritzBoxHostsMock:  # pragma: no cover
         return [
             {"mac": "12:34:56:78:12", 'ip': '192.168.178.10', 'name': 'pc1', 'status': True},
             {"mac": "12:34:56:78:13", 'ip': '192.168.178.11', 'name': 'pc2', 'status': False},
-            {"mac": "12:34:56:78:14", 'ip': '192.168.178.12', 'name': 'pc3', 'status': self.calls <= 1}
+            {"mac": "12:34:56:78:14", 'ip': '192.168.178.12', 'name': 'pc3',
+             'status': self.calls <= 1}
         ]
 
 
