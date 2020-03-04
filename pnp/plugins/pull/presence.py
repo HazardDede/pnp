@@ -1,4 +1,5 @@
 """Presence / Occupancy related plugins."""
+from collections import defaultdict
 from typing import Dict, Any
 
 from . import Polling
@@ -18,13 +19,17 @@ class FritzBoxTracker(Polling):
     def __init__(
             self,
             host: str = CONF_DEFAULT_IP, user: str = CONF_DEFAULT_USER,
-            password: str = CONF_DEFAULT_PASSWORD, **kwargs
+            password: str = CONF_DEFAULT_PASSWORD, offline_delay: int = 0, **kwargs
     ):
         super().__init__(**kwargs)
         self.user = str(user)
         self.password = str(password)
         self.host = str(host)
+        self.offline_delay = int(offline_delay)
+        if self.offline_delay < 0:
+            self.offline_delay = 0
         self.fritz_box = None
+        self._cache = defaultdict(int)
 
     def _setup(self):
         if not self.fritz_box:
@@ -50,9 +55,25 @@ class FritzBoxTracker(Polling):
         _ = self  # Fake usage
         return host_entry
 
+    def _adjust_status(self, device: Dict[str, Any]) -> Dict[str, Any]:
+        mac, status = device['mac'], device['status']
+        if status:  # Online, no adjustment
+            self._cache[mac] = 0
+            return device
+
+        # Status = offline
+        if self._cache[mac] < self.offline_delay:
+            self._cache[mac] += 1
+            device['status'] = True  # Fake online
+
+        return device
+
     def poll(self) -> Payload:
         self._setup()
         if not self.fritz_box:
             return None  # No connection, no data
 
-        return [self._parse_host(host) for host in self.fritz_box.get_hosts_info()]
+        return [
+            self._adjust_status(self._parse_host(host))
+            for host in self.fritz_box.get_hosts_info()
+        ]
