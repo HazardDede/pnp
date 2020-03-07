@@ -1,4 +1,4 @@
-# pnp.plugins.pull.net.PortProbe
+# pnp.plugins.pull.presence.FritzBoxTracker
 
 Periodically asks a Fritz!Box router for the devices that were connected in the past or right now.
 
@@ -22,7 +22,7 @@ __Result__
 {
     "ip": "192.168.178.2",
     "mac": "00:0a:95:9d:68:16",
-    "status": "active",
+    "status": True,  # True or False
     "name": "pc1"
 }
 ```

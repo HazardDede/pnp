@@ -124,6 +124,23 @@ class FritzBoxHostsMock:  # pragma: no cover
              'status': self.calls <= 1}
         ]
 
+    def get_specific_host_entry(self, mac_address):
+        """Return the host associated to the given mac address."""
+        if mac_address == '12:34:56:78:14':
+            self.calls += 1
+        _map = {
+            '12:34:56:78:12': {
+                'NewIPAddress': '192.168.178.10', 'NewActive': True, 'NewHostName': 'pc1'
+            },
+            '12:34:56:78:13': {
+                'NewIPAddress': '192.168.178.11', 'NewActive': False, 'NewHostName': 'pc2'
+            },
+            '12:34:56:78:14': {
+                'NewIPAddress': '192.168.178.12', 'NewActive': self.calls <= 1, 'NewHostName': 'pc3'
+            }
+        }
+        return _map[mac_address]
+
 
 class PyAudioMock:  # pragma: no cover
     """Mocks the pyaudio package (only available with audio devices)."""

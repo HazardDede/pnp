@@ -1,4 +1,4 @@
-# pnp.plugins.pull.presence.FritzBoxTracker
+# pnp.plugins.pull.presence.SpecificFritzBoxTracker
 
 Periodically asks a Fritz!Box router for the devices that were connected in the past or right now.
 
@@ -29,17 +29,4 @@ __Result__
 
 __Examples__
 
-```yaml
-- name: fritzbox_tracker
-  pull:
-    plugin: pnp.plugins.pull.presence.FritzBoxTracker
-    args:
-      host: 169.254.1.1  # IP of your Fritz!Box. Default is 169.254.1.1
-      user: ''  # User name. Default is admin
-      password: admin  # Password. Default is an empty string
-      offline_delay: 0  # How many intervals to wait before marking a device as not connected after the fritzbox reported so
-      instant_run: true  # ... and run as soon as pnp starts
-  push:
-    - plugin: pnp.plugins.push.simple.Echo
-
-```
+!INCLUDECODE "docs/plugins/pull/presence.SpecificFritzBoxTracker/example.yaml" (yaml)
