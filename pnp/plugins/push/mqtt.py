@@ -53,12 +53,13 @@ class Discovery(MQTTBase, PushBase):
         )
         state_topic = base_topic + "/state"
         config_topic = base_topic + "/config"
-        return base_topic, config_topic, state_topic
+        attr_topic = base_topic + "/attributes"
+        return base_topic, config_topic, state_topic, attr_topic
 
     def _configure(self, object_id, node_id):
         configure_key = str(object_id) + str(node_id)
         if configure_key not in self.configured:
-            base_topic, config_topic, state_topic = self._topics(object_id, node_id)
+            base_topic, config_topic, state_topic, attr_topic = self._topics(object_id, node_id)
             mentor = DictMentor(
                 ext.Variables(
                     fail_on_unset=True,
@@ -68,7 +69,8 @@ class Discovery(MQTTBase, PushBase):
                     node_id=node_id,
                     base_topic=base_topic,
                     config_topic=config_topic,
-                    state_topic=state_topic
+                    state_topic=state_topic,
+                    json_attributes_topic=attr_topic
                 )
             )
             config_augmented = mentor.augment(self.config)
@@ -78,14 +80,18 @@ class Discovery(MQTTBase, PushBase):
     @enveloped
     @parse_envelope('object_id')
     @parse_envelope('node_id')
+    @parse_envelope('attributes')
     @drop_envelope
-    def push(self, object_id, node_id, payload):  # pylint: disable=arguments-differ
+    def push(self, object_id, node_id, attributes, payload):  # pylint: disable=arguments-differ
         if object_id is None:
             raise ValueError("object_id was not defined either by the __init__ nor by the envelope")
 
         self._configure(object_id, node_id)
-        _, _, state_topic = self._topics(object_id, node_id)
+        _, _, state_topic, attribute_topic = self._topics(object_id, node_id)
         self._publish(payload, state_topic, retain=True)
+
+        if attributes and isinstance(attributes, dict):
+            self._publish(attributes, attribute_topic, retain=True)
 
         return payload
 
