@@ -13,6 +13,7 @@
 !INCLUDE "docs/plugins/pull/monitor.Stats/index.md", 1
 !INCLUDE "docs/plugins/pull/mqtt.Subscribe/index.md", 1
 !INCLUDE "docs/plugins/pull/net.PortProbe/index.md", 1
+!INCLUDE "docs/plugins/pull/net.SSLVerify/index.md", 1
 !INCLUDE "docs/plugins/pull/presence.FritzBoxTracker/index.md", 1
 !INCLUDE "docs/plugins/pull/presence.SpecificFritzBoxTracker/index.md", 1
 !INCLUDE "docs/plugins/pull/sensor.DHT/index.md", 1
