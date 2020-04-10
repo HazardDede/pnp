@@ -1058,7 +1058,7 @@ __Result__
 ```python
 {
     # Envelope
-    "host": "www.google.de",
+    "host": "www.google.com",
     "payload": {
         "expires_days": 50,  # Remaining days before expiration
         "expires_at": datetime.datetime(2020, 5, 26, 9, 45, 52),  # Python datetime of expiration

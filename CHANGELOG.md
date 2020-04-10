@@ -10,6 +10,7 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 * Updates docker base image to `python 3.7`
 * Adds `pull.presence.FritzBoxTracker` to track known devices on a Fritz!Box
 * Adds `pull.presence.SpecificFritzBoxTracker` to extend `pull.presence.FritzBoxTracker` to pull specific devices contained in a whitelist only
+* Adds `pull.net.SSLVerify` to check ssl certificates
 * Adds `json_attributes_topic` support to `push.mqtt.Discovery`
 
 **0.21.1**
