@@ -11,7 +11,6 @@ import attr
 from ..models import TaskSet, PushModel
 from ..plugins.push import AsyncPushBase
 from ..selector import PayloadSelector
-from ..shared.async_ import async_from_sync
 from ..typing import Payload
 from ..utils import (Loggable, Singleton, parse_duration_literal, DurationLiteral, auto_str,
                      is_iterable_but_no_str)
@@ -161,17 +160,6 @@ class PushExecutor(Loggable, Singleton):
     """
     Given a payload and the push this helper actually "executes" the push by passing the payload
     after the (optional) selector did some magic to it.
-
-    Examples:
-
-        >>> payload = dict(a="This is the payload", b="another ignored key by selector")
-        >>> from pnp.plugins.push.simple import Nop
-        >>> push_instance = Nop(name='doctest')
-        >>> push = PushModel(instance=push_instance, selector='data.a', deps=[], unwrap=False)
-        >>> PushExecutor().execute("doctest", payload, push)
-        >>> push_instance.last_payload
-        'This is the payload'
-
     """
 
     async def _execute_internal(self, ident: str, payload: Payload, push: PushModel,
@@ -210,25 +198,6 @@ class PushExecutor(Loggable, Singleton):
             self.logger.debug(
                 "[%s] Selector evaluated to suppress literal. Skipping the push", ident
             )
-
-    def execute(self, ident: str, payload: Payload, push: PushModel,
-                result_callback: Optional[PushResultCallback] = None) -> None:
-        """
-        Executes the given push by passing the specified payload.
-        In concurrent environments there might be multiple executions in parallel.
-        You may specify an `id` argument to identify related execution steps in the logs.
-        Use the `result_callback` when the engine can take care of dependent pushes as well.
-        The result and a dependent push will be passed via the callback. If the callback is not
-        specified the PushExecute will execute them in a recursive manner.
-
-        Args:
-            ident (str): ID to identify related execution steps in the logs
-                (makes sense in concurrent environments).
-            payload (Any): The payload to pass to the push.
-            push (PushModel): The push instance that has to process the payload.
-            result_callback (callable): See explanation above.
-        """
-        async_from_sync(self.async_execute, ident, payload, push, result_callback)
 
     async def async_execute(self, ident: str, payload: Payload, push: PushModel,
                             result_callback: Optional[PushResultCallback] = None) -> None:

@@ -68,6 +68,9 @@ class AsyncPullBase(PullBase):
         # Doesn't work without the useless-super-delegation
         super().__init__(**kwargs)
 
+    def pull(self) -> None:
+        return self._call_async_pull_from_sync()
+
     async def async_pull(self) -> None:
         """Performs the actual data retrieval in a way that is compatible with the async engine."""
         raise NotImplementedError()

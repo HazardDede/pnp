@@ -1,8 +1,7 @@
 import pytest
 
 from pnp.config import load_config
-from pnp.engines import SimpleRetryHandler
-from pnp.engines.thread import ThreadEngine
+from pnp.engines import SimpleRetryHandler, AsyncEngine
 from .conftest import path_to_config
 
 
@@ -53,8 +52,7 @@ def test_push_with_deps(config, cnt_deps):
 def test_load_config_with_engine():
     _, engine, tasks = load_config(path_to_config('config.engine.yaml'))
     assert engine is not None
-    assert isinstance(engine, ThreadEngine)
-    assert engine.queue_worker == 10
+    assert isinstance(engine, AsyncEngine)
     assert isinstance(engine.retry_handler, SimpleRetryHandler)
     assert engine.retry_handler.retry_wait == 60
     assert tasks[0]['name'] == 'pytest'

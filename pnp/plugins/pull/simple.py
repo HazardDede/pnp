@@ -28,9 +28,6 @@ class Count(AsyncPullBase):
             interval or wait or self.DEFAULT_INTERVAL
         ))
 
-    def pull(self):
-        self._call_async_pull_from_sync()
-
     async def async_pull(self):
         to_cnt = sys.maxsize
         if self.to_cnt:
@@ -110,9 +107,6 @@ class Repeat(AsyncPullBase):
         self.interval = float(parse_duration_literal_float(
             interval or wait or self.DEFAULT_INTERVAL
         ))
-
-    def pull(self):
-        self._call_async_pull_from_sync()
 
     async def async_pull(self):
         while not self.stopped:
