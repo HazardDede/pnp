@@ -10,7 +10,7 @@ _LOGGER = logging.getLogger(__name__)
 
 @auto_str_ignore(['password'])
 class MQTTBase:
-    """MQTT base class for publising message to a mqtt broker."""
+    """MQTT base class for publishing message to a mqtt broker."""
 
     def __init__(self, host, port=1883, user=None, password=None, qos=0, **kwargs):
         super().__init__(**kwargs)
