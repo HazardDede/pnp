@@ -12,6 +12,7 @@ __Arguments__
 - **offline_delay (int, optional)**: Defines how many intervals to wait before marking a device as not connected after the
  Fritz!Box reported the device as not connected anymore. This is useful for mobile devices that go temporarily to sleep and
  drop connection. Default is 0 -> Disconnected devices will be instantly reported as disconnected.
+- **whitelist (list of str, optional)**: A specific list of devices to track (identified by mac address). If not passed all devices will be fetched.
 
 Hint: By using the default values you should be able to connect to your Fritz!Box, because the necessary operation
 can be performed anonymously.
@@ -38,6 +39,26 @@ __Examples__
       user: ''  # User name. Default is admin
       password: admin  # Password. Default is an empty string
       offline_delay: 0  # How many intervals to wait before marking a device as not connected after the fritzbox reported so
+      instant_run: true  # ... and run as soon as pnp starts
+  push:
+    - plugin: pnp.plugins.push.simple.Echo
+
+```
+
+```yaml
+# Example using whitelist
+
+- name: fritzbox_tracker_whitelist
+  pull:
+    plugin: pnp.plugins.pull.presence.FritzBoxTracker
+    args:
+      host: 169.254.1.1  # IP of your Fritz!Box. Default is 169.254.1.1
+      user: ''  # User name. Default is admin
+      password: admin  # Password. Default is an empty string
+      offline_delay: 0  # How many intervals to wait before marking a device as not connected after the fritzbox reported so
+      whitelist:  # A specific list of devices to track (identified by mac address)
+        - B0:05:94:77:B8:3B
+        - 90:CD:B6:DC:8D:61
       instant_run: true  # ... and run as soon as pnp starts
   push:
     - plugin: pnp.plugins.push.simple.Echo

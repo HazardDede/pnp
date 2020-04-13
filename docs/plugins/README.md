@@ -16,18 +16,17 @@
 1.13\.  [pnp.plugins.pull.net.PortProbe](#pnp.plugins.pull.net.portprobe)  
 1.14\.  [pnp.plugins.pull.net.SSLVerify](#pnp.plugins.pull.net.sslverify)  
 1.15\.  [pnp.plugins.pull.presence.FritzBoxTracker](#pnp.plugins.pull.presence.fritzboxtracker)  
-1.16\.  [pnp.plugins.pull.presence.SpecificFritzBoxTracker](#pnp.plugins.pull.presence.specificfritzboxtracker)  
-1.17\.  [pnp.plugins.pull.sensor.DHT](#pnp.plugins.pull.sensor.dht)  
-1.18\.  [pnp.plugins.pull.sensor.MiFlora](#pnp.plugins.pull.sensor.miflora)  
-1.19\.  [pnp.plugins.pull.sensor.OpenWeather](#pnp.plugins.pull.sensor.openweather)  
-1.20\.  [pnp.plugins.pull.sensor.Sound](#pnp.plugins.pull.sensor.sound)  
-1.21\.  [pnp.plugins.pull.simple.Count](#pnp.plugins.pull.simple.count)  
-1.22\.  [pnp.plugins.pull.simple.Cron](#pnp.plugins.pull.simple.cron)  
-1.23\.  [pnp.plugins.pull.simple.Repeat](#pnp.plugins.pull.simple.repeat)  
-1.24\.  [pnp.plugins.pull.traffic.DeutscheBahn](#pnp.plugins.pull.traffic.deutschebahn)  
-1.25\.  [pnp.plugins.pull.trigger.Web](#pnp.plugins.pull.trigger.web)  
-1.26\.  [pnp.plugins.pull.zway.ZwayPoll](#pnp.plugins.pull.zway.zwaypoll)  
-1.27\.  [pnp.plugins.pull.zway.ZwayReceiver](#pnp.plugins.pull.zway.zwayreceiver)  
+1.16\.  [pnp.plugins.pull.sensor.DHT](#pnp.plugins.pull.sensor.dht)  
+1.17\.  [pnp.plugins.pull.sensor.MiFlora](#pnp.plugins.pull.sensor.miflora)  
+1.18\.  [pnp.plugins.pull.sensor.OpenWeather](#pnp.plugins.pull.sensor.openweather)  
+1.19\.  [pnp.plugins.pull.sensor.Sound](#pnp.plugins.pull.sensor.sound)  
+1.20\.  [pnp.plugins.pull.simple.Count](#pnp.plugins.pull.simple.count)  
+1.21\.  [pnp.plugins.pull.simple.Cron](#pnp.plugins.pull.simple.cron)  
+1.22\.  [pnp.plugins.pull.simple.Repeat](#pnp.plugins.pull.simple.repeat)  
+1.23\.  [pnp.plugins.pull.traffic.DeutscheBahn](#pnp.plugins.pull.traffic.deutschebahn)  
+1.24\.  [pnp.plugins.pull.trigger.Web](#pnp.plugins.pull.trigger.web)  
+1.25\.  [pnp.plugins.pull.zway.ZwayPoll](#pnp.plugins.pull.zway.zwaypoll)  
+1.26\.  [pnp.plugins.pull.zway.ZwayReceiver](#pnp.plugins.pull.zway.zwayreceiver)  
 2\.  [Pushes](#pushes)  
 2.1\.  [pnp.plugins.push.fs.FileDump](#pnp.plugins.push.fs.filedump)  
 2.2\.  [pnp.plugins.push.fs.Zipper](#pnp.plugins.push.fs.zipper)  
@@ -1097,6 +1096,7 @@ __Arguments__
 - **offline_delay (int, optional)**: Defines how many intervals to wait before marking a device as not connected after the
  Fritz!Box reported the device as not connected anymore. This is useful for mobile devices that go temporarily to sleep and
  drop connection. Default is 0 -> Disconnected devices will be instantly reported as disconnected.
+- **whitelist (list of str, optional)**: A specific list of devices to track (identified by mac address). If not passed all devices will be fetched.
 
 Hint: By using the default values you should be able to connect to your Fritz!Box, because the necessary operation
 can be performed anonymously.
@@ -1128,43 +1128,13 @@ __Examples__
     - plugin: pnp.plugins.push.simple.Echo
 
 ```
-<a name="pnp.plugins.pull.presence.specificfritzboxtracker"></a>
-
-### 1.16\. pnp.plugins.pull.presence.SpecificFritzBoxTracker
-
-Periodically asks a Fritz!Box router for the devices that were connected in the past or right now.
-
-Requires extra `fritz` (`pip install pnp[fritz]`) , which is only compatible with python 3.6 or newer.
-
-__Arguments__
-
-- **host (str, optional)**: The IP address of your Fritz!Box. Default is 169.254.1.1</br>
-- **user (str, optional)**: The user to use. Default is admin.<br/>
-- **password (str, optional)**: The password to use. Default is an empty string.
-- **offline_delay (int, optional)**: Defines how many intervals to wait before marking a device as not connected after the
- Fritz!Box reported the device as not connected anymore. This is useful for mobile devices that go temporarily to sleep and
- drop connection. Default is 0 -> Disconnected devices will be instantly reported as disconnected.
-
-Hint: By using the default values you should be able to connect to your Fritz!Box, because the necessary operation
-can be performed anonymously.
-
-__Result__
 
 ```yaml
-{
-    "ip": "192.168.178.2",
-    "mac": "00:0a:95:9d:68:16",
-    "status": True,  # True or False
-    "name": "pc1"
-}
-```
+### Example using whitelist
 
-__Examples__
-
-```yaml
-- name: specific_fritzbox_tracker
+- name: fritzbox_tracker_whitelist
   pull:
-    plugin: pnp.plugins.pull.presence.SpecificFritzBoxTracker
+    plugin: pnp.plugins.pull.presence.FritzBoxTracker
     args:
       host: 169.254.1.1  # IP of your Fritz!Box. Default is 169.254.1.1
       user: ''  # User name. Default is admin
@@ -1180,7 +1150,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.sensor.dht"></a>
 
-### 1.17\. pnp.plugins.pull.sensor.DHT
+### 1.16\. pnp.plugins.pull.sensor.DHT
 
 Periodically polls a dht11 or dht22 (aka am2302) for temperature and humidity readings.
 Polling interval is controlled by `interval`.
@@ -1225,7 +1195,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.sensor.miflora"></a>
 
-### 1.18\. pnp.plugins.pull.sensor.MiFlora
+### 1.17\. pnp.plugins.pull.sensor.MiFlora
 
 Periodically polls a `xiaomi miflora plant sensor` for sensor readings (temperature, conductivity, light, ...) via btle.
 
@@ -1278,7 +1248,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.sensor.openweather"></a>
 
-### 1.19\. pnp.plugins.pull.sensor.OpenWeather
+### 1.18\. pnp.plugins.pull.sensor.OpenWeather
 
 Periodically polls weather data from the `OpenWeatherMap` api.
 
@@ -1376,7 +1346,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.sensor.sound"></a>
 
-### 1.20\. pnp.plugins.pull.sensor.Sound
+### 1.19\. pnp.plugins.pull.sensor.Sound
 
 Listens to the microphone in realtime and searches the stream for specific sound patterns.
 Practical example: I use this plugin to recognize my doorbell without tampering with the electrical device ;-)
@@ -1451,7 +1421,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.simple.count"></a>
 
-### 1.21\. pnp.plugins.pull.simple.Count
+### 1.20\. pnp.plugins.pull.simple.Count
 
 Emits every `interval` seconds a counting value which runs from `from_cnt` to `to_cnt`.
 If `to_cnt` is None the counter will count to infinity (or more precise to sys.maxsize).
@@ -1483,7 +1453,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.simple.cron"></a>
 
-### 1.22\. pnp.plugins.pull.simple.Cron
+### 1.21\. pnp.plugins.pull.simple.Cron
 
 Execute push-components based on time constraints configured by cron-like expressions.
 
@@ -1517,7 +1487,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.simple.repeat"></a>
 
-### 1.23\. pnp.plugins.pull.simple.Repeat
+### 1.22\. pnp.plugins.pull.simple.Repeat
 
 Emits every `interval` seconds the same `repeat`.
 
@@ -1546,7 +1516,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.traffic.deutschebahn"></a>
 
-### 1.24\. pnp.plugins.pull.traffic.DeutscheBahn
+### 1.23\. pnp.plugins.pull.traffic.DeutscheBahn
 
 Polls the Deutsche Bahn website using the `schiene` package to find the next trains scheduled
 for a given destination from a specific origin station.
@@ -1612,7 +1582,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.trigger.web"></a>
 
-### 1.25\. pnp.plugins.pull.trigger.Web
+### 1.24\. pnp.plugins.pull.trigger.Web
 
 Wraps a poll-based pull and provides a rest-endpoint to externally trigger the poll action.
 This will disable the cron-like / scheduling features of the polling component and simply
@@ -1688,7 +1658,7 @@ curl http://localhost:8080/trigger
 ```
 <a name="pnp.plugins.pull.zway.zwaypoll"></a>
 
-### 1.26\. pnp.plugins.pull.zway.ZwayPoll
+### 1.25\. pnp.plugins.pull.zway.ZwayPoll
 
 Pulls the specified json content from the zway rest api. The content is specified by the url, e.g.
 `http://<host>:8083/ZWaveAPI/Run/devices` will pull all devices and serve the result as a json.
@@ -1763,7 +1733,7 @@ Below are some common selector examples to fetch various metrics from various de
 
 <a name="pnp.plugins.pull.zway.zwayreceiver"></a>
 
-### 1.27\. pnp.plugins.pull.zway.ZwayReceiver
+### 1.26\. pnp.plugins.pull.zway.ZwayReceiver
 
 Setups a http server to process incoming GET-requests from the Zway-App [`HttpGet`](https://github.com/hplato/Zway-HTTPGet/blob/master/index.js).
 
