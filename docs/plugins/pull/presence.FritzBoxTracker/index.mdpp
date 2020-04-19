@@ -12,6 +12,7 @@ __Arguments__
 - **offline_delay (int, optional)**: Defines how many intervals to wait before marking a device as not connected after the
  Fritz!Box reported the device as not connected anymore. This is useful for mobile devices that go temporarily to sleep and
  drop connection. Default is 0 -> Disconnected devices will be instantly reported as disconnected.
+- **whitelist (list of str, optional)**: A specific list of devices to track (identified by mac address). If not passed all devices will be fetched.
 
 Hint: By using the default values you should be able to connect to your Fritz!Box, because the necessary operation
 can be performed anonymously.
@@ -30,3 +31,5 @@ __Result__
 __Examples__
 
 !INCLUDECODE "docs/plugins/pull/presence.FritzBoxTracker/example.yaml" (yaml)
+
+!INCLUDECODE "docs/plugins/pull/presence.FritzBoxTracker/example_whitelist.yaml" (yaml)

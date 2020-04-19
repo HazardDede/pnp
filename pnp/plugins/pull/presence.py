@@ -1,9 +1,10 @@
 """Presence / Occupancy related plugins."""
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 from . import Polling
 from .. import load_optional_module
 from ...typing import Payload
+from ...validator import Validator
 
 
 class FritzBoxTracker(Polling):
@@ -18,7 +19,8 @@ class FritzBoxTracker(Polling):
     def __init__(
             self,
             host: str = CONF_DEFAULT_IP, user: str = CONF_DEFAULT_USER,
-            password: str = CONF_DEFAULT_PASSWORD, offline_delay: int = 0, **kwargs
+            password: str = CONF_DEFAULT_PASSWORD, offline_delay: int = 0,
+            whitelist: Optional[List[str]] = None, **kwargs
     ):
         super().__init__(**kwargs)
         self.user = str(user)
@@ -27,6 +29,8 @@ class FritzBoxTracker(Polling):
         self.offline_delay = int(offline_delay)
         if self.offline_delay < 0:
             self.offline_delay = 0
+        Validator.is_iterable_but_no_str(allow_none=True, whitelist=whitelist)
+        self.whitelist = whitelist and [str(item) for item in whitelist]
         self.fritz_box = None
         self._cache = {}
 
@@ -55,6 +59,13 @@ class FritzBoxTracker(Polling):
 
     def _parse_host(self, host_entry: Dict[str, Any]):
         _ = self  # Fake usage
+        if 'NewIPAddress' in host_entry:  # Result structure from specific host call (whitelist)
+            return {
+                'mac': host_entry['mac'],
+                'ip': host_entry['NewIPAddress'],
+                'status': host_entry['NewActive'],
+                'name': host_entry['NewHostName']
+            }
         return host_entry
 
     def _adjust_status(self, device: Dict[str, Any]) -> Dict[str, Any]:
@@ -75,35 +86,10 @@ class FritzBoxTracker(Polling):
         return device
 
     def _get_host_list(self):
-        return self.fritz_box.get_hosts_info()
+        if not self.whitelist:
+            return self.fritz_box.get_hosts_info()  # Get all hosts
 
-    def poll(self) -> Payload:
-        self._setup()
-        if not self.fritz_box:
-            return None  # No connection, no data
-
-        return [
-            self._adjust_status(self._parse_host(host))
-            for host in self._get_host_list()
-        ]
-
-
-class SpecificFritzBoxTracker(FritzBoxTracker):
-    """Introduces a whitelist for devices to track instead of tracking all devices.
-    Useful if you want to minimize network traffic / Fritz!Box load."""
-    def __init__(self, whitelist: List[str], **kwargs):
-        super().__init__(**kwargs)
-        self.whitelist = whitelist
-
-    def _parse_host(self, host_entry: Dict[str, Any]):
-        return {
-            'mac': host_entry['mac'],
-            'ip': host_entry['NewIPAddress'],
-            'status': host_entry['NewActive'],
-            'name': host_entry['NewHostName']
-        }
-
-    def _get_host_list(self):
+        # Whitelist is used: Different call to fritzbox
         res = []
         for mac in self.whitelist:
             try:
@@ -114,3 +100,13 @@ class SpecificFritzBoxTracker(FritzBoxTracker):
                 self.logger.warning("Fritz!Box does not know about the device '%s'", str(mac))
 
         return res
+
+    def poll(self) -> Payload:
+        self._setup()
+        if not self.fritz_box:
+            return None  # No connection, no data
+
+        return [
+            self._adjust_status(self._parse_host(host))
+            for host in self._get_host_list()
+        ]

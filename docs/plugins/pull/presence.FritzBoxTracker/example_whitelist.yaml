@@ -1,6 +1,8 @@
-- name: specific_fritzbox_tracker
+# Example using whitelist
+
+- name: fritzbox_tracker_whitelist
   pull:
-    plugin: pnp.plugins.pull.presence.SpecificFritzBoxTracker
+    plugin: pnp.plugins.pull.presence.FritzBoxTracker
     args:
       host: 169.254.1.1  # IP of your Fritz!Box. Default is 169.254.1.1
       user: ''  # User name. Default is admin

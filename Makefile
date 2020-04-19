@@ -70,6 +70,7 @@ mypy:
 		$(SOURCE_PATH)/engines/*.py \
 		$(SOURCE_PATH)/plugins/__init__.py \
 		$(SOURCE_PATH)/plugins/pull/__init__.py \
+		$(SOURCE_PATH)/plugins/push/__init__.py \
 		$(SOURCE_PATH)/plugins/udf/__init__.py \
 
 yamllint:
