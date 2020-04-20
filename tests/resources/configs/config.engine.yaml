@@ -1,6 +1,5 @@
 engine: !engine
-  type: pnp.engines.thread.ThreadEngine
-  queue_worker: 10
+  type: pnp.engines.AsyncEngine
   retry_handler: !retry
     type: pnp.engines.SimpleRetryHandler
     retry_wait: 1m

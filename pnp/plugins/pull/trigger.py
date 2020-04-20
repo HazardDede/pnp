@@ -2,8 +2,6 @@
 actual polling / scheduling mechanism. Instead of regular polling they can be run
 by various external triggers (such as calling a web endpoint)."""
 
-from abc import abstractmethod
-
 import asyncio
 from box import Box
 
@@ -31,12 +29,11 @@ class TriggerBase(PullBase):
         if not isinstance(self.wrapped, Polling):
             raise TypeError("The component to wrap has to be a polling component")
 
-    @abstractmethod
     def pull(self):
         pass  # pragma: no cover
 
 
-class Web(TriggerBase, AsyncPullBase):
+class Web(AsyncPullBase, TriggerBase):
     """Wraps a poll-based pull and provides a rest-endpoint to externally trigger the
     poll action.
 
@@ -60,9 +57,6 @@ class Web(TriggerBase, AsyncPullBase):
             self.endpoint = '/'
         if not self.endpoint.startswith('/'):
             self.endpoint = '/' + self.endpoint
-
-    def pull(self) -> None:
-        return self._call_async_pull_from_sync()
 
     async def async_pull(self) -> None:
         app = self._make_app()

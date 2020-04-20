@@ -4,14 +4,16 @@ from typing import Optional, Any
 
 import asyncio
 
-from .base import Engine, RetryHandler, SimpleRetryHandler, PushExecutor
+from ._base import Engine, RetryHandler, SimpleRetryHandler, PushExecutor
 from ..models import TaskSet, TaskModel, PushModel
 from ..plugins.pull import AsyncPullBase
 from ..plugins.push import PushBase
 from ..shared.async_ import async_sleep_until_interrupt
 from ..typing import Payload
+from ..utils import auto_str_ignore
 
 
+@auto_str_ignore(['loop', 'tasks'])
 class AsyncEngine(Engine):
     """Asynchronous engine."""
     def __init__(self, retry_handler: Optional[RetryHandler] = None):

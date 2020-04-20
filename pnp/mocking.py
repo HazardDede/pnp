@@ -6,7 +6,7 @@ from collections import defaultdict
 
 
 class DHTMock:
-    """Mocks a DHT device (only avalable on rpi's)."""
+    """Mocks a DHT device (only available on rpi's)."""
     DHT22 = "dht22"
     DHT11 = "dht11"
     AM2302 = "am2302"

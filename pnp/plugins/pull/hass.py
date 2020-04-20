@@ -103,9 +103,6 @@ class State(AsyncPullBase):
         if self._loop and self._websocket:
             asyncio.run_coroutine_threadsafe(self._websocket.close(), self._loop)
 
-    def pull(self):
-        self._call_async_pull_from_sync()
-
     async def async_pull(self):
         self._loop = asyncio.get_event_loop()
         await self._receive_states()

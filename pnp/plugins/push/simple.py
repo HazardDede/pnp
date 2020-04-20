@@ -26,13 +26,10 @@ class Echo(AsyncPushBase):
         super().__init__(**kwargs)
 
     @enveloped
-    def push(self, envelope, payload):  # pylint: disable=arguments-differ
+    async def async_push(self, envelope, payload):  # pylint: disable=arguments-differ
         self.logger.info("Got '%s' with envelope '%s'", payload, envelope)
         # Payload as is. With envelope (if any)
         return {'data': payload, **envelope} if envelope else payload
-
-    async def async_push(self, payload):
-        return self.push(payload)  # pylint: disable=no-value-for-parameter
 
 
 class Nop(AsyncPushBase):
@@ -55,12 +52,9 @@ class Nop(AsyncPushBase):
         super().__init__(**kwargs)
         self.last_payload = None
 
-    def push(self, payload):
+    async def async_push(self, payload):
         self.last_payload = payload
         return payload
-
-    async def async_push(self, payload):
-        return self.push(payload)
 
 
 class Wait(AsyncPushBase):
