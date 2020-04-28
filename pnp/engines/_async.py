@@ -6,7 +6,6 @@ import asyncio
 
 from ._base import Engine, RetryHandler, SimpleRetryHandler, PushExecutor
 from ..models import TaskSet, TaskModel, PushModel
-from ..plugins.pull import AsyncPullBase
 from ..plugins.push import PushBase
 from ..shared.async_ import async_sleep_until_interrupt
 from ..typing import Payload
@@ -16,6 +15,9 @@ from ..utils import auto_str_ignore
 @auto_str_ignore(['loop', 'tasks'])
 class AsyncEngine(Engine):
     """Asynchronous engine."""
+
+    HEARTBEAT_INTERVAL = 1.0
+
     def __init__(self, retry_handler: Optional[RetryHandler] = None):
         super().__init__()
         if not retry_handler:
@@ -27,7 +29,10 @@ class AsyncEngine(Engine):
 
     def _run(self, tasks: TaskSet) -> None:
         self.tasks = tasks
-        coros = []
+
+        # We need to wait for tasks:
+        # All pushes might be done, but pushes are pending / processing
+        coros = [self._wait_for_tasks_to_complete()]
         for _, task in tasks.items():
             coros.append(self._start_task(task))
 
@@ -40,6 +45,27 @@ class AsyncEngine(Engine):
         if not self.tasks:
             return
         self._shutdown()
+
+    async def _wait_for_tasks_to_complete(self) -> None:
+        """Check if something is still running on the event loop (like running pushes) so that the
+        event loop will not terminate but wait for pending tasks."""
+        async def _pending_tasks_exist() -> bool:
+            all_tasks = list(asyncio.all_tasks())
+            for task in all_tasks:
+                if task.done():
+                    continue
+                current = str(task)
+                # Is a push running?
+                if "coro=<AsyncEngine._schedule_push()" in str(current):
+                    return True
+                # Is a pull running?
+                if "coro=<AsyncEngine._start_task()" in str(current):
+                    return True
+            return False
+
+        await asyncio.sleep(self.HEARTBEAT_INTERVAL)
+        while await _pending_tasks_exist():
+            await asyncio.sleep(self.HEARTBEAT_INTERVAL)
 
     async def _start_task(self, task: TaskModel) -> None:
         """Start the given task."""
@@ -57,12 +83,12 @@ class AsyncEngine(Engine):
 
         while not task.pull.instance.stopped:
             try:
-                if task.pull.instance.supports_async \
-                        and isinstance(task.pull.instance, AsyncPullBase):
-                    await task.pull.instance.async_pull()
+                if task.pull.instance.supports_async:
+                    await task.pull.instance.async_pull()  # type: ignore
                 else:
                     await self.loop.run_in_executor(None, task.pull.instance.pull)
-                if not task.pull.instance.stopped:
+
+                if not task.pull.instance.stopped and not task.pull.instance.can_exit:
                     # Bad thing... Pulling exited unexpectedly
                     self.logger.error(
                         "[Task-%s] Pulling of '%s' exited unexpectedly",
@@ -87,26 +113,32 @@ class AsyncEngine(Engine):
                 await self._handle_pull_exit(task)
 
     async def _handle_pull_exit(self, task: TaskModel) -> None:
-        if not task.pull.instance.stopped:
-            directive = self.retry_handler.handle_error()
-            if directive.abort:
-                self.logger.error(
-                    "[Task-%s] Pulling of '%s' exited due to retry limitation",
-                    task.name,
-                    task.pull.instance,
-                )
-                task.pull.instance.stop()
-            else:
-                self.logger.info(
-                    "[Task-%s] Pulling of '%s' will restart in %s seconds",
-                    task.name,
-                    task.pull.instance,
-                    directive.wait_for
-                )
+        if task.pull.instance.stopped:
+            return
+        if task.pull.instance.can_exit:
+            task.pull.instance.stop()
+            return
 
-                async def _interrupt() -> bool:
-                    return task.pull.instance.stopped
-                await async_sleep_until_interrupt(directive.wait_for, _interrupt)
+        directive = self.retry_handler.handle_error()
+        if directive.abort:
+            self.logger.error(
+                "[Task-%s] Pulling of '%s' exited due to retry limitation",
+                task.name,
+                task.pull.instance,
+            )
+            task.pull.instance.stop()
+            return
+
+        self.logger.info(
+            "[Task-%s] Pulling of '%s' will restart in %s seconds",
+            task.name,
+            task.pull.instance,
+            directive.wait_for
+        )
+
+        async def _interrupt() -> bool:
+            return task.pull.instance.stopped
+        await async_sleep_until_interrupt(directive.wait_for, _interrupt)
 
     async def _stop_task(self, task: TaskModel) -> None:
         self.logger.info("Stopping task %s", task.name)

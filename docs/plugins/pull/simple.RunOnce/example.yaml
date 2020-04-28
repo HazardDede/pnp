@@ -1,0 +1,5 @@
+- name: run_once
+  pull:
+    plugin: pnp.plugins.pull.simple.RunOnce
+  push:
+    plugin: pnp.plugins.push.simple.Echo

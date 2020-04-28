@@ -23,10 +23,11 @@
 1.20\.  [pnp.plugins.pull.simple.Count](#pnp.plugins.pull.simple.count)  
 1.21\.  [pnp.plugins.pull.simple.Cron](#pnp.plugins.pull.simple.cron)  
 1.22\.  [pnp.plugins.pull.simple.Repeat](#pnp.plugins.pull.simple.repeat)  
-1.23\.  [pnp.plugins.pull.traffic.DeutscheBahn](#pnp.plugins.pull.traffic.deutschebahn)  
-1.24\.  [pnp.plugins.pull.trigger.Web](#pnp.plugins.pull.trigger.web)  
-1.25\.  [pnp.plugins.pull.zway.ZwayPoll](#pnp.plugins.pull.zway.zwaypoll)  
-1.26\.  [pnp.plugins.pull.zway.ZwayReceiver](#pnp.plugins.pull.zway.zwayreceiver)  
+1.23\.  [pnp.plugins.pull.simple.RunOnce](#pnp.plugins.pull.simple.runonce)  
+1.24\.  [pnp.plugins.pull.traffic.DeutscheBahn](#pnp.plugins.pull.traffic.deutschebahn)  
+1.25\.  [pnp.plugins.pull.trigger.Web](#pnp.plugins.pull.trigger.web)  
+1.26\.  [pnp.plugins.pull.zway.ZwayPoll](#pnp.plugins.pull.zway.zwaypoll)  
+1.27\.  [pnp.plugins.pull.zway.ZwayReceiver](#pnp.plugins.pull.zway.zwayreceiver)  
 2\.  [Pushes](#pushes)  
 2.1\.  [pnp.plugins.push.fs.FileDump](#pnp.plugins.push.fs.filedump)  
 2.2\.  [pnp.plugins.push.fs.Zipper](#pnp.plugins.push.fs.zipper)  
@@ -1514,9 +1515,48 @@ __Examples__
     plugin: pnp.plugins.push.simple.Echo
 
 ```
+<a name="pnp.plugins.pull.simple.runonce"></a>
+
+### 1.23\. pnp.plugins.pull.simple.RunOnce
+
+Takes another valid `plugins.pull.Polling` component and immediately executes it and ventures
+down the given `plugins.push` components. If no component to wrap is given it will simple execute the
+push chain.
+
+__Arguments__
+
+- **poll (Polling component, optional)**: The polling component you want to run once. If not passed the push chain
+    will be executed.
+
+__Result__
+
+Emits the payload of the polling component if given. Otherwise an empty dictionary will be returned.
+
+__Examples__
+
+```yaml
+- name: run_once
+  pull:
+    plugin: pnp.plugins.pull.simple.RunOnce
+  push:
+    plugin: pnp.plugins.push.simple.Echo
+
+```
+
+```yaml
+- name: run_once_wrapped
+  pull:
+    plugin: pnp.plugins.pull.simple.RunOnce
+    args:
+      poll:
+        plugin: pnp.plugins.pull.monitor.Stats
+  push:
+    plugin: pnp.plugins.push.simple.Echo
+
+```
 <a name="pnp.plugins.pull.traffic.deutschebahn"></a>
 
-### 1.23\. pnp.plugins.pull.traffic.DeutscheBahn
+### 1.24\. pnp.plugins.pull.traffic.DeutscheBahn
 
 Polls the Deutsche Bahn website using the `schiene` package to find the next trains scheduled
 for a given destination from a specific origin station.
@@ -1582,7 +1622,7 @@ __Examples__
 ```
 <a name="pnp.plugins.pull.trigger.web"></a>
 
-### 1.24\. pnp.plugins.pull.trigger.Web
+### 1.25\. pnp.plugins.pull.trigger.Web
 
 Wraps a poll-based pull and provides a rest-endpoint to externally trigger the poll action.
 This will disable the cron-like / scheduling features of the polling component and simply
@@ -1658,7 +1698,7 @@ curl http://localhost:8080/trigger
 ```
 <a name="pnp.plugins.pull.zway.zwaypoll"></a>
 
-### 1.25\. pnp.plugins.pull.zway.ZwayPoll
+### 1.26\. pnp.plugins.pull.zway.ZwayPoll
 
 Pulls the specified json content from the zway rest api. The content is specified by the url, e.g.
 `http://<host>:8083/ZWaveAPI/Run/devices` will pull all devices and serve the result as a json.
@@ -1733,7 +1773,7 @@ Below are some common selector examples to fetch various metrics from various de
 
 <a name="pnp.plugins.pull.zway.zwayreceiver"></a>
 
-### 1.26\. pnp.plugins.pull.zway.ZwayReceiver
+### 1.27\. pnp.plugins.pull.zway.ZwayReceiver
 
 Setups a http server to process incoming GET-requests from the Zway-App [`HttpGet`](https://github.com/hplato/Zway-HTTPGet/blob/master/index.js).
 

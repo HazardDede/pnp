@@ -4,7 +4,11 @@ import sys
 import time
 from datetime import datetime
 
+from box import Box
+
 from . import PullBase, Polling, AsyncPullBase
+from ...config import PULL
+from ...models import TaskModel
 from ...utils import make_list, auto_str_ignore, parse_duration_literal_float
 from ...validator import Validator
 
@@ -88,6 +92,43 @@ class Infinite(PullBase):
     def pull(self):  # pragma: no cover
         while True:
             time.sleep(0.5)
+
+
+@auto_str_ignore(['model'])
+class RunOnce(AsyncPullBase):
+    """
+    Takes another valid `plugins.pull.Polling` component and immediately executes it and ventures
+    down the given `plugins.push` components. If no component is given it will simple execute the
+    push chain.
+
+    See Also:
+        https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/simple.RunOnce/index.md
+    """
+
+    def __init__(self, poll=None, **kwargs):
+        super().__init__(**kwargs)
+        self.model = None
+        self.wrapped = None
+        if poll:
+            poll_config = PULL.validate(poll)
+            self.model = TaskModel.mk_pull(
+                Box({'name': self.name, 'pull': poll_config}),
+                base_path=self.base_path
+            )
+            self.wrapped = self.model.instance
+
+            if not isinstance(self.wrapped, Polling):
+                raise TypeError("The component to wrap has to be a polling component")
+
+    @property
+    def can_exit(self) -> bool:
+        return True
+
+    async def async_pull(self) -> None:
+        if not self.wrapped:
+            self.notify({})  # Just notify about an empty dict
+        else:
+            self.notify(self.wrapped.poll())
 
 
 class Repeat(AsyncPullBase):
