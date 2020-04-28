@@ -65,6 +65,5 @@ def test_hass_state_for_error(monkeypatch):
 
     dut = Service(name='pytest', url=HASS_URL, token=HA_TOKEN, timeout=TIMEOUT, domain=DOMAIN, service=SERVICE)
 
-    with pytest.raises(RuntimeError) as e:
+    with pytest.raises(RuntimeError, match="Failed to call the service services/frontend/set_theme @ http://hass:8123") as e:
         dut.push(DATA)
-    assert "RuntimeError: Failed to call the service services/frontend/set_theme @ http://hass:8123" in str(e)

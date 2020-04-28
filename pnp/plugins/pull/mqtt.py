@@ -48,7 +48,7 @@ class Subscribe(PullBase):
         # This one is an envelope with data
         self.notify(dict(
             topic=str(msg.topic),
-            levels=[level for level in msg.topic.split('/')],
+            levels=msg.topic.split('/'),
             payload=msg.payload.decode('utf-8')
         ))
 

@@ -881,7 +881,7 @@ def auto_str(__repr__: bool = False) -> Callable[[type], type]:
                 "{name}={value}".format(
                     name=name,
                     value=vars(self)[name].__repr__()
-                ) for name in [key for key in sorted(vars(self))]
+                ) for name in sorted(vars(self))
                 if name not in get_field_mro(self.__class__, '__auto_str_ignore__')
             ]
             return "{clazz}({items})".format(

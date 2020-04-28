@@ -145,6 +145,5 @@ def test_motioneye_watcher_movies_only():
 
 @pytest.mark.skipif(not _required_packages_installed(), reason="requires package watchdog")
 def test_motioneye_watcher_no_exts():
-    with pytest.raises(TypeError) as e:
+    with pytest.raises(TypeError, match="You have to specify either `image_file_ext`, `movie_file_ext` or both") as e:
         MotionEyeWatcher(name='pytest', path='/tmp', image_ext=None, movie_ext=None)
-    assert "TypeError: You have to specify either `image_file_ext`, `movie_file_ext` or both" in str(e)
