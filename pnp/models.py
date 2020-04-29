@@ -39,13 +39,13 @@ def _val_callable(instance, attrib, val):  # type: ignore  # pylint: disable=unu
 @attr.s
 class PullModel:
     """Model representing a pull."""
-    instance = attr.ib(validator=attr.validators.instance_of(PullBase))  # type: PullBase
+    instance = attr.ib(validator=attr.validators.instance_of(PullBase))  # type: ignore
 
 
 @attr.s
-class PushModel:
+class PushModel:  # type: ignore
     """Model representing a push."""
-    instance = attr.ib(validator=attr.validators.instance_of(PushBase))  # type: PushBase
+    instance = attr.ib(validator=attr.validators.instance_of(PushBase))  # type: ignore
     selector = attr.ib(validator=attr.validators.optional(
         attr.validators.instance_of((str, list, dict))  # type: ignore
     ), default=None)  # type: Optional[SelectorExpression]

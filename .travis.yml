@@ -10,7 +10,7 @@ before_install:
 install:
   - ./.travis/install.sh
 script:
-  - make lint
-  - make test
+  - poetry run make lint
+  - poetry run make test
 after_success:
-  - coveralls
+  - poetry run coveralls
