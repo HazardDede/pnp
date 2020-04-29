@@ -229,6 +229,9 @@ class AsyncPolling(Polling):
 
         return async_from_sync(self.async_poll)
 
+    def poll(self) -> Payload:
+        return self._call_async_poll_from_sync()
+
     @abstractmethod
     async def async_poll(self) -> Payload:
         """
