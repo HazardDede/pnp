@@ -37,7 +37,7 @@ class PluginStoppedError(RuntimeError):
 class PluginMeta(type):
     """Metaclasses for plugins. Hooks up the `argresolver`-package to inject any missing arguments
     at runtime if provided as an environment variable."""
-    def __new__(cls, name: str, bases: Any, dct: Dict[Any, Any]) -> type:
+    def __new__(cls, name: str, bases: Any, dct: Dict[Any, Any]) -> type:  # type: ignore
         newly = super().__new__(cls, name, bases, dct)
         # Force all __init__ of plugins to be decorated with envargs
         newly.__init__ = EnvironmentResolver(default_override=True)(newly.__init__)  # type: ignore
