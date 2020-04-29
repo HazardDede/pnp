@@ -4,42 +4,8 @@ import time
 import pytest
 import requests
 
-from pnp.plugins.pull import trigger, PullBase
-from pnp.plugins.pull import AsyncPolling, Polling
-
+from pnp.plugins.pull import trigger
 from . import make_runner, start_runner
-
-
-class DummyPoll(Polling):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def poll(self):
-        return 42
-
-
-class AsyncDummyPoll(AsyncPolling):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    async def async_poll(self):
-        return 42
-
-
-class ErrorneousDummyPoll(Polling):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def poll(self):
-        raise Exception("Crash on purpose!")
-
-
-class NonPollingDummy(PullBase):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def poll(self):
-        raise Exception("Do not call me!")
 
 
 def get_free_tcp_port():
@@ -52,7 +18,7 @@ def get_free_tcp_port():
 
 def test_init_endpoint():
     free_port = get_free_tcp_port()
-    wrapped = {'plugin': 'tests.plugins.pull.test_trigger_web.DummyPoll'}
+    wrapped = {'plugin': 'tests.dummies.polling.SyncPollingDummy'}
     dut = trigger.Web(name='pytest', port=free_port, poll=wrapped)
     assert dut.endpoint == '/trigger'
     dut = trigger.Web(name='pytest', port=free_port, poll=wrapped, endpoint='trigger')
@@ -67,7 +33,7 @@ def test_init_endpoint():
 
 def test_init_non_polling_pull():
     free_port = get_free_tcp_port()
-    wrapped = {'plugin': 'tests.plugins.pull.test_trigger_web.NonPollingDummy'}
+    wrapped = {'plugin': 'tests.dummies.polling.NoPollingDummy'}
     with pytest.raises(TypeError) as tex:
         trigger.Web(name='pytest', port=free_port, poll=wrapped)
 
@@ -75,8 +41,8 @@ def test_init_non_polling_pull():
 
 
 @pytest.mark.parametrize("wrapped", [
-    {'plugin': 'tests.plugins.pull.test_trigger_web.DummyPoll'},
-    {'plugin': 'tests.plugins.pull.test_trigger_web.AsyncDummyPoll'}
+    {'plugin': 'tests.dummies.polling.SyncPollingDummy'},
+    {'plugin': 'tests.dummies.polling.AsyncPollingDummy'}
 ])
 def test_pull(wrapped):
     events = []
@@ -103,7 +69,7 @@ def test_pull(wrapped):
 
 def test_pull_for_error():
     free_port = get_free_tcp_port()
-    wrapped = {'plugin': 'tests.plugins.pull.test_trigger_web.ErrorneousDummyPoll'}
+    wrapped = {'plugin': 'tests.dummies.polling.ErrorPollingDummy'}
 
     dut = trigger.Web(name='pytest', port=free_port, poll=wrapped)
     runner = make_runner(dut, lambda: None)

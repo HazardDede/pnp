@@ -4,6 +4,7 @@ import sys
 import time
 from datetime import datetime
 
+import asyncio
 from box import Box
 
 from . import PullBase, Polling, AsyncPullBase
@@ -122,13 +123,18 @@ class RunOnce(AsyncPullBase):
 
     @property
     def can_exit(self) -> bool:
-        return True
+        return True  # pragma: no cover
 
     async def async_pull(self) -> None:
         if not self.wrapped:
             self.notify({})  # Just notify about an empty dict
         else:
-            self.notify(self.wrapped.poll())
+            if self.wrapped.supports_async_poll:
+                res = await self.wrapped.async_poll()
+            else:
+                loop = asyncio.get_event_loop()
+                res = await loop.run_in_executor(None, self.wrapped.poll)
+            self.notify(res)
 
 
 class Repeat(AsyncPullBase):
