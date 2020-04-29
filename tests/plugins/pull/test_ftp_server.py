@@ -35,9 +35,8 @@ def test_ftp_server_init_user_pwd():
     assert dut.user == 'admin'
     assert dut.password == 'root'
 
-    with pytest.raises(TypeError) as err:
+    with pytest.raises(TypeError, match="Argument 'user_pwd' is expected to be a str \(user\) or a tuple of user and password") as err:
         ftp.Server(name='pytest', user_pwd=5)
-    assert "TypeError: Argument 'user_pwd' is expected to be a str (user) or a tuple of user and password." in str(err)
 
 
 def test_ftp_server_init_events():
@@ -47,9 +46,8 @@ def test_ftp_server_init_events():
     dut = ftp.Server(name='pytest', events=('login', 'logout'))
     assert dut.events == [dut.EVENT_LOGIN, dut.EVENT_LOGOUT]
 
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValueError, match="Argument 'events' is expected to be a subset of") as err:
         ftp.Server(name='pytest', events='unknown')
-    assert "ValueError: Argument 'events' is expected to be a subset of" in str(err)
 
 
 def test_ftp_server_pull_connect_login_disconnect():

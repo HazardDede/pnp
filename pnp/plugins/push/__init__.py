@@ -194,18 +194,21 @@ class PushBase(Plugin):
         Validator.is_function(allow_none=True, parse_fun=parse_fun)
         Validator.is_function(allow_none=True, instance_lookup_fun=instance_lookup_fun)
 
-        lookups = cast(Dict[str, str],
-                       utils.make_public_protected_private_attr_lookup(name, as_dict=True))
+        lookups = cast(
+            Dict[str, str], utils.make_public_protected_private_attr_lookup(name, as_dict=True)
+        )
 
         if envelope is None or name not in envelope:
-            return (instance_lookup_fun(name)
-                    if instance_lookup_fun is not None
-                    else _lookup(self, list(lookups.values())))
+            return (
+                instance_lookup_fun(name)
+                if instance_lookup_fun is not None
+                else _lookup(self, list(lookups.values()))  # pylint: disable=no-member
+            )
 
         val = envelope[name]
         try:
             if parse_fun is None:
-                public_attr_name = lookups['public']
+                public_attr_name = lookups['public']  # pylint: disable=invalid-sequence-index
                 fun_base = 'parse_' + public_attr_name
                 parse_fun_names = utils.make_public_protected_private_attr_lookup(fun_base)
                 parse_fun = _lookup(self, parse_fun_names)
@@ -217,9 +220,11 @@ class PushBase(Plugin):
                 "Cannot parse value for '%s' from envelope",
                 name
             )
-            return (instance_lookup_fun(name)
-                    if instance_lookup_fun is not None
-                    else _lookup(self, list(lookups.values())))
+            return (
+                instance_lookup_fun(name)
+                if instance_lookup_fun is not None
+                else _lookup(self, list(lookups.values()))  # pylint: disable=no-member
+            )
 
     @staticmethod
     def envelope_payload(payload: Payload) -> Tuple[Envelope, Payload]:

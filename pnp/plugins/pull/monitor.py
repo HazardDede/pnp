@@ -56,7 +56,8 @@ class Stats(Polling):
 
             out = subprocess.run(
                 ['vcgencmd', 'get_throttled'],
-                stdout=subprocess.PIPE
+                stdout=subprocess.PIPE,
+                check=False
             ).stdout.decode('utf-8')
             hex_num = int(out[out.find('=') + 1:], 16)
 
