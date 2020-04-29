@@ -52,6 +52,7 @@ setup(
         'asyncws>=0.1',
         'attrs>=18.0.0',
         'binaryornot>=0.4.4',
+        'cachetools>=3.0.0',
         'cronex>=0.1.3',
         'dictmentor>=0.2.0',
         'docopt>=0.6.2',
