@@ -6,7 +6,7 @@ MarkdownPP
 mock
 mypy
 pylint
-pytest
+pytest>=5.4.0
 pytest-asyncio
 pytest-cov
 setuptools
