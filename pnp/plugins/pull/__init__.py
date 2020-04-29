@@ -15,7 +15,15 @@ from ...utils import (auto_str_ignore, parse_duration_literal, try_parse_bool, D
                       sleep_until_interrupt)
 
 
-@auto_str_ignore(['stopped', '_stopped', 'on_payload'])
+class PollingError(Exception):
+    """Base class for errors that occur during polling."""
+
+
+class StopPollingError(Exception):
+    """Raise this exception in child classes if you want to stop the polling scheduler."""
+
+
+@auto_str_ignore(['_stopped', 'on_payload'])
 class PullBase(Plugin):
     """
     Base class for pull plugins.
@@ -34,6 +42,13 @@ class PullBase(Plugin):
     def supports_async(self) -> bool:
         """Returns True if the pull supports the asyncio engine; otherwise False."""
         return hasattr(self, 'async_pull')
+
+    @property
+    def can_exit(self) -> bool:
+        """Override this property when an exit of the pull can be expected. This
+        will prohibit the engine (or should) from raising notifications / errors
+        or countermeasures like retries."""
+        return False
 
     @abstractmethod
     def pull(self) -> None:
@@ -88,14 +103,6 @@ class AsyncPullBase(PullBase):
         async def _interrupt() -> bool:
             return self.stopped
         await async_sleep_until_interrupt(sleep_time, _interrupt, interval=0.5)
-
-
-class PollingError(Exception):
-    """Base class for errors that occur during polling."""
-
-
-class StopPollingError(Exception):
-    """Raise this exception in child classes if you want to stop the polling scheduler."""
 
 
 @auto_str_ignore(['_scheduler'])
