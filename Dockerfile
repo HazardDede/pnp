@@ -31,25 +31,23 @@ WORKDIR ${WORKDIR}
 COPY docker/ docker/
 RUN docker/setup_prereqs
 
-# Copy setup.py and dependants
-COPY README.md setup.py ./
+# Create requirements.txt from poetry
+COPY README.md pyproject.toml poetry.lock ./
 
-RUN pip3 install \
-    --no-cache-dir \
-    .[dropbox,fitbit,fritz,fswatcher,ftp,gmail,http-server,miflora,pushbullet]
+RUN poetry export \
+        --without-hashes \
+        -E "dropbox fitbit fritz fswatcher ftp gmail http-server miflora pushbullet" \
+        -f requirements.txt \
+        > requirements.txt && \
+    pip3 install \
+        --no-cache-dir \
+        -r requirements.txt
 
 COPY . .
 
-# Run the installation routine again to register entry points properly
-RUN pip3 install \
-    --no-cache-dir \
-    .
-
-# Changing 'INSTALL_DEV_PACKAGES' has no effect on previous layers, but will force a recreation
-# Use the build arg in the last possible moment
-ARG INSTALL_DEV_PACKAGES="no"
-RUN test "${INSTALL_DEV_PACKAGES}" = "yes" \
-    && pip3 install --no-cache-dir -r requirements.dev \
-    || rm -rf tests/ requirements.dev docker
+RUN poetry build && \
+    pip3 install \
+        --no-cache-dir \
+        "dist/$(poetry version | tr ' ' '-')-py3-none-any.whl"
 
 CMD ["pnp", "/config/config.yaml"]
