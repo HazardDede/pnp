@@ -8,7 +8,8 @@ before_install:
   - sudo apt-get install -yy gcc
   - sudo apt-get install -yy portaudio19-dev
 install:
-  - ./.travis/install.sh
+  - pip install poetry
+  - poetry install -E "dropbox fitbit fritz fswatcher ftp gmail http-server miflora pushbullet sound"
 script:
   - poetry run make lint
   - poetry run make test

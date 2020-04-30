@@ -1,0 +1,34 @@
+#!/bin/bash
+
+PACKAGE=$(dirname `which $0`)
+
+# Import helper
+. ${PACKAGE}/util
+
+function help {
+    if [ ! -z "$1" ]; then
+        echo "$1"
+    fi
+    echo "Usage: $0 image"
+    echo "- image: The docker image to test"
+}
+
+function run() {
+    IMAGE=$1
+    echo "Using docker image: ${IMAGE}"
+
+    SOURCE=`abspath "${PACKAGE}/.."`
+    docker run -it --rm \
+        -v ${SOURCE}:/src \
+        ${IMAGE} \
+        bash -c "poetry export --without-hashes --dev -f requirements.txt > requirements.dev && pip install --extra-index-url https://www.piwheels.hostedpi.com/simple -r requirements.dev && cd /src && make test || bash"
+}
+
+IMAGE=$1
+
+if [ -z "$IMAGE" ]; then
+    help "Please specify the docker image to test"
+    exit 1
+fi
+
+run ${IMAGE}

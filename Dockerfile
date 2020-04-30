@@ -36,7 +36,8 @@ COPY README.md pyproject.toml poetry.lock ./
 
 RUN poetry export \
         --without-hashes \
-        -E "dropbox fitbit fritz fswatcher ftp gmail http-server miflora pushbullet" \
+        -E "dropbox" -E "fitbit" -E "fritz" -E "fswatcher" \
+        -E "ftp" -E "gmail" -E "http-server" -E "miflora" -E "pushbullet" \
         -f requirements.txt \
         > requirements.txt && \
     pip3 install \
@@ -45,6 +46,7 @@ RUN poetry export \
 
 COPY . .
 
+# Make sure that proper entrypoint (like pnp) are installed
 RUN poetry build && \
     pip3 install \
         --no-cache-dir \

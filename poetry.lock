@@ -391,7 +391,7 @@ dotenv = ["python-dotenv"]
 [[package]]
 category = "main"
 description = "Communicate with the AVM FritzBox"
-marker = "python_version >= \"3.6\" and python_version < \"3.7\""
+marker = "python_version >= \"3.6\" and python_version < \"4.0\""
 name = "fritzconnection"
 optional = true
 python-versions = ">= 3.6"
@@ -1389,7 +1389,7 @@ six = "*"
 category = "main"
 description = "An implementation of the WebSocket Protocol (RFC 6455 & 7692)"
 name = "websockets"
-optional = true
+optional = false
 python-versions = ">=3.4"
 version = "6.0"
 
@@ -1451,10 +1451,10 @@ gpio = ["RPi.GPIO"]
 http-server = ["Flask", "gevent", "sanic"]
 miflora = ["miflora"]
 pushbullet = ["pushbullet.py", "urllib3"]
-sound = ["PyAudio", "scipy"]
+sound = ["PyAudio", "numpy", "scipy"]
 
 [metadata]
-content-hash = "22cec22fac71ff2bb633e538dd2c63768b5abe6c51ba099f7d9d74910e7b8074"
+content-hash = "8fadf788ac0d702630e18689e4d54f7dd0d78f788ac040c06c2aa0ffee4bcda5"
 python-versions = "^3.5"
 
 [metadata.files]
