@@ -35,7 +35,7 @@ def test_ftp_server_init_user_pwd():
     assert dut.user == 'admin'
     assert dut.password == 'root'
 
-    with pytest.raises(TypeError, match="Argument 'user_pwd' is expected to be a str \(user\) or a tuple of user and password") as err:
+    with pytest.raises(TypeError, match=r"Argument 'user_pwd' is expected to be a str \(user\) or a tuple of user and password") as err:
         ftp.Server(name='pytest', user_pwd=5)
 
 

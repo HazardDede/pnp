@@ -9,7 +9,7 @@ from ..models import TaskSet, TaskModel, PushModel
 from ..plugins.push import PushBase
 from ..shared.async_ import async_sleep_until_interrupt
 from ..typing import Payload
-from ..utils import auto_str_ignore
+from ..utils import auto_str_ignore, PY37
 
 
 @auto_str_ignore(['loop', 'tasks'])
@@ -49,8 +49,11 @@ class AsyncEngine(Engine):
     async def _wait_for_tasks_to_complete(self) -> None:
         """Check if something is still running on the event loop (like running pushes) so that the
         event loop will not terminate but wait for pending tasks."""
+
+        fun_pending_tasks = asyncio.all_tasks if PY37 else asyncio.Task.all_tasks
+
         async def _pending_tasks_exist() -> bool:
-            all_tasks = list(asyncio.Task.all_tasks())
+            all_tasks = list(fun_pending_tasks())
             for task in all_tasks:
                 if task.done():
                     continue
