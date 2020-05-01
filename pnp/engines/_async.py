@@ -49,11 +49,16 @@ class AsyncEngine(Engine):
     async def _wait_for_tasks_to_complete(self) -> None:
         """Check if something is still running on the event loop (like running pushes) so that the
         event loop will not terminate but wait for pending tasks."""
+
+        if hasattr(asyncio, "all_tasks"):
+            # PY >= 3.7
+            pending_tasks_fun = asyncio.all_tasks
+        else:
+            pending_tasks_fun = asyncio.Task.all_tasks
+
         async def _pending_tasks_exist() -> bool:
-            all_tasks = list(asyncio.Task.all_tasks())
+            all_tasks = list(pending_tasks_fun())
             for task in all_tasks:
-                if task.done():
-                    continue
                 current = str(task)
                 # Is a push running?
                 if "coro=<AsyncEngine._schedule_push()" in str(current):
