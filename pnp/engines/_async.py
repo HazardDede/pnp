@@ -55,7 +55,9 @@ class AsyncEngine(Engine):
         async def _pending_tasks_exist() -> bool:
             all_tasks = list(fun_pending_tasks())
             for task in all_tasks:
-                if task.done():
+                if task is asyncio.Task.current_task():  # Just in case
+                    continue
+                if task.done():  # Just in case
                     continue
                 current = str(task)
                 # Is a push running?
