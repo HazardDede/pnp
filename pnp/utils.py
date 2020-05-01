@@ -5,6 +5,7 @@ import inspect
 import logging
 import os
 import re
+import sys
 import time
 from base64 import b64encode
 from collections import OrderedDict
@@ -28,6 +29,9 @@ HTTP_METHODS = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'T
 
 
 _LOGGER = logging.getLogger(__name__)
+
+
+PY37 = sys.version_info >= (3, 7)
 
 
 class EvaluationError(Exception):
