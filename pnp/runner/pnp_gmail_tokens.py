@@ -16,7 +16,6 @@ import pickle
 
 import os
 
-import sys
 from docopt import docopt
 from google_auth_oauthlib.flow import InstalledAppFlow
 
@@ -48,4 +47,5 @@ def main():
 
 
 if __name__ == '__main__':
+    import sys
     sys.exit(main())

@@ -1,4 +1,4 @@
-.PHONY: clean-pyc clean-build clean docs docker docker-arm lint test doctest version
+.PHONY: clean-pyc clean-build clean dist docs docker docker-arm lint test doctest version
 
 # Setup
 VERSION=0.22.0
@@ -95,23 +95,11 @@ test: test-configs pytest
 
 docker:
 	docker build \
-		--build-arg INSTALL_DEV_PACKAGES=yes \
-		-t $(LOCAL_IMAGE_NAME) \
-		-f Dockerfile .
-	docker run --rm $(LOCAL_IMAGE_NAME) pytest --durations=10 -vv tests
-	docker build \
-		--build-arg INSTALL_DEV_PACKAGES=no \
 		-t $(LOCAL_IMAGE_NAME) \
 		-f Dockerfile .
 
 docker-arm:
 	docker build \
-		--build-arg INSTALL_DEV_PACKAGES=yes \
-		-t $(LOCAL_IMAGE_NAME_ARM) \
-		-f Dockerfile.arm32v7 .
-	docker run --rm $(LOCAL_IMAGE_NAME_ARM) pytest tests
-	docker build \
-		--build-arg INSTALL_DEV_PACKAGES=no \
 		-t $(LOCAL_IMAGE_NAME_ARM) \
 		-f Dockerfile.arm32v7 .
 
@@ -145,12 +133,11 @@ revoke-version:
 		git tag -d `git describe --tags --abbrev=0`    # delete the tag
 		git reset --hard HEAD~1                        # rollback the commit
 
-sdist:
-		rm -f dist/*
-		python setup.py sdist
+dist:
+		poetry build
 
-release-test: sdist
-		twine upload dist/* -r testpypi
+release-test: dist
+		poetry publish --repository testpypi
 
-release: sdist
-		twine upload dist/* -r pypi
+release: dist
+		poetry publish --repository testpypi

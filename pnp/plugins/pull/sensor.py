@@ -301,7 +301,6 @@ class Sound(PullBase):
     def __init__(self, wav_files, device_index=None, ignore_overflow=False,
                  **kwargs):
         super().__init__(**kwargs)
-        self._check_dependencies()
         self.wav_files = self.WavConfig.from_list(
             wav_files, self.base_path, self.notify, self._on_cooldown
         )
@@ -338,6 +337,7 @@ class Sound(PullBase):
         })
 
     def pull(self):
+        self._check_dependencies()
         np = load_optional_module('numpy', self.EXTRA)
         pyaudio = load_optional_module('pyaudio', self.EXTRA)
 

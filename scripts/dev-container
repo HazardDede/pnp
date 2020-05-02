@@ -18,10 +18,11 @@ function run() {
     echo "Running version: ${VERSION}"
 
     SOURCE=`abspath "${PACKAGE}/.."`
+
     docker run -it --rm \
         -v ${SOURCE}:/src \
         python:${VERSION}-stretch \
-        bash -c "cd /src && pip install -e .[dropbox,fitbit,fswatcher,ftp,gmail,http-server,miflora,pushbullet] && pip install -r requirements.dev && bash"
+        bash -c "cd /src; pip install poetry && poetry install -E 'dropbox fitbit fswatcher ftp gmail http-server miflora pushbullet' && bash"
 }
 
 PYVERSION=$1

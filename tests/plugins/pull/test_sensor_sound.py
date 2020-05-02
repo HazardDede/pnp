@@ -40,7 +40,7 @@ def test_for_smoke_with_mode_pearson():
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=DeprecationWarning)
         with start_runner(runner):
-            time.sleep(0.5)
+            time.sleep(1)
 
     assert len(events) >= 1
     item = events[0]
