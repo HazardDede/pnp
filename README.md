@@ -624,6 +624,7 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 **0.23.0 (pending)**
 * Breaking: Removes engines except for AsyncEngine
 * Implements `pull.simple.RunOnce` to run a polling component or a push chain once (nice for scripts)
+* Migration from `setup.py` to `poetry`
 
 **0.22.0**
 * Updates docker base image to `python 3.7`
