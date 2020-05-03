@@ -140,4 +140,4 @@ release-test: dist
 		poetry publish --repository testpypi
 
 release: dist
-		poetry publish --repository testpypi
+		poetry publish
