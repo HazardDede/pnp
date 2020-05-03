@@ -14,38 +14,38 @@ def flake8(ctx):
     ctx.run("flake8 "
             "--max-line-length 120 "
             "--ignore=E704,E722,E731,W503 "
-            f"{SOURCE_PATH}")
+            "{}".format(SOURCE_PATH))
 
 
 @task
 def pylint(ctx):
     """Runs pylint linter against codebase."""
-    ctx.run(f"pylint {SOURCE_PATH}")
+    ctx.run("pylint {}".format(SOURCE_PATH))
 
 
 @task
 def mypy(ctx):
     """Runs the mypy typing linter against the codebase."""
     _includes = [
-        f"{SOURCE_PATH}/logging.py",
-        f"{SOURCE_PATH}/models.py",
-        f"{SOURCE_PATH}/selector.py",
-        f"{SOURCE_PATH}/utils.py",
-        f"{SOURCE_PATH}/validator.py",
-        f"{SOURCE_PATH}/engines/*.py",
-        f"{SOURCE_PATH}/plugins/__init__.py",
-        f"{SOURCE_PATH}/plugins/pull/__init__.py",
-        f"{SOURCE_PATH}/plugins/push/__init__.py",
-        f"{SOURCE_PATH}/plugins/udf/__init__.py"
+        "{}/logging.py".format(SOURCE_PATH),
+        "{}/models.py".format(SOURCE_PATH),
+        "{}/selector.py".format(SOURCE_PATH),
+        "{}/utils.py".format(SOURCE_PATH),
+        "{}/validator.py".format(SOURCE_PATH),
+        "{}/engines/*.py".format(SOURCE_PATH),
+        "{}/plugins/__init__.py".format(SOURCE_PATH),
+        "{}/plugins/pull/__init__.py".format(SOURCE_PATH),
+        "{}/plugins/push/__init__.py".format(SOURCE_PATH),
+        "{}/plugins/udf/__init__.py".format(SOURCE_PATH)
     ]
-    ctx.run(f"mypy {' '.join(_includes)}")
+    ctx.run("mypy {}".format(' '.join(_includes)))
 
 
 @task
 def configs(ctx):
     """Validates configuration files in configs and docs."""
-    ctx.run(f"yamllint -c .yamllint {CONFIGS_PATH} {DOCS_PATH}")
-    ctx.run(f"python {SCRIPTS_PATH}/test_configs.py", pty=True)
+    ctx.run("yamllint -c .yamllint {configs} {docs}".format(configs=CONFIGS_PATH, docs=DOCS_PATH))
+    ctx.run("python {}/test_configs.py".format(SCRIPTS_PATH), pty=True)
 
 
 @task(flake8, pylint, mypy, configs, default=True)

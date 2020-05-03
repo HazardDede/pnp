@@ -23,7 +23,7 @@ from tasks.config import (
 def doctest(ctx):
     """Only runs doctests using pytest. Target `pytest` includes doctests."""
     ctx.run(
-        f"pytest --verbose --color=yes --doctest-modules {SOURCE_PATH}"
+        "pytest --verbose --color=yes --doctest-modules {}".format(SOURCE_PATH)
     )
 
 
@@ -34,8 +34,8 @@ def pytest(ctx):
         "pytest --verbose --color=yes "
         "--durations=10 "
         "--doctest-modules "
-        f"--cov={SOURCE_PATH} --cov-report html --cov-report term {TEST_PATH} "
-        f"{SOURCE_PATH}",
+        "--cov={source} --cov-report html --cov-report term {test} "
+        "{source}".format(source=SOURCE_PATH, test=TEST_PATH),
         pty=True
     )
 
