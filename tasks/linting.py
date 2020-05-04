@@ -4,7 +4,7 @@ from tasks.config import (
     CONFIGS_PATH,
     DOCS_PATH,
     SCRIPTS_PATH,
-    SOURCE_PATH,
+    SOURCE_PATH
 )
 
 

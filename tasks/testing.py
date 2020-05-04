@@ -1,16 +1,3 @@
-# pytest:
-# 		pytest --verbose --color=yes \
-# 		    --durations=10 \
-# 			--doctest-modules \
-# 			--cov=$(SOURCE_PATH) --cov-report html --cov-report term $(TEST_PATH) \
-# 			$(SOURCE_PATH)
-#
-# doctest:
-# 		pytest --verbose --color=yes --doctest-modules $(SOURCE_PATH)
-#
-# test: test-configs pytest
-
-
 from invoke import task
 
 from tasks.config import (

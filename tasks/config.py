@@ -11,6 +11,7 @@ CONFIGS_PATH = os.path.join(PROJECT_ROOT, 'config')
 DOCS_PATH = os.path.join(PROJECT_ROOT, 'docs')
 SCRIPTS_PATH = os.path.join(PROJECT_ROOT, 'scripts')
 SOURCE_PATH = os.path.join(PROJECT_ROOT, 'pnp')
+TASKS_PATH = os.path.join(PROJECT_ROOT, 'tasks')
 TEST_PATH = os.path.join(PROJECT_ROOT, 'tests')
 
 # DOCKER STUFF

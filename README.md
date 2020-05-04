@@ -37,20 +37,11 @@
 
     pip install pnp
 
-Optional extras
-
-* dht: Enables `pnp.plugins.pull.sensor.DHT` (temperature and humidity sensor). Only works on ARM-based systems (like raspberry, arduino)
-* fswatcher: Enables `pnp.plugins.pull.fs.FileSystemWatcher` (Watch file system for created, modified, 
-deleted, moved files)
-* faceR: Enables `pnp.plugins.push.ml.FaceR` (Screen image files for known faces)
-
 Installation with extras:
     
     pip install pnp[fswatcher,faceR]
-    # In case of extra 'dht' you have to enable the option --process-dependency-links ...
-    # ... cause the required adafruit package is not on pypi.
-    pip install --process-dependency-links pnp[dht]
 
+Please see the component documentation to see if a compponent requires an extra or not.
 
 <a name="gettingstarted"></a>
 
