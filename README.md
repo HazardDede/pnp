@@ -8,11 +8,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 
-> Pulls data from sources and pushes it to sinks.
+> Pulls data from sources and pushes it to sinks with optional transformations in between.
 
 1\.  [Installation](#installation)  
 2\.  [Getting started](#gettingstarted)  
-3\.  [Runner](#runner)  
+3\.  [Console runner](#consolerunner)  
 4\.  [Building Blocks](#buildingblocks)  
 4.1\.  [Pull](#pull)  
 4.2\.  [Push](#push)  
@@ -20,7 +20,6 @@
 4.4\.  [Dependencies](#dependencies)  
 4.5\.  [Envelope (0.7.1+)](#envelope0.7.1+)  
 4.6\.  [Payload unwrapping](#payloadunwrapping)  
-4.7\.  [Engines (0.10.0+)](#engines0.10.0+)  
 5\.  [Useful hints](#usefulhints)  
 5.1\.  [Configuration checking](#configurationchecking)  
 5.2\.  [Logging (0.11.0+)](#logging0.11.0+)  
@@ -40,16 +39,15 @@ Installation with extras:
     
     pip install pnp[fswatcher,faceR]
 
-Please see the component documentation to see if a component requires an extra or not.
+Please consult the component documentation to see if a component requires an extra or not.
 
 <a name="gettingstarted"></a>
 
 ## 2\. Getting started
 
-Define `pulls` to suck/pull data from source systems.
+Define `pulls` to fetch / pull data from source systems.
 Define one `push` or multiple `pushes` per pull to transfer the pulled data anywhere else (you only need a plugin that 
-knows how to handle the target). You can define your configurations in `yaml` or `json`. 
-It is up to you. I prefer yaml...
+knows how to handle the target). You configure your pipeline in `yaml`:
 
 ```yaml
 - name: hello-world
@@ -75,21 +73,23 @@ Tip: You can validate your config without actually executing it with
    pnp --check helloworld.yaml
 ```
 
-<a name="runner"></a>
+<a name="consolerunner"></a>
 
-## 3\. Runner
+## 3\. Console runner
 
 ```
 > pnp --help
 Pull 'n' Push
 
 Usage:
-  pnp [(-c | --check)] [(-v | --verbose)] [--log=<log_conf>] <configuration>
+  pnp [(--engine=<engine>)] [(-v | --verbose)] [--log=<log_conf>] <configuration>
+  pnp (-c | --check) <configuration>
   pnp (-h | --help)
   pnp --version
 
 Options:
   -c --check        Only check configuration and do not run it.
+  --engine=<engine> Override engine from configuration file (thread, process, sequential, async).
   -v --verbose      Switches log level to debug.
   --log=<log_conf>  Specify logging configuration to load.
   -h --help         Show this screen.
@@ -107,7 +107,7 @@ Below the basic building blocks of pull 'n' push are explained in more detail
 
 ### 4.1\. Pull
 
-As stated before pulls fetch data from various source systems and/or apis. Please see the section plugins for already
+As stated before pulls fetch data from various source systems and/or apis. Please see the section plugins for shipped
 implemented pulls. To instantiate a pull by configuration file you only have to provide it's fully qualified name
 and the argument that should be passed.
 
@@ -190,8 +190,8 @@ Easy as that. We can reference our incoming data via `data` or `payload`.
 
 ### 4.4\. Dependencies
 
-By default any pushes will execute in parallel (not completly true) when new incoming data is available.
-But now it would be nice if we could chain pushes together. So that the output if one push becomes the 
+By default any pushes will execute in parallel (not completely true) when new incoming data is available.
+But now it would be nice if we could chain pushes together. So that the output of one push becomes the
 input of the next push. The good thing is: Yes we can.
 
 Back to our example let's assume we want to print out the path to the created file dump after the dump is created.
@@ -225,11 +225,11 @@ As you can see we just add a dependant push to the previous one.
 ### 4.5\. Envelope (0.7.1+)
 
 Using envelopes it is possible to change the behaviour of `pushes` during runtime.
-Best examples are the `pnp.plugins.push.fs.FileDump` and `pnp.plugins.push.mqtt.MQTTPush` plugins, where
-you can override / set the actual `file_name` and `extension` of the file to dump 
+Best examples are the `pnp.plugins.push.fs.FileDump` and `pnp.plugins.push.mqtt.Publish` plugins, where
+you can override the actual `file_name` and `extension` of the file to dump
 resp. the `topic` where the message should be published.
 
-Given the example ...
+Easier to understand by a practical example:
 
 ```yaml
 - name: envelope
@@ -251,49 +251,20 @@ Given the example ...
 
 ```
           
-... this push dumps multiple files (0.cnt, 1.cnt, 2.cnt, ...) for each pulled counter value,
-instead of dumping one file 'couter.txt' which is overridden each time a new counter is emitted.
+The push dumps multiple files (0.cnt, 1.cnt, 2.cnt, ...) for each counter value emitted by the pull,
+instead of dumping one file 'counter.txt' which is overridden each time a new counter is emitted.
 
 How does this work: If the emitted or transformed payload (via selector) contains the key `data` or
-`payload` it is assumed that the actual payload is the data stored in this key and all other keys
+`payload` the pipeline assumes that this is the actual payload and all other keys
 represent the so called `envelope`.
-
-Remark: This feature might actually break your existing configurations if you use the plugin
-`pnp.plugins.pull.mqtt.MQTTPull` which will now emit an enveloped payload.
-
-This snippet echoed a dictionary with the keys 'topic', 'levels' and 'payload' previously to version 0.7.2.
-It will now differentiate between the actual 'payload' (key 'payload' resp. 'data') and the envelope (other keys).
-
-    - name: subscriber
-      pull:
-        plugin: pnp.plugins.pull.mqtt.MQTTPull
-        args:
-          host: localhost
-          topic: test/counter
-      push:
-        plugin: pnp.plugins.push.simple.Echo
-        
-If you want to "restore" the previous behaviour, you only have to wrap the whole payload
-into a dictionary inside the 'payload' or 'data' key via selector.
-
-    - name: subscriber
-      pull:
-        plugin: pnp.plugins.pull.mqtt.MQTTPull
-        args:
-          host: localhost
-          topic: test/counter
-      push:
-        plugin: pnp.plugins.push.simple.Echo
-        selector:
-          data: "lambda data: data"
 
 <a name="payloadunwrapping"></a>
 
 ### 4.6\. Payload unwrapping
 
 By default any payload that is provided to a push will be "as-is". If the payload is an iterable, it is possible
-to `unwrap` each individual item of the iterable and providing that item to the push instead of the whole list. Yes, now
-you can perform for each loops for pushes.
+to `unwrap` each individual item of the iterable and provide that single item to the push instead of the whole list.
+Yes, now you can perform for each loops with pushes.
 
 ```yaml
 - name: unwrapping
@@ -335,15 +306,6 @@ If you need the selector to augment your list, use a `push.simple.Nop` with `unw
 
 ```
 
-
-<a name="engines0.10.0+"></a>
-
-### 4.7\. Engines (0.10.0+)
-
-An engine is the actual code that executes the workflow of pnp (`pull` -> `selector` -> `push`).
-There are different engines for different use cases.
-
-Click [here](https://github.com/HazardDede/pnp/blob/master/docs/engines/README.md) to get a complete overview of all available engines
 
 <a name="usefulhints"></a>
 
@@ -513,8 +475,10 @@ The configuration below will repeat `{'hello': 'Hello', 'words': ['World', 'Moon
           - "lambda payload: payload.split(' ')[3]"
 ```
 
-Before the advanced selector feature your epxressions would have probably looked similiar to this:
-`dict(hello=payload.split(' ')[0], words=[payload.split(' ')[1], payload.split(' ')[2], payload.split(' ')[3]])`.
+Before the implementation of the advanced selector feature your epxressions would have probably looked similiar to this:
+```
+dict(hello=payload.split(' ')[0], words=[payload.split(' ')[1], payload.split(' ')[2], payload.split(' ')[3]])
+```
 The first one is more readable, isn't it?
 
 Additional example:
