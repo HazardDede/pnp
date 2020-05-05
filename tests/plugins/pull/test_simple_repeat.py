@@ -14,7 +14,7 @@ def test_repeat_pull():
     with start_runner(runner):
         time.sleep(0.01)
 
-    assert len(events) >= 5
+    assert len(events) >= 2
     assert all([p == "Hello World" for p in events])
 
 

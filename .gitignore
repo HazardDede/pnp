@@ -116,3 +116,6 @@ ENV/
 
 # ARM emulator
 qemu-arm-static
+
+# Artifacts
+requirements.dev
