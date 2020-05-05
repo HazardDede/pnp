@@ -1,112 +1,95 @@
 from invoke import task
 
 from tasks.config import (
-    ARM_SUFFIX_TAG,
-    LOCAL_IMAGE_NAME,
-    LOCAL_IMAGE_TAG,
-    PUBLIC_IMAGE_NAME,
     SCRIPTS_PATH,
     VERSION
 )
 
+LOCAL_IMAGE_NAME = 'pnp'
+LOCAL_IMAGE_TAG = 'local'
+PUBLIC_IMAGE_NAME = 'hazard/pnp'
+
 
 _LOCAL_IMAGE = "{}:{}".format(LOCAL_IMAGE_NAME, LOCAL_IMAGE_TAG)
-_LOCAL_IMAGE_ARM = "{}-{}".format(_LOCAL_IMAGE, ARM_SUFFIX_TAG)
-
 _PUBLIC_IMAGE = "{}:{}".format(PUBLIC_IMAGE_NAME, VERSION)
-_PUBLIC_IMAGE_ARM = "{}-{}".format(_PUBLIC_IMAGE, ARM_SUFFIX_TAG)
-
 _PUBLIC_IMAGE_LATEST = "{}:latest".format(PUBLIC_IMAGE_NAME)
-_PUBLIC_IMAGE_ARM_LATEST = "{}-{}".format(_PUBLIC_IMAGE_LATEST, ARM_SUFFIX_TAG)
+
+
+def _dockerfile(arch):
+    dockerfile = "Dockerfile"
+    if not arch:
+        return dockerfile
+    return "{}.{}".format(dockerfile, arch.lower())
+
+
+def _image(base_image, arch):
+    if not arch or arch.lower() == 'amd64':
+        return base_image
+    return "{}-{}".format(base_image, arch.lower())
+
+
+def _make_image(ctx, arch):
+    local_image = _image(_LOCAL_IMAGE, arch)
+    dockerfile = _dockerfile(arch)
+    print("Building {} with {}".format(local_image, dockerfile))
+    ctx.run(
+        "docker build -t {local_image} -f {dockerfile} .".format(local_image=local_image, dockerfile=dockerfile)
+    )
 
 
 @task
 def config(ctx):
     """Show local and public image names."""
-    print("LOCAL IMAGE:\t\t", _LOCAL_IMAGE)
-    print("LOCAL IMAGE ARM:\t", _LOCAL_IMAGE_ARM)
-    print("PUBLIC IMAGE:\t\t", _PUBLIC_IMAGE)
-    print("PUBLIC IMAGE ARM:\t", _PUBLIC_IMAGE_ARM)
-    print("PUBLIC IMAGE LATEST:\t", _PUBLIC_IMAGE_LATEST)
-    print("PUBLIC IMAGE LATEST ARM:", _PUBLIC_IMAGE_ARM_LATEST)
+    print("LOCAL IMAGE".ljust(25), _LOCAL_IMAGE)
+    print("PUBLIC IMAGE".ljust(25), _PUBLIC_IMAGE)
+    print("PUBLIC IMAGE LATEST".ljust(25), _PUBLIC_IMAGE_LATEST)
 
 
 @task
-def make_amd64(ctx):
-    """Builds the docker image for amd64 as target architecture."""
+def make(ctx, arch="amd64"):
+    """Builds the docker image for all configured architectures.
+
+    arch: The dockerfile suffix to use. Default is amd64.
+    """
+    _make_image(ctx, arch)
+
+
+@task(default=True)
+def test(ctx, arch="amd64"):
+    """Runs the test suite on a specific docker container.
+
+    arch: The architecture to test. Default is amd64.
+    """
+    _make_image(ctx, arch)
+    local_image = _image(_LOCAL_IMAGE, arch)
+    print("Testing image {}".format(local_image))
     ctx.run(
-        "docker build -t {local_image} -f Dockerfile .".format(local_image=_LOCAL_IMAGE)
-    )
-
-
-@task
-def make_arm(ctx):
-    """Builds the docker image for armhf as target architecture."""
-    ctx.run(
-        "docker build -t {local_image} -f Dockerfile.arm32v7 .".format(local_image=_LOCAL_IMAGE_ARM)
-    )
-
-
-@task(make_amd64, make_arm)
-def make(ctx):
-    """Builds the docker image for all configured architectures."""
-
-
-@task(make_amd64)
-def test_amd64(ctx):
-    """Runs the test-suite on amd64 docker container."""
-    ctx.run(
-        "{scripts}/test-container {local_image}".format(scripts=SCRIPTS_PATH, local_image=_LOCAL_IMAGE),
+        "{scripts}/test-container {local_image}".format(scripts=SCRIPTS_PATH, local_image=local_image),
         pty=True
     )
 
 
-@task(make_amd64)
-def test_arm(ctx):
-    """Runs the test-suite on armhf docker container."""
+@task
+def push(ctx, arch="amd64", latest=False):
+    """Pushes the specific docker image to the docker hub. It will not build the docker image - do this before.
+
+    arch: The architecture of the image to push. Default is amd64.
+    latest: If set to True the image will be tagged as the latest image on docker hub.
+    """
+    local_image = _image(_LOCAL_IMAGE, arch)
+    public_image = _image(_PUBLIC_IMAGE, arch)
+
+    print("{} -> {}".format(local_image, public_image))
     ctx.run(
-        "{scripts}/test-container {local_image}".format(scripts=SCRIPTS_PATH, local_image=_LOCAL_IMAGE_ARM),
-        pty=True
-    )
-
-
-@task(test_amd64, test_arm, default=True)
-def test(ctx):
-    """Runs the test suite on all available docker containers."""
-
-
-@task(make_amd64)
-def push_amd64(ctx):
-    """Push the amd64 docker image to docker hub."""
-    ctx.run(
-        "docker tag {local_image} {public_image}".format(local_image=_LOCAL_IMAGE, public_image=_PUBLIC_IMAGE)
-    )
-    ctx.run(
-        "docker push {public_image}".format(public_image=_PUBLIC_IMAGE)
-    )
-
-
-@task(make_arm)
-def push_arm(ctx):
-    """Push the armhf docker image to docker hub."""
-    ctx.run(
-        "docker tag {local_image} {public_image}".format(local_image=_LOCAL_IMAGE_ARM, public_image=_PUBLIC_IMAGE_ARM)
-    )
-    ctx.run(
-        "docker push {public_image}".format(public_image=_PUBLIC_IMAGE_ARM)
-    )
-
-
-@task(push_amd64, push_arm)
-def release(ctx):
-    """Mark the last pushed images as latest for amd64 and armhf architectures."""
-    ctx.run(
-        "docker tag {public_image} {latest_image} && docker push {latest_image}".format(
-            public_image=_PUBLIC_IMAGE, latest_image=_PUBLIC_IMAGE_LATEST
+        "docker tag {local_image} {public_image} && docker push {public_image}".format(
+            local_image=local_image, public_image=public_image
         )
     )
-    ctx.run(
-        "docker tag {public_image} {latest_image} && docker push {latest_image}".format(
-            public_image=_PUBLIC_IMAGE_ARM, latest_image=_PUBLIC_IMAGE_ARM_LATEST
+    if latest:
+        latest_image = _image(_PUBLIC_IMAGE_LATEST, arch)
+        print("{} -> {}".format(public_image, latest_image))
+        ctx.run(
+            "docker tag {public_image} {latest_image} && docker push {latest_image}".format(
+                public_image=public_image, latest_image=latest_image
+            )
         )
-    )

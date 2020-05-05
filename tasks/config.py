@@ -1,21 +1,24 @@
 import os
 
+from invoke import task
+
 # VERSION
 VERSION = "0.22.0"
 
-# PROJECT ROOT
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 # PATH STUFF
-CONFIGS_PATH = os.path.join(PROJECT_ROOT, 'config')
-DOCS_PATH = os.path.join(PROJECT_ROOT, 'docs')
-SCRIPTS_PATH = os.path.join(PROJECT_ROOT, 'scripts')
-SOURCE_PATH = os.path.join(PROJECT_ROOT, 'pnp')
-TASKS_PATH = os.path.join(PROJECT_ROOT, 'tasks')
-TEST_PATH = os.path.join(PROJECT_ROOT, 'tests')
+PROJECT_ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+CONFIGS_PATH = os.path.join(PROJECT_ROOT_PATH, 'config')
+DOCS_PATH = os.path.join(PROJECT_ROOT_PATH, 'docs')
+SCRIPTS_PATH = os.path.join(PROJECT_ROOT_PATH, 'scripts')
+SOURCE_PATH = os.path.join(PROJECT_ROOT_PATH, 'pnp')
+TASKS_PATH = os.path.join(PROJECT_ROOT_PATH, 'tasks')
+TEST_PATH = os.path.join(PROJECT_ROOT_PATH, 'tests')
 
-# DOCKER STUFF
-LOCAL_IMAGE_NAME = 'pnp'
-LOCAL_IMAGE_TAG = 'local'
-ARM_SUFFIX_TAG = 'arm'
-PUBLIC_IMAGE_NAME = 'hazard/pnp'
+
+@task(default=True)
+def config(ctx):
+    """Shows the general configuration."""
+    for k, v in globals().items():
+        if k.endswith("_PATH"):
+            print(k.ljust(20), v)
