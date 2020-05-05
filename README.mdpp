@@ -20,7 +20,7 @@ Installation with extras:
     
     pip install pnp[fswatcher,faceR]
 
-Please see the component documentation to see if a compponent requires an extra or not.
+Please see the component documentation to see if a component requires an extra or not.
 
 ## Getting started
 
