@@ -93,7 +93,7 @@ class TaskModel:
                     unwrap=unwrap,
                     deps=list(_many(push.deps, push_name))
                 )
-        return list(_many(task.pushes, "{task.name}_push".format(**locals())))
+        return list(_many(task.push, "{task.name}_push".format(**locals())))
 
     @classmethod
     def from_dict(cls, task: Box, base_path: Optional[str] = None) -> 'TaskModel':

@@ -12,36 +12,6 @@ from .plugins import load_plugin
 from .utils import make_list
 
 
-class OrOverride(Or):
-    """
-    Validates the given data as the original Or validation directive would do,
-    but overrides the resulting data.
-
-    Example:
-        >>> # Whether inbound or outbound are valid keys, but will be overridden by override
-        >>> schema = Schema({OrOverride('override', 'inbound', 'outbound'): Use(str)})
-        >>> schema.validate({'inbound': 'value'})  # inbound will be mapped to override
-        {'override': 'value'}
-        >>> schema.validate({'outbound': 'value'})  # outbound will be mapped to override
-        {'override': 'value'}
-        >>> OrOverride('override')  # Only override without valid directives is bad...
-        Traceback (most recent call last):
-        ...
-        ValueError: OrMap expects the mapping value at first and then multiple validation directives
-
-    """
-    def __init__(self, *args, **kwargs):
-        if len(args) < 2:
-            raise ValueError("OrMap expects the mapping value at first and then "
-                             "multiple validation directives")
-        self.override = args[0]
-        super().__init__(*args[1:], **kwargs)
-
-    def validate(self, data):
-        super().validate(data)
-        return self.override
-
-
 PUSH = Schema({
     "plugin": Use(str),
     Optional("selector", default=None): Or(object, None),
@@ -64,8 +34,8 @@ PUSH_LIST = Schema([PUSH])
 
 TASK = Schema({
     "name": Use(str),
-    OrOverride("pull", "inbound", "pull"): PULL,
-    OrOverride("pushes", "outbound", "push"): And(Or(PUSH_LIST, PUSH), Use(make_list))
+    "pull": PULL,
+    "push": And(Or(PUSH_LIST, PUSH), Use(make_list))
 })
 
 # Allow configuration of a single task or a list of tasks
@@ -148,7 +118,7 @@ def load_config(config_path):
 
     validated = ROOT.validate(mentor.augment(cfg)['cfg'])
     for pull in validated['tasks']:
-        for push in pull['pushes']:
+        for push in pull['push']:
             push['deps'] = list(validate_push_deps(push))
     b = Box(validated)
 

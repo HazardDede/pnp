@@ -25,7 +25,7 @@ def test_mk_pull():
 def test_mk_push():
     input = {
         'name': 'pytest',
-        'pushes': [{
+        'push': [{
             'plugin': 'pnp.plugins.push.simple.Echo',
             'selector': 'blub',
             'args': {},
@@ -58,7 +58,7 @@ def test_mk_task():
             'plugin': 'pnp.plugins.pull.simple.Repeat',
             'args': {'repeat': 'hello', 'wait': 1.0}
         },
-        'pushes': [{
+        'push': [{
             'plugin': 'pnp.plugins.push.simple.Echo',
             'selector': 'blub',
             'args': {},

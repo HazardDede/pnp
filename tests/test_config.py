@@ -10,16 +10,7 @@ def test_config_load():
     assert engine is None
     assert tasks[0]['name'] == 'simple'
     assert 'pull' in tasks[0]
-    assert 'pushes' in tasks[0]
-
-
-def test_inbound_outbound_backward_compat():
-    _, engine, tasks = load_config(path_to_config('config.in-out-compat.json'))
-    assert engine is None
-    assert tasks[0]['name'] == 'simple'
-    assert 'pull' in tasks[0]
-    assert 'pushes' in tasks[0]
-    assert isinstance(tasks[0]['pushes'], list)
+    assert 'push' in tasks[0]
 
 
 def test_multiple_outbounds():
@@ -27,9 +18,9 @@ def test_multiple_outbounds():
     assert engine is None
     assert tasks[0]['name'] == 'simple'
     assert 'pull' in tasks[0]
-    assert 'pushes' in tasks[0]
-    assert isinstance(tasks[0]['pushes'], list)
-    assert len(tasks[0]['pushes']) == 2
+    assert 'push' in tasks[0]
+    assert isinstance(tasks[0]['push'], list)
+    assert len(tasks[0]['push']) == 2
 
 
 @pytest.mark.parametrize("config,cnt_deps", [
@@ -41,12 +32,12 @@ def test_push_with_deps(config, cnt_deps):
     assert engine is None
     assert tasks[0]['name'] == 'pytest'
     assert 'pull' in tasks[0]
-    assert 'pushes' in tasks[0]
-    assert isinstance(tasks[0]['pushes'], list)
-    assert len(tasks[0]['pushes']) == 1
-    assert 'deps' in tasks[0]['pushes'][0]
-    assert isinstance(tasks[0]['pushes'][0]['deps'], list)
-    assert len(tasks[0]['pushes'][0]['deps']) == cnt_deps
+    assert 'push' in tasks[0]
+    assert isinstance(tasks[0]['push'], list)
+    assert len(tasks[0]['push']) == 1
+    assert 'deps' in tasks[0]['push'][0]
+    assert isinstance(tasks[0]['push'][0]['deps'], list)
+    assert len(tasks[0]['push'][0]['deps']) == cnt_deps
 
 
 def test_load_config_with_engine():
@@ -57,4 +48,4 @@ def test_load_config_with_engine():
     assert engine.retry_handler.retry_wait == 60
     assert tasks[0]['name'] == 'pytest'
     assert 'pull' in tasks[0]
-    assert 'pushes' in tasks[0]
+    assert 'push' in tasks[0]
