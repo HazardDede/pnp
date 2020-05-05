@@ -301,6 +301,3 @@ docker run --rm \
 ## Plugins
 
 A complete list of plugins is available [here](https://github.com/HazardDede/pnp/blob/master/docs/plugins/README.md)
-
-
-!INCLUDE "CHANGELOG.md", 1
