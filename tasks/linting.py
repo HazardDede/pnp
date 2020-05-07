@@ -27,6 +27,7 @@ def pylint(ctx):
 def mypy(ctx):
     """Runs the mypy typing linter against the codebase."""
     _includes = [
+        "{}/config/*.py".format(SOURCE_PATH),
         "{}/logging.py".format(SOURCE_PATH),
         "{}/models.py".format(SOURCE_PATH),
         "{}/selector.py".format(SOURCE_PATH),
@@ -38,7 +39,7 @@ def mypy(ctx):
         "{}/plugins/push/__init__.py".format(SOURCE_PATH),
         "{}/plugins/udf/__init__.py".format(SOURCE_PATH)
     ]
-    ctx.run("mypy {}".format(' '.join(_includes)))
+    ctx.run("mypy --ignore-missing-imports {}".format(' '.join(_includes)))
 
 
 @task

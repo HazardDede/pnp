@@ -3,12 +3,10 @@ actual polling / scheduling mechanism. Instead of regular polling they can be ru
 by various external triggers (such as calling a web endpoint)."""
 
 import asyncio
-from box import Box
 
+from pnp.config import load_pull_from_snippet
 from . import PullBase, AsyncPullBase, Polling
 from .. import load_optional_module
-from ...config import PULL
-from ...models import TaskModel
 from ...utils import auto_str_ignore
 
 
@@ -19,10 +17,8 @@ class TriggerBase(PullBase):
 
     def __init__(self, poll, **kwargs):
         super().__init__(**kwargs)
-        poll_config = PULL.validate(poll)
-        self.model = TaskModel.mk_pull(
-            Box({'name': self.name, 'pull': poll_config}),
-            base_path=self.base_path
+        self.model = self.model = load_pull_from_snippet(
+            poll, base_path=self.base_path, name=self.name
         )
         self.wrapped = self.model.instance
 

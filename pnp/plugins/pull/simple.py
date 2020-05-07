@@ -1,15 +1,12 @@
 """Simple pull plugins"""
 
+import asyncio
 import sys
 import time
 from datetime import datetime
 
-import asyncio
-from box import Box
-
+from pnp.config import load_pull_from_snippet
 from . import PullBase, Polling, AsyncPullBase
-from ...config import PULL
-from ...models import TaskModel
 from ...utils import make_list, auto_str_ignore, parse_duration_literal_float
 from ...validator import Validator
 
@@ -111,11 +108,7 @@ class RunOnce(AsyncPullBase):
         self.model = None
         self.wrapped = None
         if poll:
-            poll_config = PULL.validate(poll)
-            self.model = TaskModel.mk_pull(
-                Box({'name': self.name, 'pull': poll_config}),
-                base_path=self.base_path
-            )
+            self.model = load_pull_from_snippet(poll, base_path=self.base_path, name=self.name)
             self.wrapped = self.model.instance
 
             if not isinstance(self.wrapped, Polling):
