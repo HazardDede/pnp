@@ -16,7 +16,7 @@ _EXT_LOADER_MAP = {
 }
 
 # Global variable: Which loader was used to load the config
-_LOADER_USED: Optional[ConfigLoader] = None
+_LOADER_USED = None  # type: Optional[ConfigLoader]
 
 
 def load_config(config_path: str) -> Configuration:
