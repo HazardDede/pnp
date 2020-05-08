@@ -1,8 +1,7 @@
 import pytest
 from box import Box
 
-from pnp.config import load_config
-from pnp.config.yaml_ import _mk_pull, _mk_push, _mk_udf, YamlConfigLoader
+from pnp.config._yaml import _mk_pull, _mk_push, _mk_udf, YamlConfigLoader
 from pnp.engines import SimpleRetryHandler, AsyncEngine
 from pnp.models import PullModel, PushModel
 from pnp.plugins.pull.simple import Repeat, Count
@@ -87,22 +86,26 @@ def test_mk_udf():
     assert my_str.callable(5) == '5'
 
 
-def test_config_load():
-    dut = YamlConfigLoader(path_to_config('config.simple.json'))
-    config = dut.load_config()
+def test_load_config():
+    dut = YamlConfigLoader()
+    config = dut.load_config(path_to_config('config.simple.json'))
+
     assert config.engine is None
     assert list(config.tasks.keys()) == ['simple']
+
     simple_task = config.tasks['simple']
     assert isinstance(simple_task.pull.instance, Count)
     assert len(simple_task.pushes) == 1
     assert isinstance(simple_task.pushes[0].instance, Echo)
 
 
-def test_multiple_outbounds():
-    dut = YamlConfigLoader(path_to_config('config.multiple-pushes.json'))
-    config = dut.load_config()
+def test_load_config_multiple_pushes():
+    dut = YamlConfigLoader()
+    config = dut.load_config(path_to_config('config.multiple-pushes.json'))
+
     assert config.engine is None
     assert list(config.tasks.keys()) == ['simple']
+
     simple_task = config.tasks['simple']
     assert isinstance(simple_task.pull.instance, Count)
     assert len(simple_task.pushes) == 2
@@ -114,9 +117,9 @@ def test_multiple_outbounds():
     ('config.single-dep.yaml', 1),
     ('config.multi-deps.yaml', 3)
 ])
-def test_push_with_deps(config, cnt_deps):
-    dut = YamlConfigLoader(path_to_config(config))
-    config = dut.load_config()
+def test_load_config_push_with_deps(config, cnt_deps):
+    dut = YamlConfigLoader()
+    config = dut.load_config(path_to_config(config))
     assert list(config.tasks.keys()) == ['pytest']
     simple_task = config.tasks['pytest']
     assert isinstance(simple_task.pull.instance, Count)
@@ -130,8 +133,8 @@ def test_push_with_deps(config, cnt_deps):
 
 
 def test_load_config_with_engine():
-    dut = YamlConfigLoader(path_to_config('config.engine.yaml'))
-    config = dut.load_config()
+    dut = YamlConfigLoader()
+    config = dut.load_config(path_to_config('config.engine.yaml'))
 
     engine = config.engine
     tasks = config.tasks
@@ -143,3 +146,7 @@ def test_load_config_with_engine():
     assert list(tasks.keys()) == ['pytest']
     simple_task = tasks['pytest']
     assert simple_task.name == 'pytest'
+
+
+def test_supported_extensions():
+    assert YamlConfigLoader.supported_extensions() == ['json', 'yaml']

@@ -9,7 +9,7 @@ from box import Box
 from dictmentor import DictMentor, ext
 from ruamel import yaml
 
-from pnp.config._base import Configuration
+from pnp.config._base import Configuration, ConfigLoader
 from pnp.engines import Engine as RealEngine, RetryHandler
 from pnp.models import UDFModel, PullModel, PushModel, TaskModel, TaskSet
 from pnp.plugins import load_plugin
@@ -159,11 +159,8 @@ def _mk_udf(udf_config: Box) -> UDFModel:
     return UDFModel(name=udf_config.name, callable=cast(UserDefinedFunction, fun))
 
 
-class YamlConfigLoader:
+class YamlConfigLoader(ConfigLoader):
     """Configuration loader from a yaml file."""
-
-    def __init__(self, config_file: str):
-        self.config_file = str(config_file)
 
     def _validate_push_deps(self, push: PushConfig) -> Iterator[PushConfig]:
         """Validates a push against the schema. This is done recursively."""
@@ -182,9 +179,11 @@ class YamlConfigLoader:
             u"!retry", partial(_custom_yaml_constructor, clstype=RetryHandler)
         )
 
-    def _augment(self, configuration: PartialConfig) -> Any:
+    def _augment(self, configuration: PartialConfig, base_path: str) -> Any:
         """Augments the configuration by using dictmentor with `Environment`,
         `ExternalResource` and `ExternalYamlResource` plguins."""
+        _ = self  # Fake usage
+        assert isinstance(base_path, str)
 
         # pnp configuration is probably of list of tasks. dictmentor needs a dict ...
         # ... let's fake it ;-)
@@ -192,8 +191,8 @@ class YamlConfigLoader:
 
         mentor = DictMentor(
             ext.Environment(fail_on_unset=True),
-            ext.ExternalResource(base_path=os.path.dirname(self.config_file)),
-            ext.ExternalYamlResource(base_path=os.path.dirname(self.config_file))
+            ext.ExternalResource(base_path=base_path),
+            ext.ExternalYamlResource(base_path=base_path)
         )
 
         # Remove the faked dictionary as root level
@@ -223,17 +222,25 @@ class YamlConfigLoader:
             return []
         return [_mk_udf(udf_config) for udf_config in config.udfs or []]
 
-    def load_config(self) -> Configuration:
-        """Load the yaml configuration."""
+    @classmethod
+    def supported_extensions(cls) -> Iterable[str]:
+        return ['json', 'yaml']
 
-        # Custom yaml constructors: !engine and !retry
-        self._add_constructors()
+    def load_pull_from_snippet(self, snippet: Any, name: str, **extra: Any) -> PullModel:
+        pull_config = Schemas.Pull.validate(snippet)
+        return _mk_pull(Box({'name': name, 'pull': pull_config}), **extra)
 
-        with open(self.config_file, 'r') as fp:
+    def load_config(self, config_file: str) -> Configuration:
+        config_file = str(config_file)
+        base_path = os.path.dirname(config_file)
+
+        with open(config_file, 'r') as fp:
+            # Custom yaml constructors: !engine and !retry
+            self._add_constructors()
             cfg = yaml.safe_load(fp)
 
-        validated = Schemas.Root.validate(self._augment(cfg))
-        # We need to validate each push again against the Push-schema.
+        validated = Schemas.Root.validate(self._augment(cfg, base_path))
+        # We need to validate each push again against the push-schema.
         # Cause the dependencies of push are pushes as well and we cannot define
         # a recursive schema in one go.
         for pull in validated['tasks']:
@@ -244,5 +251,5 @@ class YamlConfigLoader:
         return Configuration(
             engine=config.get('engine') or None,
             udfs=self._udfs_from_config(config),
-            tasks=self._tasks_from_config(config, os.path.dirname(self.config_file))
+            tasks=self._tasks_from_config(config, base_path)
         )
