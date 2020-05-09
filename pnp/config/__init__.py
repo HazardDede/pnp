@@ -15,6 +15,7 @@ _EXT_LOADER_MAP = {
     ext: clazz for clazz in _LOADER for ext in clazz.supported_extensions()
 }
 
+
 # Global variable: Which loader was used to load the config
 _LOADER_USED = None  # type: Optional[ConfigLoader]
 

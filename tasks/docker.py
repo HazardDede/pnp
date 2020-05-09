@@ -2,6 +2,7 @@ from invoke import task
 
 from tasks.config import (
     SCRIPTS_PATH,
+    TEST_PATH,
     VERSION
 )
 
@@ -65,6 +66,14 @@ def test(ctx, arch="amd64"):
     print("Testing image {}".format(local_image))
     ctx.run(
         "{scripts}/test-container {local_image}".format(scripts=SCRIPTS_PATH, local_image=local_image),
+        pty=True
+    )
+
+    print("Running docker test config.yaml")
+    ctx.run(
+        "docker run -it --rm "
+        "-v {test_path}/docker-test-config.yaml:/config/config.yaml:ro "
+        "{local_image}".format(test_path=TEST_PATH, local_image=local_image),
         pty=True
     )
 

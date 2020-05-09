@@ -30,6 +30,10 @@ class Count(AsyncPullBase):
             interval or wait or self.DEFAULT_INTERVAL
         ))
 
+    @property
+    def can_exit(self) -> bool:
+        return True  # pragma: no cover
+
     async def async_pull(self):
         to_cnt = sys.maxsize
         if self.to_cnt:

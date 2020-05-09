@@ -4,7 +4,6 @@
 # NOTICE: Keep in sync with setup_prereqs.arm
 #
 
-
 # Stop on errors
 set -e
 
