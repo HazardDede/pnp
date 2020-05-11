@@ -43,7 +43,7 @@ RUN poetry export \
         > requirements.txt && \
     pip3 install \
         --no-cache-dir \
-        --extra-index-url https://www.piwheels.hostedpi.com/simple \
+        --extra-index-url https://www.piwheels.org/simple \
         -r requirements.txt
 
 COPY . .
@@ -52,7 +52,7 @@ COPY . .
 RUN poetry build && \
     pip3 install \
         --no-cache-dir \
-        --extra-index-url https://www.piwheels.hostedpi.com/simple \
+        --extra-index-url https://www.piwheels.org/simple \
         "dist/$(poetry version | tr ' ' '-')-py3-none-any.whl"
 
 CMD ["pnp", "/config/config.yaml"]
