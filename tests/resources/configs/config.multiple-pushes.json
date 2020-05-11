@@ -2,7 +2,7 @@
   {
     "name": "simple",
     "pull": {
-      "plugin": "pnp.plugins.pull.simple.Sequence",
+      "plugin": "pnp.plugins.pull.simple.Count",
       "args": {
         "wait": 1
       }

@@ -1,11 +1,10 @@
 """The actual application wrapper around tasks and engine."""
 
-import os
 from typing import Optional
 
 from .config import load_config
 from .engines import Engine, DEFAULT_ENGINES
-from .models import TaskSet, TaskModel, UDFModel, tasks_to_str
+from .models import TaskSet, tasks_to_str
 from .selector import PayloadSelector
 from .shared.exc import NoEngineError
 from .utils import Loggable
@@ -42,25 +41,21 @@ class Application(Loggable):
         Validator.one_of(list(DEFAULT_ENGINES.keys()), allow_none=True,
                          engine_override=engine_override)
 
-        udfs, engine, task_cfg = load_config(file_path)
-        base_path = os.path.dirname(file_path)
-        tasks = {
-            task.name: TaskModel.from_dict(task, base_path) for task in task_cfg
-        }
-        if engine is None:
+        config = load_config(file_path)
+        if config.engine is None:
             # Backward compatibility
             engine = DEFAULT_ENGINES['async']()
+        else:
+            engine = config.engine
 
-        if udfs is not None:
-            udfs = [UDFModel.from_config(udf) for udf in udfs]
-            PayloadSelector.instance.register_udfs(udfs)  # pylint: disable=no-member
+        PayloadSelector.instance.register_udfs(config.udfs)  # pylint: disable=no-member
 
         from pprint import pformat
         # pylint: disable=no-member
-        cls.logger.info("UDFs\n{}".format(pformat(udfs)))
+        cls.logger.info("UDFs\n{}".format(pformat(config.udfs)))
         cls.logger.info("Engine\n{}".format(engine))
-        cls.logger.info("Configured tasks\n{}".format(tasks_to_str(tasks)))
+        cls.logger.info("Configured tasks\n{}".format(tasks_to_str(config.tasks)))
         # pylint: enable=no-member
-        app = Application(tasks=tasks)
+        app = Application(tasks=config.tasks)
         app.bind(engine=engine)
         return app
