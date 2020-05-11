@@ -11,6 +11,7 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 * Implements `pull.simple.RunOnce` to run a polling component or a push chain once (nice for scripts)
 * Migration from `setup.py` to `poetry`
 * Migration from `Makefile` to `python-invoke`
+* Introduces new configuration concept (interface: `ConfigLoader`)
 
 **0.22.0**
 * Updates docker base image to `python 3.7`
