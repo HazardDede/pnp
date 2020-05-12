@@ -2,7 +2,7 @@ from invoke import task
 
 
 @task
-def next_version(ctx, version_part="minor"):
+def next_version(ctx, version_part):
     """Prepares the next release.
 
     version_part: Part of the version to bump (patch, minor, major).
