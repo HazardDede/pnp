@@ -5,6 +5,9 @@ intended or by accident. Nevertheless we try to list breaking changes in the cha
 You are encouraged to specify explicitly the version in your dependency tools, e.g.:
 
     pip install pnp==0.10.0
+    
+**0.24.0 (pending)**
+* TBD
 
 **0.23.0**
 * Breaking: Removes engines except for AsyncEngine
