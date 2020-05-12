@@ -6,7 +6,7 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 
     pip install pnp==0.10.0
 
-**0.23.0 (pending)**
+**0.23.0**
 * Breaking: Removes engines except for AsyncEngine
 * Implements `pull.simple.RunOnce` to run a polling component or a push chain once (nice for scripts)
 * Migration from `setup.py` to `poetry`
