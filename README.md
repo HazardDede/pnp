@@ -2,11 +2,12 @@
 
 [![Python](https://img.shields.io/badge/Python-3.5%20%7C%203.6%20%7C%203.7-green.svg)](https://www.python.org/)
 [![PyPI version](https://badge.fury.io/py/pnp.svg)](https://badge.fury.io/py/pnp)
+[![GitHub Activity](https://img.shields.io/github/commit-activity/y/HazardDede/pnp.svg)](https://github.com/HazardDede/pnp/commits/master)
 [![Build Status](https://travis-ci.org/HazardDede/pnp.svg?branch=master)](https://travis-ci.org/HazardDede/pnp)
 [![Coverage Status](https://coveralls.io/repos/github/HazardDede/pnp/badge.svg?branch=master)](https://coveralls.io/github/HazardDede/pnp?branch=master)
 [![Docker: hub](https://img.shields.io/badge/docker-hub-brightgreen.svg)](https://cloud.docker.com/u/hazard/repository/docker/hazard/pnp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
+![Project Maintenance](https://img.shields.io/badge/maintainer-Dennis%20Muth%20%40HazardDede-blue.svg)
 
 > Pulls data from sources and pushes it to sinks with optional transformations in between.
 
