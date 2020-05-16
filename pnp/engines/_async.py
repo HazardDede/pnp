@@ -126,7 +126,7 @@ class AsyncEngine(Engine):
             task.pull.instance.stop()
             return
 
-        directive = self.retry_handler.handle_error()
+        directive = await self.retry_handler.handle_error()
         if directive.abort:
             self.logger.error(
                 "[Task-%s] Pulling of '%s' exited due to retry limitation",
