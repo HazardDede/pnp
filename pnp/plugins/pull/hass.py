@@ -98,10 +98,10 @@ class State(AsyncPullBase):
             else:
                 self.logger.warning("Got unexpected message '%s'", message)
 
-    def stop(self):
-        super().stop()
-        if self._loop and self._websocket:
-            asyncio.run_coroutine_threadsafe(self._websocket.close(), self._loop)
+    async def async_stop(self):
+        await super().async_stop()
+        if self._websocket:
+            await self._websocket.close()
 
     async def async_pull(self):
         self._loop = asyncio.get_event_loop()

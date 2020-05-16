@@ -33,12 +33,12 @@ class Engine(Loggable):
     A call to to an engine's `run(...)` method will block the calling thread until the engine
     decides the job is done (normally an external SIGTERM occurs)
     """
-    def run(self, tasks: TaskSet) -> None:
+    async def run(self, tasks: TaskSet) -> None:
         """Run the given task set inside the engine."""
-        return self._run(tasks)
+        return await self._run(tasks)
 
     @abstractmethod
-    def _run(self, tasks: TaskSet) -> None:
+    async def _run(self, tasks: TaskSet) -> None:
         """Run the given task set inside the engine. Override in child classes to do the hard
         work."""
         raise NotImplementedError()
@@ -101,11 +101,8 @@ class SimpleRetryHandler(RetryHandler):
         self.retry_wait = parse_duration_literal(retry_wait)
         self.retry_count = 0
 
-    def _incr_retry(self) -> None:
-        self.retry_count += 1
-
     def handle_error(self) -> RetryDirective:
-        self._incr_retry()
+        self.retry_count += 1
         return RetryDirective(abort=False, wait_for=self.retry_wait, retry_cnt=self.retry_count)
 
 

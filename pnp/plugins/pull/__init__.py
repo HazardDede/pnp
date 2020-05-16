@@ -98,6 +98,13 @@ class AsyncPullBase(PullBase):
 
         async_from_sync(self.async_pull)
 
+    def stop(self) -> None:
+        async_from_sync(self.async_stop)
+
+    async def async_stop(self) -> None:
+        """Async variant of `stop()`."""
+        self._stopped.set()
+
     async def _async_sleep(self, sleep_time: float = 10) -> None:
         """Call in subclass to perform some sleeping."""
         async def _interrupt() -> bool:

@@ -1,8 +1,7 @@
 """Base implementation for asynchronous engines."""
+import asyncio
 import time
 from typing import Optional, Any
-
-import asyncio
 
 from ._base import Engine, RetryHandler, SimpleRetryHandler, PushExecutor
 from ..models import TaskSet, TaskModel, PushModel
@@ -27,7 +26,7 @@ class AsyncEngine(Engine):
         self.loop = asyncio.get_event_loop()
         self.tasks = None  # type: Optional[TaskSet]
 
-    def _run(self, tasks: TaskSet) -> None:
+    async def _run(self, tasks: TaskSet) -> None:
         self.tasks = tasks
 
         # We need to wait for tasks:
@@ -37,7 +36,8 @@ class AsyncEngine(Engine):
             coros.append(self._start_task(task))
 
         try:
-            self.loop.run_until_complete(asyncio.gather(*coros, loop=self.loop))
+            await asyncio.gather(*coros)
+            # self.loop.run_until_complete(asyncio.gather(*coros, loop=self.loop))
         except KeyboardInterrupt:
             self.stop()
 
@@ -149,7 +149,11 @@ class AsyncEngine(Engine):
 
     async def _stop_task(self, task: TaskModel) -> None:
         self.logger.info("Stopping task %s", task.name)
-        await self.loop.run_in_executor(None, task.pull.instance.stop)
+        instance = task.pull.instance
+        if instance.supports_async:
+            await instance.async_stop()  # type: ignore
+        else:
+            await self.loop.run_in_executor(None, instance.stop)
 
     async def _schedule_push(self, payload: Payload, push: PushModel) -> None:
         assert isinstance(push, PushModel)
@@ -201,8 +205,11 @@ class AsyncEngine(Engine):
         loop.run_until_complete(stop_tasks)
 
         # Handle shutdown gracefully by waiting for all tasks to be cancelled
-        tasks = asyncio.gather(*asyncio.Task.all_tasks(loop=loop), loop=loop,
-                               return_exceptions=True)
+        tasks = asyncio.gather(
+            *asyncio.Task.all_tasks(loop=loop),
+            loop=loop,
+            return_exceptions=True
+        )
         tasks.add_done_callback(lambda t: loop.stop())
 
         # Keep the event loop running until it is either destroyed or all

@@ -1,5 +1,5 @@
 """The actual application wrapper around tasks and engine."""
-
+import asyncio
 from typing import Optional
 
 from .config import load_config
@@ -21,7 +21,11 @@ class Application(Loggable):
         """Starts the application."""
         if not self._engine:
             raise NoEngineError()
-        self._engine.run(self._tasks)
+        loop = asyncio.get_event_loop()
+        try:
+            loop.run_until_complete(self._engine.run(self._tasks))
+        except KeyboardInterrupt:
+            self._engine.stop()
 
     def bind(self, engine: Engine) -> None:
         """Binds an engine to the application."""
