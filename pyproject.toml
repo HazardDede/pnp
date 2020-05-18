@@ -54,7 +54,6 @@ numpy = { version = "^1.16.0", optional = true }
 PyAudio = { version = "^0.2.11", optional = true }
 pyftpdlib = { version = "^1.5.0", optional = true }
 "RPi.GPIO" = { version = "^0.6.5", optional = true }
-sanic = { version = "^18.12.0", optional = true }
 scipy = { version = "^1.2.0", optional = true }
 urllib3 = { version = "^1.20", optional = true }
 watchdog = { version = "^0.8.3", optional = true }
@@ -86,7 +85,8 @@ slacker = "^0.14.0"
 syncasync = "^20180812"
 typing-extensions = "^3.7.4"
 tzlocal = "^2.0.0"
-sanic_openapi = "^0.6.1"
+sanic = "^18.12.0"
+sanic_openapi = "0.6.0"
 sanic_prometheus = "^0.2.0"
 
 [tool.poetry.dev-dependencies]
@@ -115,7 +115,7 @@ fswatcher = ['watchdog']
 ftp = ['pyftpdlib']
 gmail = ['google-api-python-client', 'google-auth-httplib2', 'google-auth-oauthlib']
 gpio = ['RPi.GPIO']
-http-server = ['Flask', 'gevent', 'sanic']
+http-server = ['Flask', 'gevent']
 miflora = ['miflora']
 pushbullet = ['pushbullet.py', 'urllib3']
 sound = ['PyAudio', 'numpy', 'scipy']

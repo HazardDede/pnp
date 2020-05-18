@@ -49,7 +49,9 @@ def _add_monitoring_endpoint(api: API) -> None:
     monitor(api).expose_endpoint()
 
 
-def create_api(app_name: str = 'pnp', enable_monitor: bool = True) -> API:
+def create_api(
+        app_name: str = 'pnp', enable_metrics: bool = True, enable_swagger: bool = True
+) -> API:
     """
     Creates a sanic application to serve api requests.
     """
@@ -57,8 +59,9 @@ def create_api(app_name: str = 'pnp', enable_monitor: bool = True) -> API:
     logging.getLogger('sanic.root').setLevel(logging.WARNING)
 
     _add_health_endpoint(api)
-    _add_swagger_endpoint(api)
-    if bool(enable_monitor):
+    if bool(enable_swagger):
+        _add_swagger_endpoint(api)
+    if bool(enable_metrics):
         _add_monitoring_endpoint(api)
 
     return api
@@ -75,11 +78,11 @@ def api_coro(api: API, port: int = 9090) -> Any:
     )
 
 
-def run_api_background(api: API, port: int = 9090) -> Any:
+def run_api_background(api: API, port: int = 9999) -> Any:
     """Run the api application in the background. The control will be returned to the caller."""
     server = api_coro(api, port)
-    task = asyncio.ensure_future(server)
+    asyncio.ensure_future(server)
 
     _LOGGER.info("API server started @ port %s", port)
 
-    return task
+    return server

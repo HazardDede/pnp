@@ -2,7 +2,6 @@
 source = pnp
 
 omit =
-    pnp/app.py
     pnp/runner/*
 
 

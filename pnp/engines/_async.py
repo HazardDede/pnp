@@ -44,7 +44,11 @@ class AsyncEngine(Engine):
     def _stop(self) -> None:
         if not self.tasks:
             return
-        self._shutdown()
+        try:
+            self._shutdown()
+        except KeyboardInterrupt:
+            # It' ok -> non-graceful shutdown
+            self.logger.info("Forceful exit")
 
     async def _wait_for_tasks_to_complete(self) -> None:
         """Check if something is still running on the event loop (like running pushes) so that the
@@ -199,24 +203,12 @@ class AsyncEngine(Engine):
         loop.set_exception_handler(shutdown_exception_handler)
 
         stop_tasks = asyncio.gather(
-            *[self._stop_task(task) for _, task in self.tasks.items()],
+            *[self._stop_task(task) for task in self.tasks.values()],
             loop=loop
         )
         loop.run_until_complete(stop_tasks)
 
-        # Handle shutdown gracefully by waiting for all tasks to be cancelled
-        tasks = asyncio.gather(
-            *asyncio.Task.all_tasks(loop=loop),
-            loop=loop,
-            return_exceptions=True
-        )
-        tasks.add_done_callback(lambda t: loop.stop())
-
-        # Keep the event loop running until it is either destroyed or all
-        # tasks have really terminated
-        while not tasks.done() and not loop.is_closed():
-            if not loop.is_running():
-                loop.run_forever()
+        loop.run_until_complete(self._wait_for_tasks_to_complete())
 
         # This check is only needed for Python 3.5 and below
         if hasattr(self.loop, "shutdown_asyncgens"):

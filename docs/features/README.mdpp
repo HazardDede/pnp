@@ -1,0 +1,13 @@
+# Features
+
+!TOC
+
+## API (0.24.0+)
+
+TBD
+
+* Swagger
+* Health
+* Prometheus compatible /metrics endpoint
+
+!INCLUDECODE "docs/features/api.yaml" (yaml)

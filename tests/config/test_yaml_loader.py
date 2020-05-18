@@ -3,7 +3,7 @@ from box import Box
 
 from pnp.config._yaml import _mk_pull, _mk_push, _mk_udf, YamlConfigLoader
 from pnp.engines import SimpleRetryHandler, AsyncEngine
-from pnp.models import PullModel, PushModel
+from pnp.models import PullModel, PushModel, APIModel
 from pnp.plugins.pull.simple import Repeat, Count
 from pnp.plugins.push.simple import Echo
 from tests.conftest import path_to_config
@@ -150,3 +150,16 @@ def test_load_config_with_engine():
 
 def test_supported_extensions():
     assert YamlConfigLoader.supported_extensions() == ['json', 'yaml']
+
+
+def test_api():
+    dut = YamlConfigLoader()
+
+    config = dut.load_config(path_to_config('config.api.none.yaml'))
+    assert config.api is None
+
+    config = dut.load_config(path_to_config('config.api.min.yaml'))
+    assert config.api == APIModel(port=12345, enable_swagger=False, enable_metrics=False)
+
+    config = dut.load_config(path_to_config('config.api.max.yaml'))
+    assert config.api == APIModel(port=12345, enable_swagger=True, enable_metrics=True)
