@@ -2,9 +2,9 @@
 import asyncio
 from typing import Optional, Any
 
-from pnp.api import run_api_background, create_api
+from pnp.api import run_api_background, create_api, API
 from pnp.config import load_config, Configuration
-from pnp.engines import DEFAULT_ENGINES
+from pnp.engines import DEFAULT_ENGINES, Engine
 from pnp.models import tasks_to_str
 from pnp.selector import PayloadSelector
 from pnp.shared.exc import NoEngineError
@@ -18,30 +18,50 @@ class Application(Loggable):
         Validator.is_instance(Configuration, config=config)
 
         self._config = config
-        self._tasks = config.tasks
-        self._engine = config.engine or DEFAULT_ENGINES['async']()
-        self._api = config.api
-        self._api_server = None  # type: Any
+        if not self._config.engine:
+            self._config.engine = DEFAULT_ENGINES['async']()
 
-    async def _run_tasks(self) -> None:
-        if self._api:
-            self._api_server = run_api_background(
-                api=create_api(
-                    enable_metrics=self._api.enable_metrics,
-                    enable_swagger=self._api.enable_swagger
-                ),
-                port=self._api.port
+        self._tasks = config.tasks
+        self._engine = config.engine
+        self._api = None  # type: Optional[API]
+        if config.api:
+            self._api = create_api(
+                enable_metrics=config.api.enable_metrics,
+                enable_swagger=config.api.enable_swagger
             )
-        await self._engine.run(self._tasks)
+            self._api_server = None  # type: Any
+
+    @property
+    def api(self) -> Optional[API]:
+        """Return the api that is running. If no api is available `None` is returned."""
+        return self._api
+
+    @property
+    def engine(self) -> Engine:
+        """Return the engine that is used to schedule and run the tasks."""
+        return self._engine
+
+    async def _run_api(self):
+        if not self._api:
+            return
+
+        self._api_server = run_api_background(
+            api=self._api,
+            port=self._config.api.port
+        )
 
     def start(self) -> None:
         """Starts the application."""
+        async def _run_coros() -> None:
+            await self._run_api()
+            await self._engine.run(self._tasks)
+
         if not self._engine:
             raise NoEngineError()
 
         loop = asyncio.get_event_loop()
         try:
-            loop.run_until_complete(self._run_tasks())
+            loop.run_until_complete(_run_coros())
         except KeyboardInterrupt:
             if self._api_server:
                 self._api_server.close()

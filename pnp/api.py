@@ -22,7 +22,7 @@ class Response:
         'message': doc.String
     }
 
-    HEALTH_RESPONSE = {
+    HEALTH = {
         'success': doc.Boolean()
     }
 
@@ -33,7 +33,7 @@ def _add_health_endpoint(api: API) -> None:
     @api.route('/health')
     @doc.summary("Health")
     @doc.description("Returns a json about the current health of the api")
-    @doc.response(200, Response.HEALTH_RESPONSE, description="Health information")
+    @doc.response(200, Response.HEALTH, description="Health information")
     async def health(request: Request) -> HTTPResponse:  # pylint: disable=unused-variable
         _ = request  # Fake usage
         return json({'success': True})

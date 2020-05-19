@@ -13,7 +13,7 @@ from ..plugins.push import AsyncPushBase
 from ..selector import PayloadSelector
 from ..typing import Payload
 from ..utils import (Loggable, Singleton, parse_duration_literal, DurationLiteral, auto_str,
-                     is_iterable_but_no_str)
+                     is_iterable_but_no_str, auto_str_ignore)
 from ..validator import Validator
 
 
@@ -125,6 +125,7 @@ class LimitedRetryHandler(SimpleRetryHandler):
         return RetryDirective(abort=abort, wait_for=self.retry_wait, retry_cnt=self.retry_count)
 
 
+@auto_str_ignore(['last_error'])
 class AdvancedRetryHandler(LimitedRetryHandler):
     """Works like the `LimitedRetryHandler` but will reset the retry count when a given amount of
     time between the current failure and the previous failure has passed."""
