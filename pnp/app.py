@@ -2,7 +2,7 @@
 import asyncio
 from typing import Optional, Any
 
-from pnp.api import run_api_background, create_api, API
+from pnp.api import run_api_background, create_api, API, add_trigger_endpoint
 from pnp.config import load_config, Configuration
 from pnp.engines import DEFAULT_ENGINES, Engine
 from pnp.models import tasks_to_str
@@ -29,6 +29,7 @@ class Application(Loggable):
                 enable_metrics=config.api.enable_metrics,
                 enable_swagger=config.api.enable_swagger
             )
+            add_trigger_endpoint(self._api, self._tasks)
             self._api_server = None  # type: Any
 
     @property

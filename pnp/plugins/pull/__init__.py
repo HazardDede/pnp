@@ -161,16 +161,32 @@ class Polling(AsyncPullBase):
         while self._is_running:  # Keep the loop alive until the job is finished
             await asyncio.sleep(0.5)
 
+    async def run_now(self) -> Payload:
+        """Runs the poll right now. It will not run, if the last poll is still running."""
+        if self._is_running:
+            self.logger.warning("Polling job is still running. Skipping current run")
+            return
+
+        self._is_running = True
+        try:
+            if isinstance(self, AsyncPolling) and hasattr(self, 'async_poll'):
+                payload = await self.async_poll()  # pylint: disable=no-member
+            else:
+                payload = await asyncio.get_event_loop().run_in_executor(None, self.poll)
+
+            if payload is not None:
+                self.notify(payload)
+
+            return payload
+        finally:
+            self._is_running = False
+
     def _run_schedule(self) -> None:
         loop = asyncio.get_event_loop()
         if loop.is_running():
             asyncio.run_coroutine_threadsafe(self._async_run_schedule(), loop=loop)
 
     async def _async_run_schedule(self) -> None:
-        if self._is_running:
-            self.logger.warning("Polling job is still running. Skipping current run")
-            return
-
         try:
             if self.is_cron:
                 dtime = datetime.now()
@@ -178,17 +194,7 @@ class Polling(AsyncPullBase):
                                                           dtime.day, dtime.hour, dtime.minute)):
                     return  # It is not the time for the cron to trigger
 
-            self._is_running = True
-            try:
-                if isinstance(self, AsyncPolling) and hasattr(self, 'async_poll'):
-                    payload = await self.async_poll()  # pylint: disable=no-member
-                else:
-                    payload = await asyncio.get_event_loop().run_in_executor(None, self.poll)
-            finally:
-                self._is_running = False
-
-            if payload is not None:
-                self.notify(payload)
+            await self.run_now()
         except StopPollingError:
             self.stop()
         except Exception:  # pragma: no cover, pylint: disable=broad-except
@@ -200,13 +206,13 @@ class Polling(AsyncPullBase):
         cron like expressions by checking `self.is_cron`.
 
         Override in subclasses to fir the behaviour to your needs.
+
         Args:
             scheduler (schedule.Scheduler): The actual scheduler.
             callback (callable): The callback to call when the time is right.
 
         Returns:
             None
-
         """
         if self.is_cron:
             # Scheduler always executes at the exact minute to check for cron triggering
