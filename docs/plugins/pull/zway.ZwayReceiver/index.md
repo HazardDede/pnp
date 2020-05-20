@@ -52,25 +52,26 @@ own. Given the virtual device name `ZWayVDev_zway_7-0-48-1` and the value of `on
 __Examples__
 
 ```yaml
-- name: zway_receiver
-  pull:
-    plugin: pnp.plugins.pull.zway.ZwayReceiver
-    args:
-      port: 5000
-      mode: mapping  # mapping, auto or both
-      device_mapping:
-        vdevice1:  # Props = {type: motion}
-          alias: dev1
-          type: motion
-        vdevice2:  # Props = {type: switch, other_prop: foo}
-          alias: dev2
-          type: switch
-          other_prop: foo
-        vdevice3: dev3  # props == {}
-      url_format: "%DEVICE%?value=%VALUE%"
-      ignore_unknown_devices: false
-  push:
-    - plugin: pnp.plugins.push.simple.Echo
-      selector: "'Got value {} from device {} ({}) with props {}'.format(data.value, data.device_name, data.raw_device, data.props)"
+api:
+  port: 9999
+tasks:
+  - name: zway_receiver
+    pull:
+      plugin: pnp.plugins.pull.zway.ZwayReceiver
+      args:
+        mode: both  # mapping, auto or both
+        device_mapping:
+          vdevice1:  # Props = {type: motion}
+            alias: dev1
+            type: motion
+          vdevice2:  # Props = {type: switch, other_prop: foo}
+            alias: dev2
+            type: switch
+            other_prop: foo
+          vdevice3: dev3  # props == {}
+        ignore_unknown_devices: false
+    push:
+      - plugin: pnp.plugins.push.simple.Echo
+        selector: "'Got value {} from device {} ({}) with props {}'.format(data.value, data.device_name, data.raw_device, data.props)"
 
 ```

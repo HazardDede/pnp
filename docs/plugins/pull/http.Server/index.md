@@ -6,8 +6,6 @@ the data will be passed as is. See sections `Result` for specific payload and ex
 
 Remark: You will not able to make requests to the endpoint DELETE `/_shutdown` because it is used internally.
 
-Requires extra `http-server`.
-
 __Arguments__
 
 - **port (int, optional)**: The port the rest server should listen to for requests. Default is 5000.
@@ -49,13 +47,18 @@ curl -X GET 'http://localhost:5000/resource/endpoint' --data 'no json obviously'
 __Examples__
 
 ```yaml
-- name: rest
-  pull:
-    plugin: pnp.plugins.pull.http.Server
-    args:
-      port: 5000
-      allowed_methods: [GET, POST]
-  push:
-    plugin: pnp.plugins.push.simple.Echo
+api:
+  port: 9999
+tasks:
+  - name: rest
+    pull:
+      plugin: pnp.plugins.pull.http.Server
+      args:
+        prefix_path: callme
+        allowed_methods:
+          - GET
+          - POST
+    push:
+      plugin: pnp.plugins.push.simple.Echo
 
 ```

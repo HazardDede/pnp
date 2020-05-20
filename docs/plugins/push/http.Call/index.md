@@ -35,55 +35,61 @@ __Examples__
 ```yaml
 # Simple example calling the built-in rest server
 # Oscillates between http method GET and POST. Depending on the fact if the counter is even or not.
-- name: http_call
-  pull:
-    plugin: pnp.plugins.pull.simple.Count
-    args:
-      interval: 5s
-  push:
-    plugin: pnp.plugins.push.http.Call
-    selector:
-      data:
-        counter: "lambda data: data"
-      method: "lambda data: 'POST' if int(data) % 2 == 0 else 'GET'"
-    args:
-      url: http://localhost:5000/
-- name: rest_server
-  pull:
-    plugin: pnp.plugins.pull.http.Server
-    args:
-      port: 5000
-      allowed_methods:
-        - GET
-        - POST
-  push:
-    plugin: pnp.plugins.push.simple.Echo
+api:
+  port: 9999
+tasks:
+  - name: http_call
+    pull:
+      plugin: pnp.plugins.pull.simple.Count
+      args:
+        interval: 5s
+    push:
+      plugin: pnp.plugins.push.http.Call
+      selector:
+        data:
+          counter: "lambda data: data"
+        method: "lambda data: 'POST' if int(data) % 2 == 0 else 'GET'"
+      args:
+        url: http://localhost:9999/counter
+  - name: rest_server
+    pull:
+      plugin: pnp.plugins.pull.http.Server
+      args:
+        prefix_path: counter
+        allowed_methods:
+          - GET
+          - POST
+    push:
+      plugin: pnp.plugins.push.simple.Echo
 
 ```
 
 ```yaml
 # Demonstrates the use of `provide_response` set to True.
 # Call will return a response object to dependent push instances.
-- name: http_call
-  pull:
-    plugin: pnp.plugins.pull.simple.Count
-    args:
-      interval: 5s
-  push:
-    plugin: pnp.plugins.push.http.Call
-    args:
-      url: http://localhost:5000/
-      provide_response: true
-    deps:
-      plugin: pnp.plugins.push.simple.Echo
-- name: rest_server
-  pull:
-    plugin: pnp.plugins.pull.http.Server
-    args:
-      port: 5000
-      allowed_methods:
-        - GET
-  push:
-    plugin: pnp.plugins.push.simple.Nop
+api:
+  port: 9999
+tasks:
+  - name: http_call
+    pull:
+      plugin: pnp.plugins.pull.simple.Count
+      args:
+        interval: 5s
+    push:
+      plugin: pnp.plugins.push.http.Call
+      args:
+        url: http://localhost:9999/counter
+        provide_response: true
+      deps:
+        plugin: pnp.plugins.push.simple.Echo
+  - name: rest_server
+    pull:
+      plugin: pnp.plugins.pull.http.Server
+      args:
+        prefix_path: counter
+        allowed_methods:
+          - GET
+    push:
+      plugin: pnp.plugins.push.simple.Nop
 
 ```

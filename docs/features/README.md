@@ -21,10 +21,10 @@ api:
 tasks:
   - name: api
     pull:
-      plugin: pnp.plugins.pull.simple.Repeat
+      plugin: pnp.plugins.pull.monitor.Stats
       args:
-        interval: 1s
-        repeat: "Hello World"
+        instant_run: true
+        interval: 1m
     push:
       - plugin: pnp.plugins.push.simple.Echo
 
