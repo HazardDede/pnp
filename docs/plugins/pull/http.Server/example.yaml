@@ -1,8 +1,13 @@
-- name: rest
-  pull:
-    plugin: pnp.plugins.pull.http.Server
-    args:
-      port: 5000
-      allowed_methods: [GET, POST]
-  push:
-    plugin: pnp.plugins.push.simple.Echo
+api:
+  port: 9999
+tasks:
+  - name: rest
+    pull:
+      plugin: pnp.plugins.pull.http.Server
+      args:
+        prefix_path: callme
+        allowed_methods:
+          - GET
+          - POST
+    push:
+      plugin: pnp.plugins.push.simple.Echo

@@ -74,9 +74,8 @@ python = "<3.8"
 version = ">=1.4.0,<1.5"
 
 [[package]]
-category = "dev"
+category = "main"
 description = "Async generators and context managers for Python 3.5+"
-marker = "python_version == \"3.5\""
 name = "async-generator"
 optional = false
 python-versions = ">=3.5"
@@ -1386,6 +1385,18 @@ version = "1.4.1"
 
 [[package]]
 category = "main"
+description = "Run-time type checker for Python"
+name = "typeguard"
+optional = false
+python-versions = ">=3.5.2"
+version = "2.7.1"
+
+[package.extras]
+doc = ["sphinx-rtd-theme", "sphinx-autodoc-typehints (>=1.2.0)"]
+test = ["pytest", "pytest-cov", "typing-extensions"]
+
+[[package]]
+category = "main"
 description = "Backported and Experimental Type Hints for Python 3.5+"
 name = "typing-extensions"
 optional = false
@@ -1549,13 +1560,12 @@ fswatcher = ["watchdog"]
 ftp = ["pyftpdlib"]
 gmail = ["google-api-python-client", "google-auth-httplib2", "google-auth-oauthlib"]
 gpio = ["RPi.GPIO"]
-http-server = ["Flask", "gevent"]
 miflora = ["miflora"]
 pushbullet = ["pushbullet.py", "urllib3"]
 sound = ["PyAudio", "numpy", "scipy"]
 
 [metadata]
-content-hash = "e4ad0d48c0adf89ffee3656c5de405f8b186ccaa337041281be7222284884485"
+content-hash = "99c21d6d087a64274c3b2aced99207db7414438f98da8aa72f3ff65317066102"
 python-versions = "^3.5,>=3.5.3"
 
 [metadata.files]
@@ -2385,6 +2395,10 @@ typed-ast = [
     {file = "typed_ast-1.4.1-cp38-cp38-win_amd64.whl", hash = "sha256:fc0fea399acb12edbf8a628ba8d2312f583bdbdb3335635db062fa98cf71fca4"},
     {file = "typed_ast-1.4.1-cp39-cp39-macosx_10_15_x86_64.whl", hash = "sha256:d43943ef777f9a1c42bf4e552ba23ac77a6351de620aa9acf64ad54933ad4d34"},
     {file = "typed_ast-1.4.1.tar.gz", hash = "sha256:8c8aaad94455178e3187ab22c8b01a3837f8ee50e09cf31f1ba129eb293ec30b"},
+]
+typeguard = [
+    {file = "typeguard-2.7.1-py3-none-any.whl", hash = "sha256:1d3710251d3d3d6c64e0c49f45edec2e88ddc386a51e89c3ec0703efeb8b3b81"},
+    {file = "typeguard-2.7.1.tar.gz", hash = "sha256:2d545c71e9439c21bcd7c28f5f55b3606e6106f7031ab58375656a1aed483ef2"},
 ]
 typing-extensions = [
     {file = "typing_extensions-3.7.4.2-py2-none-any.whl", hash = "sha256:f8d2bd89d25bc39dabe7d23df520442fa1d8969b82544370e03d88b5a591c392"},

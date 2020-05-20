@@ -1,8 +1,8 @@
 """The actual application wrapper around tasks and engine."""
 import asyncio
-from typing import Optional, Any
+from typing import Optional
 
-from pnp.api import run_api_background, create_api, API, add_trigger_endpoint
+from pnp.api import RestAPI
 from pnp.config import load_config, Configuration
 from pnp.engines import DEFAULT_ENGINES, Engine
 from pnp.models import tasks_to_str
@@ -23,17 +23,18 @@ class Application(Loggable):
 
         self._tasks = config.tasks
         self._engine = config.engine
-        self._api = None  # type: Optional[API]
+
+        self._api = None  # type: Optional[RestAPI]
         if config.api:
-            self._api = create_api(
+            self._api = RestAPI()
+            self._api.create_api(
                 enable_metrics=config.api.enable_metrics,
                 enable_swagger=config.api.enable_swagger
             )
-            add_trigger_endpoint(self._api, self._tasks)
-            self._api_server = None  # type: Any
+            self._api.add_trigger_endpoint(self._tasks)
 
     @property
-    def api(self) -> Optional[API]:
+    def api(self) -> Optional[RestAPI]:
         """Return the api that is running. If no api is available `None` is returned."""
         return self._api
 
@@ -46,8 +47,7 @@ class Application(Loggable):
         if not self._api:
             return
 
-        self._api_server = run_api_background(
-            api=self._api,
+        self._api.run_api_background(
             port=self._config.api.port
         )
 
@@ -64,8 +64,8 @@ class Application(Loggable):
         try:
             loop.run_until_complete(_run_coros())
         except KeyboardInterrupt:
-            if self._api_server:
-                self._api_server.close()
+            if self._api:
+                self._api.shutdown()
             self._engine.stop()
 
     @classmethod

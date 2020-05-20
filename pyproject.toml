@@ -89,6 +89,8 @@ sanic = "^18.12.0"
 sanic_openapi = "0.6.0"
 sanic_prometheus = "^0.2.0"
 aiohttp = "^3.6.2"
+typeguard = "^2.7.1"
+async_generator = "^1.10"
 
 [tool.poetry.dev-dependencies]
 astroid = "^2.4.0"
@@ -116,7 +118,6 @@ fswatcher = ['watchdog']
 ftp = ['pyftpdlib']
 gmail = ['google-api-python-client', 'google-auth-httplib2', 'google-auth-oauthlib']
 gpio = ['RPi.GPIO']
-http-server = ['Flask', 'gevent']
 miflora = ['miflora']
 pushbullet = ['pushbullet.py', 'urllib3']
 sound = ['PyAudio', 'numpy', 'scipy']

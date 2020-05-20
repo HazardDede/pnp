@@ -1,21 +1,12 @@
-import asyncio
-
 import pytest
 
-from pnp.api import create_api, run_api_background
-from tests.api.helper import get_free_tcp_port, get
+from tests.conftest import api_start, api_get
 
 
 @pytest.mark.asyncio
 async def test_endpoint():
-    port = get_free_tcp_port()
-    api = create_api(enable_metrics=False, enable_swagger=True)
-    server = run_api_background(api, port)
-    await asyncio.sleep(0.25)  # Wait for the server to startup
-    try:
-        url = 'http://127.0.0.1:{}/swagger'.format(port)
-        status, json_ = await get(url)
+    async with api_start(swagger=True) as api:
+        url = 'http://127.0.0.1:{}/swagger'.format(api.port)
+        status, json_ = await api_get(url)
 
         assert status == 200
-    finally:
-        server.close()
