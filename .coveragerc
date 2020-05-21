@@ -2,7 +2,7 @@
 source = pnp
 
 omit =
-    pnp/runner/*
+    pnp/console/*
 
 
 [report]
