@@ -5,9 +5,9 @@ from typing import Union, Iterable, Any, no_type_check, Dict
 from sanic import Sanic
 from sanic.exceptions import InvalidUsage
 from sanic.request import Request
-from sanic.response import HTTPResponse, json
+from sanic.response import HTTPResponse
 
-from pnp.api import RestAPI
+from pnp.api import RestAPI, APINotConfiguredError, success
 from pnp.plugins.pull import AsyncPullBase
 from pnp.utils import make_list, HTTP_METHODS
 from pnp.validator import Validator
@@ -15,10 +15,12 @@ from pnp.validator import Validator
 
 class Server(AsyncPullBase):
     """
-    Creates a specific route with a prefix on the builtin api server and listens to any
-    call to that route.
+    Creates a specific route on the builtin api server and listens to any call to
+    that route.
     Any data passed to the endpoint will be tried to be parsed to a dictionary (json).
     If this is not possible the data will be passed as is.
+
+    You need to enable the api via configuration to make this work.
 
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/http.Server/index.md
@@ -56,15 +58,12 @@ class Server(AsyncPullBase):
             )
             self.notify(payload)
 
-            return json({'success': True}, 200)
+            return success()
 
     async def async_pull(self) -> None:
         restapi = RestAPI()
-        if not restapi.api:
-            raise RuntimeError(
-                "API is not enabled. "
-                "In order to use this component please enable the api"
-            )
+        if not restapi.enabled:
+            raise APINotConfiguredError()
         self._add_catch_all_endpoint(restapi.api)
         while not self.stopped:
             await asyncio.sleep(0.1)

@@ -3,13 +3,13 @@
 import re
 
 import requests
-from requests.auth import HTTPBasicAuth
 import schema
+from requests.auth import HTTPBasicAuth
 
-from . import Polling, PollingError
-from .http import Server
-from ...utils import auto_str_ignore, try_parse_int_float_str
-from ...validator import Validator
+from pnp.plugins.pull import Polling, PollingError
+from pnp.plugins.pull.http import Server
+from pnp.utils import auto_str_ignore, try_parse_int_float_str
+from pnp.validator import Validator
 
 
 @auto_str_ignore(['password'])

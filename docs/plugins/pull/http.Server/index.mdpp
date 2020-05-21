@@ -1,46 +1,35 @@
 # pnp.plugins.pull.http.Server
 
-Listens on the specified `port` for requests to any endpoint.
-Any data passed to the endpoint will be tried to be parsed to a dictionary (json). If this is not possible
-the data will be passed as is. See sections `Result` for specific payload and examples.
+Creates a specific route on the builtin api server and listens to any call to that route.
+Any data passed to the endpoint will be tried to be parsed to a dictionary (json).
+If this is not possible the data will be passed as is. See sections `Result` for specific payload and examples.
 
-Remark: You will not able to make requests to the endpoint DELETE `/_shutdown` because it is used internally.
+You need to enable the api via configuration to make this work.
 
 __Arguments__
 
-- **port (int, optional)**: The port the rest server should listen to for requests. Default is 5000.
+- **prefix_path (str)**: The route to create for incoming traffic on the builtin api server. See the Example section for reference.
 - **allowed_methods (str or list, optional)**: List of http methods that are allowed. Default is 'GET'.
-- **server_impl (str, optional)**: Choose the implementation of the WSGI-Server (wraps the flask-app).
-    Possible values are: [flask, gevent]. `flask` uses the internal Flask Development server. Not recommended for
-    production use. `gevent` uses [gevent](http://www.gevent.org/). Default is `gevent`.
 
 __Result__
 
-```shell
-curl -X GET 'http://localhost:5000/resource/endpoint?foo=bar&bar=baz' --data '{"baz": "bar"}'
+Assumes that you configured your pull with `prefix_path = callme`
+
+```bash
+curl -X GET "http://localhost:9999/callme/telephone/now?number=12345&priority=high" --data '{"magic": 42}'
 ```
 
-```yaml
+```json
 {
-    'endpoint': 'resource/endpoint,
-    'method': 'GET',
-    'query': {'foo': 'bar', 'bar': 'baz'},
-    'data': {'baz': 'bar'},
-    'is_json': True
-}
-```
-
-```shell
-curl -X GET 'http://localhost:5000/resource/endpoint' --data 'no json obviously'
-```
-
-```yaml
-{
-    'endpoint': 'resource/endpoint,
-    'method': 'GET',
-    'query': {},
-    'data': b'no json obviously',
-    'is_json': False
+  "endpoint": "telephone/now",
+  "data": {"magic": 42},
+  "levels": ["telephone", "now"],
+  "method": "GET",
+  "query": {"number": "12345", "priority": "high"},
+  "is_json": True,
+  "url": "http://localhost:9999/callme/telephone/now?number=12345&priority=high",
+  "full_path": "/callme/telephone/now?number=12345&priority=high",
+  "path": "/callme/telephone/now"
 }
 ```
 

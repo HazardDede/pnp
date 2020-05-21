@@ -30,6 +30,28 @@ class Response:
     EMPTY = {}
 
 
+class APIError(RuntimeError):
+    """Raised when some api error is experienced."""
+
+    DEFAULT_MESSAGE = "Internal API error."
+
+    def __init__(self, message: Optional[str] = None):
+        super().__init__(message or self.DEFAULT_MESSAGE)
+
+
+class APINotConfiguredError(APIError):
+    """Raised when the api is not configured / enabled, but is necessary to perform a
+    task."""
+
+    DEFAULT_MESSAGE = "API is not configured, but is required to perform this task."
+
+
+class APINotInitialized(APIError):
+    """Raised when the api not initialized properly."""
+
+    DEFAULT_MESSAGE = "API is not initialized properly. Try to `RestAPI.create_api(...)` first."
+
+
 def bad_request(message: str) -> HTTPResponse:
     """Create a bad request 400 http response."""
     return json({'message': message}, 400)
@@ -38,6 +60,11 @@ def bad_request(message: str) -> HTTPResponse:
 def internal_error(message: str) -> HTTPResponse:
     """Create a internal error 500 http response."""
     return json({'message': message}, 500)
+
+
+def success() -> HTTPResponse:
+    """Create a simple success response."""
+    return json({'success': True}, 200)
 
 
 class RestAPI(Singleton):
@@ -50,7 +77,7 @@ class RestAPI(Singleton):
 
     def _assert_api(self) -> Sanic:
         if not self.api:
-            raise RuntimeError("You have to call create_api first")
+            raise APINotInitialized()
         return self.api
 
     @no_type_check
@@ -64,7 +91,7 @@ class RestAPI(Singleton):
         @doc.response(200, Response.HEALTH, description="Health information")
         async def health(request: Request) -> HTTPResponse:  # pylint: disable=unused-variable
             _ = request  # Fake usage
-            return json({'success': True})
+            return success()
 
     def _add_swagger_endpoint(self) -> None:
         """Route: /swagger"""
@@ -123,6 +150,16 @@ class RestAPI(Singleton):
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("While triggering the poll an error occurred.")
                 return internal_error("While triggering the poll an error occurred.")
+
+    @property
+    def enabled(self) -> bool:
+        """Return True if the api is enabled; otherwise False."""
+        return self.api is not None
+
+    @property
+    def running(self) -> bool:
+        """Return True if the api is running; otherwise False."""
+        return self._server is not None
 
     def create_api(
             self, app_name: str = 'pnp', enable_metrics: bool = True, enable_swagger: bool = True

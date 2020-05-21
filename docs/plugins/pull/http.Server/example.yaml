@@ -1,12 +1,18 @@
-api:
-  port: 9999
+#
+# Registers the endpoint /callme to the builtin api server.
+# Use curl to try it out:
+#   curl -X GET "http://localhost:9999/callme/telephone/now?number=12345&priority=high" --data '{"magic": 42}'
+#
+
+api:  # You need to enable the api
+  port: 9999  # Mandatory
 tasks:
-  - name: rest
+  - name: server
     pull:
       plugin: pnp.plugins.pull.http.Server
       args:
-        prefix_path: callme
-        allowed_methods:
+        prefix_path: callme  # Results into http://localhost:9999/callme
+        allowed_methods:  # Specify which methods are allowed
           - GET
           - POST
     push:

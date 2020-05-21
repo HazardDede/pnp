@@ -795,8 +795,6 @@ the data will be passed as is. See sections `Result` for specific payload and ex
 
 Remark: You will not able to make requests to the endpoint DELETE `/_shutdown` because it is used internally.
 
-Requires extra `http-server`.
-
 __Arguments__
 
 - **port (int, optional)**: The port the rest server should listen to for requests. Default is 5000.
@@ -838,14 +836,19 @@ curl -X GET 'http://localhost:5000/resource/endpoint' --data 'no json obviously'
 __Examples__
 
 ```yaml
-- name: rest
-  pull:
-    plugin: pnp.plugins.pull.http.Server
-    args:
-      port: 5000
-      allowed_methods: [GET, POST]
-  push:
-    plugin: pnp.plugins.push.simple.Echo
+api:
+  port: 9999
+tasks:
+  - name: rest
+    pull:
+      plugin: pnp.plugins.pull.http.Server
+      args:
+        prefix_path: callme
+        allowed_methods:
+          - GET
+          - POST
+    push:
+      plugin: pnp.plugins.push.simple.Echo
 
 ```
 ## pnp.plugins.pull.monitor.Stats
@@ -1645,25 +1648,26 @@ own. Given the virtual device name `ZWayVDev_zway_7-0-48-1` and the value of `on
 __Examples__
 
 ```yaml
-- name: zway_receiver
-  pull:
-    plugin: pnp.plugins.pull.zway.ZwayReceiver
-    args:
-      port: 5000
-      mode: mapping  # mapping, auto or both
-      device_mapping:
-        vdevice1:  # Props = {type: motion}
-          alias: dev1
-          type: motion
-        vdevice2:  # Props = {type: switch, other_prop: foo}
-          alias: dev2
-          type: switch
-          other_prop: foo
-        vdevice3: dev3  # props == {}
-      url_format: "%DEVICE%?value=%VALUE%"
-      ignore_unknown_devices: false
-  push:
-    - plugin: pnp.plugins.push.simple.Echo
-      selector: "'Got value {} from device {} ({}) with props {}'.format(data.value, data.device_name, data.raw_device, data.props)"
+api:
+  port: 9999
+tasks:
+  - name: zway_receiver
+    pull:
+      plugin: pnp.plugins.pull.zway.ZwayReceiver
+      args:
+        mode: both  # mapping, auto or both
+        device_mapping:
+          vdevice1:  # Props = {type: motion}
+            alias: dev1
+            type: motion
+          vdevice2:  # Props = {type: switch, other_prop: foo}
+            alias: dev2
+            type: switch
+            other_prop: foo
+          vdevice3: dev3  # props == {}
+        ignore_unknown_devices: false
+    push:
+      - plugin: pnp.plugins.push.simple.Echo
+        selector: "'Got value {} from device {} ({}) with props {}'.format(data.value, data.device_name, data.raw_device, data.props)"
 
 ```
