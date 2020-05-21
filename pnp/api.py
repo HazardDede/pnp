@@ -27,6 +27,11 @@ class Response:
         'success': doc.Boolean()
     }
 
+    VERSION = {
+        'version': doc.String(),
+        'python': doc.String()
+    }
+
     EMPTY = {}
 
 
@@ -107,6 +112,23 @@ class RestAPI(Singleton):
 
         monitor(api).expose_endpoint()
 
+    def _add_version_endpoint(self) -> None:
+        api = self._assert_api()
+
+        @api.route('/version')
+        @doc.summary("Return version information")
+        @doc.description("Returns the current version of pnp and python")
+        @doc.response(200, Response.VERSION, description="Version information")
+        @doc.response(500, Response.ERROR, description="Internal error")
+        async def version(request: Request) -> HTTPResponse:  # pylint: disable=unused-variable
+            _ = request  # Fake usage
+            import sys
+            from pnp import __version__
+            return json({
+                'version': __version__,
+                'python': sys.version
+            })
+
     def add_trigger_endpoint(self, task_set: TaskSet) -> None:
         """Route: /trigger.
         Triggers a poll right now without waiting for the schedule to be arrived.
@@ -171,6 +193,7 @@ class RestAPI(Singleton):
         logging.getLogger('sanic.root').setLevel(logging.WARNING)
 
         self._add_health_endpoint()
+        self._add_version_endpoint()
         if bool(enable_swagger):
             self._add_swagger_endpoint()
         if bool(enable_metrics):
