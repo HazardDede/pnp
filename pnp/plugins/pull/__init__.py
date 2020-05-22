@@ -7,12 +7,16 @@ from typing import Any, Callable, Optional
 import asyncio
 from schedule import Scheduler  # type: ignore
 
-from .. import Plugin
-from ...shared.async_ import async_from_sync
-from ...shared.async_ import async_sleep_until_interrupt
-from ...typing import Payload
-from ...utils import (auto_str_ignore, parse_duration_literal, try_parse_bool, DurationLiteral,
-                      sleep_until_interrupt)
+from pnp.plugins import Plugin
+from pnp.shared.async_ import async_from_sync, async_sleep_until_interrupt
+from pnp.typing import Payload
+from pnp.utils import (
+    auto_str_ignore,
+    parse_duration_literal,
+    try_parse_bool,
+    DurationLiteral,
+    sleep_until_interrupt
+)
 
 
 class PollingError(Exception):
@@ -122,18 +126,25 @@ class Polling(AsyncPullBase):
     """
     __prefix__ = 'poll'
 
-    def __init__(self, interval: DurationLiteral = 60, instant_run: bool = False, **kwargs: Any):
+    def __init__(
+        self, interval: Optional[DurationLiteral] = 60, instant_run: bool = False, **kwargs: Any
+    ):
         super().__init__(**kwargs)
 
-        try:
-            # Literals such as 60s, 1m, 1h, ...
-            self._poll_interval = parse_duration_literal(interval)
+        if interval is None:
+            # No scheduled execution. Use endpoint `/trigger` of api to execute.
+            self._poll_interval = None
             self.is_cron = False
-        except TypeError:
-            # ... or a cron-like expression is valid
-            from cronex import CronExpression  # type: ignore
-            self._cron_interval = CronExpression(interval)
-            self.is_cron = True
+        else:
+            try:
+                # Literals such as 60s, 1m, 1h, ...
+                self._poll_interval = parse_duration_literal(interval)
+                self.is_cron = False
+            except TypeError:
+                # ... or a cron-like expression is valid
+                from cronex import CronExpression  # type: ignore
+                self._cron_interval = CronExpression(interval)
+                self.is_cron = True
 
         self._is_running = False
         self._scheduler = None  # type: Optional[Scheduler]
@@ -159,7 +170,7 @@ class Polling(AsyncPullBase):
             await self._async_sleep(0.5)
 
         while self._is_running:  # Keep the loop alive until the job is finished
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(0.1)
 
     async def run_now(self) -> Payload:
         """Runs the poll right now. It will not run, if the last poll is still running."""
@@ -190,8 +201,10 @@ class Polling(AsyncPullBase):
         try:
             if self.is_cron:
                 dtime = datetime.now()
-                if not self._cron_interval.check_trigger((dtime.year, dtime.month,
-                                                          dtime.day, dtime.hour, dtime.minute)):
+                if not self._cron_interval.check_trigger((
+                        dtime.year, dtime.month, dtime.day,
+                        dtime.hour, dtime.minute
+                )):
                     return  # It is not the time for the cron to trigger
 
             await self.run_now()
@@ -218,8 +231,11 @@ class Polling(AsyncPullBase):
             # Scheduler always executes at the exact minute to check for cron triggering
             scheduler.every().minute.at(":00").do(callback)
         else:
-            # Scheduler executes every interval seconds to execute the poll
-            scheduler.every(self._poll_interval).seconds.do(callback)
+            # Only activate when an interval is specified
+            # If not the only way is to trigger the poll by the api `trigger` endpoint
+            if self._poll_interval:
+                # Scheduler executes every interval seconds to execute the poll
+                scheduler.every(self._poll_interval).seconds.do(callback)
 
     @abstractmethod
     def poll(self) -> Payload:

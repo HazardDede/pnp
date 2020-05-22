@@ -4,7 +4,7 @@ api:
     swagger: true  # Enable swagger endpoint: http://localhost:9999/swagger, default is false.
     metrics: true  # Enable metrics endpoint: http://localhost:9999/metrics, default is false.
 tasks:
-  - name: api
+  - name: task
     pull:
       plugin: pnp.plugins.pull.monitor.Stats
       args:
