@@ -57,9 +57,9 @@ class AsyncEngine(Engine):
         # pylint: disable=no-member
         fun_pending_tasks = asyncio.all_tasks if PY37 else asyncio.Task.all_tasks  # type: ignore
         fun_current_task = (
-            asyncio.current_task if PY37
+            asyncio.current_task if PY37  # type: ignore
             else asyncio.Task.current_task
-        )  # type: ignore
+        )
         # pylint: enable=no-member
 
         async def _pending_tasks_exist() -> bool:
