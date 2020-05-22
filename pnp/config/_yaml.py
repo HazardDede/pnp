@@ -11,7 +11,7 @@ from ruamel import yaml
 
 from pnp.config._base import Configuration, ConfigLoader
 from pnp.engines import Engine as RealEngine, RetryHandler
-from pnp.models import UDFModel, PullModel, PushModel, TaskModel, TaskSet
+from pnp.models import UDFModel, PullModel, PushModel, TaskModel, TaskSet, APIModel
 from pnp.plugins import load_plugin
 from pnp.plugins.pull import PullBase
 from pnp.plugins.push import PushBase
@@ -28,34 +28,46 @@ PushConfig = Dict[str, Any]
 class Schemas:
     """Collection of validation schemas for different components."""
 
+    plugin_args_name = "args"
+    plugin_name = "plugin"
+
     # Single pull
     Pull = sc.Schema({
-        "plugin": sc.Use(str),
-        sc.Optional("args", default={}): {
+        plugin_name: sc.Use(str),
+        sc.Optional(plugin_args_name, default={}): {
             sc.Optional(str): object
         },
     })
 
     # Single push block
+
+    push_selector_name = "selector"
+    push_unwrap_name = "unwrap"
+    push_deps_name = "deps"
+
     Push = sc.Schema({
-        "plugin": sc.Use(str),
-        sc.Optional("selector", default=None): sc.Or(object, None),
-        sc.Optional("unwrap", default=False): bool,
-        sc.Optional("args", default={}): {
+        plugin_name: sc.Use(str),
+        sc.Optional(push_selector_name, default=None): sc.Or(object, None),
+        sc.Optional(push_unwrap_name, default=False): bool,
+        sc.Optional(plugin_args_name, default={}): {
             sc.Optional(str): object
         },
         # deps is a list of push_schemas as well, but cannot declare recursive schemas
-        sc.Optional("deps", default=list()): sc.And(object, sc.Use(make_list))
+        sc.Optional(push_deps_name, default=list()): sc.And(object, sc.Use(make_list))
     })
 
     # Multiple pushes
     PushList = sc.Schema([Push])
 
     # Single task (one pull and multiple related pushes)
+    task_name = "name"
+    task_pull_name = "pull"
+    task_push_name = "push"
+
     Task = sc.Schema({
-        "name": sc.Use(str),
-        "pull": Pull,
-        "push": sc.And(sc.Or(PushList, Push), sc.Use(make_list))
+        task_name: sc.Use(str),
+        task_pull_name: Pull,
+        task_push_name: sc.And(sc.Or(PushList, Push), sc.Use(make_list))
     })
 
     # Allow configuration of a single task or a list of tasks
@@ -69,20 +81,49 @@ class Schemas:
     # Engine
     Engine = RealEngine
 
+    # API
+    api_port_name = "port"
+    api_endpoint_name = "endpoints"
+    api_endpoint_swagger = "swagger"
+    api_endpoint_metrics = "metrics"
+
+    api_endpoint_defaults = {
+        api_endpoint_swagger: False,
+        api_endpoint_metrics: False
+    }
+
+    API = sc.Schema({
+        api_port_name: sc.Use(int),
+        sc.Optional(api_endpoint_name, default=api_endpoint_defaults): {
+            sc.Optional(api_endpoint_swagger, False): sc.Use(bool),
+            sc.Optional(api_endpoint_metrics, False): sc.Use(bool)
+        }
+    })
+
     # User Defined Functions
+    udf_name = "name"
+
     UDFS = sc.Schema([{
-        "name": sc.Use(str),
-        "plugin": sc.Use(str),
-        sc.Optional("args"): sc.Or({
+        udf_name: sc.Use(str),
+        plugin_name: sc.Use(str),
+        sc.Optional(plugin_args_name): sc.Or({
             str: object
         }, None)
     }])
 
+    # Global settings
+
+    global_engine_name = "engine"
+    global_api_name = "api"
+    global_udfs_name = "udfs"
+    global_tasks_name = "tasks"
+
     GlobalSettings = sc.Schema({
         sc.Optional(sc.Or("anchors", "anchor", "ref", "refs", "alias", "aliases")): object,
-        sc.Optional("engine", default=None): Engine,
-        sc.Optional("udfs", default=None): UDFS,
-        'tasks': TaskList
+        sc.Optional(global_engine_name, default=None): Engine,
+        sc.Optional(global_api_name, default=None): API,
+        sc.Optional(global_udfs_name, default=None): UDFS,
+        global_tasks_name: TaskList
     })
 
     Root = sc.Schema(sc.And(
@@ -108,9 +149,12 @@ def _custom_yaml_constructor(loader: Any, node: Any, clstype: Any) -> Any:
 
 def _mk_pull(task_config: Box, **extra: Any) -> PullModel:
     """Make a pull out of a task configuration."""
-    args = {'name': '{task.name}_pull'.format(task=task_config), **extra, **task_config.pull.args}
+    name = '{}_pull'.format(task_config[Schemas.task_name])
+    pull_args = task_config[Schemas.task_pull_name][Schemas.plugin_args_name]
+    plugin = task_config[Schemas.task_pull_name][Schemas.plugin_name]
+    args = {'name': name, **extra, **pull_args}
     return PullModel(instance=cast(PullBase, load_plugin(
-        plugin_path=task_config.pull.plugin,
+        plugin_path=plugin,
         plugin_type=PullBase,
         instantiate=True,
         **args
@@ -125,20 +169,22 @@ def _mk_push(task_config: Box, **extra: Any) -> List[PushModel]:
                 i=i,
                 prefix=prefix
             )
-            args = {'name': push_name, **extra, **push.args}
-            unwrap = getattr(push, 'unwrap', False)
+            args = {'name': push_name, **extra, **push[Schemas.plugin_args_name]}
+            unwrap = getattr(push, Schemas.push_unwrap_name, False)
             yield PushModel(
                 instance=cast(PushBase, load_plugin(
-                    plugin_path=push.plugin,
+                    plugin_path=push[Schemas.plugin_name],
                     plugin_type=PushBase,
                     instantiate=True,
                     **args
                 )),
-                selector=push.selector,
+                selector=push[Schemas.push_selector_name],
                 unwrap=unwrap,
-                deps=list(_many(push.deps, push_name))
+                deps=list(_many(push[Schemas.push_deps_name], push_name))
             )
-    return list(_many(task_config.push, "{task_config.name}_push".format(**locals())))
+    pushes = task_config[Schemas.task_push_name]
+    prefix = task_config[Schemas.task_name] + "_push"
+    return list(_many(pushes, prefix))
 
 
 def _mk_udf(udf_config: Box) -> UDFModel:
@@ -146,17 +192,17 @@ def _mk_udf(udf_config: Box) -> UDFModel:
         udf_config = Box(udf_config)
     udf_type = cast(
         Union[str, type],
-        'callable' if not hasattr(udf_config, 'args') else UserDefinedFunction
+        'callable' if not hasattr(udf_config, Schemas.plugin_args_name) else UserDefinedFunction
     )
-    instantiate = hasattr(udf_config, 'args')
-    kwargs = udf_config.get('args') or {}
+    instantiate = hasattr(udf_config, Schemas.plugin_args_name)
+    kwargs = udf_config.get(Schemas.plugin_args_name) or {}
     fun = load_plugin(
-        plugin_path=udf_config.plugin,
+        plugin_path=udf_config[Schemas.plugin_name],
         plugin_type=udf_type,
         instantiate=instantiate,
-        **{'name': udf_config.name, **kwargs}
+        **{'name': udf_config[Schemas.udf_name], **kwargs}
     )
-    return UDFModel(name=udf_config.name, callable=cast(UserDefinedFunction, fun))
+    return UDFModel(name=udf_config[Schemas.udf_name], callable=cast(UserDefinedFunction, fun))
 
 
 class YamlConfigLoader(ConfigLoader):
@@ -165,9 +211,9 @@ class YamlConfigLoader(ConfigLoader):
     def _validate_push_deps(self, push: PushConfig) -> Iterator[PushConfig]:
         """Validates a push against the schema. This is done recursively."""
         _ = self  # Fake usage
-        for dependency in push['deps']:
+        for dependency in push[Schemas.push_deps_name]:
             validated_push = Schemas.Push.validate(dependency)
-            validated_push['deps'] = list(self._validate_push_deps(validated_push))
+            validated_push[Schemas.push_deps_name] = list(self._validate_push_deps(validated_push))
             yield validated_push
 
     def _add_constructors(self) -> None:
@@ -198,15 +244,28 @@ class YamlConfigLoader(ConfigLoader):
         # Remove the faked dictionary as root level
         return mentor.augment(cfg)['fake_root']
 
+    def _api_from_config(self, config: Box) -> Optional[APIModel]:
+        _ = self  # Fake usage
+
+        api = config.get(Schemas.global_api_name)
+        if not api:
+            return None
+
+        return APIModel(
+            port=api[Schemas.api_port_name],
+            enable_metrics=api[Schemas.api_endpoint_name].get(Schemas.api_endpoint_metrics, False),
+            enable_swagger=api[Schemas.api_endpoint_name].get(Schemas.api_endpoint_swagger, False)
+        )
+
     def _tasks_from_config(self, config: Box, base_path: Optional[str] = None) -> TaskSet:
         """Create a task from a task configuration."""
         _ = self  # Fake usage
 
         extra_kwargs = {'base_path': base_path}
         res = {}
-        for task in config.tasks:
+        for task in config[Schemas.global_tasks_name]:
             instance = TaskModel(
-                name=task.name,
+                name=task[Schemas.task_name],
                 pull=_mk_pull(task, **extra_kwargs),
                 pushes=list(_mk_push(task, **extra_kwargs))
             )
@@ -218,9 +277,11 @@ class YamlConfigLoader(ConfigLoader):
         """Creates a UDFModel from a udf configuration snippet."""
         _ = self  # Fake usage
 
-        if not hasattr(config, 'udfs'):
+        udfs = config.get(Schemas.global_udfs_name)
+        if not udfs:
             return []
-        return [_mk_udf(udf_config) for udf_config in config.udfs or []]
+
+        return [_mk_udf(udf_config) for udf_config in udfs or []]
 
     @classmethod
     def supported_extensions(cls) -> Iterable[str]:
@@ -243,13 +304,14 @@ class YamlConfigLoader(ConfigLoader):
         # We need to validate each push again against the push-schema.
         # Cause the dependencies of push are pushes as well and we cannot define
         # a recursive schema in one go.
-        for pull in validated['tasks']:
-            for push in pull['push']:
-                push['deps'] = list(self._validate_push_deps(push))
+        for pull in validated[Schemas.global_tasks_name]:
+            for push in pull[Schemas.task_push_name]:
+                push[Schemas.push_deps_name] = list(self._validate_push_deps(push))
         config = Box(validated)
 
         return Configuration(
-            engine=config.get('engine') or None,
+            api=self._api_from_config(config),
+            engine=config.get(Schemas.global_engine_name) or None,
             udfs=self._udfs_from_config(config),
             tasks=self._tasks_from_config(config, base_path)
         )

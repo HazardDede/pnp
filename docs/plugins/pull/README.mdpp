@@ -24,6 +24,5 @@
 !INCLUDE "docs/plugins/pull/simple.Repeat/index.md", 1
 !INCLUDE "docs/plugins/pull/simple.RunOnce/index.md", 1
 !INCLUDE "docs/plugins/pull/traffic.DeutscheBahn/index.md", 1
-!INCLUDE "docs/plugins/pull/trigger.Web/index.md", 1
 !INCLUDE "docs/plugins/pull/zway.ZwayPoll/index.md", 1
 !INCLUDE "docs/plugins/pull/zway.ZwayReceiver/index.md", 1

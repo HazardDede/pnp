@@ -13,7 +13,7 @@ from ..plugins.push import AsyncPushBase
 from ..selector import PayloadSelector
 from ..typing import Payload
 from ..utils import (Loggable, Singleton, parse_duration_literal, DurationLiteral, auto_str,
-                     is_iterable_but_no_str)
+                     is_iterable_but_no_str, auto_str_ignore)
 from ..validator import Validator
 
 
@@ -33,12 +33,12 @@ class Engine(Loggable):
     A call to to an engine's `run(...)` method will block the calling thread until the engine
     decides the job is done (normally an external SIGTERM occurs)
     """
-    def run(self, tasks: TaskSet) -> None:
+    async def run(self, tasks: TaskSet) -> None:
         """Run the given task set inside the engine."""
-        return self._run(tasks)
+        return await self._run(tasks)
 
     @abstractmethod
-    def _run(self, tasks: TaskSet) -> None:
+    async def _run(self, tasks: TaskSet) -> None:
         """Run the given task set inside the engine. Override in child classes to do the hard
         work."""
         raise NotImplementedError()
@@ -76,7 +76,7 @@ class RetryHandler:
         pass
 
     @abstractmethod
-    def handle_error(self) -> RetryDirective:
+    async def handle_error(self) -> RetryDirective:
         """
         Asks the retry handler to handle an error.
 
@@ -89,7 +89,7 @@ class RetryHandler:
 class NoRetryHandler(RetryHandler):
     """Will instruct the engine to abort and not to retry the pull."""
 
-    def handle_error(self) -> RetryDirective:
+    async def handle_error(self) -> RetryDirective:
         return RetryDirective(abort=True, wait_for=0, retry_cnt=1)
 
 
@@ -101,11 +101,8 @@ class SimpleRetryHandler(RetryHandler):
         self.retry_wait = parse_duration_literal(retry_wait)
         self.retry_count = 0
 
-    def _incr_retry(self) -> None:
+    async def handle_error(self) -> RetryDirective:
         self.retry_count += 1
-
-    def handle_error(self) -> RetryDirective:
-        self._incr_retry()
         return RetryDirective(abort=False, wait_for=self.retry_wait, retry_cnt=self.retry_count)
 
 
@@ -122,12 +119,13 @@ class LimitedRetryHandler(SimpleRetryHandler):
             return False
         return retry_count > self.max_retries
 
-    def handle_error(self) -> RetryDirective:
-        super().handle_error()
+    async def handle_error(self) -> RetryDirective:
+        await super().handle_error()
         abort = self._eval_abort(self.retry_count)
         return RetryDirective(abort=abort, wait_for=self.retry_wait, retry_cnt=self.retry_count)
 
 
+@auto_str_ignore(['last_error'])
 class AdvancedRetryHandler(LimitedRetryHandler):
     """Works like the `LimitedRetryHandler` but will reset the retry count when a given amount of
     time between the current failure and the previous failure has passed."""
@@ -138,7 +136,7 @@ class AdvancedRetryHandler(LimitedRetryHandler):
         self.reset_retry_threshold = parse_duration_literal(reset_retry_threshold)
         self.last_error = None  # type: Optional[datetime]
 
-    def handle_error(self) -> RetryDirective:
+    async def handle_error(self) -> RetryDirective:
         # Handles two cases:
         # 1. Initial value -> no retries so far, the next is 1
         # 2. Reset retry count because threshold has reached, next try is 1
@@ -147,7 +145,7 @@ class AdvancedRetryHandler(LimitedRetryHandler):
             self.retry_count = 0
 
         self.last_error = datetime.now()
-        directive = super().handle_error()
+        directive = await super().handle_error()
 
         return RetryDirective(
             abort=directive.abort,

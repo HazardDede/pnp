@@ -5,7 +5,7 @@ from typing import Optional, Iterable, Any
 import attr
 
 from pnp.engines import Engine
-from pnp.models import TaskSet, UDFModel, TaskModel, PullModel
+from pnp.models import TaskSet, UDFModel, TaskModel, PullModel, APIModel
 
 
 def _validate_tasks(instance: 'Configuration', attrib: Any, val: Any) -> Any:
@@ -52,6 +52,10 @@ def _validate_udfs(instance: 'Configuration', attrib: Any, val: Any) -> Any:
 @attr.s
 class Configuration:
     """Represents a parsed, instantiated and valid configuration."""
+    api = attr.ib(
+        validator=attr.validators.instance_of((type(None), APIModel))
+    )  # type: Optional[APIModel]
+
     tasks = attr.ib(
         validator=_validate_tasks
     )  # type: TaskSet

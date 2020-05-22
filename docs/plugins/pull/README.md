@@ -789,63 +789,61 @@ __Examples__
 ```
 ## pnp.plugins.pull.http.Server
 
-Listens on the specified `port` for requests to any endpoint.
-Any data passed to the endpoint will be tried to be parsed to a dictionary (json). If this is not possible
-the data will be passed as is. See sections `Result` for specific payload and examples.
+Creates a specific route on the builtin api server and listens to any call to that route.
+Any data passed to the endpoint will be tried to be parsed to a dictionary (json).
+If this is not possible the data will be passed as is. See sections `Result` for specific payload and examples.
 
-Remark: You will not able to make requests to the endpoint DELETE `/_shutdown` because it is used internally.
-
-Requires extra `http-server`.
+You need to enable the api via configuration to make this work.
 
 __Arguments__
 
-- **port (int, optional)**: The port the rest server should listen to for requests. Default is 5000.
+- **prefix_path (str)**: The route to create for incoming traffic on the builtin api server. See the Example section for reference.
 - **allowed_methods (str or list, optional)**: List of http methods that are allowed. Default is 'GET'.
-- **server_impl (str, optional)**: Choose the implementation of the WSGI-Server (wraps the flask-app).
-    Possible values are: [flask, gevent]. `flask` uses the internal Flask Development server. Not recommended for
-    production use. `gevent` uses [gevent](http://www.gevent.org/). Default is `gevent`.
 
 __Result__
 
-```shell
-curl -X GET 'http://localhost:5000/resource/endpoint?foo=bar&bar=baz' --data '{"baz": "bar"}'
+Assumes that you configured your pull with `prefix_path = callme`
+
+```bash
+curl -X GET "http://localhost:9999/callme/telephone/now?number=12345&priority=high" --data '{"magic": 42}'
 ```
 
-```yaml
+```json
 {
-    'endpoint': 'resource/endpoint,
-    'method': 'GET',
-    'query': {'foo': 'bar', 'bar': 'baz'},
-    'data': {'baz': 'bar'},
-    'is_json': True
-}
-```
-
-```shell
-curl -X GET 'http://localhost:5000/resource/endpoint' --data 'no json obviously'
-```
-
-```yaml
-{
-    'endpoint': 'resource/endpoint,
-    'method': 'GET',
-    'query': {},
-    'data': b'no json obviously',
-    'is_json': False
+  "endpoint": "telephone/now",
+  "data": {"magic": 42},
+  "levels": ["telephone", "now"],
+  "method": "GET",
+  "query": {"number": "12345", "priority": "high"},
+  "is_json": True,
+  "url": "http://localhost:9999/callme/telephone/now?number=12345&priority=high",
+  "full_path": "/callme/telephone/now?number=12345&priority=high",
+  "path": "/callme/telephone/now"
 }
 ```
 
 __Examples__
 
 ```yaml
-- name: rest
-  pull:
-    plugin: pnp.plugins.pull.http.Server
-    args:
-      port: 5000
-      allowed_methods: [GET, POST]
-  push:
-    plugin: pnp.plugins.push.simple.Echo
+##
+## Registers the endpoint /callme to the builtin api server.
+## Use curl to try it out:
+##   curl -X GET "http://localhost:9999/callme/telephone/now?number=12345&priority=high" --data '{"magic": 42}'
+##
+
+api:  # You need to enable the api
+  port: 9999  # Mandatory
+tasks:
+  - name: server
+    pull:
+      plugin: pnp.plugins.pull.http.Server
+      args:
+        prefix_path: callme  # Results into http://localhost:9999/callme
+        allowed_methods:  # Specify which methods are allowed
+          - GET
+          - POST
+    push:
+      plugin: pnp.plugins.push.simple.Echo
 
 ```
 ## pnp.plugins.pull.monitor.Stats
@@ -1518,80 +1516,6 @@ __Examples__
     plugin: pnp.plugins.push.simple.Echo
 
 ```
-## pnp.plugins.pull.trigger.Web
-
-Wraps a poll-based pull and provides a rest-endpoint to externally trigger the poll action.
-This will disable the cron-like / scheduling features of the polling component and simply
-provides you an interface to call the component anytime you see fit.
-
-__Arguments__
-
-- **poll (Polling component)**: The polling component that you want to trigger externally. See example for configuration.
-- **port (int)**: The port for the server to listen on.
-- **endpoint (str, optional)**: The name of the endpoint. Default is `/trigger`.
-
-Assume you set `port = 8080` and `endpoint = trigger` then your corresponding `curl` command
-to trigger the polling externally would look like this:
-
-```bash
-curl http://localhost:8080/trigger
-```
-
-In case of success you get back a `200`. In case of error it's a `500`.
-
-__Result__
-
-The component will simply forward the result of the underlying component to dependent pushes.
-
-__Examples__
-
-```yaml
-engine: !engine
-  type: pnp.engines.AsyncEngine
-  retry_handler: !retry
-    type: pnp.engines.NoRetryHandler
-tasks:
-  - name: trigger_web
-    pull:
-      plugin: pnp.plugins.pull.trigger.Web
-      args:
-        port: 8080
-        endpoint: '/'
-        poll:
-          plugin: pnp.plugins.pull.monitor.Stats
-    push:
-      plugin: pnp.plugins.push.simple.Echo
-
-```
-
-Test it out:
-
-```bash
-curl http://localhost:8080/
-```
-
-```yaml
-- name: trigger_web
-  pull:
-    plugin: pnp.plugins.pull.trigger.Web
-    args:
-      port: 8080
-      poll:
-        plugin: pnp.plugins.pull.traffic.DeutscheBahn
-        args:
-          origin: Hamburg Hbf
-          destination: München Hbf
-          only_direct: true  # Only show direct transfers wo change. Default is False.
-  push:
-    plugin: pnp.plugins.push.simple.Echo
-
-```
-
-Test it out:
-
-```bash
-curl http://localhost:8080/trigger
-```
 ## pnp.plugins.pull.zway.ZwayPoll
 
 Pulls the specified json content from the zway rest api. The content is specified by the url, e.g.
@@ -1719,25 +1643,26 @@ own. Given the virtual device name `ZWayVDev_zway_7-0-48-1` and the value of `on
 __Examples__
 
 ```yaml
-- name: zway_receiver
-  pull:
-    plugin: pnp.plugins.pull.zway.ZwayReceiver
-    args:
-      port: 5000
-      mode: mapping  # mapping, auto or both
-      device_mapping:
-        vdevice1:  # Props = {type: motion}
-          alias: dev1
-          type: motion
-        vdevice2:  # Props = {type: switch, other_prop: foo}
-          alias: dev2
-          type: switch
-          other_prop: foo
-        vdevice3: dev3  # props == {}
-      url_format: "%DEVICE%?value=%VALUE%"
-      ignore_unknown_devices: false
-  push:
-    - plugin: pnp.plugins.push.simple.Echo
-      selector: "'Got value {} from device {} ({}) with props {}'.format(data.value, data.device_name, data.raw_device, data.props)"
+api:
+  port: 9999
+tasks:
+  - name: zway_receiver
+    pull:
+      plugin: pnp.plugins.pull.zway.ZwayReceiver
+      args:
+        mode: both  # mapping, auto or both
+        device_mapping:
+          vdevice1:  # Props = {type: motion}
+            alias: dev1
+            type: motion
+          vdevice2:  # Props = {type: switch, other_prop: foo}
+            alias: dev2
+            type: switch
+            other_prop: foo
+          vdevice3: dev3  # props == {}
+        ignore_unknown_devices: false
+    push:
+      - plugin: pnp.plugins.push.simple.Echo
+        selector: "'Got value {} from device {} ({}) with props {}'.format(data.value, data.device_name, data.raw_device, data.props)"
 
 ```

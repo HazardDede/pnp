@@ -81,6 +81,22 @@ class TaskModel:
 
 
 @attr.s
+class APIModel:
+    """Model representing the api server configuration."""
+    port = attr.ib(
+        converter=int
+    )  # type: int
+
+    enable_swagger = attr.ib(
+        converter=bool
+    )  # type: bool
+
+    enable_metrics = attr.ib(
+        converter=bool
+    )  # type: bool
+
+
+@attr.s
 class UDFModel:
     """Model representing a user-defined function."""
     name = attr.ib(

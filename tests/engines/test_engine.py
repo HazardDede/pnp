@@ -1,3 +1,4 @@
+import asyncio
 import time
 from functools import partial
 from threading import Thread
@@ -8,6 +9,11 @@ from pnp.plugins.pull.simple import Count
 from pnp.plugins.push.simple import Echo
 
 
+def _run_engine(engine, tasks):
+    loop = asyncio.new_event_loop()
+    loop.run_until_complete(engine.run(tasks))
+
+
 def test_async_engine_for_smoke():
     engine = AsyncEngine(retry_handler=NoRetryHandler())
     deps = [PushModel(instance=Echo(name='dep_echo'), selector="payload", deps=[], unwrap=False)]
@@ -16,7 +22,7 @@ def test_async_engine_for_smoke():
         pull=PullModel(instance=Count(name='count', from_cnt=0, wait=0.5)),
         pushes=[PushModel(instance=Echo(name='echo'), selector=None, deps=deps, unwrap=False)]
     )}
-    t = Thread(target=partial(engine.run, tasks=tasks))
+    t = Thread(target=partial(_run_engine, engine=engine, tasks=tasks))
     try:
         t.start()
         time.sleep(1)

@@ -25,6 +25,7 @@ def docs(ctx):
     _process_directory('docs/plugins/push')
     _process_directory('docs/plugins/udf')
     _process_file('docs/plugins/README.mdpp')
+    _process_file('docs/features/README.mdpp')
     _process_file('docs/engines/README.mdpp')
     _process_file('docs/README.mdpp')
     _process_file('README.mdpp')

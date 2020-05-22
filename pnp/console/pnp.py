@@ -23,9 +23,10 @@ from docopt import docopt
 from ruamel import yaml
 from schema import Schema, Use, And, Or
 
-from ..app import Application
-from ..engines import DEFAULT_ENGINES
-from ..utils import get_first_existing_file
+from pnp import __version__
+from pnp.app import Application
+from pnp.engines import DEFAULT_ENGINES
+from pnp.utils import get_first_existing_file
 
 
 def _setup_logging(*candidates, default_level=logging.INFO, env_key='PNP_LOG_CONF', verbose=False):
@@ -71,7 +72,7 @@ def run(args):
     """Run pull 'n' push."""
     validated = _validate_args(args)
     pnp_cfg_path = validated['<configuration>']
-    default_log_level = os.environ.get('LOG_LEVEL', 'DEBUG')
+    default_log_level = os.environ.get('LOG_LEVEL', 'INFO')
     _setup_logging(
         args['--log'], 'logging.yaml', os.path.join(os.path.dirname(pnp_cfg_path), 'logging.yaml'),
         default_level=default_log_level, verbose=validated['--verbose']
@@ -83,7 +84,7 @@ def run(args):
 
 def main():
     """Main entry point into pnp application."""
-    arguments = docopt(__doc__, version='0.23.0')
+    arguments = docopt(__doc__, version=__version__)
     run(arguments)
 
 

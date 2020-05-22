@@ -2,8 +2,7 @@
 source = pnp
 
 omit =
-    pnp/app.py
-    pnp/runner/*
+    pnp/console/*
 
 
 [report]

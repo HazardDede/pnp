@@ -37,7 +37,7 @@ COPY README.md pyproject.toml poetry.lock ./
 RUN poetry export \
         --without-hashes \
         -E "dropbox" -E "fitbit" -E "fritz" -E "fswatcher" \
-        -E "ftp" -E "gmail" -E "http-server" -E "miflora" -E "pushbullet" \
+        -E "ftp" -E "gmail" -E "miflora" -E "pushbullet" \
         -f requirements.txt \
         > requirements.txt && \
     pip3 install \

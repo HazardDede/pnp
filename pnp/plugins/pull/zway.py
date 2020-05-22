@@ -3,13 +3,13 @@
 import re
 
 import requests
-from requests.auth import HTTPBasicAuth
 import schema
+from requests.auth import HTTPBasicAuth
 
-from . import Polling, PollingError
-from .http import Server
-from ...utils import auto_str_ignore, try_parse_int_float_str
-from ...validator import Validator
+from pnp.plugins.pull import Polling, PollingError
+from pnp.plugins.pull.http import Server
+from pnp.utils import auto_str_ignore, try_parse_int_float_str
+from pnp.validator import Validator
 
 
 @auto_str_ignore(['password'])
@@ -54,6 +54,8 @@ class ZwayReceiver(Server):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/zway.ZwayReceiver/index.md
     """
+    ZWAY_PATH_PREFIX = 'zway'
+
     MAPPING_SCHEMA = schema.Schema({
         schema.Optional(str): schema.Or(
             {
@@ -111,20 +113,18 @@ class ZwayReceiver(Server):
             descr = descr.get(str(mode))
         return descr
 
-    def __init__(self, url_format="/set?device=%DEVICE%&state=%VALUE%", device_mapping=None,
-                 ignore_unknown_devices=False, mode='mapping', vdev_regex=None, **kwargs):
+    def __init__(
+            self, device_mapping=None, ignore_unknown_devices=False, mode='mapping',
+            vdev_regex=None, **kwargs
+    ):
         # Zway module HttpGet only supports GET calls
         kwargs['allowed_methods'] = 'GET'
+        kwargs['prefix_path'] = self.ZWAY_PATH_PREFIX
         super().__init__(**kwargs)
         self.ignore_unknown_devices = bool(ignore_unknown_devices)
 
-        Validator.is_instance(str, url_format=url_format)
-        if not url_format.startswith('/'):
-            url_format = '/' + url_format
-        if '?' not in url_format:
-            url_format = url_format + '?'
-        self.url_format = url_format
-        self.url_format_regex = self._make_regex(url_format)
+        self.url_format = "/{}?device=%DEVICE%&value=%VALUE%".format(self.ZWAY_PATH_PREFIX)
+        self.url_format_regex = self._make_regex(self.url_format)
 
         if device_mapping is None:
             device_mapping = {}
@@ -188,5 +188,9 @@ class ZwayReceiver(Server):
 
         device_map = device_map.copy()
         alias = device_map.pop('alias')
-        super().notify(dict(device_name=alias, props=device_map, raw_device=raw_device,
-                            value=try_parse_int_float_str(value)))
+        super().notify(dict(
+            device_name=alias,
+            props=device_map,
+            raw_device=raw_device,
+            value=try_parse_int_float_str(value)
+        ))
