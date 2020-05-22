@@ -7,7 +7,9 @@ You are encouraged to specify explicitly the version in your dependency tools, e
     pip install pnp==0.10.0
     
 **0.24.0 (pending)**
-* TBD
+* Implements an API
+* Breaking: `pull.zway.ZwayReceiver` integrates it's endpoint into the api
+* Breaking: `pull.http.Server` integrates the endpoint into the api
 
 **0.23.0**
 * Breaking: Removes engines except for AsyncEngine

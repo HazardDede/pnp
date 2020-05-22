@@ -14,12 +14,12 @@ TBD
 
 ```yaml
 api:
-  port: 9090  # API listens on port 9090; mandatory
+  port: 9999  # API listens on port 9090; mandatory
   endpoints:  # Optional
-    swagger: true  # Enable swagger endpoint: http://localhost:9090/swagger, default is false.
-    metrics: true  # Enable metrics endpoint: http://localhost:9090/metrics, default is false.
+    swagger: true  # Enable swagger endpoint: http://localhost:9999/swagger, default is false.
+    metrics: true  # Enable metrics endpoint: http://localhost:9999/metrics, default is false.
 tasks:
-  - name: api
+  - name: task
     pull:
       plugin: pnp.plugins.pull.monitor.Stats
       args:
