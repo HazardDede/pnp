@@ -19,18 +19,12 @@ _LOGGER = logging.getLogger(__name__)
 
 class Response:
     """Common controller responses."""
-    ERROR = {
-        'message': doc.String
-    }
 
-    HEALTH = {
-        'success': doc.Boolean()
-    }
+    ERROR = {"message": doc.String}
 
-    VERSION = {
-        'version': doc.String(),
-        'python': doc.String()
-    }
+    HEALTH = {"success": doc.Boolean()}
+
+    VERSION = {"version": doc.String(), "python": doc.String()}
 
     EMPTY = {}
 
@@ -59,21 +53,27 @@ class APINotInitialized(APIError):
 
 def bad_request(message: str) -> HTTPResponse:
     """Create a bad request 400 http response."""
-    return json({'message': message}, 400)
+    return json({"message": message}, 400)
 
 
 def internal_error(message: str) -> HTTPResponse:
     """Create a internal error 500 http response."""
-    return json({'message': message}, 500)
+    return json({"message": message}, 500)
 
 
 def success() -> HTTPResponse:
     """Create a simple success response."""
-    return json({'success': True}, 200)
+    return json({"success": True}, 200)
+
+
+def empty() -> HTTPResponse:
+    """Create a simple empty response."""
+    return json({}, 200)
 
 
 class RestAPI(Singleton):
     """API singleton."""
+
     def __init__(self):  # pylint: disable=super-init-not-called
         self.api = None  # type: Optional[Sanic]
         self.port = None  # type: Optional[int]
@@ -90,11 +90,11 @@ class RestAPI(Singleton):
         """Route: /health"""
         api = self._assert_api()
 
-        @api.route('/health')
+        @api.route("/health")
         @doc.summary("Health")
         @doc.description("Returns a json about the current health of the api")
         @doc.response(200, Response.HEALTH, description="Health information")
-        async def health(request: Request) -> HTTPResponse:  # pylint: disable=unused-variable
+        async def health(request: Request,) -> HTTPResponse:  # pylint: disable=unused-variable
             _ = request  # Fake usage
             return success()
 
@@ -115,19 +115,47 @@ class RestAPI(Singleton):
     def _add_version_endpoint(self) -> None:
         api = self._assert_api()
 
-        @api.route('/version')
+        @api.route("/version")
         @doc.summary("Return version information")
         @doc.description("Returns the current version of pnp and python")
         @doc.response(200, Response.VERSION, description="Version information")
         @doc.response(500, Response.ERROR, description="Internal error")
-        async def version(request: Request) -> HTTPResponse:  # pylint: disable=unused-variable
+        async def version(request: Request,) -> HTTPResponse:  # pylint: disable=unused-variable
             _ = request  # Fake usage
             import sys
             from pnp import __version__
-            return json({
-                'version': __version__,
-                'python': sys.version
-            })
+
+            return json({"version": __version__, "python": sys.version})
+
+    def _add_log_level_endpoint(self) -> None:
+        api = self._assert_api()
+
+        @api.route("/loglevel", methods=["POST"])
+        @doc.summary("Change the log level")
+        @doc.description("Change the logging level of the application during runtime")
+        @doc.consumes(
+            doc.String(
+                "Logging Level. One of DEBUG, INFO, WARNING, ERROR, CRITICAL", name="level",
+            ),
+            required=True,
+        )
+        @doc.response(200, Response.EMPTY, description="Empty response")
+        @doc.response(400, Response.ERROR, description="Bad request")
+        @doc.response(
+            500, Response.ERROR, description="Internal error"
+        )  # pylint: disable=unused-variable
+        async def loglevel(request: Request) -> HTTPResponse:
+            args = RequestParameters(request.args)
+            level = args.get("level")
+            if not level:
+                return bad_request("Argument 'level' in query string not set.")
+            level = level.upper()
+            level_code = logging.getLevelName(level)
+            if not isinstance(level_code, int):
+                return bad_request("Argument 'level' is not a valid logging level.")
+            logging.getLogger().setLevel(level_code)
+
+            return empty()
 
     def add_trigger_endpoint(self, task_set: TaskSet) -> None:
         """Route: /trigger.
@@ -136,19 +164,19 @@ class RestAPI(Singleton):
         signals to do it's job."""
         api = self._assert_api()
 
-        @api.route('/trigger', methods=["POST"])
+        @api.route("/trigger", methods=["POST"])
         @doc.summary("Triggers a poll right now")
         @doc.description(
             "Triggers a poll right now without being it's schedule be fulfilled. "
             "This only works for polling components and not for regular pull"
         )
-        @doc.consumes(doc.String("The name of the task", name='task'), required=True)
+        @doc.consumes(doc.String("The name of the task", name="task"), required=True)
         @doc.response(200, Response.EMPTY, description="Poll was triggered")
         @doc.response(400, Response.ERROR, description="Bad request")  # pylint: disable=unused-variable
         @doc.response(500, Response.ERROR, description="Internal error")
         async def trigger(request: Request) -> HTTPResponse:
             args = RequestParameters(request.args)
-            task_name = args.get('task')
+            task_name = args.get("task")
             if not task_name:
                 return bad_request("Argument 'task' in query string not set.")
 
@@ -168,7 +196,7 @@ class RestAPI(Singleton):
 
             try:
                 await pull.run_now()
-                return json({}, 200)
+                return empty()
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("While triggering the poll an error occurred.")
                 return internal_error("While triggering the poll an error occurred.")
@@ -184,16 +212,17 @@ class RestAPI(Singleton):
         return self._server is not None
 
     def create_api(
-            self, app_name: str = 'pnp', enable_metrics: bool = True, enable_swagger: bool = True
+        self, app_name: str = "pnp", enable_metrics: bool = True, enable_swagger: bool = True,
     ) -> None:
         """
         Creates a sanic application to serve api requests.
         """
         self.api = Sanic(str(app_name))
-        logging.getLogger('sanic.root').setLevel(logging.WARNING)
+        logging.getLogger("sanic.root").setLevel(logging.WARNING)
 
         self._add_health_endpoint()
         self._add_version_endpoint()
+        self._add_log_level_endpoint()
         if bool(enable_swagger):
             self._add_swagger_endpoint()
         if bool(enable_metrics):
@@ -208,12 +237,7 @@ class RestAPI(Singleton):
         if self._add_swagger:
             api.blueprint(swagger_blueprint)
 
-        self._server = api.create_server(
-            host="0.0.0.0",
-            port=port,
-            debug=False,
-            access_log=False
-        )
+        self._server = api.create_server(host="0.0.0.0", port=port, debug=False, access_log=False)
         asyncio.ensure_future(self._server)
 
         _LOGGER.info("API server started @ port %s", port)

@@ -60,10 +60,14 @@ class Schemas:
     PushList = sc.Schema([Push])
 
     # Single task (one pull and multiple related pushes)
+    task_name = "name"
+    task_pull_name = "pull"
+    task_push_name = "push"
+
     Task = sc.Schema({
-        "name": sc.Use(str),
-        "pull": Pull,
-        "push": sc.And(sc.Or(PushList, Push), sc.Use(make_list))
+        task_name: sc.Use(str),
+        task_pull_name: Pull,
+        task_push_name: sc.And(sc.Or(PushList, Push), sc.Use(make_list))
     })
 
     # Allow configuration of a single task or a list of tasks
@@ -97,20 +101,29 @@ class Schemas:
     })
 
     # User Defined Functions
+    udf_name = "name"
+
     UDFS = sc.Schema([{
-        "name": sc.Use(str),
+        udf_name: sc.Use(str),
         plugin_name: sc.Use(str),
         sc.Optional(plugin_args_name): sc.Or({
             str: object
         }, None)
     }])
 
+    # Global settings
+
+    global_engine_name = "engine"
+    global_api_name = "api"
+    global_udfs_name = "udfs"
+    global_tasks_name = "tasks"
+
     GlobalSettings = sc.Schema({
         sc.Optional(sc.Or("anchors", "anchor", "ref", "refs", "alias", "aliases")): object,
-        sc.Optional("engine", default=None): Engine,
-        sc.Optional("api", default=None): API,
-        sc.Optional("udfs", default=None): UDFS,
-        'tasks': TaskList
+        sc.Optional(global_engine_name, default=None): Engine,
+        sc.Optional(global_api_name, default=None): API,
+        sc.Optional(global_udfs_name, default=None): UDFS,
+        global_tasks_name: TaskList
     })
 
     Root = sc.Schema(sc.And(
@@ -136,9 +149,12 @@ def _custom_yaml_constructor(loader: Any, node: Any, clstype: Any) -> Any:
 
 def _mk_pull(task_config: Box, **extra: Any) -> PullModel:
     """Make a pull out of a task configuration."""
-    args = {'name': '{task.name}_pull'.format(task=task_config), **extra, **task_config.pull.args}
+    name = '{}_pull'.format(task_config[Schemas.task_name])
+    pull_args = task_config[Schemas.task_pull_name][Schemas.plugin_args_name]
+    plugin = task_config[Schemas.task_pull_name][Schemas.plugin_name]
+    args = {'name': name, **extra, **pull_args}
     return PullModel(instance=cast(PullBase, load_plugin(
-        plugin_path=task_config.pull[Schemas.plugin_name],
+        plugin_path=plugin,
         plugin_type=PullBase,
         instantiate=True,
         **args
@@ -166,7 +182,9 @@ def _mk_push(task_config: Box, **extra: Any) -> List[PushModel]:
                 unwrap=unwrap,
                 deps=list(_many(push[Schemas.push_deps_name], push_name))
             )
-    return list(_many(task_config.push, "{task_config.name}_push".format(**locals())))
+    pushes = task_config[Schemas.task_push_name]
+    prefix = task_config[Schemas.task_name] + "_push"
+    return list(_many(pushes, prefix))
 
 
 def _mk_udf(udf_config: Box) -> UDFModel:
@@ -182,9 +200,9 @@ def _mk_udf(udf_config: Box) -> UDFModel:
         plugin_path=udf_config[Schemas.plugin_name],
         plugin_type=udf_type,
         instantiate=instantiate,
-        **{'name': udf_config.name, **kwargs}
+        **{'name': udf_config[Schemas.udf_name], **kwargs}
     )
-    return UDFModel(name=udf_config.name, callable=cast(UserDefinedFunction, fun))
+    return UDFModel(name=udf_config[Schemas.udf_name], callable=cast(UserDefinedFunction, fun))
 
 
 class YamlConfigLoader(ConfigLoader):
@@ -229,7 +247,7 @@ class YamlConfigLoader(ConfigLoader):
     def _api_from_config(self, config: Box) -> Optional[APIModel]:
         _ = self  # Fake usage
 
-        api = config.get('api')
+        api = config.get(Schemas.global_api_name)
         if not api:
             return None
 
@@ -245,9 +263,9 @@ class YamlConfigLoader(ConfigLoader):
 
         extra_kwargs = {'base_path': base_path}
         res = {}
-        for task in config.tasks:
+        for task in config[Schemas.global_tasks_name]:
             instance = TaskModel(
-                name=task.name,
+                name=task[Schemas.task_name],
                 pull=_mk_pull(task, **extra_kwargs),
                 pushes=list(_mk_push(task, **extra_kwargs))
             )
@@ -259,9 +277,11 @@ class YamlConfigLoader(ConfigLoader):
         """Creates a UDFModel from a udf configuration snippet."""
         _ = self  # Fake usage
 
-        if not hasattr(config, 'udfs'):
+        udfs = config.get(Schemas.global_udfs_name)
+        if not udfs:
             return []
-        return [_mk_udf(udf_config) for udf_config in config.udfs or []]
+
+        return [_mk_udf(udf_config) for udf_config in udfs or []]
 
     @classmethod
     def supported_extensions(cls) -> Iterable[str]:
@@ -284,14 +304,14 @@ class YamlConfigLoader(ConfigLoader):
         # We need to validate each push again against the push-schema.
         # Cause the dependencies of push are pushes as well and we cannot define
         # a recursive schema in one go.
-        for pull in validated['tasks']:
-            for push in pull['push']:
+        for pull in validated[Schemas.global_tasks_name]:
+            for push in pull[Schemas.task_push_name]:
                 push[Schemas.push_deps_name] = list(self._validate_push_deps(push))
         config = Box(validated)
 
         return Configuration(
             api=self._api_from_config(config),
-            engine=config.get('engine') or None,
+            engine=config.get(Schemas.global_engine_name) or None,
             udfs=self._udfs_from_config(config),
             tasks=self._tasks_from_config(config, base_path)
         )

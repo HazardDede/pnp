@@ -72,7 +72,7 @@ def run(args):
     """Run pull 'n' push."""
     validated = _validate_args(args)
     pnp_cfg_path = validated['<configuration>']
-    default_log_level = os.environ.get('LOG_LEVEL', 'DEBUG')
+    default_log_level = os.environ.get('LOG_LEVEL', 'INFO')
     _setup_logging(
         args['--log'], 'logging.yaml', os.path.join(os.path.dirname(pnp_cfg_path), 'logging.yaml'),
         default_level=default_log_level, verbose=validated['--verbose']

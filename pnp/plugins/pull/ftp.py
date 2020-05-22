@@ -3,10 +3,10 @@ import copy
 import tempfile
 from contextlib import contextmanager
 
-from . import PullBase
-from .. import load_optional_module
-from ...utils import is_iterable_but_no_str, make_list
-from ...validator import Validator
+from pnp.plugins import load_optional_module
+from pnp.plugins.pull import PullBase
+from pnp.utils import is_iterable_but_no_str, make_list
+from pnp.validator import Validator
 
 
 class Server(PullBase):

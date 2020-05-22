@@ -13,7 +13,7 @@ from ..utils import auto_str_ignore, PY37
 
 @auto_str_ignore(['loop', 'tasks'])
 class AsyncEngine(Engine):
-    """Asynchronous engine."""
+    """Asynchronous engine using asyncio."""
 
     HEARTBEAT_INTERVAL = 1.0
 
@@ -56,12 +56,16 @@ class AsyncEngine(Engine):
 
         # pylint: disable=no-member
         fun_pending_tasks = asyncio.all_tasks if PY37 else asyncio.Task.all_tasks  # type: ignore
+        fun_current_task = (
+            asyncio.current_task if PY37
+            else asyncio.Task.current_task
+        )  # type: ignore
         # pylint: enable=no-member
 
         async def _pending_tasks_exist() -> bool:
             all_tasks = list(fun_pending_tasks())
             for task in all_tasks:
-                if task is asyncio.Task.current_task():  # Just in case
+                if task is fun_current_task():  # Just in case
                     continue
                 if task.done():  # Just in case
                     continue
@@ -223,4 +227,4 @@ class AsyncEngine(Engine):
                 break
             time.sleep(1)
         if loop.is_running():
-            raise RuntimeError("Eventloop did not stop")
+            raise RuntimeError("Event loop did not stop")

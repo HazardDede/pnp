@@ -21,7 +21,7 @@ _LOADER_USED = None  # type: Optional[ConfigLoader]
 
 
 def load_config(config_path: str) -> Configuration:
-    """Load the specified config"""
+    """Load the specified config by using a compatible `ConfigLoader`."""
     global _LOADER_USED  # pylint: disable=global-statement
 
     if not os.path.isfile(config_path):
@@ -38,7 +38,8 @@ def load_config(config_path: str) -> Configuration:
 
 
 def load_pull_from_snippet(snippet: Any, name: str, **extra: Any) -> PullModel:
-    """Loads a pull from a snippet."""
+    """Loads a pull from a snippet using the same `ConfigLoader` that was initially used
+    to load the main configuration."""
     global _LOADER_USED  # pylint: disable=global-statement
     loader = _LOADER_USED if _LOADER_USED else YamlConfigLoader()  # Default loader for testing
     return loader.load_pull_from_snippet(snippet, name, **extra)
