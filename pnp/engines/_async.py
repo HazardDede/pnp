@@ -69,12 +69,11 @@ class AsyncEngine(Engine):
                     continue
                 if task.done():  # Just in case
                     continue
-                current = str(task)
                 # Is a push running?
-                if "coro=<AsyncEngine._schedule_push()" in str(current):
+                if "coro=<AsyncEngine._schedule_push()" in str(task):
                     return True
                 # Is a pull running?
-                if "coro=<AsyncEngine._start_task()" in str(current):
+                if "coro=<AsyncEngine._start_task()" in str(task):
                     return True
             return False
 
