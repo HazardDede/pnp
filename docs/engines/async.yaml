@@ -1,6 +1,4 @@
-# Will use asyncio to accomplish concurrency
-
-engine: !engine
+engine: !engine  # Use the AsyncEngine explicitly
   type: pnp.engines.AsyncEngine
   retry_handler: !retry
     type: pnp.engines.SimpleRetryHandler
