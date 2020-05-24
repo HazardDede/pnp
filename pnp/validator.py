@@ -2,6 +2,73 @@
 import os
 from typing import Any, Callable, Iterable, List, Optional
 
+from typeguard import typechecked
+
+
+def is_iterable_but_no_str(candidate: Any) -> bool:
+    """
+    Checks if the given candidate is an iterable but no str.
+
+    Args:
+        candidate: The candidate to test.
+
+    Examples:
+        >>> is_iterable_but_no_str([1, 2])
+        True
+        >>> is_iterable_but_no_str((1, 2))
+        True
+        >>> is_iterable_but_no_str("1,2")
+        False
+
+    """
+    return hasattr(candidate, '__iter__') and not isinstance(candidate, (str, bytes))
+
+
+@typechecked
+def attrs_validator_dict_items(
+    instance: Any, attrib: Any, val: Any, key_type: type, val_type: type
+) -> Any:
+    """Attrs helper function to validate a dictionary and it's items."""
+    _ = instance  # Fake usage
+
+    if not isinstance(val, dict):
+        raise TypeError(
+            "Argument {} is expected to be a dictionary, but is {}".format(attrib.name, type(val))
+        )
+    for i, (key, value) in enumerate(val.items()):
+        if not isinstance(key, key_type):
+            raise TypeError(
+                "Key at {} position is expected to be a {}, but is {}".format(
+                    i, key_type, type(value)
+                )
+            )
+        if not isinstance(value, val_type):
+            raise TypeError(
+                "Value at {} position is expected to be a {}, but is {}".format(
+                    i, val_type, type(value)
+                )
+            )
+    return val
+
+
+@typechecked
+def attrs_validate_list_items(instance: Any, attrib: Any, val: Any, item_type: type) -> Any:
+    """Attrs helper function to validate a list and it's items."""
+    _ = instance
+
+    if not is_iterable_but_no_str:
+        raise TypeError(
+            "Argument {} is expected to be an iterable, but is {}".format(attrib.name, type(val))
+        )
+    for i, item in enumerate(val):
+        if not isinstance(item, item_type):
+            raise TypeError(
+                "Item value at {} position is expected to be a {}, but is {}".format(
+                    i, item_type, type(item)
+                )
+            )
+    return val
+
 
 class Validator:
     """Collection of utility methods for validating arguments / vars."""
@@ -247,9 +314,6 @@ class Validator:
             TypeError: Argument 's' is expected to be a non-str iterable, but is '<class 'str'>'
 
         """
-        def is_iterable_but_no_str(candidate: Any) -> bool:
-            return hasattr(candidate, '__iter__') and not isinstance(candidate, (str, bytes))
-
         for arg_name, arg_value in kwargs.items():
             if (Validator._allow_none(arg_value, allow_none)
                     and not is_iterable_but_no_str(arg_value)):

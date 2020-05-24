@@ -1,4 +1,5 @@
 """Configuration handling in json/yaml files."""
+
 import os
 from typing import Any, Optional
 
