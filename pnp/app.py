@@ -4,7 +4,7 @@ from typing import Optional
 
 from pnp.api import RestAPI
 from pnp.config import load_config, Configuration
-from pnp.engines import DEFAULT_ENGINES, Engine
+from pnp.engines import DEFAULT_ENGINE, Engine
 from pnp.models import tasks_to_str
 from pnp.selector import PayloadSelector
 from pnp.shared.exc import NoEngineError
@@ -19,7 +19,7 @@ class Application(Loggable):
 
         self._config = config
         if not self._config.engine:
-            self._config.engine = DEFAULT_ENGINES['async']()
+            self._config.engine = DEFAULT_ENGINE
 
         self._tasks = config.tasks
         self._engine = config.engine
@@ -69,7 +69,7 @@ class Application(Loggable):
             self._engine.stop()
 
     @classmethod
-    def from_file(cls, file_path: str, engine_override: Optional[str] = None) -> 'Application':
+    def from_file(cls, file_path: str) -> 'Application':
         """
         Loads the application from a configuration file.
 
@@ -78,12 +78,6 @@ class Application(Loggable):
             engine_override (str): If given overwrites the engine that is specified inside the
                 configuration file.
         """
-        Validator.one_of(
-            list(DEFAULT_ENGINES.keys()),
-            allow_none=True,
-            engine_override=engine_override
-        )
-
         config = load_config(file_path)
         PayloadSelector.instance.register_udfs(config.udfs)  # pylint: disable=no-member
 
