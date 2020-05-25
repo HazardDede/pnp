@@ -1,5 +1,5 @@
 """Data model."""
-
+from functools import partial
 from typing import Dict, List, Optional, Union
 
 import attr
@@ -8,29 +8,11 @@ from pnp.plugins.pull import PullBase
 from pnp.plugins.push import PushBase
 from pnp.plugins.udf import UserDefinedFunction
 from pnp.typing import AnyCallable, SelectorExpression
+from pnp.validator import attrs_validate_list_items
 
 
 def _validate_push_dependencies(instance, attrib, val):  # type: ignore
-    _, _ = instance, attrib
-
-    if val is None:
-        return None
-    if not isinstance(val, list):
-        raise TypeError("Dependencies is expected to be a list of pushes")
-    for exp_push in val:
-        if not isinstance(exp_push, PushModel):
-            raise TypeError("A dependency is expected to be a child of pnp.models.PushModel")
-    return val
-
-
-def _validate_pushes(instance, attrib, val):  # type: ignore
-    _, _ = instance, attrib
-
-    if not isinstance(val, list):
-        raise TypeError("Pushes is expected to be a list of pushes")
-    for exp_push in val:
-        if not isinstance(exp_push, PushModel):
-            raise TypeError("A push is expected to be a child of pnp.models.PushModel")
+    return attrs_validate_list_items(instance, attrib, val, item_type=PushModel)
 
 
 @attr.s
@@ -49,7 +31,7 @@ class PushModel:
     )  # type: PushBase
 
     selector = attr.ib(
-        validator=attr.validators.optional(attr.validators.instance_of((str, list, dict))),
+        validator=attr.validators.instance_of((str, list, dict, type(None))),
         default=None
     )  # type: Optional[SelectorExpression]
 
@@ -76,7 +58,7 @@ class TaskModel:
     )  # type: PullModel
 
     pushes = attr.ib(
-        validator=_validate_pushes
+        validator=partial(attrs_validate_list_items, item_type=PushModel)
     )  # type: List[PushModel]
 
 

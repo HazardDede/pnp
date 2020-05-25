@@ -3,6 +3,7 @@
 import os
 from typing import Any, Optional
 
+from pnp import validator
 from pnp.config._base import Configuration, ConfigLoader
 from pnp.config._yaml import YamlConfigLoader
 from pnp.models import PullModel
@@ -25,8 +26,7 @@ def load_config(config_path: str) -> Configuration:
     """Load the specified config by using a compatible `ConfigLoader`."""
     global _LOADER_USED  # pylint: disable=global-statement
 
-    if not os.path.isfile(config_path):
-        raise FileNotFoundError("Configuration file '{}' not found".format(config_path))
+    validator.is_file(config_path=config_path)
 
     _, ext = os.path.splitext(config_path)
     loader_clazz = _EXT_LOADER_MAP.get(ext.lower().lstrip('.'))

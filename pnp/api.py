@@ -9,6 +9,7 @@ from sanic.request import Request, RequestParameters  # type: ignore
 from sanic.response import json, HTTPResponse  # type: ignore
 from sanic_openapi import swagger_blueprint, doc  # type: ignore
 from sanic_prometheus import monitor  # type: ignore
+from typeguard import typechecked
 
 from pnp.models import TaskSet
 from pnp.plugins.pull import Polling
@@ -53,12 +54,12 @@ class APINotInitialized(APIError):
 
 def bad_request(message: str) -> HTTPResponse:
     """Create a bad request 400 http response."""
-    return json({"message": message}, 400)
+    return json({"message": str(message)}, 400)
 
 
 def internal_error(message: str) -> HTTPResponse:
     """Create a internal error 500 http response."""
-    return json({"message": message}, 500)
+    return json({"message": str(message)}, 500)
 
 
 def success() -> HTTPResponse:
@@ -157,6 +158,7 @@ class RestAPI(Singleton):
 
             return empty()
 
+    @typechecked
     def add_trigger_endpoint(self, task_set: TaskSet) -> None:
         """Route: /trigger.
         Triggers a poll right now without waiting for the schedule to be arrived.

@@ -11,13 +11,13 @@ from pnp.utils import StopCycleError
 
 def async_from_sync(fun: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
     """Calls an async function from a synchronous context."""
-
+    validator.is_function(fun=fun)
     return async_to_sync(fun)(*args, **kwargs)
 
 
-async def async_interruptible_sleep(wait: float,
-                                    callback: Callable[[], Coroutine[Any, Any, None]],
-                                    interval: float = 0.5) -> None:
+async def async_interruptible_sleep(
+    wait: float, callback: Callable[[], Coroutine[Any, Any, None]], interval: float = 0.5
+) -> None:
     """
     Waits the specified amount of time. The waiting can be interrupted when the callback raises a
     `StopCycleError`. The argument `interval` defines after how much waiting time the callback
@@ -37,9 +37,10 @@ async def async_interruptible_sleep(wait: float,
         pass
 
 
-async def async_sleep_until_interrupt(sleep_time: float,
-                                      interrupt_fun: Callable[[], Coroutine[Any, Any, bool]],
-                                      interval: float = 0.5) -> None:
+async def async_sleep_until_interrupt(
+    sleep_time: float, interrupt_fun: Callable[[], Coroutine[Any, Any, bool]],
+    interval: float = 0.5
+) -> None:
     """Call this method to sleep an interruptable sleep until the interrupt coroutine returns
     True."""
     validator.is_function(interrupt_fun=interrupt_fun)

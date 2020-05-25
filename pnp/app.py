@@ -2,7 +2,8 @@
 import asyncio
 from typing import Optional
 
-from pnp import validator
+from typeguard import typechecked
+
 from pnp.api import RestAPI
 from pnp.config import load_config, Configuration
 from pnp.engines import DEFAULT_ENGINE, Engine
@@ -14,9 +15,9 @@ from pnp.utils import Loggable
 
 class Application(Loggable):
     """The wrapper that knows about tasks and engine."""
-    def __init__(self, config: Configuration):
-        validator.is_instance(Configuration, config=config)
 
+    @typechecked
+    def __init__(self, config: Configuration):
         self._config = config
         if not self._config.engine:
             self._config.engine = DEFAULT_ENGINE
@@ -78,7 +79,7 @@ class Application(Loggable):
             engine_override (str): If given overwrites the engine that is specified inside the
                 configuration file.
         """
-        config = load_config(file_path)
+        config = load_config(str(file_path))
         PayloadSelector.instance.register_udfs(config.udfs)  # pylint: disable=no-member
 
         from pprint import pformat

@@ -6,6 +6,30 @@ from typeguard import typechecked
 
 
 @typechecked
+def all_items(item_type: type, **kwargs: Iterable[Any]) -> None:
+    """
+    Examples:
+        >>> all_items(str, a=['a', 'b', 'c'])
+        >>> all_items(int, a=[1, 2, 3])
+        >>> all_items(int, b=[1, 's', 3])
+        Traceback (most recent call last):
+        ...
+        TypeError: Item value at pos 1 of argument 'b' is expected to be a <class 'int'>,\
+ but is <class 'str'>
+    """
+    is_iterable_but_no_str(**kwargs)
+    for arg_name, arg_val in kwargs.items():
+        for i, item in enumerate(arg_val):
+            if not isinstance(item, item_type):
+                raise TypeError(
+                    "Item value at pos {} of argument '{}' is expected to be a {}, "
+                    "but is {}".format(
+                        i, arg_name, item_type, type(item)
+                    )
+                )
+
+
+@typechecked
 def attrs_validator_dict_items(
     instance: Any, attrib: Any, val: Any, key_type: type, val_type: type
 ) -> Any:
@@ -77,7 +101,7 @@ def is_file(**kwargs: Any) -> None:
         ValueError: Argument 'arg' is expected to be a file, but is '/doesnotexist.txt'
     """
     for arg_name, arg_value in kwargs.items():
-        if not os.path.isfile(arg_value):
+        if not os.path.isfile(str(arg_value)):
             raise ValueError(
                 "Argument '{arg_name}' is expected to be a file, "
                 "but is '{arg_value}'".format(
