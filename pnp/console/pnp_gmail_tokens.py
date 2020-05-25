@@ -12,9 +12,9 @@ Args:
   token_file        Output tokens (existing file will be overwritten)
 
 """
-import pickle
 
 import os
+import pickle
 
 from docopt import docopt
 from google_auth_oauthlib.flow import InstalledAppFlow

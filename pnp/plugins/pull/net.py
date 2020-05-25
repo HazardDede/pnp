@@ -5,9 +5,9 @@ import ssl
 from datetime import datetime, timedelta
 from typing import Tuple
 
-from . import Polling
-from ...utils import is_local
-from ...typing import Payload
+from pnp.plugins.pull import Polling
+from pnp.typing import Payload
+from pnp.utils import is_local
 
 
 class PortProbe(Polling):

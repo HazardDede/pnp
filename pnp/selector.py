@@ -1,10 +1,11 @@
 """Utility classes for the building block 'selector'."""
+
 from typing import List, Callable, Dict, Any, Iterable
 
-from .models import UDFModel
-from .typing import SelectorExpression, Payload
-from .utils import Singleton, safe_eval, FallbackBox, EvaluationError
-from .validator import Validator
+from pnp.models import UDFModel
+from pnp.typing import SelectorExpression, Payload
+from pnp.utils import Singleton, safe_eval, FallbackBox, EvaluationError
+from pnp.validator import Validator
 
 
 class PayloadSelector(Singleton):

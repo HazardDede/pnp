@@ -1,10 +1,11 @@
 """Contains traffic (trains, cars, flights, ...) related pulls."""
+
 from datetime import datetime
 
 from glom import glom, Coalesce
 from schiene import Schiene
 
-from . import Polling
+from pnp.plugins.pull import Polling
 
 
 def _not(value):

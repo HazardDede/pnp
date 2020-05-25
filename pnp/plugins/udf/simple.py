@@ -1,6 +1,6 @@
 """Contains simple user-defined functions."""
 
-from . import UserDefinedFunction
+from pnp.plugins.udf import UserDefinedFunction
 
 
 class Counter(UserDefinedFunction):

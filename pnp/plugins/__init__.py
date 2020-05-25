@@ -5,8 +5,8 @@ from typing import Any, Dict, Tuple, Optional, Union, cast, Callable
 
 from argresolver import EnvironmentResolver  # type: ignore
 
-from ..utils import auto_str, auto_str_ignore
-from ..validator import Validator
+from pnp.utils import auto_str, auto_str_ignore
+from pnp.validator import Validator
 
 
 class InstallOptionalExtraError(ImportError):
@@ -25,7 +25,7 @@ def load_optional_module(namespace: str, extra: str) -> Any:
 
 
 class PluginStoppedError(RuntimeError):
-    """Is raised when a operation is canceled / refushed because the plugin should / has stopped."""
+    """Is raised when a operation is canceled / refused because the plugin has stopped."""
 
 
 class PluginMeta(type):

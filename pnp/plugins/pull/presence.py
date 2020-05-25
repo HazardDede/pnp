@@ -1,10 +1,11 @@
 """Presence / Occupancy related plugins."""
+
 from typing import Dict, Any, List, Optional
 
-from . import Polling
-from .. import load_optional_module
-from ...typing import Payload
-from ...validator import Validator
+from pnp.plugins import load_optional_module
+from pnp.plugins.pull import Polling
+from pnp.typing import Payload
+from pnp.validator import Validator
 
 
 class FritzBoxTracker(Polling):

@@ -6,9 +6,10 @@ from abc import abstractmethod
 from collections import defaultdict
 from functools import partial
 
-from ..utils import (try_parse_int, auto_str, auto_str_ignore, Debounce,
-                     parse_duration_literal, Singleton, Loggable)
-
+from pnp.utils import (
+    try_parse_int, auto_str, auto_str_ignore, Debounce, parse_duration_literal, Singleton,
+    Loggable
+)
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -6,9 +6,9 @@ import time
 from datetime import datetime
 
 from pnp.config import load_pull_from_snippet
-from . import PullBase, Polling, AsyncPullBase
-from ...utils import make_list, auto_str_ignore, parse_duration_literal_float
-from ...validator import Validator
+from pnp.plugins.pull import PullBase, Polling, AsyncPullBase
+from pnp.utils import make_list, auto_str_ignore, parse_duration_literal_float
+from pnp.validator import Validator
 
 
 class Count(AsyncPullBase):

@@ -1,8 +1,8 @@
 """Home assistant related push plugins"""
 
-from . import PushBase
-from ...shared.hass import HassApi
-from ...utils import auto_str_ignore
+from pnp.plugins.push import PushBase
+from pnp.shared.hass import HassApi
+from pnp.utils import auto_str_ignore
 
 
 @auto_str_ignore(['_client', 'token'])

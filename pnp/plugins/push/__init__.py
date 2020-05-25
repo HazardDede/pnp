@@ -1,25 +1,28 @@
 """Base stuff for pushes."""
 
+import asyncio
 import copy
 import functools
 from abc import abstractmethod
 from typing import Any, Callable, Optional, Dict, Iterable, Union, cast, List, Tuple
 
-import asyncio
+from pnp import utils
+from pnp.plugins import Plugin
+from pnp.shared.async_ import async_from_sync
+from pnp.typing import Envelope, Payload
+from pnp.validator import Validator
 
-from .. import Plugin
-from ... import utils
-from ...shared.async_ import async_from_sync
-from ...typing import Envelope, Payload
-from ...validator import Validator
+# Push function typing alias
+PushFunction = Callable[..., Payload]
 
 
 class PushExecutionError(Exception):
     """Is raised by push-plugins when the execution flow has failed."""
 
 
-def enveloped(fun: Callable[..., Payload]) \
-        -> Callable[['PushBase', Payload], Payload]:
+def enveloped(
+    fun: PushFunction
+) -> Callable[['PushBase', Payload], Payload]:
     """Decorator to split the envelope and the actual payload. This is an but a convenience
     decorator for `envelope_payload` of the `PushBase` class."""
 
@@ -43,13 +46,13 @@ def enveloped(fun: Callable[..., Payload]) \
     return functools.wraps(fun)(_call)
 
 
-def parse_envelope(value: str) -> Callable[..., Payload]:
+def parse_envelope(value: str) -> PushFunction:
     """Decorator the parse the given value-key from the envelope. This is but a convenience
     decorator / wrapper for `_parse_envelope_value` of the `PushBase` class."""
 
     Validator.is_instance(str, value=value)
 
-    def _inner(fun: Callable[..., Payload]) -> Callable[..., Payload]:
+    def _inner(fun: PushFunction) -> PushFunction:
         Validator.is_function(fun=fun)
 
         def _call(
@@ -81,7 +84,7 @@ def parse_envelope(value: str) -> Callable[..., Payload]:
     return _inner
 
 
-def drop_envelope(fun: Callable[..., Payload]) -> Callable[..., Payload]:
+def drop_envelope(fun: PushFunction) -> PushFunction:
     """Decorator to drop the envelope from the arguments before calling the actual `push` method to
     make the linter happy again if necessary (unused-argument)."""
 
@@ -147,6 +150,7 @@ def _lookup(instance: object, lookups: Union[str, Iterable[str]]) -> Optional[An
 
 class PushBase(Plugin):
     """Base class for all push plugins."""
+
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
 

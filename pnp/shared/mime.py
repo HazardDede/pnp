@@ -6,7 +6,7 @@ from email import encoders
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-from ..validator import Validator
+from pnp.validator import Validator
 
 
 class Mail:

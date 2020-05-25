@@ -8,9 +8,9 @@ import attr
 import requests
 import schema as sc
 
-from . import PullBase, Polling, PollingError
-from .. import load_optional_module
-from ...shared.sound import (
+from pnp.plugins import load_optional_module
+from pnp.plugins.pull import PullBase, Polling, PollingError
+from pnp.shared.sound import (
     WavFile,
     similarity_pearson,
     similarity_std,
@@ -18,12 +18,13 @@ from ...shared.sound import (
     MODE_STD,
     ALLOWED_MODES
 )
-from ...utils import (
+from pnp.utils import (
     safe_get,
     auto_str_ignore,
     parse_duration_literal,
-    Cooldown)
-from ...validator import Validator
+    Cooldown
+)
+from pnp.validator import Validator
 
 
 class DHT(Polling):

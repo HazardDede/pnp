@@ -20,8 +20,8 @@ from typing import (Union, Any, Optional, Iterable, Pattern, Dict, Callable, cas
 from binaryornot.check import is_binary  # type: ignore
 from box import Box, BoxKeyError  # type: ignore
 
-from .typing import DurationLiteral
-from .validator import Validator
+from pnp.typing import DurationLiteral
+from pnp.validator import Validator
 
 FILE_MODES = ['binary', 'text', 'auto']
 

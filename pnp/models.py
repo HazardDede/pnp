@@ -4,10 +4,10 @@ from typing import Dict, List, Optional, Union
 
 import attr
 
-from .plugins.pull import PullBase
-from .plugins.push import PushBase
-from .plugins.udf import UserDefinedFunction
-from .typing import AnyCallable, SelectorExpression
+from pnp.plugins.pull import PullBase
+from pnp.plugins.push import PushBase
+from pnp.plugins.udf import UserDefinedFunction
+from pnp.typing import AnyCallable, SelectorExpression
 
 
 def _validate_push_dependencies(instance, attrib, val):  # type: ignore

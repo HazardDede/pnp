@@ -1,7 +1,7 @@
 """MQTT related plugins."""
 
-from . import PullBase
-from ...utils import auto_str_ignore
+from pnp.plugins.pull import PullBase
+from pnp.utils import auto_str_ignore
 
 
 @auto_str_ignore(['_client', 'password'])

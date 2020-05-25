@@ -3,10 +3,10 @@
 import os
 import time
 
-from . import PullBase, Polling
-from .. import load_optional_module, PluginStoppedError
-from ...utils import make_list, load_file, FILE_MODES, Debounce
-from ...validator import Validator
+from pnp.plugins import load_optional_module, PluginStoppedError
+from pnp.plugins.pull import PullBase, Polling
+from pnp.utils import make_list, load_file, FILE_MODES, Debounce
+from pnp.validator import Validator
 
 
 class FileSystemWatcher(PullBase):

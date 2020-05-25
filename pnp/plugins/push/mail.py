@@ -3,11 +3,11 @@
 import base64
 import os
 
-from . import PushBase, enveloped, parse_envelope
-from .. import load_optional_module
-from ...shared.mime import Mail
-from ...utils import FileLock, make_list, is_iterable_but_no_str
-from ...validator import Validator
+from pnp.plugins import load_optional_module
+from pnp.plugins.push import PushBase, enveloped, parse_envelope
+from pnp.shared.mime import Mail
+from pnp.utils import FileLock, make_list, is_iterable_but_no_str
+from pnp.validator import Validator
 
 
 class GMail(PushBase):

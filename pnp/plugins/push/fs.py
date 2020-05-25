@@ -3,8 +3,8 @@
 import os
 import time
 
-from . import PushBase, enveloped, parse_envelope, drop_envelope
-from ...validator import Validator
+from pnp.plugins.push import PushBase, enveloped, parse_envelope, drop_envelope
+from pnp.validator import Validator
 
 
 class FileDump(PushBase):

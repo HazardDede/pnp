@@ -2,12 +2,13 @@
 
 from collections import Counter
 
-from . import PullBase
-from ...utils import (make_list)
-from ...validator import Validator
-
-from ...shared.gpio import (CONST_RISING, CONST_RISING_OPTIONS, CONST_FALLING_OPTIONS,
-                            CONST_SWITCH_OPTIONS, CONST_MOTION_OPTIONS, Callback, GPIOAdapter)
+from pnp.plugins.pull import PullBase
+from pnp.shared.gpio import (
+    CONST_RISING, CONST_RISING_OPTIONS, CONST_FALLING_OPTIONS,
+    CONST_SWITCH_OPTIONS, CONST_MOTION_OPTIONS, Callback, GPIOAdapter
+)
+from pnp.utils import (make_list)
+from pnp.validator import Validator
 
 
 class Watcher(PullBase):

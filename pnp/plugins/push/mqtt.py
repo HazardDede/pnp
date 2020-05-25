@@ -2,10 +2,10 @@
 
 from dictmentor import DictMentor, ext
 
-from . import PushBase, enveloped, parse_envelope, drop_envelope
-from ...shared.mqtt import MQTTBase
-from ...utils import try_parse_bool, auto_str_ignore
-from ...validator import Validator
+from pnp.plugins.push import PushBase, enveloped, parse_envelope, drop_envelope
+from pnp.shared.mqtt import MQTTBase
+from pnp.utils import try_parse_bool, auto_str_ignore
+from pnp.validator import Validator
 
 
 @auto_str_ignore(['configured'])

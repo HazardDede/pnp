@@ -1,14 +1,13 @@
 """Utility functions related to zipping and archiving."""
 
+import logging
 import os
 import zipfile
-import logging
 
 import pathspec
 
-
-from ..validator import Validator
-from ..utils import is_iterable_but_no_str
+from pnp.utils import is_iterable_but_no_str
+from pnp.validator import Validator
 
 _LOGGER = logging.getLogger(__file__)
 

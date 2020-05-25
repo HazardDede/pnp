@@ -1,7 +1,7 @@
 """Publishing engine classes to the outside world."""
 
-from ._async import AsyncEngine
-from ._base import (
+from pnp.engines._async import AsyncEngine
+from pnp.engines._base import (
     Engine,
     RetryDirective,
     RetryHandler,

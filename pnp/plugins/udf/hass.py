@@ -1,8 +1,8 @@
 """Home assistant related user-defined functions."""
 
-from . import UserDefinedFunction
-from ...shared.hass import HassApi
-from ...utils import auto_str_ignore
+from pnp.plugins.udf import UserDefinedFunction
+from pnp.shared.hass import HassApi
+from pnp.utils import auto_str_ignore
 
 
 @auto_str_ignore(['_client', 'token'])

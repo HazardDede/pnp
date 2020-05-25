@@ -1,7 +1,7 @@
 """Time database related push plugins."""
 
-from . import PushBase, enveloped
-from ...utils import auto_str_ignore
+from pnp.plugins.push import PushBase, enveloped
+from pnp.utils import auto_str_ignore
 
 
 @auto_str_ignore(['password'])

@@ -5,8 +5,7 @@ import os
 
 import attr
 
-from ..validator import Validator
-
+from pnp.validator import Validator
 
 _LOGGER = logging.getLogger(__file__)
 

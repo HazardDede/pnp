@@ -5,8 +5,8 @@ import json
 
 import asyncws
 
-from . import AsyncPullBase
-from ...utils import make_list, auto_str_ignore, include_or_exclude, wildcards_to_regex
+from pnp.plugins.pull import AsyncPullBase
+from pnp.utils import make_list, auto_str_ignore, include_or_exclude, wildcards_to_regex
 
 
 @auto_str_ignore(['token', '_websocket', '_loop', '_include_regex', '_exclude_regex'])

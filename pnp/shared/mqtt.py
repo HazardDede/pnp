@@ -3,7 +3,7 @@
 import json
 import logging
 
-from ..utils import auto_str_ignore, try_parse_int
+from pnp.utils import auto_str_ignore, try_parse_int
 
 _LOGGER = logging.getLogger(__name__)
 

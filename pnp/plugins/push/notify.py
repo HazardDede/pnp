@@ -4,10 +4,10 @@ from typing import Any, Dict, List, Optional
 
 import slacker
 
-from . import PushBase, enveloped, parse_envelope
-from .. import load_optional_module
-from ...utils import auto_str_ignore, make_list
-from ...typing import Envelope, Payload
+from pnp.plugins import load_optional_module
+from pnp.plugins.push import PushBase, enveloped, parse_envelope
+from pnp.typing import Envelope, Payload
+from pnp.utils import auto_str_ignore, make_list
 
 
 @auto_str_ignore(['api_key'])

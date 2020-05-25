@@ -1,9 +1,9 @@
 """Storage related push plugins."""
 
-from . import PushBase, enveloped, parse_envelope, drop_envelope
-from .. import load_optional_module
-from ...utils import auto_str_ignore, get_bytes
-from ...validator import Validator
+from pnp.plugins import load_optional_module
+from pnp.plugins.push import PushBase, enveloped, parse_envelope, drop_envelope
+from pnp.utils import auto_str_ignore, get_bytes
+from pnp.validator import Validator
 
 
 @auto_str_ignore(['api_key'])

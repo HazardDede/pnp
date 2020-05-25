@@ -1,14 +1,18 @@
 """Basic stuff for implementing pull plugins."""
+
+import asyncio
 import multiprocessing as proc
 from abc import abstractmethod
 from datetime import datetime
 from typing import Any, Callable, Optional
 
-import asyncio
 from schedule import Scheduler  # type: ignore
 
 from pnp.plugins import Plugin
-from pnp.shared.async_ import async_from_sync, async_sleep_until_interrupt
+from pnp.shared.async_ import (
+    async_from_sync,
+    async_sleep_until_interrupt
+)
 from pnp.typing import Payload
 from pnp.utils import (
     auto_str_ignore,

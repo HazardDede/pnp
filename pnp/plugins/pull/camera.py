@@ -2,9 +2,9 @@
 
 import os
 
-from .fs import FileSystemWatcher
-from ...utils import parse_duration_literal, Debounce, auto_str_ignore
-from ...validator import Validator
+from pnp.plugins.pull.fs import FileSystemWatcher
+from pnp.utils import parse_duration_literal, Debounce, auto_str_ignore
+from pnp.validator import Validator
 
 
 @auto_str_ignore(['_debouncer'])

@@ -3,10 +3,10 @@
 import io
 import os
 
-from . import PushBase, enveloped, drop_envelope
-from .. import load_optional_module
-from ...utils import make_list, auto_str_ignore
-from ...validator import Validator
+from pnp.plugins import load_optional_module
+from pnp.plugins.push import PushBase, enveloped, drop_envelope
+from pnp.utils import make_list, auto_str_ignore
+from pnp.validator import Validator
 
 
 @auto_str_ignore(['known_encodings'])

@@ -1,17 +1,17 @@
 """Fitbit related plugins."""
 
+import asyncio
 import os
 import pathlib
 from functools import partial
 
-import asyncio
 import schema
 from ruamel import yaml
 
-from . import AsyncPolling
-from .. import load_optional_module
-from ...utils import auto_str_ignore, camel_to_snake, transform_dict_items, make_list, FileLock
-from ...validator import Validator
+from pnp.plugins import load_optional_module
+from pnp.plugins.pull import AsyncPolling
+from pnp.utils import auto_str_ignore, camel_to_snake, transform_dict_items, make_list, FileLock
+from pnp.validator import Validator
 
 
 @auto_str_ignore(['_tokens', '_client', '_tokens_tstamp', '_client_lock'])

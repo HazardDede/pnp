@@ -1,12 +1,12 @@
 """Asyncio helper."""
 
+import asyncio
 from typing import Callable, Any, Coroutine
 
-import asyncio
 from syncasync import async_to_sync  # type: ignore
 
-from ..utils import StopCycleError
-from ..validator import Validator
+from pnp.utils import StopCycleError
+from pnp.validator import Validator
 
 
 def async_from_sync(fun: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
