@@ -114,7 +114,7 @@ class LimitedRetryHandler(SimpleRetryHandler):
 
     def __init__(self, max_retries: Optional[int] = 3, **kwargs: Any):
         super().__init__(**kwargs)
-        self.max_retries = Validator.cast_or_none(int, max_retries)  # type: Optional[int]
+        self.max_retries = max_retries and int(max_retries)  # type: Optional[int]
 
     def _eval_abort(self, retry_count: int) -> bool:
         if self.max_retries is None or self.max_retries < 0:

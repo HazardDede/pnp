@@ -8,6 +8,7 @@ import attr
 import requests
 import schema as sc
 
+from pnp import validator
 from pnp.plugins import load_optional_module
 from pnp.plugins.pull import PullBase, Polling, PollingError
 from pnp.shared.sound import (
@@ -24,7 +25,6 @@ from pnp.utils import (
     parse_duration_literal,
     Cooldown
 )
-from pnp.validator import Validator
 
 
 class DHT(Polling):
@@ -44,7 +44,7 @@ class DHT(Polling):
         super().__init__(**kwargs)
         valid_devices = ['dht11', 'dht22', 'am2302']
         self.device = str(device).lower()
-        Validator.one_of(valid_devices, device=self.device)
+        validator.one_of(valid_devices, device=self.device)
         self.data_gpio = int(data_gpio)
         self.humidity_offset = float(humidity_offset)
         self.temp_offset = float(temp_offset)
@@ -158,15 +158,15 @@ class OpenWeather(Polling):
                  **kwargs):
         super().__init__(**kwargs)
         self.api_key = str(api_key)
-        self.lat = Validator.cast_or_none(float, lat)
-        self.lon = Validator.cast_or_none(float, lon)
-        self.city_name = Validator.cast_or_none(str, city_name)
+        self.lat = lat and float(lat)
+        self.lon = lon and float(lon)
+        self.city_name = city_name and str(city_name)
         if self.city_name is None and not self._validate_lat_lon():
             raise ValueError("You have to pass city_name or lat and lon.")
 
-        Validator.one_of(["metric", "imperial", "kelvin"], units=units)
+        validator.one_of(["metric", "imperial", "kelvin"], units=units)
         self.units = units
-        self.tzone = Validator.cast_or_none(str, tz)
+        self.tzone = tz and str(tz)
 
         from pytz import timezone
         from tzlocal import get_localzone
@@ -258,7 +258,7 @@ class Sound(PullBase):
 
         @classmethod
         def _check_mode(cls, mode):
-            Validator.one_of(ALLOWED_MODES, mode=mode)
+            validator.one_of(ALLOWED_MODES, mode=mode)
             return mode
 
         @classmethod

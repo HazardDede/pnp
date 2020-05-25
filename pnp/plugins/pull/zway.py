@@ -6,10 +6,10 @@ import requests
 import schema
 from requests.auth import HTTPBasicAuth
 
+from pnp import validator
 from pnp.plugins.pull import Polling, PollingError
 from pnp.plugins.pull.http import Server
 from pnp.utils import auto_str_ignore, try_parse_int_float_str
-from pnp.validator import Validator
 
 
 @auto_str_ignore(['password'])
@@ -130,7 +130,7 @@ class ZwayReceiver(Server):
             device_mapping = {}
         self.device_mapping = self.MAPPING_SCHEMA.validate(device_mapping)
 
-        Validator.one_of(self.VALID_MODES, False, mode=mode)
+        validator.one_of(self.VALID_MODES, mode=mode)
         self.mode = mode
 
         if mode in [self.MODE_BOTH, self.MODE_AUTO]:

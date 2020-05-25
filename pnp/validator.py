@@ -1,25 +1,22 @@
 """Contains utility methods for validating."""
 import os
-from typing import Any, Callable, Iterable, List, Optional
+from typing import Any, Iterable, List, Optional
 
 from typeguard import typechecked
 
 
+# Needs to be copied here; otherwise cyclic import
 def is_iterable_but_no_str(candidate: Any) -> bool:
     """
-    Checks if the given candidate is an iterable but no str.
+    Checks if the given candidate is an iterable but not a str instance
 
-    Args:
-        candidate: The candidate to test.
-
-    Examples:
-        >>> is_iterable_but_no_str([1, 2])
+    Example:
+        >>> is_iterable_but_no_str(['a'])
         True
-        >>> is_iterable_but_no_str((1, 2))
-        True
-        >>> is_iterable_but_no_str("1,2")
+        >>> is_iterable_but_no_str('a')
         False
-
+        >>> is_iterable_but_no_str(None)
+        False
     """
     return hasattr(candidate, '__iter__') and not isinstance(candidate, (str, bytes))
 
@@ -56,7 +53,7 @@ def attrs_validate_list_items(instance: Any, attrib: Any, val: Any, item_type: t
     """Attrs helper function to validate a list and it's items."""
     _ = instance
 
-    if not is_iterable_but_no_str:
+    if not is_iterable_but_no_str(val):
         raise TypeError(
             "Argument {} is expected to be an iterable, but is {}".format(attrib.name, type(val))
         )
@@ -70,57 +67,52 @@ def attrs_validate_list_items(instance: Any, attrib: Any, val: Any, item_type: t
     return val
 
 
+def one_not_none(**kwargs: Any) -> None:
+    """
+    Examples:
+        >>> one_not_none(arg1=None, arg2=None, arg3='passed')
+        >>> one_not_none(arg1=None, arg2=None)
+        Traceback (most recent call last):
+        ...
+        ValueError: Arguments ['arg1', 'arg2'] expects at least one passed, but all are none
+    """
+    if all([x is None for x in kwargs.values()]):
+        raise ValueError(
+            "Arguments {args} expects at least one passed, but all are none".format(
+                args=sorted(list(kwargs.keys()))
+            )
+        )
+
+
+@typechecked
+def one_of(possible: Iterable[Any], **kwargs: Any) -> None:
+    """
+    Examples:
+        >>> one_of(['a', 'b', 'c'], arg='a')
+        >>> one_of(['a', 'b', 'c'], arg='z')
+        Traceback (most recent call last):
+        ...
+        ValueError: Argument 'arg' is expected to be one of ['a', 'b', 'c'], but is 'z'
+        >>> one_of(['a', 'b', 'c'], arg1='a', arg2='z')
+        Traceback (most recent call last):
+        ...
+        ValueError: Argument 'arg2' is expected to be one of ['a', 'b', 'c'], but is 'z'
+    """
+    for arg_name, arg_value in kwargs.items():
+        if arg_value not in possible:
+            raise ValueError(
+                "Argument '{arg_name}' is expected to be one of {possible}, "
+                "but is '{arg_value}'".format(
+                    arg_name=arg_name, possible=possible, arg_value=arg_value
+                )
+            )
+
+
 class Validator:
     """Collection of utility methods for validating arguments / vars."""
     @staticmethod
     def _allow_none(arg_value: Any, allow_none: bool) -> bool:
         return not (allow_none and arg_value is None)
-
-    @staticmethod
-    def cast_or_none(cast_fun: Callable[[Any], Any], arg_value: Any) -> Any:
-        """
-        Examples:
-            >>> print(Validator.cast_or_none(str, None))
-            None
-            >>> Validator.cast_or_none(str, 1)
-            '1'
-            >>> Validator.cast_or_none(int, 'a')
-            Traceback (most recent call last):
-            ...
-            ValueError: invalid literal for int() with base 10: 'a'
-        """
-        return cast_fun(arg_value) if arg_value is not None else None
-
-    @staticmethod
-    def is_not_none(**kwargs: Any) -> None:
-        """
-        Examples:
-
-            >>> Validator.is_not_none(arg1="foo")  # Ok
-            >>> Validator.is_not_none(arg1=None)  # None
-            Traceback (most recent call last):
-            ...
-            ValueError: Argument 'arg1' is expected to be not none
-        """
-        for arg_name, arg_value in kwargs.items():
-            if arg_value is None:
-                raise ValueError("Argument '{arg_name}' is expected to be not none".format(
-                    arg_name=arg_name
-                ))
-
-    @staticmethod
-    def one_not_none(**kwargs: Any) -> None:
-        """
-        Examples:
-            >>> Validator.one_not_none(arg1=None, arg2=None, arg3='passed')
-            >>> Validator.one_not_none(arg1=None, arg2=None)
-            Traceback (most recent call last):
-            ...
-            ValueError: Arguments ['arg1', 'arg2'] expects at least one passed, but all are none
-        """
-        if all([x is None for x in kwargs.values()]):
-            raise ValueError("Arguments {args} expects at least one passed, but all are none"
-                             .format(args=sorted(list(kwargs.keys()))))
 
     @staticmethod
     def is_instance(*required_type: type, allow_none: bool = False, **kwargs: Any) -> None:
@@ -150,59 +142,6 @@ class Validator:
                         required_type=required_type,
                         actual_type=type(arg_value)
                     ))
-
-    @staticmethod
-    def is_non_negative(allow_none: bool = False, **kwargs: Any) -> None:
-        """
-        Examples:
-            >>> Validator.is_non_negative(arg=0)
-            >>> Validator.is_non_negative(arg=1)
-            >>> Validator.is_non_negative(arg=-0.01)
-            Traceback (most recent call last):
-            ...
-            ValueError: Argument 'arg' is expected to be greater or equal to zero, but it is not
-            >>> Validator.is_non_negative(arg="a")
-            Traceback (most recent call last):
-            ...
-            ValueError: Argument 'arg' is not numeric (float, int, ...)
-        """
-        for arg_name, arg_value in kwargs.items():
-            try:
-                arg_value = float(arg_value)
-            except (TypeError, ValueError):
-                raise ValueError("Argument '{arg_name}' is not numeric (float, int, ...)".format(
-                    arg_name=arg_name
-                ))
-
-            if Validator._allow_none(arg_value, allow_none) and arg_value < 0.0:
-                raise ValueError(
-                    "Argument '{arg_name}' is expected to be greater or equal to zero"
-                    ", but it is not".format(arg_name=arg_name))
-
-    @staticmethod
-    def one_of(possible: Iterable[Any], allow_none: bool = False, **kwargs: Any) -> None:
-        """
-        Examples:
-            >>> Validator.one_of(['a', 'b', 'c'], arg='a')
-            >>> Validator.one_of(['a', 'b', 'c'], allow_none=True, arg='a', arg2=None)
-            >>> Validator.one_of(['a', 'b', 'c'], arg='z')
-            Traceback (most recent call last):
-            ...
-            ValueError: Argument 'arg' is expected to be one of ['a', 'b', 'c'], but is 'z'
-            >>> Validator.one_of(['a', 'b', 'c'], arg1='a', arg2='z')
-            Traceback (most recent call last):
-            ...
-            ValueError: Argument 'arg2' is expected to be one of ['a', 'b', 'c'], but is 'z'
-        """
-        Validator.is_instance(list, tuple, possible=possible)
-        for arg_name, arg_value in kwargs.items():
-            if Validator._allow_none(arg_value, allow_none) and arg_value not in possible:
-                raise ValueError(
-                    "Argument '{arg_name}' is expected to be one of {possible}, "
-                    "but is '{arg_value}'".format(
-                        arg_name=arg_name, possible=possible, arg_value=arg_value
-                    )
-                )
 
     @staticmethod
     def subset_of(possible: Iterable[Any], allow_none: bool = False, **kwargs: Any) -> None:

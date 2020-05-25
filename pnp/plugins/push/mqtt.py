@@ -2,6 +2,7 @@
 
 from dictmentor import DictMentor, ext
 
+from pnp import validator
 from pnp.plugins.push import PushBase, enveloped, parse_envelope, drop_envelope
 from pnp.shared.mqtt import MQTTBase
 from pnp.utils import try_parse_bool, auto_str_ignore
@@ -21,7 +22,7 @@ class Discovery(MQTTBase, PushBase):
         super().__init__(**kwargs)
         self.discovery_prefix = str(discovery_prefix)
         Validator.is_instance(str, component=component)
-        Validator.one_of(self.SUPPORTED_COMPONENTS, component=component)
+        validator.one_of(self.SUPPORTED_COMPONENTS, component=component)
         self.component = component
         self.object_id = self._parse_object_id(object_id)
         Validator.is_instance(dict, config=config)

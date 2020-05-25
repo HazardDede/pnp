@@ -5,8 +5,8 @@ import json
 import requests
 
 from pnp import utils
+from pnp import validator
 from pnp.plugins.push import PushBase, PushExecutionError, enveloped, parse_envelope
-from pnp.validator import Validator
 
 
 class Call(PushBase):
@@ -31,7 +31,7 @@ class Call(PushBase):
     @staticmethod
     def _parse_method(val):
         val = str(val).upper()
-        Validator.one_of(utils.HTTP_METHODS, method=val)
+        validator.one_of(utils.HTTP_METHODS, method=val)
         return val
 
     @staticmethod

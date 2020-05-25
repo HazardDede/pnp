@@ -19,6 +19,7 @@ from typing import (Union, Any, Optional, Iterable, Pattern, Dict, Callable, cas
 
 from binaryornot.check import is_binary  # type: ignore
 from box import Box, BoxKeyError  # type: ignore
+from typeguard import typechecked
 
 from pnp.typing import DurationLiteral
 from pnp.validator import Validator
@@ -134,6 +135,7 @@ def make_hashable(obj: Any) -> Any:
     return obj if is_hashable(obj) else str(obj)
 
 
+@typechecked
 def camel_to_snake(name: str) -> str:
     """
     Converts camelCase to snake_case.
@@ -159,8 +161,10 @@ def camel_to_snake(name: str) -> str:
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', _str).lower()
 
 
-def wildcards_to_regex(wildcard_patterns: Union[str, Iterable[str]]) \
-        -> Union[Pattern[str], Iterable[Pattern[str]]]:
+@typechecked
+def wildcards_to_regex(
+    wildcard_patterns: Union[str, Iterable[str]]
+) -> Union[Pattern[str], Iterable[Pattern[str]]]:
     """
     Examples:
 
@@ -172,25 +176,26 @@ def wildcards_to_regex(wildcard_patterns: Union[str, Iterable[str]]) \
         True
         >>> wildcards_to_regex('sensor.lamp') == re.compile(fnmatch.translate('sensor.lamp'))
         True
-        >>> print(wildcards_to_regex(None))
+        >>> print(wildcards_to_regex(None))  #doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        ValueError: Argument 'wildcard_patterns' is expected to be not none
+        TypeError: ... "wildcard_patterns" must be one of (str, Iterable); got NoneType instead
         >>> wildcards_to_regex([])
         []
     """
 
-    Validator.is_not_none(wildcard_patterns=wildcard_patterns)
     import fnmatch
     if is_iterable_but_no_str(wildcard_patterns):
-        return [re.compile(fnmatch.translate(item)) for item in wildcard_patterns]
-    Validator.is_instance(str, wildcard_patterns=wildcard_patterns)
+        return [re.compile(fnmatch.translate(str(item))) for item in wildcard_patterns]
     wildcard_patterns = cast(str, wildcard_patterns)
     return re.compile(fnmatch.translate(wildcard_patterns))
 
 
-def include_or_exclude(item: str, include_regex: Optional[Iterable[Pattern[str]]] = None,
-                       exclude_regex: Optional[Iterable[Pattern[str]]] = None) -> bool:
+@typechecked
+def include_or_exclude(
+        item: str, include_regex: Optional[Iterable[Pattern[str]]] = None,
+        exclude_regex: Optional[Iterable[Pattern[str]]] = None
+) -> bool:
     """
 
     Returns:

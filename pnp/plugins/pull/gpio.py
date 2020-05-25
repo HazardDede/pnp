@@ -2,13 +2,13 @@
 
 from collections import Counter
 
+from pnp import validator
 from pnp.plugins.pull import PullBase
 from pnp.shared.gpio import (
     CONST_RISING, CONST_RISING_OPTIONS, CONST_FALLING_OPTIONS,
     CONST_SWITCH_OPTIONS, CONST_MOTION_OPTIONS, Callback, GPIOAdapter
 )
 from pnp.utils import (make_list)
-from pnp.validator import Validator
 
 
 class Watcher(PullBase):
@@ -26,10 +26,8 @@ class Watcher(PullBase):
     def __init__(self, pins, default=CONST_RISING, **kwargs):
         super().__init__(**kwargs)
         self._mode_default = default
-        Validator.one_of(
-            CONST_RISING_OPTIONS
-            + CONST_FALLING_OPTIONS
-            + CONST_SWITCH_OPTIONS
+        validator.one_of(
+            CONST_RISING_OPTIONS + CONST_FALLING_OPTIONS + CONST_SWITCH_OPTIONS
             + CONST_MOTION_OPTIONS,
             mode_default=self._mode_default
         )

@@ -4,10 +4,12 @@ import asyncio
 import os
 import pathlib
 from functools import partial
+from typing import Iterable, Any
 
 import schema
 from ruamel import yaml
 
+from pnp import validator
 from pnp.plugins import load_optional_module
 from pnp.plugins.pull import AsyncPolling
 from pnp.utils import auto_str_ignore, camel_to_snake, transform_dict_items, make_list, FileLock
@@ -102,12 +104,12 @@ class Current(_FitbitBase):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/fitbit.Current/index.md
     """
-    def __init__(self, resources, **kwargs):
+    def __init__(self, resources: Iterable[str], **kwargs: Any):
         super().__init__(**kwargs)
         self._resource_map = self._create_resource_map()
         self._resources = make_list(resources)
         for res in self._resources:
-            Validator.one_of(list(self._resource_map.keys()), resource=res)
+            validator.one_of(list(self._resource_map.keys()), resource=res)
 
     def _create_resource_map(self):
         return {
@@ -193,7 +195,7 @@ class Goal(_FitbitBase):
         self._goals_map = self._create_goal_map()
         self._goals = make_list(goals)
         for goal in self._goals:
-            Validator.one_of(list(self._goals_map.keys()), goal=goal)
+            validator.one_of(list(self._goals_map.keys()), goal=goal)
 
     def _create_goal_map(self):
         return {

@@ -42,7 +42,7 @@ class FileDump(PushBase):
 
     @staticmethod
     def _parse_file_name(value):
-        return Validator.cast_or_none(str, value)
+        return value and str(value)
 
     @staticmethod
     def _parse_extension(value):
