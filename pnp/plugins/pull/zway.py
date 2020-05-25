@@ -23,8 +23,6 @@ class ZwayPoll(Polling):
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/zway.ZwayPoll/index.md
     """
 
-    __prefix__ = 'zway'
-
     def __init__(self, url, user, password, **kwargs):
         super().__init__(**kwargs)
         self.url = str(url)

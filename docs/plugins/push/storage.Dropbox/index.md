@@ -34,7 +34,6 @@ the raw file (without the dropbox overhead). Both are `None` if `create_shared_l
 __Examples__
 
 ```yaml
-# Make sure that you provided DROPBOX_API_KEY as an environment variable
 - name: dropbox
   pull:
     plugin: pnp.plugins.pull.fs.FileSystemWatcher
@@ -48,6 +47,7 @@ __Examples__
   push:
     - plugin: pnp.plugins.push.storage.Dropbox
       args:
+        api_key: "{{env::DROPBOX_API_KEY}}"
         create_shared_link: true  # Create a publicly available link
       selector:
         data: "lambda data: data.source"  # Absolute path to file

@@ -1,9 +1,7 @@
 """Basic stuff for plugins (pull, push, udf)."""
 import logging
 from importlib import import_module
-from typing import Any, Dict, Tuple, Optional, Union, cast, Callable
-
-from argresolver import EnvironmentResolver  # type: ignore
+from typing import Any, Tuple, Optional, Union, cast, Callable
 
 from pnp import validator
 from pnp.utils import auto_str, auto_str_ignore
@@ -28,16 +26,6 @@ class PluginStoppedError(RuntimeError):
     """Is raised when a operation is canceled / refused because the plugin has stopped."""
 
 
-class PluginMeta(type):
-    """Metaclasses for plugins. Hooks up the `argresolver`-package to inject any missing arguments
-    at runtime if provided as an environment variable."""
-    def __new__(cls, name: str, bases: Any, dct: Dict[Any, Any]) -> type:  # type: ignore
-        newly = super().__new__(cls, name, bases, dct)
-        # Force all __init__ of plugins to be decorated with envargs
-        newly.__init__ = EnvironmentResolver(default_override=True)(newly.__init__)  # type: ignore
-        return newly
-
-
 class PluginLogAdapter(logging.LoggerAdapter):
     """Logging adapter for plugin classes. Will put the name of the plugin in front of the
     message."""
@@ -51,7 +39,7 @@ class PluginLogAdapter(logging.LoggerAdapter):
 
 @auto_str(__repr__=True)
 @auto_str_ignore(['_base_path'])
-class Plugin(metaclass=PluginMeta):
+class Plugin:
     """Base class for a plugin."""
 
     def __init__(self, name: str, base_path: Optional[str] = None, **kwargs: Any):  # pylint: disable=unused-argument

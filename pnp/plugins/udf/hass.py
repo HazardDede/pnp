@@ -13,8 +13,6 @@ class State(UserDefinedFunction):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/udf/hass.State/index.md
     """
-    __prefix__ = 'hass'
-
     def __init__(self, url, token, timeout=10, **kwargs):
         super().__init__(**kwargs)
         self.url = str(url)

@@ -21,7 +21,6 @@ Will return the payload as it is for easy chaining of dependencies.
 __Examples__
 
 ```yaml
-# Make sure that you provided PUSHBULETT_API_KEY as an environment variable
 - name: pushbullet
   pull:
     plugin: pnp.plugins.pull.fs.FileSystemWatcher
@@ -34,6 +33,7 @@ __Examples__
   push:
     plugin: pnp.plugins.push.notify.Pushbullet
     args:
+      api_key: "{{env::PUSHBULLET_API_KEY}}"
       title: "Watcher"
     selector: "'New file: {}'.format(data.source)"
 

@@ -14,7 +14,6 @@ class Subscribe(PullBase):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/mqtt.Subscribe/index.md
     """
-    __prefix__ = 'mqtt'
 
     def __init__(self, host, topic, port=1883, user=None, password=None, **kwargs):
         super().__init__(**kwargs)

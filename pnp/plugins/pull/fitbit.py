@@ -17,8 +17,6 @@ from pnp.utils import auto_str_ignore, camel_to_snake, transform_dict_items, mak
 
 @auto_str_ignore(['_tokens', '_client', '_tokens_tstamp', '_client_lock'])
 class _FitbitBase(AsyncPolling):
-    __prefix__ = 'fitbit'
-
     EXTRA = 'fitbit'
 
     TOKEN_SCHEMA = schema.Schema({

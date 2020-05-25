@@ -38,6 +38,8 @@ __Examples__
     args:
       url: "http://smarthome:8083/ZWaveAPI/Run/devices"
       interval: 5s
+      user: "{{env::ZWAY_USER}}"
+      password: "{{env::ZWAY_PASSWORD}}"
   push:
     - plugin: pnp.plugins.push.simple.Echo
       # Temperature of fibaro motion sensor

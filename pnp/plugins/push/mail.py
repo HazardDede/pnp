@@ -17,7 +17,6 @@ class GMail(PushBase):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/mail.GMail/index.md
     """
-    __prefix__ = 'gmail'
     EXTRA = 'gmail'
 
     def __init__(self, token_file, recipient, subject=None, sender='pnp', **kwargs):

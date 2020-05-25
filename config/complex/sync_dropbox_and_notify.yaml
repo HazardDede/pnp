@@ -1,7 +1,4 @@
 ---
-# Make sure that you provided DROPBOX_API_KEY as an environment variable
-# Make sure that you provided PUSHBULETT_API_KEY as an environment variable
-
 - name: dropbox_sync_notify
   pull:
     plugin: pnp.plugins.pull.fs.FileSystemWatcher
@@ -14,9 +11,13 @@
       load_file: false
   push:
     - plugin: pnp.plugins.push.storage.Dropbox
+      args:
+        api_key: "{{env::DROPBOX_API_KEY}}"
       selector:
         data: "lambda data: data.source"  # Absolute path to file
         target_file_name: "lambda data: basename(data.source)"  # File name only
       deps:
         - plugin: pnp.plugins.push.notify.Pushbullet
+          args:
+            api_key: "{{env::PUSHBULLET_API_KEY}}"
           selector: data.raw_link

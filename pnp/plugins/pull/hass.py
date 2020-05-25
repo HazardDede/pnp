@@ -21,7 +21,6 @@ class State(AsyncPullBase):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/hass.State/index.md
     """
-    __prefix__ = 'hass'
 
     def __init__(self, url, token, include=None, exclude=None, **kwargs):
         super().__init__(**kwargs)

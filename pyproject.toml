@@ -59,7 +59,6 @@ urllib3 = { version = "^1.20", optional = true }
 watchdog = { version = "^0.8.3", optional = true }
 
 # Mandatory ones
-argresolver = "^0.3.3"
 asyncio = "^3.4.3"
 asyncws = "^0.1"
 attrs = "^19.3.0"
@@ -107,6 +106,7 @@ pytest-cov = "^2.8.1"
 yamllint = "^1.23.0"
 websockets = ">=6.0,<7.0"
 invoke = "^1.4.1"
+argresolver = "^0.3.3"
 
 [tool.poetry.extras]
 dht = ['Adafruit_DHT']

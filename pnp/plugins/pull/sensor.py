@@ -35,8 +35,6 @@ class DHT(Polling):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/sensor.DHT/index.md
     """
-    __prefix__ = 'dht'
-
     EXTRA = 'dht'
 
     def __init__(self, device='dht22', data_gpio=17, humidity_offset=0.0, temp_offset=0.0,
@@ -152,7 +150,6 @@ class OpenWeather(Polling):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/sensor.OpenWeather/index.md
     """
-    __prefix__ = 'openweather'
 
     def __init__(self, api_key, lat=None, lon=None, city_name=None, units="metric", tz=None,
                  **kwargs):

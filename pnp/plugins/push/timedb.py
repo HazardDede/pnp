@@ -17,8 +17,6 @@ class InfluxPush(PushBase):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/timedb.InfluxPush/index.md
     """
-    __prefix__ = 'influx'
-
     def __init__(self, host, port, user, password, database, protocol, **kwargs):
         super().__init__(**kwargs)
         self.host = str(host)

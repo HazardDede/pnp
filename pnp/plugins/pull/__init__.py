@@ -128,7 +128,6 @@ class Polling(AsyncPullBase):
     You may specify duration literals such as 60 (60 secs), 1m, 1h (...) to realize a periodic
     polling or cron expressions (*/1 * * * * > every min) to realize cron like behaviour.
     """
-    __prefix__ = 'poll'
 
     def __init__(
         self, interval: Optional[DurationLiteral] = 60, instant_run: bool = False, **kwargs: Any

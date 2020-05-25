@@ -16,8 +16,6 @@ class Dropbox(PushBase):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/storage.Dropbox/index.md
     """
-    __prefix__ = 'dropbox'
-
     EXTRA = 'dropbox'
 
     def __init__(

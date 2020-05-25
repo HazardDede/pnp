@@ -1,4 +1,3 @@
-# Make sure that you provided PUSHBULETT_API_KEY as an environment variable
 - name: pushbullet
   pull:
     plugin: pnp.plugins.pull.fs.FileSystemWatcher
@@ -11,5 +10,6 @@
   push:
     plugin: pnp.plugins.push.notify.Pushbullet
     args:
+      api_key: "{{env::PUSHBULLET_API_KEY}}"
       title: "Watcher"
     selector: "'New file: {}'.format(data.source)"

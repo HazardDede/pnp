@@ -22,8 +22,6 @@ class Pushbullet(PushBase):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/notify.Pushbullet/index.md
     """
-    __prefix__ = 'pushbullet'
-
     EXTRA = 'pushbullet'
 
     def __init__(self, api_key, title='pnp', **kwargs):
@@ -100,9 +98,6 @@ class Slack(PushBase):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/notify.Slack/index.md
     """
-
-    __prefix__ = 'slack'
-
     DEFAULT_USERNAME = 'PnP'
     DEFAULT_EMOJI = ':robot:'
 

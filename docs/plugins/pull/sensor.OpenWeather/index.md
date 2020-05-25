@@ -78,8 +78,6 @@ to checkout the documentation about the meaning of individual fields.
 __Examples__
 
 ```yaml
-# Make sure you export your api key with:
-#   `export OPENWEATHER_API_KEY=<your_api_key>`
 - name: openweather
   pull:
     plugin: pnp.plugins.pull.sensor.OpenWeather
@@ -90,6 +88,7 @@ __Examples__
       units: metric  # imperial (fahrenheit + miles/hour), metric (celsius + m/secs), kelvin (kelvin + m/secs)
       instant_run: true
       # tz: GMT
+      api_key: "{{env::OPENWEATHER_API_KEY}}"
   push:
     plugin: pnp.plugins.push.simple.Echo
 

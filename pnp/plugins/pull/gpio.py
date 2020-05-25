@@ -19,8 +19,6 @@ class Watcher(PullBase):
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/gpio.Watcher/index.md
     """
 
-    __prefix__ = 'gpio'
-
     EXTRA = 'gpio'
 
     def __init__(self, pins, default=CONST_RISING, **kwargs):

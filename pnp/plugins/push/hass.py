@@ -13,7 +13,6 @@ class Service(PushBase):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/hass.Service/index.md
     """
-    __prefix__ = 'hass'
 
     def __init__(self, url, token, domain, service, timeout=10, **kwargs):
         super().__init__(**kwargs)
