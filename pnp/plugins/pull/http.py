@@ -8,10 +8,10 @@ from sanic.exceptions import InvalidUsage
 from sanic.request import Request
 from sanic.response import HTTPResponse
 
+from pnp import validator
 from pnp.api import RestAPI, APINotConfiguredError, success
 from pnp.plugins.pull import AsyncPullBase
 from pnp.utils import make_list, HTTP_METHODS
-from pnp.validator import Validator
 
 
 class Server(AsyncPullBase):
@@ -33,7 +33,7 @@ class Server(AsyncPullBase):
         super().__init__(**kwargs)
         self.prefix_path = str(prefix_path)
         self.allowed_methods = [str(m).upper() for m in make_list(allowed_methods)]
-        Validator.subset_of(HTTP_METHODS, allowed_methods=self.allowed_methods)
+        validator.subset_of(HTTP_METHODS, allowed_methods=self.allowed_methods)
 
     def _add_catch_all_endpoint(self, api: Sanic) -> None:
         @no_type_check
@@ -105,7 +105,7 @@ class Server(AsyncPullBase):
                 return item[0] if item[0] else None  # Empty string -> None
             return [x if x else None for x in item]
 
-        Validator.is_instance(dict, args=args)
+        validator.is_instance(dict, args=args)
         res = dict()
         for key, val in args.items():
             res[key] = _make_flat(val)

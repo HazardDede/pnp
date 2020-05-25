@@ -6,7 +6,7 @@ from email import encoders
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-from pnp.validator import Validator
+from pnp import validator
 
 
 class Mail:
@@ -69,7 +69,7 @@ class Mail:
         Returns:
             An object containing a base64url encoded email object.
         """
-        Validator.is_file(file_path=file_path)
+        validator.is_file(file_path=file_path)
 
         message = MIMEMultipart()
         message['to'] = str(recipient)

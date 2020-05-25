@@ -2,6 +2,7 @@
 import asyncio
 from typing import Optional
 
+from pnp import validator
 from pnp.api import RestAPI
 from pnp.config import load_config, Configuration
 from pnp.engines import DEFAULT_ENGINE, Engine
@@ -9,13 +10,12 @@ from pnp.models import tasks_to_str
 from pnp.selector import PayloadSelector
 from pnp.shared.exc import NoEngineError
 from pnp.utils import Loggable
-from pnp.validator import Validator
 
 
 class Application(Loggable):
     """The wrapper that knows about tasks and engine."""
     def __init__(self, config: Configuration):
-        Validator.is_instance(Configuration, config=config)
+        validator.is_instance(Configuration, config=config)
 
         self._config = config
         if not self._config.engine:

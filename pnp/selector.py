@@ -2,10 +2,10 @@
 
 from typing import List, Callable, Dict, Any, Iterable
 
+from pnp import validator
 from pnp.models import UDFModel
 from pnp.typing import SelectorExpression, Payload
 from pnp.utils import Singleton, safe_eval, FallbackBox, EvaluationError
-from pnp.validator import Validator
 
 
 class PayloadSelector(Singleton):
@@ -76,16 +76,16 @@ class PayloadSelector(Singleton):
         Returns:
             None.
         """
-        Validator.is_function(fun=fun)
-        Validator.is_instance(str, name=name)
+        validator.is_function(fun=fun)
+        validator.is_instance(str, name=name)
         if name not in self._custom:  # Overriding a already existing custom will silently fail!
             self._custom[name] = fun
 
     def register_udfs(self, udfs: Iterable[UDFModel]) -> None:
         """Register the given user-definied function."""
-        Validator.is_iterable_but_no_str(udfs=udfs)
+        validator.is_iterable_but_no_str(udfs=udfs)
         for i, udf in enumerate(udfs):
-            Validator.is_instance(UDFModel, **{'udfs.item_{i}'.format(i=i): udf})  # type: ignore
+            validator.is_instance(UDFModel, **{'udfs.item_{i}'.format(i=i): udf})  # type: ignore
             self.register_custom_global(udf.name, udf.callable)
 
     def _eval_wrapper(self, selector: str, payload: Payload) -> Payload:

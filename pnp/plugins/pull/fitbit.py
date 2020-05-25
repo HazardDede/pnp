@@ -13,7 +13,6 @@ from pnp import validator
 from pnp.plugins import load_optional_module
 from pnp.plugins.pull import AsyncPolling
 from pnp.utils import auto_str_ignore, camel_to_snake, transform_dict_items, make_list, FileLock
-from pnp.validator import Validator
 
 
 @auto_str_ignore(['_tokens', '_client', '_tokens_tstamp', '_client_lock'])
@@ -38,7 +37,7 @@ class _FitbitBase(AsyncPolling):
         self._config = config
         if not os.path.isabs(config):
             self._config = os.path.join(self.base_path, config)
-        Validator.is_file(config=self._config)
+        validator.is_file(config=self._config)
 
         import threading
         self._client_lock = threading.Lock()

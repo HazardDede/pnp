@@ -5,10 +5,11 @@ import sys
 import time
 from datetime import datetime
 
+
+from pnp import validator
 from pnp.config import load_pull_from_snippet
 from pnp.plugins.pull import PullBase, Polling, AsyncPullBase
 from pnp.utils import make_list, auto_str_ignore, parse_duration_literal_float
-from pnp.validator import Validator
 
 
 class Count(AsyncPullBase):
@@ -79,7 +80,7 @@ class CustomPolling(Polling):
     def __init__(self, scheduled_callable, **kwargs):
         super().__init__(**kwargs)
         self.scheduled_callable = scheduled_callable
-        Validator.is_function(scheduled_callable=self.scheduled_callable)
+        validator.is_function(scheduled_callable=self.scheduled_callable)
 
     def poll(self):
         return self.scheduled_callable()

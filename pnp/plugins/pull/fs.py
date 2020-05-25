@@ -7,7 +7,6 @@ from pnp import validator
 from pnp.plugins import load_optional_module, PluginStoppedError
 from pnp.plugins.pull import PullBase, Polling
 from pnp.utils import make_list, load_file, FILE_MODES, Debounce
-from pnp.validator import Validator
 
 
 class FileSystemWatcher(PullBase):
@@ -34,7 +33,7 @@ class FileSystemWatcher(PullBase):
     ):
         super().__init__(**kwargs)
         self.path = path
-        Validator.is_directory(path=self.path)
+        validator.is_directory(path=self.path)
         self.recursive = bool(recursive)
         self.patterns = make_list(patterns)
         self.ignore_patterns = make_list(ignore_patterns)
@@ -43,7 +42,8 @@ class FileSystemWatcher(PullBase):
         self.load_file = bool(load_file)
         self.base64 = bool(base64)
         self.events = make_list(events)
-        Validator.subset_of(self.EVENT_TYPES, allow_none=True, events=self.events)
+        if self.events:
+            validator.subset_of(self.EVENT_TYPES, events=self.events)
         self.mode = mode
         validator.one_of(FILE_MODES, mode=self.mode)
         self.defer_modified = float(defer_modified)

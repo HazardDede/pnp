@@ -7,10 +7,10 @@ from abc import abstractmethod
 from typing import Any, Callable, Optional, Dict, Iterable, Union, cast, List, Tuple
 
 from pnp import utils
+from pnp import validator
 from pnp.plugins import Plugin
 from pnp.shared.async_ import async_from_sync
 from pnp.typing import Envelope, Payload
-from pnp.validator import Validator
 
 # Push function typing alias
 PushFunction = Callable[..., Payload]
@@ -26,10 +26,10 @@ def enveloped(
     """Decorator to split the envelope and the actual payload. This is an but a convenience
     decorator for `envelope_payload` of the `PushBase` class."""
 
-    Validator.is_function(fun=fun)
+    validator.is_function(fun=fun)
 
     def _call(self: 'PushBase', payload: Payload) -> Payload:
-        Validator.is_instance(PushBase, self=self)
+        validator.is_instance(PushBase, self=self)
         envelope, real_payload = self.envelope_payload(payload)
         return fun(
             self,
@@ -50,16 +50,16 @@ def parse_envelope(value: str) -> PushFunction:
     """Decorator the parse the given value-key from the envelope. This is but a convenience
     decorator / wrapper for `_parse_envelope_value` of the `PushBase` class."""
 
-    Validator.is_instance(str, value=value)
+    validator.is_instance(str, value=value)
 
     def _inner(fun: PushFunction) -> PushFunction:
-        Validator.is_function(fun=fun)
+        validator.is_function(fun=fun)
 
         def _call(
                 self: 'PushBase', envelope: Optional[Envelope] = None, payload: Payload = None,
                 **kwargs: Any
         ) -> Payload:
-            Validator.is_instance(PushBase, self=self)
+            validator.is_instance(PushBase, self=self)
             parsed = self._parse_envelope_value(value, envelope=envelope)
 
             new_kwargs = {
@@ -89,7 +89,7 @@ def drop_envelope(fun: PushFunction) -> PushFunction:
     make the linter happy again if necessary (unused-argument)."""
 
     def _call(self: 'PushBase', *args: Any, **kwargs: Any) -> Any:
-        Validator.is_instance(PushBase, self=self)
+        validator.is_instance(PushBase, self=self)
         kwargs.pop('envelope', None)
         return fun(self, *args, **kwargs)
 
@@ -193,10 +193,12 @@ class PushBase(Plugin):
             instance_lookup_fun: Custom function to perform instance variable lookups.
                 If not given a reasonably default will be used.
         """
-        Validator.is_instance(str, name=name)
-        Validator.is_instance(dict, allow_none=True, envelope=envelope)
-        Validator.is_function(allow_none=True, parse_fun=parse_fun)
-        Validator.is_function(allow_none=True, instance_lookup_fun=instance_lookup_fun)
+        validator.is_instance(str, name=name)
+        validator.is_instance(dict, allow_none=True, envelope=envelope)
+        if parse_fun:
+            validator.is_function(parse_fun=parse_fun)
+        if instance_lookup_fun:
+            validator.is_function(instance_lookup_fun=instance_lookup_fun)
 
         lookups = cast(
             Dict[str, str], utils.make_public_protected_private_attr_lookup(name, as_dict=True)

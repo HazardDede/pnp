@@ -5,8 +5,8 @@ from typing import Any, Dict, Tuple, Optional, Union, cast, Callable
 
 from argresolver import EnvironmentResolver  # type: ignore
 
+from pnp import validator
 from pnp.utils import auto_str, auto_str_ignore
-from pnp.validator import Validator
 
 
 class InstallOptionalExtraError(ImportError):
@@ -122,8 +122,8 @@ def load_plugin(plugin_path: str, plugin_type: Union[type, str], instantiate: bo
         - Instantiation error (InvocationError)
         - Wrong plugin base type (PluginTypeError)
     """
-    Validator.is_instance(str, plugin_path=plugin_path)
-    Validator.is_instance(type, str, plugin_type=plugin_type)
+    validator.is_instance(str, plugin_path=plugin_path)
+    validator.is_instance(type, str, plugin_type=plugin_type)
     if isinstance(plugin_type, str) and plugin_type != 'callable':
         raise ValueError("When 'plugin_type' is str, the only allowed value is callable")
 

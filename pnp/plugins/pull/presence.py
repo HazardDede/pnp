@@ -2,10 +2,10 @@
 
 from typing import Dict, Any, List, Optional
 
+from pnp import validator
 from pnp.plugins import load_optional_module
 from pnp.plugins.pull import Polling
 from pnp.typing import Payload
-from pnp.validator import Validator
 
 
 class FritzBoxTracker(Polling):
@@ -30,7 +30,8 @@ class FritzBoxTracker(Polling):
         self.offline_delay = int(offline_delay)
         if self.offline_delay < 0:
             self.offline_delay = 0
-        Validator.is_iterable_but_no_str(allow_none=True, whitelist=whitelist)
+        if whitelist:
+            validator.is_iterable_but_no_str(whitelist=whitelist)
         self.whitelist = whitelist and [str(item) for item in whitelist]
         self.fritz_box = None
         self._cache = {}

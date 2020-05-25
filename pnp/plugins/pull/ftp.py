@@ -4,10 +4,10 @@ import copy
 import tempfile
 from contextlib import contextmanager
 
+from pnp import validator
 from pnp.plugins import load_optional_module
 from pnp.plugins.pull import PullBase
 from pnp.utils import is_iterable_but_no_str, make_list
-from pnp.validator import Validator
 
 
 class Server(PullBase):
@@ -39,8 +39,9 @@ class Server(PullBase):
         self.port = int(port)
         self.max_cons = int(max_cons)
         self.max_cons_ip = int(max_cons_ip)
-        Validator.is_instance(str, allow_none=True, directory=directory)
-        Validator.is_directory(allow_none=True, directory=directory)
+        validator.is_instance(str, allow_none=True, directory=directory)
+        if directory:
+            validator.is_directory(directory=directory)
         self.directory = directory
         if not user_pwd:  # No password -> anonymous access
             self.user = None
@@ -56,7 +57,8 @@ class Server(PullBase):
                             "user and password.")
 
         self.events = make_list(events) or copy.copy(self.ALL_EVENTS)
-        Validator.subset_of(self.ALL_EVENTS, allow_none=True, events=self.events)
+        if self.events:
+            validator.subset_of(self.ALL_EVENTS, events=self.events)
 
         self.server = None
 

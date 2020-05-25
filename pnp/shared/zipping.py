@@ -6,8 +6,8 @@ import zipfile
 
 import pathspec
 
+from pnp import validator
 from pnp.utils import is_iterable_but_no_str
-from pnp.validator import Validator
 
 _LOGGER = logging.getLogger(__file__)
 
@@ -16,7 +16,7 @@ def zipdir(source_dir, target_zip, ignore=None):
     """Creates a zip file specified by `out_zip`. The source directory is specified
     by `source`. You can optionally specify a gitignore-like ignore list to ignore
     specific items."""
-    Validator.is_directory(source=source_dir)
+    validator.is_directory(source=source_dir)
     if ignore is None:
         ignore = []
     if not is_iterable_but_no_str(ignore):

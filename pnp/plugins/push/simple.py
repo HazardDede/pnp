@@ -3,10 +3,10 @@
 from functools import partial
 from typing import Union, Any
 
+from pnp import validator
 from pnp.plugins.push import enveloped, PushBase, AsyncPushBase
 from pnp.shared.exc import TemplateError
 from pnp.utils import parse_duration_literal, make_list
-from pnp.validator import Validator
 
 
 class Echo(AsyncPushBase):
@@ -103,7 +103,8 @@ class Execute(PushBase):
         self._command = str(command) if command else None
         self._args = self._parse_args(args)
         self._cwd = str(cwd) if cwd else self.base_path
-        Validator.is_directory(allow_none=True, cwd=self._cwd)
+        if self._cwd:
+            validator.is_directory(cwd=self._cwd)
         self._capture = bool(capture)
         self._timeout = timeout and parse_duration_literal(timeout)
 

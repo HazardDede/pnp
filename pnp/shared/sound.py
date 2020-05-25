@@ -5,7 +5,7 @@ import os
 
 import attr
 
-from pnp.validator import Validator
+from pnp import validator
 
 _LOGGER = logging.getLogger(__file__)
 
@@ -101,6 +101,6 @@ class WavFile:
 
         wav_file = str(wav_file)
         abs_path = _mk_abs(wav_file)
-        Validator.is_file(wav_file=abs_path)
+        validator.is_file(wav_file=abs_path)
 
         return WavFile(abs_path)

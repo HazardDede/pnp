@@ -5,8 +5,8 @@ from typing import Callable, Any, Coroutine
 
 from syncasync import async_to_sync  # type: ignore
 
+from pnp import validator
 from pnp.utils import StopCycleError
-from pnp.validator import Validator
 
 
 def async_from_sync(fun: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
@@ -42,7 +42,7 @@ async def async_sleep_until_interrupt(sleep_time: float,
                                       interval: float = 0.5) -> None:
     """Call this method to sleep an interruptable sleep until the interrupt coroutine returns
     True."""
-    Validator.is_function(interrupt_fun=interrupt_fun)
+    validator.is_function(interrupt_fun=interrupt_fun)
 
     async def callback() -> None:
         if await interrupt_fun():
