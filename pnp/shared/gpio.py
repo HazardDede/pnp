@@ -5,7 +5,9 @@ import re
 from abc import abstractmethod
 from collections import defaultdict
 from functools import partial
+from typing import Optional, Iterable, Any, Callable, Dict, Tuple, List, Union
 
+from pnp.typing import DurationLiteral
 from pnp.utils import (
     try_parse_int, auto_str, auto_str_ignore, Debounce, parse_duration_literal, Singleton,
     Loggable
@@ -25,25 +27,35 @@ CONST_SWITCH = "switch"
 CONST_MOTION_ON = "motion_on"
 CONST_MOTION_OFF = "motion_off"
 
+Channel = int
+Edge = str
+Bounce = int
+EventCallback = Callable[[Channel], None]
+InterceptCallback = Callable[[Channel, Edge], None]
+CallbackDict = Dict[Channel, List[Tuple[Edge, EventCallback, Optional[int]]]]
+
 
 class GPIOAdapter(Singleton, Loggable):
     """Convenience wrapper around the RPi.GPIO package."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.logger.debug("GPIOWrapper __init__ called")
         self.GPIO = self._load_gpio_package()
         self.GPIO.setmode(self.GPIO.BCM)
-        self._mchannel = dict()
-        self._callbacks = defaultdict(list)
+        self._mchannel = dict()  # type: Dict[Channel, Optional[Edge]]
+        self._callbacks = defaultdict(list)  # type: CallbackDict
 
-    def add_event_detect(self, channel, edge, callback, bouncetime=None):
+    def add_event_detect(
+        self, channel: Channel, edge: Edge, callback: EventCallback,
+        bouncetime: Optional[Bounce] = None
+    ) -> None:
         """Adds a callback when the state of the channel changes."""
         self._callbacks[channel].append((edge, callback, bouncetime))
 
-    def apply(self):
+    def apply(self) -> None:
         """Applies the configured callbacks."""
-        def safe_max(lst):
+        def safe_max(lst: Iterable[Bounce]) -> Optional[Bounce]:
             if not lst:
                 return None
             return max(lst)
@@ -73,19 +85,19 @@ class GPIOAdapter(Singleton, Loggable):
 
             self.GPIO.add_event_callback(channel, self._dispatcher)
 
-    def remove_event_detect(self, channel):
+    def remove_event_detect(self, channel: Channel) -> None:
         """Removes a previously added callback."""
         self._mchannel.pop(channel, None)
         self._callbacks.pop(channel, None)
-        return self.GPIO.remove_event_detect(channel)
+        self.GPIO.remove_event_detect(channel)
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         """Clean up the mess you have done."""
         self._mchannel.clear()
         self._callbacks.clear()
-        return self.GPIO.cleanup()
+        self.GPIO.cleanup()
 
-    def _dispatcher(self, channel):
+    def _dispatcher(self, channel: Channel) -> None:
         callbacks = self._callbacks.get(channel, None)
         if not callbacks:
             return
@@ -100,18 +112,18 @@ class GPIOAdapter(Singleton, Loggable):
             if current_edge is None or cb_edge == current_edge:
                 cback(channel)
 
-    def _str_to_gpio_mode(self, _str):
+    def _str_to_gpio_mode(self, _str: str) -> Edge:
         if _str == self.GPIO.BOTH:
             return _str
         _str = str(_str)
         if _str.lower() in CONST_RISING_OPTIONS:
-            return self.GPIO.RISING
+            return self.GPIO.RISING  # type: ignore
         if _str.lower() in CONST_FALLING_OPTIONS:
-            return self.GPIO.FALLING
+            return self.GPIO.FALLING  # type: ignore
         raise ValueError("The given string '{}' is not a valid GPIO mode".format(_str))
 
     @staticmethod
-    def _load_gpio_package():
+    def _load_gpio_package() -> Any:
         try:
             try:
                 import RPi.GPIO as GPIO
@@ -119,7 +131,7 @@ class GPIOAdapter(Singleton, Loggable):
                 from RPi import GPIO  # Only works for test cases when using the mocked package
         except ImportError:  # pragma: no cover
             _LOGGER.warning("RPi.GPIO package is not available - Using mock")
-            from ..mocking import GPIOMock as GPIO
+            from ..mocking import GPIOMock as GPIO  # type: ignore
         return GPIO
 
 
@@ -127,22 +139,22 @@ class GPIOAdapter(Singleton, Loggable):
 @auto_str_ignore(['_GPIO'])
 class Callback:
     """Base class for a gpio callback."""
-    def __init__(self, gpio_pin):
+    def __init__(self, gpio_pin: str):
         self.gpio_pin = self._str_to_gpio_pin(gpio_pin)
 
     @property
-    def GPIO(self):
+    def GPIO(self) -> GPIOAdapter:
         """Return the gpio wrapper."""
         return GPIOAdapter()
 
     @classmethod
-    def load(cls, gpio_pin_str, mode_str):
+    def load(cls, gpio_pin_str: str, mode_str: str) -> 'Callback':
         """Make an instance using the gpio_pin as a string. Override in child classes
         to perform some validation checks."""
         raise NotImplementedError()
 
     @classmethod
-    def from_str(cls, candidate, default=CONST_RISING):
+    def from_str(cls, candidate: Any, default: str = CONST_RISING) -> 'Callback':
         """Load the callback from a string."""
         gpio_pin_str, _, mode_str = str(candidate).partition(':')
         if not mode_str:
@@ -157,25 +169,26 @@ class Callback:
             return MotionCallback.load(gpio_pin_str, mode_str)
         raise ValueError("The specified pin mode '{}' is not supported".format(mode_str))
 
-    def _intercept(self, channel, event, callback):  # pylint: disable=no-self-use
-        callback(gpio_pin=channel, event=event)
+    def _intercept(self, channel: Channel, event: Edge, callback: InterceptCallback) -> None:
+        _ = self  # Fake usage
+        callback(channel, event)
 
     @abstractmethod
-    def run(self, callback):
+    def run(self, callback: InterceptCallback) -> None:
         """Registers this callback to the gpio wrapper."""
         raise NotImplementedError()  # pragma: no cover
 
-    def stop(self):
+    def stop(self) -> None:
         """Stop this callback to receive events."""
         self.GPIO.remove_event_detect(self.gpio_pin)
 
-    def _eqstr(self):
+    def _eqstr(self) -> str:
         # If we have multiple switches or motion for the same pin only one will applied
         # We basically account for the pin and the class only without additional params.
         return "{}({})".format(type(self).__name__, str(self.gpio_pin))
 
     @staticmethod
-    def _parse_mode_str(mode_str, regex, *groups):
+    def _parse_mode_str(mode_str: str, regex: str, *groups: str) -> Iterable[str]:
         _rgx = re.compile(regex)
         _match = _rgx.match(mode_str)
         if not _match:
@@ -184,7 +197,7 @@ class Callback:
         return [_match.group(g) for g in groups]
 
     @staticmethod
-    def _str_to_gpio_pin(_str):
+    def _str_to_gpio_pin(_str: str) -> Channel:
         pin = try_parse_int(_str)
         if not pin or pin not in CONST_AVAILABLE_GPIO_PINS:
             lmin = min(CONST_AVAILABLE_GPIO_PINS)
@@ -194,13 +207,13 @@ class Callback:
                              .format(_str, lmin, lmax))
         return pin
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(str(self._eqstr()))
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if not hasattr(other, '_eqstr'):  # pragma: no cover
             return False
-        return self._eqstr() == other._eqstr()  # pylint: disable=protected-access
+        return bool(self._eqstr() == other._eqstr())  # pylint: disable=protected-access
 
 
 class RisingCallback(Callback):
@@ -208,11 +221,11 @@ class RisingCallback(Callback):
     EDGE = CONST_RISING
 
     @classmethod
-    def load(cls, gpio_pin_str, mode_str):
+    def load(cls, gpio_pin_str: str, mode_str: str) -> 'Callback':
         """Make an instance using the gpio_pin as a string."""
         return cls(gpio_pin_str)
 
-    def run(self, callback):
+    def run(self, callback: InterceptCallback) -> None:
         self.GPIO.add_event_detect(
             self.gpio_pin,
             self.EDGE,
@@ -232,17 +245,17 @@ class SwitchCallback(Callback):
     BOUNCE_GROUP = "delay"
     BOUNCE_DEFAULT = 500
 
-    def __init__(self, gpio_pin, delay):
+    def __init__(self, gpio_pin: str, delay: Union[Bounce, DurationLiteral]):
         super().__init__(gpio_pin)
         self.delay = int(delay)
 
     @classmethod
-    def load(cls, gpio_pin_str, mode_str):
+    def load(cls, gpio_pin_str: str, mode_str: str) -> 'Callback':
         """Make an instance using the gpio_pin as a string."""
         delay, = cls._parse_mode_str(mode_str, cls.BOUNCE_REGEX, cls.BOUNCE_GROUP)
         return cls(gpio_pin_str, delay or cls.BOUNCE_DEFAULT)
 
-    def run(self, callback):
+    def run(self, callback: InterceptCallback) -> None:
         self.GPIO.add_event_detect(
             self.gpio_pin,
             self.EDGE,
@@ -258,28 +271,28 @@ class MotionCallback(RisingCallback):
     DELAY_GROUP = "delay"
     DELAY_DEFAULT = "30s"
 
-    def __init__(self, gpio_pin, delay):
+    def __init__(self, gpio_pin: str, delay: str):
         super().__init__(gpio_pin)
         self.delay = parse_duration_literal(delay)
-        self._debouncer = None
+        self._debouncer = None  # type: Optional[Debounce]
 
     @classmethod
-    def load(cls, gpio_pin_str, mode_str):
+    def load(cls, gpio_pin_str: str, mode_str: str) -> 'Callback':
         """Make an instance using the gpio_pin as a string."""
         delay, = cls._parse_mode_str(mode_str, cls.DELAY_REGEX, cls.DELAY_GROUP)
         return cls(gpio_pin_str, delay or cls.DELAY_DEFAULT)
 
-    def _motion_off(self, channel, callback):
-        callback(gpio_pin=channel, event=CONST_MOTION_OFF)
+    def _motion_off(self, channel: Channel, callback: InterceptCallback) -> None:
+        callback(channel, CONST_MOTION_OFF)
         self._debouncer = None
 
-    def _intercept(self, channel, event, callback):
+    def _intercept(self, channel: Channel, event: Edge, callback: InterceptCallback) -> None:
         if event == CONST_RISING:
             if self._debouncer is None:
-                callback(gpio_pin=channel, event=CONST_MOTION_ON)
+                callback(channel, CONST_MOTION_ON)
                 self._debouncer = Debounce(self._motion_off, self.delay)
             self._debouncer(channel, callback)
 
-    def stop(self):
+    def stop(self) -> None:
         if self._debouncer:
             self._debouncer.execute_now()
