@@ -39,7 +39,10 @@ def mypy(ctx):
         "{}/plugins/push/__init__.py".format(SOURCE_PATH),
         "{}/plugins/udf/__init__.py".format(SOURCE_PATH),
         "{}/shared/async_.py".format(SOURCE_PATH),
+        "{}/shared/hass.py".format(SOURCE_PATH),
+        "{}/shared/mime.py".format(SOURCE_PATH),
         "{}/shared/mqtt.py".format(SOURCE_PATH),
+        "{}/shared/sound.py".format(SOURCE_PATH),
         "{}/shared/zipping.py".format(SOURCE_PATH),
     ]
     ctx.run("mypy --ignore-missing-imports {}".format(' '.join(_includes)))

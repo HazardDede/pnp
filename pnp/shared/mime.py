@@ -3,8 +3,10 @@
 import mimetypes
 import os
 from email import encoders
+from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from typing import Tuple, AnyStr, Optional
 
 from pnp import validator
 
@@ -14,7 +16,7 @@ class Mail:
     Makes mime-compatible e-mails with or without attachments."""
 
     @staticmethod
-    def _content_type(file_path):
+    def _content_type(file_path: str) -> Tuple[str, str]:
         content_type, encoding = mimetypes.guess_type(file_path)
         if content_type is None or encoding is not None:
             content_type = 'application/octet-stream'
@@ -22,14 +24,14 @@ class Mail:
         return main_type, sub_type
 
     @staticmethod
-    def _file_contents(file_path, file_type):
+    def _file_contents(file_path: str, file_type: str) -> AnyStr:
         with open(file_path, 'r' if file_type == 'text' else 'rb') as fp:
-            return fp.read()
+            return fp.read()  # type: ignore
 
     @staticmethod
-    def _make_attachment(file_path, contents, main_type, sub_type):
+    def _make_attachment(file_path: str, contents: str, main_type: str, sub_type: str) -> MIMEBase:
         if main_type == 'text':
-            msg = MIMEText(contents, _subtype=sub_type)
+            msg = MIMEText(contents, _subtype=sub_type)  # type: MIMEBase
         elif main_type == 'image':
             from email.mime.image import MIMEImage
             msg = MIMEImage(contents, _subtype=sub_type)
@@ -37,7 +39,6 @@ class Mail:
             from email.mime.audio import MIMEAudio
             msg = MIMEAudio(contents, _subtype=sub_type)
         else:
-            from email.mime.base import MIMEBase
             msg = MIMEBase(main_type, sub_type)
             msg.set_payload(contents)
 
@@ -47,7 +48,10 @@ class Mail:
         return msg
 
     @classmethod
-    def create_with_attachment(cls, sender, recipient, subject, file_path, message_text=None):
+    def create_with_attachment(
+        cls, sender: str, recipient: str, subject: str, file_path: str,
+        message_text: Optional[str] = None
+    ) -> MIMEMultipart:
         """Create a message for an email.
 
         Example:
@@ -76,8 +80,7 @@ class Mail:
         message['from'] = str(sender)
         message['subject'] = str(subject)
         if message_text is not None:
-            msg = MIMEText(str(message_text))
-            message.attach(msg)
+            message.attach(MIMEText(str(message_text)))
 
         main_type, sub_type = cls._content_type(file_path)
         file_contents = cls._file_contents(file_path, main_type)
@@ -87,7 +90,9 @@ class Mail:
         return message
 
     @classmethod
-    def create_text(cls, sender, recipient, subject, message_text):
+    def create_text(
+        cls, sender: str, recipient: str, subject: str, message_text: str
+    ) -> MIMEText:
         """Create a message for an email.
 
         Example:
