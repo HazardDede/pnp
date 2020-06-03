@@ -37,7 +37,8 @@ def mypy(ctx):
         "{}/plugins/__init__.py".format(SOURCE_PATH),
         "{}/plugins/pull/__init__.py".format(SOURCE_PATH),
         "{}/plugins/push/__init__.py".format(SOURCE_PATH),
-        "{}/plugins/udf/__init__.py".format(SOURCE_PATH)
+        "{}/plugins/udf/__init__.py".format(SOURCE_PATH),
+        "{}/shared/*.py".format(SOURCE_PATH),
     ]
     ctx.run("mypy --ignore-missing-imports {}".format(' '.join(_includes)))
 

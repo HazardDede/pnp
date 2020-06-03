@@ -1,7 +1,7 @@
 """Publishing engine classes to the outside world."""
 
-from ._async import AsyncEngine
-from ._base import (
+from pnp.engines._async import AsyncEngine
+from pnp.engines._base import (
     Engine,
     RetryDirective,
     RetryHandler,
@@ -14,13 +14,11 @@ from ._base import (
 )
 
 
-DEFAULT_ENGINES = {
-    'async': lambda: AsyncEngine(retry_handler=AdvancedRetryHandler()),
-}
+DEFAULT_ENGINE = AsyncEngine(retry_handler=AdvancedRetryHandler())
 
 
 __all__ = [
     'Engine', 'AsyncEngine', 'RetryDirective', 'RetryHandler', 'NoRetryHandler',
     'SimpleRetryHandler', 'LimitedRetryHandler', 'AdvancedRetryHandler', 'PushExecutor',
-    'NotSupportedError', 'DEFAULT_ENGINES'
+    'NotSupportedError', 'DEFAULT_ENGINE'
 ]

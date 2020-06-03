@@ -21,7 +21,7 @@ def test_dropbox_push_with_file(dbx_mock):
     dbx_mock = setup_mock(dbx_mock)
     dut = Dropbox(name='pytest', api_key='secret', create_shared_link=False)
     with NamedTemporaryFile() as tmp:
-        res = dut.push(tmp.name)
+        res = dut.push({'target_file_name': 'tmp', 'data': tmp.name})
 
     assert isinstance(res, dict)
     res = Box(res)

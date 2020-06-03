@@ -8,9 +8,10 @@ import attr
 import requests
 import schema as sc
 
-from . import PullBase, Polling, PollingError
-from .. import load_optional_module
-from ...shared.sound import (
+from pnp import validator
+from pnp.plugins import load_optional_module
+from pnp.plugins.pull import PullBase, Polling, PollingError
+from pnp.shared.sound import (
     WavFile,
     similarity_pearson,
     similarity_std,
@@ -18,12 +19,12 @@ from ...shared.sound import (
     MODE_STD,
     ALLOWED_MODES
 )
-from ...utils import (
+from pnp.utils import (
     safe_get,
     auto_str_ignore,
     parse_duration_literal,
-    Cooldown)
-from ...validator import Validator
+    Cooldown
+)
 
 
 class DHT(Polling):
@@ -34,8 +35,6 @@ class DHT(Polling):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/sensor.DHT/index.md
     """
-    __prefix__ = 'dht'
-
     EXTRA = 'dht'
 
     def __init__(self, device='dht22', data_gpio=17, humidity_offset=0.0, temp_offset=0.0,
@@ -43,7 +42,7 @@ class DHT(Polling):
         super().__init__(**kwargs)
         valid_devices = ['dht11', 'dht22', 'am2302']
         self.device = str(device).lower()
-        Validator.one_of(valid_devices, device=self.device)
+        validator.one_of(valid_devices, device=self.device)
         self.data_gpio = int(data_gpio)
         self.humidity_offset = float(humidity_offset)
         self.temp_offset = float(temp_offset)
@@ -151,21 +150,20 @@ class OpenWeather(Polling):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/sensor.OpenWeather/index.md
     """
-    __prefix__ = 'openweather'
 
     def __init__(self, api_key, lat=None, lon=None, city_name=None, units="metric", tz=None,
                  **kwargs):
         super().__init__(**kwargs)
         self.api_key = str(api_key)
-        self.lat = Validator.cast_or_none(float, lat)
-        self.lon = Validator.cast_or_none(float, lon)
-        self.city_name = Validator.cast_or_none(str, city_name)
+        self.lat = lat and float(lat)
+        self.lon = lon and float(lon)
+        self.city_name = city_name and str(city_name)
         if self.city_name is None and not self._validate_lat_lon():
             raise ValueError("You have to pass city_name or lat and lon.")
 
-        Validator.one_of(["metric", "imperial", "kelvin"], units=units)
+        validator.one_of(["metric", "imperial", "kelvin"], units=units)
         self.units = units
-        self.tzone = Validator.cast_or_none(str, tz)
+        self.tzone = tz and str(tz)
 
         from pytz import timezone
         from tzlocal import get_localzone
@@ -257,7 +255,7 @@ class Sound(PullBase):
 
         @classmethod
         def _check_mode(cls, mode):
-            Validator.one_of(ALLOWED_MODES, mode=mode)
+            validator.one_of(ALLOWED_MODES, mode=mode)
             return mode
 
         @classmethod

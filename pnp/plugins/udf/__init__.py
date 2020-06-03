@@ -5,8 +5,12 @@ from typing import Optional, Any
 
 import cachetools  # type: ignore
 
-from .. import Plugin
-from ...utils import parse_duration_literal, DurationLiteral, make_hashable
+from pnp.plugins import Plugin
+from pnp.utils import (
+    parse_duration_literal,
+    DurationLiteral,
+    make_hashable
+)
 
 
 class UserDefinedFunction(Plugin):
@@ -20,7 +24,7 @@ class UserDefinedFunction(Plugin):
 
         Args:
             throttle: If set to a valid duration literal (e.g. 5m) the return value of the
-                called functions will be cached for the amount of time.
+              called functions will be cached for the given amount of time.
         """
         super().__init__(**kwargs)
         self.throttle = throttle and parse_duration_literal(throttle)

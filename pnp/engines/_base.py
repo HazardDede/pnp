@@ -1,20 +1,22 @@
 """Contains base classes for engines."""
 
+import asyncio
 import copy
 from abc import abstractmethod
 from datetime import datetime
 from typing import Any, Callable, Optional
 
-import asyncio
 import attr
 
-from ..models import TaskSet, PushModel
-from ..plugins.push import AsyncPushBase
-from ..selector import PayloadSelector
-from ..typing import Payload
-from ..utils import (Loggable, Singleton, parse_duration_literal, DurationLiteral, auto_str,
-                     is_iterable_but_no_str, auto_str_ignore)
-from ..validator import Validator
+from pnp import validator
+from pnp.models import TaskSet, PushModel
+from pnp.plugins.push import AsyncPushBase
+from pnp.selector import PayloadSelector
+from pnp.typing import Payload
+from pnp.utils import (
+    Loggable, Singleton, parse_duration_literal, DurationLiteral, auto_str,
+    is_iterable_but_no_str, auto_str_ignore
+)
 
 
 class NotSupportedError(Exception):
@@ -112,7 +114,7 @@ class LimitedRetryHandler(SimpleRetryHandler):
 
     def __init__(self, max_retries: Optional[int] = 3, **kwargs: Any):
         super().__init__(**kwargs)
-        self.max_retries = Validator.cast_or_none(int, max_retries)  # type: Optional[int]
+        self.max_retries = max_retries and int(max_retries)  # type: Optional[int]
 
     def _eval_abort(self, retry_count: int) -> bool:
         if self.max_retries is None or self.max_retries < 0:
@@ -215,7 +217,7 @@ class PushExecutor(Loggable, Singleton):
             result_callback (callable): See explanation above.
         """
 
-        Validator.is_instance(PushModel, push=push)
+        validator.is_instance(PushModel, push=push)
 
         if result_callback and not callable(result_callback):
             self.logger.warning(

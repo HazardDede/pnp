@@ -1,9 +1,11 @@
 """Storage related push plugins."""
+from typing import Optional, Any
 
-from . import PushBase, enveloped, parse_envelope, drop_envelope
-from .. import load_optional_module
-from ...utils import auto_str_ignore, get_bytes
-from ...validator import Validator
+from typeguard import typechecked
+
+from pnp.plugins import load_optional_module
+from pnp.plugins.push import PushBase, enveloped, parse_envelope, drop_envelope
+from pnp.utils import auto_str_ignore, get_bytes
 
 
 @auto_str_ignore(['api_key'])
@@ -14,20 +16,20 @@ class Dropbox(PushBase):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/storage.Dropbox/index.md
     """
-    __prefix__ = 'dropbox'
-
     EXTRA = 'dropbox'
 
-    def __init__(self, api_key, target_file_name=None, create_shared_link=True, **kwargs):
+    def __init__(
+        self, api_key: str, target_file_name: Optional[str] = None,
+        create_shared_link: bool = True, **kwargs: Any
+    ):
         super().__init__(**kwargs)
         self.api_key = str(api_key)
-        self.target_file_name = str(target_file_name)
+        self.target_file_name = target_file_name and str(target_file_name)
         self.create_shared_link = bool(create_shared_link)
 
     @staticmethod
-    def _sanitze_target_file_name(val):
-        Validator.is_not_none(val=val)
-        val = str(val)
+    @typechecked
+    def _sanitze_target_file_name(val: str) -> str:
         if not val.startswith('/'):
             return '/' + val
         return val

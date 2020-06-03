@@ -3,11 +3,11 @@
 import base64
 import os
 
-from . import PushBase, enveloped, parse_envelope
-from .. import load_optional_module
-from ...shared.mime import Mail
-from ...utils import FileLock, make_list, is_iterable_but_no_str
-from ...validator import Validator
+from pnp import validator
+from pnp.plugins import load_optional_module
+from pnp.plugins.push import PushBase, enveloped, parse_envelope
+from pnp.shared.mime import Mail
+from pnp.utils import FileLock, make_list, is_iterable_but_no_str
 
 
 class GMail(PushBase):
@@ -17,7 +17,6 @@ class GMail(PushBase):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/mail.GMail/index.md
     """
-    __prefix__ = 'gmail'
     EXTRA = 'gmail'
 
     def __init__(self, token_file, recipient, subject=None, sender='pnp', **kwargs):
@@ -25,7 +24,7 @@ class GMail(PushBase):
         self.token_file = str(token_file)
         if not os.path.isabs(self.token_file):
             self.token_file = os.path.join(self.base_path, self.token_file)
-        Validator.is_file(token_file=self.token_file)
+        validator.is_file(token_file=self.token_file)
 
         self.recipient = self._parse_recipient(recipient)
         self.subject = self._parse_subject(subject)
@@ -107,7 +106,8 @@ class GMail(PushBase):
 
         if subject is None:
             raise ValueError("Subject was not defined either by the __init__ nor by the envelope")
-        Validator.is_file(allow_none=True, file_path=file_path)
+        if file_path:
+            validator.is_file(file_path=file_path)
 
         self.logger.info(
             "Sending E-Mail '%s' to %s\n"

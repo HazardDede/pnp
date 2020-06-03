@@ -2,8 +2,10 @@
 
 import json
 import logging
+from typing import Optional, Any
 
-from ..utils import auto_str_ignore, try_parse_int
+from pnp.typing import Payload
+from pnp.utils import auto_str_ignore, try_parse_int
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -12,8 +14,11 @@ _LOGGER = logging.getLogger(__name__)
 class MQTTBase:
     """MQTT base class for publishing message to a mqtt broker."""
 
-    def __init__(self, host, port=1883, user=None, password=None, qos=0, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(
+        self, host: str, port: int = 1883, user: Optional[str] = None,
+        password: Optional[str] = None, qos: int = 0, **kwargs: Any
+    ):
+        super().__init__(**kwargs)  # type: ignore
         self.host = str(host)
         self.port = int(port)
         self.user = user and str(user)
@@ -21,7 +26,7 @@ class MQTTBase:
         self.qos = self._parse_qos(qos)
 
     @staticmethod
-    def _parse_qos(val):
+    def _parse_qos(val: int) -> int:
         pval = try_parse_int(val)
         if pval is None:
             _LOGGER.warning("QOS level of '%s' is not int parsable. Defaulting to 0", val)
@@ -34,7 +39,9 @@ class MQTTBase:
             return 2
         return pval
 
-    def _publish(self, payload, topic, retain=False, qos=None):
+    def _publish(
+        self, payload: Payload, topic: str, retain: bool = False, qos: Optional[int] = None
+    ) -> None:
         if isinstance(payload, (dict, list, tuple)):
             payload = json.dumps(payload)
 

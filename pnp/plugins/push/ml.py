@@ -3,10 +3,11 @@
 import io
 import os
 
-from . import PushBase, enveloped, drop_envelope
-from .. import load_optional_module
-from ...utils import make_list, auto_str_ignore
-from ...validator import Validator
+from pnp import validator
+from pnp.plugins import load_optional_module
+from pnp.plugins.push import PushBase, enveloped, drop_envelope
+from pnp.utils import make_list, auto_str_ignore
+from pnp.validator import one_not_none
 
 
 @auto_str_ignore(['known_encodings'])
@@ -28,11 +29,12 @@ class FaceR(PushBase):
         # unknown_label -> Label for unknown faces
         super().__init__(**kwargs)
 
-        Validator.one_not_none(known_faces=known_faces, known_faces_dir=known_faces_dir)
+        one_not_none(known_faces=known_faces, known_faces_dir=known_faces_dir)
         self.known_faces = known_faces
-        Validator.is_instance(dict, allow_none=True, known_faces=self.known_faces)
+        validator.is_instance(dict, allow_none=True, known_faces=self.known_faces)
         self.known_faces_dir = known_faces_dir and str(known_faces_dir)
-        Validator.is_directory(allow_none=True, known_faces_dir=self.known_faces_dir)
+        if self.known_faces_dir:
+            validator.is_directory(known_faces_dir=self.known_faces_dir)
 
         if not lazy:
             self._configure()

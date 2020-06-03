@@ -1,12 +1,10 @@
 """Basic stuff for plugins (pull, push, udf)."""
 import logging
 from importlib import import_module
-from typing import Any, Dict, Tuple, Optional, Union, cast, Callable
+from typing import Any, Tuple, Optional, Union, cast, Callable
 
-from argresolver import EnvironmentResolver  # type: ignore
-
-from ..utils import auto_str, auto_str_ignore
-from ..validator import Validator
+from pnp import validator
+from pnp.utils import auto_str, auto_str_ignore
 
 
 class InstallOptionalExtraError(ImportError):
@@ -25,17 +23,7 @@ def load_optional_module(namespace: str, extra: str) -> Any:
 
 
 class PluginStoppedError(RuntimeError):
-    """Is raised when a operation is canceled / refushed because the plugin should / has stopped."""
-
-
-class PluginMeta(type):
-    """Metaclasses for plugins. Hooks up the `argresolver`-package to inject any missing arguments
-    at runtime if provided as an environment variable."""
-    def __new__(cls, name: str, bases: Any, dct: Dict[Any, Any]) -> type:  # type: ignore
-        newly = super().__new__(cls, name, bases, dct)
-        # Force all __init__ of plugins to be decorated with envargs
-        newly.__init__ = EnvironmentResolver(default_override=True)(newly.__init__)  # type: ignore
-        return newly
+    """Is raised when a operation is canceled / refused because the plugin has stopped."""
 
 
 class PluginLogAdapter(logging.LoggerAdapter):
@@ -51,7 +39,7 @@ class PluginLogAdapter(logging.LoggerAdapter):
 
 @auto_str(__repr__=True)
 @auto_str_ignore(['_base_path'])
-class Plugin(metaclass=PluginMeta):
+class Plugin:
     """Base class for a plugin."""
 
     def __init__(self, name: str, base_path: Optional[str] = None, **kwargs: Any):  # pylint: disable=unused-argument
@@ -122,8 +110,8 @@ def load_plugin(plugin_path: str, plugin_type: Union[type, str], instantiate: bo
         - Instantiation error (InvocationError)
         - Wrong plugin base type (PluginTypeError)
     """
-    Validator.is_instance(str, plugin_path=plugin_path)
-    Validator.is_instance(type, str, plugin_type=plugin_type)
+    validator.is_instance(str, plugin_path=plugin_path)
+    validator.is_instance(type, str, plugin_type=plugin_type)
     if isinstance(plugin_type, str) and plugin_type != 'callable':
         raise ValueError("When 'plugin_type' is str, the only allowed value is callable")
 

@@ -2,10 +2,10 @@
 
 from dictmentor import DictMentor, ext
 
-from . import PushBase, enveloped, parse_envelope, drop_envelope
-from ...shared.mqtt import MQTTBase
-from ...utils import try_parse_bool, auto_str_ignore
-from ...validator import Validator
+from pnp import validator
+from pnp.plugins.push import PushBase, enveloped, parse_envelope, drop_envelope
+from pnp.shared.mqtt import MQTTBase
+from pnp.utils import try_parse_bool, auto_str_ignore
 
 
 @auto_str_ignore(['configured'])
@@ -20,11 +20,11 @@ class Discovery(MQTTBase, PushBase):
     def __init__(self, discovery_prefix, component, config, object_id=None, node_id=None, **kwargs):
         super().__init__(**kwargs)
         self.discovery_prefix = str(discovery_prefix)
-        Validator.is_instance(str, component=component)
-        Validator.one_of(self.SUPPORTED_COMPONENTS, component=component)
+        validator.is_instance(str, component=component)
+        validator.one_of(self.SUPPORTED_COMPONENTS, component=component)
         self.component = component
         self.object_id = self._parse_object_id(object_id)
-        Validator.is_instance(dict, config=config)
+        validator.is_instance(dict, config=config)
         self._config = config
         self.node_id = self._parse_node_id(node_id)
         self.configured = {}

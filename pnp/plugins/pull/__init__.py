@@ -1,14 +1,18 @@
 """Basic stuff for implementing pull plugins."""
+
+import asyncio
 import multiprocessing as proc
 from abc import abstractmethod
 from datetime import datetime
 from typing import Any, Callable, Optional
 
-import asyncio
 from schedule import Scheduler  # type: ignore
 
 from pnp.plugins import Plugin
-from pnp.shared.async_ import async_from_sync, async_sleep_until_interrupt
+from pnp.shared.async_ import (
+    async_from_sync,
+    async_sleep_until_interrupt
+)
 from pnp.typing import Payload
 from pnp.utils import (
     auto_str_ignore,
@@ -124,7 +128,6 @@ class Polling(AsyncPullBase):
     You may specify duration literals such as 60 (60 secs), 1m, 1h (...) to realize a periodic
     polling or cron expressions (*/1 * * * * > every min) to realize cron like behaviour.
     """
-    __prefix__ = 'poll'
 
     def __init__(
         self, interval: Optional[DurationLiteral] = 60, instant_run: bool = False, **kwargs: Any

@@ -5,7 +5,7 @@ import subprocess
 
 import psutil
 
-from . import Polling
+from pnp.plugins.pull import Polling
 
 
 class Stats(Polling):

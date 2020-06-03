@@ -1,27 +1,34 @@
 """Utility functions related to zipping and archiving."""
 
+import logging
 import os
 import zipfile
-import logging
+from typing import Optional, Union, Iterable
 
 import pathspec
 
+from pnp import validator
+from pnp.utils import is_iterable_but_no_str
 
-from ..validator import Validator
-from ..utils import is_iterable_but_no_str
 
 _LOGGER = logging.getLogger(__file__)
 
 
-def zipdir(source_dir, target_zip, ignore=None):
+def zipdir(
+    source_dir: str, target_zip: str, ignore: Optional[Union[str, Iterable[str]]] = None
+) -> None:
     """Creates a zip file specified by `out_zip`. The source directory is specified
     by `source`. You can optionally specify a gitignore-like ignore list to ignore
     specific items."""
-    Validator.is_directory(source=source_dir)
+    source_dir = str(source_dir)
+    validator.is_directory(source=source_dir)
+
+    target_zip = str(target_zip)
+
     if ignore is None:
         ignore = []
     if not is_iterable_but_no_str(ignore):
-        ignore = [ignore]
+        ignore = [str(ignore)]
     ignore = [str(item) for item in ignore]
 
     matcher = pathspec.PathSpec.from_lines('gitwildmatch', ignore)
@@ -42,13 +49,13 @@ def zipdir(source_dir, target_zip, ignore=None):
                     _LOGGER.debug("Ignored '%s'", fpath)
 
 
-def zipfiles(source_files, target_zip):
+def zipfiles(source_files: Optional[Union[str, Iterable[str]]], target_zip: str) -> None:
     """Zips one or multiple files into a zip file. The target zip file is specified by
     `out_zip`."""
     if not source_files:
         return
     if not is_iterable_but_no_str(source_files):
-        source_files = [source_files]
+        source_files = [str(source_files)]
     source_files = [str(fitem) for fitem in source_files]
 
     _LOGGER.debug("Creating '%s' from %s files", target_zip, len(source_files))
@@ -59,10 +66,10 @@ def zipfiles(source_files, target_zip):
             zipper.write(fpath, arcname)
 
 
-def zipignore(path, file_name='.zipignore'):
+def zipignore(path: str, file_name: str = '.zipignore') -> Iterable[str]:
     """Parses a zipignore file."""
     # Check: Is valid directory
-    def filter_(line):
+    def filter_(line: str) -> str:
         line = line.strip()  # Remove whitespace characters
         if line.startswith('#'):  # Comment
             return ''  # Will be filtered later

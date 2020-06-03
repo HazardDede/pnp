@@ -1,8 +1,4 @@
-engine: !engine  # Use the AsyncEngine explicitly
-  type: pnp.engines.AsyncEngine
-  retry_handler: !retry
-    type: pnp.engines.SimpleRetryHandler
-tasks:
+tasks:  # Implicit use of the AsyncEngine
   - name: async
     pull:
       plugin: pnp.plugins.pull.simple.Repeat

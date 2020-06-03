@@ -4,10 +4,10 @@ from typing import Any, Dict, List, Optional
 
 import slacker
 
-from . import PushBase, enveloped, parse_envelope
-from .. import load_optional_module
-from ...utils import auto_str_ignore, make_list
-from ...typing import Envelope, Payload
+from pnp.plugins import load_optional_module
+from pnp.plugins.push import PushBase, enveloped, parse_envelope
+from pnp.typing import Envelope, Payload
+from pnp.utils import auto_str_ignore, make_list
 
 
 @auto_str_ignore(['api_key'])
@@ -22,8 +22,6 @@ class Pushbullet(PushBase):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/notify.Pushbullet/index.md
     """
-    __prefix__ = 'pushbullet'
-
     EXTRA = 'pushbullet'
 
     def __init__(self, api_key, title='pnp', **kwargs):
@@ -100,9 +98,6 @@ class Slack(PushBase):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/notify.Slack/index.md
     """
-
-    __prefix__ = 'slack'
-
     DEFAULT_USERNAME = 'PnP'
     DEFAULT_EMOJI = ':robot:'
 

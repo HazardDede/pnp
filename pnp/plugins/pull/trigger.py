@@ -5,9 +5,9 @@ by various external triggers (such as calling a web endpoint)."""
 import asyncio
 
 from pnp.config import load_pull_from_snippet
+from pnp.plugins.pull import PullBase, Polling, AsyncPolling
 from pnp.typing import Payload
-from . import PullBase, Polling, AsyncPolling
-from ...utils import auto_str_ignore
+from pnp.utils import auto_str_ignore
 
 
 @auto_str_ignore(['model'])

@@ -1,7 +1,7 @@
 """MQTT related plugins."""
 
-from . import PullBase
-from ...utils import auto_str_ignore
+from pnp.plugins.pull import PullBase
+from pnp.utils import auto_str_ignore
 
 
 @auto_str_ignore(['_client', 'password'])
@@ -14,7 +14,6 @@ class Subscribe(PullBase):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/mqtt.Subscribe/index.md
     """
-    __prefix__ = 'mqtt'
 
     def __init__(self, host, topic, port=1883, user=None, password=None, **kwargs):
         super().__init__(**kwargs)

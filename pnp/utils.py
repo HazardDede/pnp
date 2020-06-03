@@ -9,19 +9,17 @@ import sys
 import time
 from base64 import b64encode
 from collections import OrderedDict
-from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
-from functools import partial
 from functools import wraps
 from threading import Timer
-from typing import (Union, Any, Optional, Iterable, Pattern, Dict, Callable, cast, Set, List,
-                    Hashable, Tuple)
+from typing import (Union, Any, Optional, Iterable, Pattern, Dict, Callable, cast, Set, List)
 
 from binaryornot.check import is_binary  # type: ignore
 from box import Box, BoxKeyError  # type: ignore
+from typeguard import typechecked
 
-from .typing import DurationLiteral
-from .validator import Validator
+from pnp import validator
+from pnp.typing import DurationLiteral
 
 FILE_MODES = ['binary', 'text', 'auto']
 
@@ -134,6 +132,7 @@ def make_hashable(obj: Any) -> Any:
     return obj if is_hashable(obj) else str(obj)
 
 
+@typechecked
 def camel_to_snake(name: str) -> str:
     """
     Converts camelCase to snake_case.
@@ -159,8 +158,10 @@ def camel_to_snake(name: str) -> str:
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', _str).lower()
 
 
-def wildcards_to_regex(wildcard_patterns: Union[str, Iterable[str]]) \
-        -> Union[Pattern[str], Iterable[Pattern[str]]]:
+@typechecked
+def wildcards_to_regex(
+    wildcard_patterns: Union[str, Iterable[str]]
+) -> Union[Pattern[str], Iterable[Pattern[str]]]:
     """
     Examples:
 
@@ -172,25 +173,26 @@ def wildcards_to_regex(wildcard_patterns: Union[str, Iterable[str]]) \
         True
         >>> wildcards_to_regex('sensor.lamp') == re.compile(fnmatch.translate('sensor.lamp'))
         True
-        >>> print(wildcards_to_regex(None))
+        >>> print(wildcards_to_regex(None))  #doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        ValueError: Argument 'wildcard_patterns' is expected to be not none
+        TypeError: ... "wildcard_patterns" must be one of (str, Iterable); got NoneType instead
         >>> wildcards_to_regex([])
         []
     """
 
-    Validator.is_not_none(wildcard_patterns=wildcard_patterns)
     import fnmatch
     if is_iterable_but_no_str(wildcard_patterns):
-        return [re.compile(fnmatch.translate(item)) for item in wildcard_patterns]
-    Validator.is_instance(str, wildcard_patterns=wildcard_patterns)
+        return [re.compile(fnmatch.translate(str(item))) for item in wildcard_patterns]
     wildcard_patterns = cast(str, wildcard_patterns)
     return re.compile(fnmatch.translate(wildcard_patterns))
 
 
-def include_or_exclude(item: str, include_regex: Optional[Iterable[Pattern[str]]] = None,
-                       exclude_regex: Optional[Iterable[Pattern[str]]] = None) -> bool:
+@typechecked
+def include_or_exclude(
+        item: str, include_regex: Optional[Iterable[Pattern[str]]] = None,
+        exclude_regex: Optional[Iterable[Pattern[str]]] = None
+) -> bool:
     """
 
     Returns:
@@ -312,7 +314,7 @@ def sleep_until_interrupt(sleep_time: float, interrupt_fun: Callable[[], bool],
                           interval: float = 0.5) -> None:
     """Call this method to sleep an interruptable sleep until the interrupt function returns
     True."""
-    Validator.is_function(interrupt_fun=interrupt_fun)
+    validator.is_function(interrupt_fun=interrupt_fun)
 
     def callback() -> None:
         if interrupt_fun():
@@ -339,7 +341,7 @@ def make_public_protected_private_attr_lookup(attr_name: str, as_dict: bool = Fa
         (['protected', 'public', 'private'], ['_my_lookup', 'my_lookup', '__my_lookup'])
 
     """
-    Validator.is_instance(str, lookup_name=attr_name)
+    validator.is_instance(str, lookup_name=attr_name)
     as_dict = try_parse_bool(as_dict, default=False)
     if attr_name.startswith('__'):
         # __lookup, lookup, _lookup
@@ -1043,7 +1045,7 @@ class Debounce:
 
     """
     def __init__(self, fun: Callable[..., Any], wait: float = 0.5):
-        Validator.is_function(fun=fun)
+        validator.is_function(fun=fun)
         self.fun = fun
         self.wait = float(wait)
         self.timer = None  # type: Optional[Timer]
@@ -1120,7 +1122,8 @@ class Cooldown(Debounce):
             renew_cooldown: bool = True
     ):
         super().__init__(fun, cool_down)
-        Validator.is_function(allow_none=True, cool_down_callback=cool_down_callback)
+        if cool_down_callback:
+            validator.is_function(cool_down_callback=cool_down_callback)
         self.cool_down_callback = cool_down_callback
         self.renew_cooldown = bool(renew_cooldown)
 
@@ -1360,96 +1363,6 @@ class FileLock:
         self.release()
 
 
-# pylint: disable=invalid-name
-TFun = Callable[..., Any]
-TCallback = Optional[Callable[[Any], Any]]
-TKey = Optional[Hashable]
-TArgs = Tuple[Any, ...]
-TKwargs = Dict[str, Any]
-# pylint: enable=invalid-name
-
-
-class Parallel:
-    """
-    Provides an interface to easily execute functions in parallel.
-
-    Examples:
-
-        >>> def long_fun(r):
-        ...     return r
-        >>> p = Parallel(workers=2)
-        >>> p(long_fun, 1, fun_key=1)
-        >>> p(long_fun, 2, fun_key=2)
-        >>> p(long_fun, 3, fun_key=3)
-        >>> p.run_until_complete()
-        ['finished', 'finished', 'finished']
-        >>> p.results == {1: 1, 2: 2, 3: 3}
-        True
-        >>> p(long_fun, 4, fun_key=4)
-        >>> p.run_until_complete()
-        ['finished', 'finished', 'finished', 'finished']
-        >>> p.results == {1: 1, 2: 2, 3: 3, 4: 4}
-        True
-
-        >>> memory = set()
-        >>> p = Parallel(workers=2)
-        >>> p(long_fun, 1, callback=lambda res: memory.add(res()))
-        >>> p(long_fun, 2, callback=lambda res: memory.add(res()))
-        >>> p(long_fun, 3, callback=lambda res: memory.add(res()))
-        >>> p.run_until_complete()
-        ['finished', 'finished', 'finished']
-        >>> memory == {1, 2, 3}
-        True
-    """
-
-    def __init__(self, workers: int = 2):
-        self.funcs = []  # type: List[Tuple[TFun, TCallback, TKey, TArgs, TKwargs]]
-        self.workers = int(workers)
-        if self.workers <= 0:
-            self.workers = 1
-        self._results = {}  # type: Dict[Hashable, Any]
-
-    @property
-    def results(self) -> Dict[Hashable, Any]:
-        """Return the results of the parallel run."""
-        import copy
-        return copy.copy(self._results)
-
-    def __call__(self, fun: TFun, *args: TArgs, callback: TCallback = None, fun_key: TKey = None,
-                 **kwargs: TKwargs) -> None:
-        Validator.is_function(fun=fun)
-        Validator.is_function(allow_none=True, callback=callback)
-        self.funcs.append((fun, callback, fun_key, args, kwargs))
-
-    def _intercept(self, future: Any,
-                   callback: TCallback,
-                   fun_key: TKey) -> None:
-        if fun_key:
-            try:
-                self._results[fun_key] = future.result()
-            except:  # pylint: disable=bare-except
-                import traceback
-                _LOGGER.warning("Parallel result raised an error\n%s", traceback.format_exc())
-        if callback:
-            try:
-                callback(future.result)
-            except:  # pylint: disable=bare-except
-                import traceback
-                _LOGGER.warning("Parallel callback raised an error\n%s", traceback.format_exc())
-
-    def run_until_complete(self) -> List[str]:
-        """Run the scheduled tasks until all are completed."""
-        self._results.clear()
-        futures = []
-        with ThreadPoolExecutor(max_workers=self.workers) as executor:
-            for fun, cback, fun_key, args, kwargs in self.funcs:
-                future = executor.submit(fun, *args, **kwargs)
-                future.add_done_callback(partial(self._intercept, callback=cback, fun_key=fun_key))
-                futures.append(future)
-
-        return ['finished' if f.exception() is None else 'error' for f in futures]
-
-
 class Throttle:
     """
     Decorator that prevents a function from being called more than once every
@@ -1470,7 +1383,7 @@ class Throttle:
     """
     def __init__(self, delta: timedelta):
         self.throttle_period = delta
-        Validator.is_instance(timedelta, delta=delta)
+        validator.is_instance(timedelta, delta=delta)
         self.time_of_last_call = datetime.min
 
     def __call__(self, fun: Callable[..., Any]) -> Callable[..., Any]:

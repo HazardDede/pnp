@@ -1,10 +1,13 @@
 """Utility classes for the building block 'selector'."""
+
 from typing import List, Callable, Dict, Any, Iterable
 
-from .models import UDFModel
-from .typing import SelectorExpression, Payload
-from .utils import Singleton, safe_eval, FallbackBox, EvaluationError
-from .validator import Validator
+from typeguard import typechecked
+
+from pnp import validator
+from pnp.models import UDFModel
+from pnp.typing import SelectorExpression, Payload
+from pnp.utils import Singleton, safe_eval, FallbackBox, EvaluationError
 
 
 class PayloadSelector(Singleton):
@@ -64,6 +67,7 @@ class PayloadSelector(Singleton):
         from .utils import on_off
         self._custom["on_off"] = on_off
 
+    @typechecked
     def register_custom_global(self, name: str, fun: Callable[..., Any]) -> None:
         """
         Register a custom function that should be available in the context of the selector.
@@ -75,16 +79,13 @@ class PayloadSelector(Singleton):
         Returns:
             None.
         """
-        Validator.is_function(fun=fun)
-        Validator.is_instance(str, name=name)
         if name not in self._custom:  # Overriding a already existing custom will silently fail!
             self._custom[name] = fun
 
     def register_udfs(self, udfs: Iterable[UDFModel]) -> None:
         """Register the given user-definied function."""
-        Validator.is_iterable_but_no_str(udfs=udfs)
-        for i, udf in enumerate(udfs):
-            Validator.is_instance(UDFModel, **{'udfs.item_{i}'.format(i=i): udf})  # type: ignore
+        validator.all_items(UDFModel, udfs=udfs)
+        for udf in udfs:
             self.register_custom_global(udf.name, udf.callable)
 
     def _eval_wrapper(self, selector: str, payload: Payload) -> Payload:

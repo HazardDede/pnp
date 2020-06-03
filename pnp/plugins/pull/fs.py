@@ -3,10 +3,10 @@
 import os
 import time
 
-from . import PullBase, Polling
-from .. import load_optional_module, PluginStoppedError
-from ...utils import make_list, load_file, FILE_MODES, Debounce
-from ...validator import Validator
+from pnp import validator
+from pnp.plugins import load_optional_module, PluginStoppedError
+from pnp.plugins.pull import PullBase, Polling
+from pnp.utils import make_list, load_file, FILE_MODES, Debounce
 
 
 class FileSystemWatcher(PullBase):
@@ -26,12 +26,14 @@ class FileSystemWatcher(PullBase):
     EVENT_TYPES = [EVENT_TYPE_MOVED, EVENT_TYPE_DELETED, EVENT_TYPE_CREATED, EVENT_TYPE_MODIFIED]
 
     # pylint: disable=redefined-outer-name
-    def __init__(self, path, recursive=True, patterns=None, ignore_patterns=None,
-                 ignore_directories=False, case_sensitive=False, events=None, load_file=False,
-                 mode='auto', base64=False, defer_modified=0.5, **kwargs):
+    def __init__(
+        self, path, recursive=True, patterns=None, ignore_patterns=None,
+        ignore_directories=False, case_sensitive=False, events=None, load_file=False,
+        mode='auto', base64=False, defer_modified=0.5, **kwargs
+    ):
         super().__init__(**kwargs)
         self.path = path
-        Validator.is_directory(path=self.path)
+        validator.is_directory(path=self.path)
         self.recursive = bool(recursive)
         self.patterns = make_list(patterns)
         self.ignore_patterns = make_list(ignore_patterns)
@@ -40,11 +42,13 @@ class FileSystemWatcher(PullBase):
         self.load_file = bool(load_file)
         self.base64 = bool(base64)
         self.events = make_list(events)
-        Validator.subset_of(self.EVENT_TYPES, allow_none=True, events=self.events)
+        if self.events:
+            validator.subset_of(self.EVENT_TYPES, events=self.events)
         self.mode = mode
-        Validator.one_of(FILE_MODES, mode=self.mode)
+        validator.one_of(FILE_MODES, mode=self.mode)
         self.defer_modified = float(defer_modified)
-        Validator.is_non_negative(allow_none=True, defer_modified=self.defer_modified)
+        if self.defer_modified < 0.0:
+            self.defer_modified = 0.5
 
     def pull(self):
         wdog = load_optional_module('watchdog.observers', self.EXTRA)

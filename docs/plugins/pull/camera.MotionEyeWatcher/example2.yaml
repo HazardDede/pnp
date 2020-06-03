@@ -71,9 +71,13 @@ tasks:
         selector: "data if data.event == 'movie' and hass_state('binary_sensor.somebody_home') == 'off' else SUPPRESS"
         deps:
           - plugin: pnp.plugins.push.storage.Dropbox
+            args:
+              api_key: "{{env::DROPBOX_API_KEY}}"
             selector:
               data: "lambda data: data.source"
               target_file_name: "lambda data: basename(data.source)"
             deps:
               - plugin: pnp.plugins.push.notify.Pushbullet
+                args:
+                  api_key: "{{env::PUSHBULLET_API_KEY}}"
                 selector: data.raw_link

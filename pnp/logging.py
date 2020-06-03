@@ -1,5 +1,6 @@
 """Custom logging handler for pnp."""
 
+import asyncio
 import traceback
 from functools import partial
 from logging import (
@@ -17,8 +18,10 @@ from logging import (
 )
 from typing import Optional, Iterable, Dict, Any, List
 
-import asyncio
 import slacker  # type: ignore
+from typeguard import typechecked
+
+from pnp import validator
 
 
 class NoStacktraceFormatter(Formatter):
@@ -56,6 +59,7 @@ class SlackHandler(Handler):
     DEFAULT_PING_LEVEL = 'ERROR'
     MAX_ATTACHMENT_CHARS = 1000
 
+    @typechecked
     def __init__(self, api_key: str, channel: str, username: str = DEFAULT_USERNAME,
                  icon_url: Optional[str] = None, icon_emoji: Optional[str] = None,
                  ping_users: Optional[Iterable[str]] = None,
@@ -72,10 +76,9 @@ class SlackHandler(Handler):
             self.channel = '#' + self.channel
 
         # Optional ping user related stuff
-        if str(ping_level).upper() not in _nameToLevel:
-            raise ValueError("The passed ping_level {ping_level} is not a valid"
-                             "level".format(ping_level=str(ping_level)))
-        self.ping_level = _nameToLevel[str(ping_level).upper()]  # type: int
+        ping_level = str(ping_level).upper()
+        validator.one_of(_nameToLevel, ping_level=ping_level)
+        self.ping_level = _nameToLevel[ping_level]  # type: int
         self.ping_user_ids = []  # type: List[int]
 
         if ping_users:

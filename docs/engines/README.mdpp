@@ -1,17 +1,17 @@
 # Engines
 
-!TOC
+In version `0.22.0` I've decided to remove all engines except for the `Async` engine.
+Due to some tests this engine is amazingly stable, has great performance and you do not need to think about synchronizing parallel tasks stuff so much.
 
-## General
+This decision was basically driven from a maintenance view of perspective.
+In the future I like to add some infrastructural code like an api to communicate with the engine.
+And I will not be able to integrate necessary changes to all of the engines.
 
-In version `0.22.0` I've decided to remove all engines except for the `AsyncEngine`. Due to some tests this engine
-is amazingly stable, has great performance and you do not need to think about synchronizing parallel tasks stuff so much.
+By default the `async` engine is used implicitly:
 
-This decision was basically driven from a maintenance view of perspective. In the future I like to add some
-infrastructural code like an api to communicate with the engine. And I will not be able to integrate necessary changes
-to all of the engines.
+!INCLUDECODE "docs/engines/default.yaml" (yaml)
 
 
-## pnp.engines.AsyncEngine (0.18.0+)
+You can add it explicitly. This might be useful in the future IF I decide to add variants of the `Async` engine.
 
 !INCLUDECODE "docs/engines/async.yaml" (yaml)

@@ -3,8 +3,8 @@
 import os
 import time
 
-from . import PushBase, enveloped, parse_envelope, drop_envelope
-from ...validator import Validator
+from pnp import validator
+from pnp.plugins.push import PushBase, enveloped, parse_envelope, drop_envelope
 
 
 class FileDump(PushBase):
@@ -35,14 +35,14 @@ class FileDump(PushBase):
                  **kwargs):
         super().__init__(**kwargs)
         self.directory = directory
-        Validator.is_directory(directory=self.directory)
+        validator.is_directory(directory=self.directory)
         self.extension = self._parse_extension(extension)
         self.binary_mode = bool(binary_mode)
         self.file_name = self._parse_file_name(file_name)
 
     @staticmethod
     def _parse_file_name(value):
-        return Validator.cast_or_none(str, value)
+        return value and str(value)
 
     @staticmethod
     def _parse_extension(value):
@@ -104,7 +104,7 @@ class Zipper(PushBase):
         if not value:
             import tempfile
             return tempfile.gettempdir()
-        Validator.is_directory(out_path=value)
+        validator.is_directory(out_path=value)
         return os.path.abspath(str(value))
 
     @enveloped

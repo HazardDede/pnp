@@ -1,8 +1,14 @@
 """Home assistant related utility classes."""
 
 import json
+import urllib.parse as urlparse
+from typing import Any, Optional
 
 import attr
+
+
+def _convert_timeout(value: Any) -> Optional[int]:
+    return value and int(value)
 
 
 @attr.s
@@ -13,15 +19,14 @@ class HassApi:
     METHOD_POST = 'post'
     ALLOWED_METHODS = [METHOD_GET, METHOD_POST]
 
-    base_url = attr.ib(type=str, converter=str)
-    token = attr.ib(type=str, converter=str)
-    timeout = attr.ib(type=int, converter=lambda x: int(x) if x is not None else None, default=None)
+    base_url = attr.ib(converter=str)  # type: str
+    token = attr.ib(converter=str)  # type: str
+    timeout = attr.ib(converter=_convert_timeout, default=None)  # type: Optional[int]
 
-    def call(self, endpoint, method='get', data=None):
+    def call(self, endpoint: str, method: str = 'get', data: Any = None) -> Any:
         """Calls the specified endpoint (without prefix api) using the given method.
         You can optionally pass data to the request which will be json encoded."""
         from requests import get, post
-        import urllib.parse as urlparse
 
         method = str(method).lower()
         if method not in self.ALLOWED_METHODS:

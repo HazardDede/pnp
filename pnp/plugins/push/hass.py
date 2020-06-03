@@ -1,8 +1,8 @@
 """Home assistant related push plugins"""
 
-from . import PushBase
-from ...shared.hass import HassApi
-from ...utils import auto_str_ignore
+from pnp.plugins.push import PushBase
+from pnp.shared.hass import HassApi
+from pnp.utils import auto_str_ignore
 
 
 @auto_str_ignore(['_client', 'token'])
@@ -13,7 +13,6 @@ class Service(PushBase):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/hass.Service/index.md
     """
-    __prefix__ = 'hass'
 
     def __init__(self, url, token, domain, service, timeout=10, **kwargs):
         super().__init__(**kwargs)

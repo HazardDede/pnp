@@ -2,9 +2,9 @@
 
 import os
 
-from .fs import FileSystemWatcher
-from ...utils import parse_duration_literal, Debounce, auto_str_ignore
-from ...validator import Validator
+from pnp import validator
+from pnp.plugins.pull.fs import FileSystemWatcher
+from pnp.utils import parse_duration_literal, Debounce, auto_str_ignore
 
 
 @auto_str_ignore(['_debouncer'])
@@ -30,11 +30,11 @@ class MotionEyeWatcher(FileSystemWatcher):
         if not image_ext and not movie_ext:
             raise TypeError("You have to specify either `image_file_ext`, `movie_file_ext` or both")
 
-        Validator.is_instance(str, allow_none=True, image_ext=image_ext)
+        validator.is_instance(str, allow_none=True, image_ext=image_ext)
         self.image_ext = image_ext
         if self.image_ext:
             self.image_ext = self._add_dot_to_ext(self.image_ext)
-        Validator.is_instance(str, allow_none=True, movie_ext=movie_ext)
+        validator.is_instance(str, allow_none=True, movie_ext=movie_ext)
         self.movie_ext = movie_ext
         if self.movie_ext:
             self.movie_ext = self._add_dot_to_ext(self.movie_ext)
