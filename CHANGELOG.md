@@ -10,6 +10,8 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 * Implements an API
 * Breaking: `pull.zway.ZwayReceiver` integrates it's endpoint into the api
 * Breaking: `pull.http.Server` integrates the endpoint into the api
+* Breaking: Removes engine override from console runner (because we only have a single engine)
+* Breaking: Removes argresolver support
 
 **0.23.0**
 * Breaking: Removes engines except for AsyncEngine
