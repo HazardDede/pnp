@@ -21,7 +21,7 @@ function run() {
     docker run -it --rm \
         -v ${SOURCE}:/src \
         ${IMAGE} \
-        bash -c "cd /src; poetry export --without-hashes --dev -f requirements.txt > requirements.dev && pip install --extra-index-url https://www.piwheels.org/simple -r requirements.dev && invoke test || bash"
+        bash -c "cd /src; poetry export --without-hashes --dev -f requirements.txt > requirements.dev && pip install --extra-index-url https://www.piwheels.org/simple -r requirements.dev && pip uninstall --yes uvloop && invoke test || bash"
 }
 
 IMAGE=$1
