@@ -8,7 +8,8 @@ from datetime import datetime
 
 from pnp import validator
 from pnp.config import load_pull_from_snippet
-from pnp.plugins.pull import PullBase, Polling, AsyncPullBase
+from pnp.plugins.pull import PullBase, Polling, AsyncPullBase, PullNowMixin, AsyncPullNowMixin
+from pnp.typing import Payload
 from pnp.utils import make_list, auto_str_ignore, parse_duration_literal_float
 
 
@@ -71,6 +72,10 @@ class Cron(Polling):
             if job.check_trigger((dtime.year, dtime.month, dtime.day, dtime.hour, dtime.minute)):
                 self.notify(job.comment)
 
+    async def async_pull_now(self) -> None:
+        for job in self.jobs:
+            self.notify(job.comment)
+
 
 class CustomPolling(Polling):
     """
@@ -116,8 +121,11 @@ class RunOnce(AsyncPullBase):
             self.model = load_pull_from_snippet(poll, base_path=self.base_path, name=self.name)
             self.wrapped = self.model.instance
 
-            if not isinstance(self.wrapped, Polling):
-                raise TypeError("The component to wrap has to be a polling component")
+            if not isinstance(self.wrapped, (PullNowMixin, AsyncPullNowMixin)):
+                raise TypeError(
+                    "Pull does not support pull_now() / async_pull_now()."
+                    " Implement PullNowMixin / AsyncPullMixin for support"
+                )
 
     @property
     def can_exit(self) -> bool:
@@ -127,15 +135,19 @@ class RunOnce(AsyncPullBase):
         if not self.wrapped:
             self.notify({})  # Just notify about an empty dict
         else:
-            if self.wrapped.supports_async_poll:
-                res = await self.wrapped.async_poll()
+            def callback(plugin, payload: Payload):
+                _ = plugin  # Fake usage
+                self.notify(payload)
+
+            self.wrapped.on_payload = callback
+            if isinstance(self.wrapped, AsyncPullNowMixin):
+                await self.wrapped.async_pull_now()
             else:
                 loop = asyncio.get_event_loop()
-                res = await loop.run_in_executor(None, self.wrapped.poll)
-            self.notify(res)
+                await loop.run_in_executor(None, self.wrapped.pull_now)
 
 
-class Repeat(AsyncPullBase):
+class Repeat(AsyncPullBase, AsyncPullNowMixin):
     """
     Emits every `wait` seconds the same `repeat`.
 
@@ -156,4 +168,7 @@ class Repeat(AsyncPullBase):
     async def async_pull(self):
         while not self.stopped:
             await self._async_sleep(self.interval)
-            self.notify(self.repeat)
+            await self.async_pull_now()
+
+    async def async_pull_now(self):
+        self.notify(self.repeat)

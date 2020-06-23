@@ -12,7 +12,7 @@ from sanic_prometheus import monitor  # type: ignore
 from typeguard import typechecked
 
 from pnp.models import TaskSet
-from pnp.plugins.pull import Polling
+from pnp.plugins.pull import PullNowMixin, AsyncPullNowMixin
 from pnp.utils import Singleton
 
 _LOGGER = logging.getLogger(__name__)
@@ -190,14 +190,19 @@ class RestAPI(Singleton):
                 )
 
             pull = task.pull.instance
-            if not isinstance(pull, Polling):
+            if not isinstance(pull, (PullNowMixin, AsyncPullNowMixin)):
                 return bad_request(
-                    "Can only trigger polling pulls, but pull instance of task '{}' is not "
-                    "a poll.".format(task_name)
+                    "Task '{}' does not support pull_now() / async_pull_now()."
+                    " Implement PullNowMixin / AsyncPullMixin for support".format(task_name)
                 )
 
             try:
-                await pull.run_now()
+                if isinstance(pull, AsyncPullNowMixin):
+                    await pull.async_pull_now()
+                else:
+                    loop = asyncio.get_event_loop()
+                    await loop.run_in_executor(None, pull.pull_now)
+
                 return empty()
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("While triggering the poll an error occurred.")

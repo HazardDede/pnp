@@ -79,7 +79,8 @@ async def test_endpoint_not_a_poll():
 
         assert status == 400
         assert list(json_.keys()) == ['message']
-        assert json_['message'] == "Can only trigger polling pulls, but pull instance of task 'pytest' is not a poll."
+        assert json_['message'] == "Task 'pytest' does not support pull_now() / async_pull_now(). " \
+                                   "Implement PullNowMixin / AsyncPullMixin for support"
 
 
 @pytest.mark.asyncio

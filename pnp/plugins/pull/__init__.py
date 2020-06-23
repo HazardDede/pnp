@@ -120,8 +120,27 @@ class AsyncPullBase(PullBase):
         await async_sleep_until_interrupt(sleep_time, _interrupt, interval=0.5)
 
 
+class PullNowMixin:
+    """Adds support to execute the pull right now without waiting for a specific trigger
+    (like cron, special events, ...). This comes in handy for api triggers or the RunOnce pull."""
+
+    def pull_now(self) -> None:
+        """Executes the pull right now."""
+        raise NotImplementedError()
+
+
+class AsyncPullNowMixin:
+    """Adds support to asynchronously execute the pull right now without waiting for a
+    specific trigger (like cron, special events, ...). This comes in handy for api
+    triggers or the RunOnce pull."""
+
+    async def async_pull_now(self) -> None:
+        """Asynchronously executes the pull right now."""
+        raise NotImplementedError()
+
+
 @auto_str_ignore(['_scheduler'])
-class Polling(AsyncPullBase):
+class Polling(AsyncPullBase, AsyncPullNowMixin):
     """
     Base class for polling plugins.
 
@@ -175,7 +194,10 @@ class Polling(AsyncPullBase):
         while self._is_running:  # Keep the loop alive until the job is finished
             await asyncio.sleep(0.1)
 
-    async def run_now(self) -> Payload:
+    async def async_pull_now(self) -> None:
+        await self._run_now()
+
+    async def _run_now(self) -> Payload:
         """Runs the poll right now. It will not run, if the last poll is still running."""
         if self._is_running:
             self.logger.warning("Polling job is still running. Skipping current run")
@@ -210,7 +232,7 @@ class Polling(AsyncPullBase):
                 )):
                     return  # It is not the time for the cron to trigger
 
-            await self.run_now()
+            await self._run_now()
         except StopPollingError:
             self.stop()
         except Exception:  # pragma: no cover, pylint: disable=broad-except
@@ -250,7 +272,7 @@ class Polling(AsyncPullBase):
         raise NotImplementedError()  # pragma: no cover
 
 
-class AsyncPolling(Polling):
+class AsyncPolling(Polling, AsyncPullNowMixin):
     """
     Base class for polling plugins who can poll asynchronous.
 

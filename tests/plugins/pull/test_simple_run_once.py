@@ -7,7 +7,7 @@ from . import make_runner, start_runner
 
 
 def test_init_with_no_poll():
-    with pytest.raises(TypeError, match="The component to wrap has to be a polling component"):
+    with pytest.raises(TypeError, match=r"Pull does not support pull_now\(\) / async_pull_now\(\).*"):
         RunOnce(name='pytest', poll={'plugin': 'tests.dummies.polling.NoPollingDummy'})
 
 

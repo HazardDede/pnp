@@ -9,6 +9,6 @@ tasks:
       plugin: pnp.plugins.pull.monitor.Stats
       args:
         instant_run: true
-        interval: 1m
+        interval: "*/1 * * * *"
     push:
       - plugin: pnp.plugins.push.simple.Echo

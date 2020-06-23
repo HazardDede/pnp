@@ -2,7 +2,7 @@
 
 We cannot ensure not to introduce any breaking changes to interfaces / behaviour. This might occur every commit whether it is
 intended or by accident. Nevertheless we try to list breaking changes in the changelog that we are aware of.
-You are encouraged to specify explicitly the version in your dependency tools, e.g.:
+You are encouraged to specify the version explicitly in your dependency tools, e.g.:
 
     pip install pnp==0.10.0
     
@@ -12,6 +12,7 @@ You are encouraged to specify explicitly the version in your dependency tools, e
 * Breaking: `pull.http.Server` integrates the endpoint into the api
 * Breaking: Removes engine override from console runner (because we only have a single engine)
 * Breaking: Removes argresolver support
+* Breaking: Removes `pull.trigger.TriggerBase` and `pull.trigger.Web`. Tasks can be triggered via the api now
 
 **0.23.0**
 * Breaking: Removes engines except for AsyncEngine
