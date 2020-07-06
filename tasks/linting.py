@@ -1,7 +1,6 @@
 from invoke import task
 
 from tasks.config import (
-    CONFIGS_PATH,
     DOCS_PATH,
     SCRIPTS_PATH,
     SOURCE_PATH
@@ -46,7 +45,7 @@ def mypy(ctx):
 @task
 def configs(ctx):
     """Validates configuration files in configs and docs."""
-    ctx.run("yamllint -c .yamllint {configs} {docs}".format(configs=CONFIGS_PATH, docs=DOCS_PATH))
+    ctx.run("yamllint -c .yamllint {docs}".format(docs=DOCS_PATH))
     ctx.run("python {}/test_configs.py".format(SCRIPTS_PATH), pty=True)
 
 

@@ -1,0 +1,15 @@
+tasks:
+  - name: selector
+    pull:
+      plugin: pnp.plugins.pull.simple.Repeat
+      args:
+        wait: 1
+        repeat: "Hello World Moon Mars"
+    push:
+      - plugin: pnp.plugins.push.simple.Echo
+        selector:
+          hello: "lambda payload: payload.split(' ')[0]"
+          words:
+            - "lambda payload: payload.split(' ')[1]"
+            - "lambda payload: payload.split(' ')[2]"
+            - "lambda payload: payload.split(' ')[3]"

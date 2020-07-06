@@ -1,0 +1,39 @@
+udfs:
+  # Register the builtin str callable as my_str
+  - name: my_str
+    plugin: str
+  # Register a custom callable
+  - name: my_on_off
+    plugin: pnp.utils.on_off
+  # Instantiate a Counter user defined function
+  - name: count
+    plugin: pnp.plugins.udf.simple.Counter
+    # The presence of args tells pnp to instantiate a Counter
+    # -> important because it has a state (the actual count)
+    args:
+      init: 1
+  - name: count0
+    plugin: pnp.plugins.udf.simple.Counter
+    # Even without an argument (init is 0 by default), the args is important:
+    # This tells pnp to instantiate a Counter. Otherwise it is assumed to be a callable
+    args:
+  - name: count_err
+    # Without args. Each time you call count_err this will actually call the __init__ of the Counter class
+    plugin: pnp.plugins.udf.simple.Counter
+tasks:
+  - name: hello-world
+    pull:
+      plugin: pnp.plugins.pull.simple.Repeat
+      args:
+        interval: 1s
+        repeat: "Hello World"
+    push:
+      - plugin: pnp.plugins.push.simple.Echo
+        selector:
+          on_off: "lambda d: my_on_off(True)"
+          str: "lambda d: my_str(d)"
+          cnt0: "lambda d: count0()"
+          cnt1: "lambda d: count()"
+          # This will actually create a counter class instead of counting
+          cnterr: "lambda d: count_err(name='error')"
+          data: "lambda d: d"

@@ -1,0 +1,16 @@
+# Calls the notify.notify service to send a message with the actual counter
+tasks:
+  - name: hass_service
+    pull:
+      plugin: pnp.plugins.pull.simple.Count
+      args:
+        interval: 10s
+    push:
+      plugin: pnp.plugins.push.hass.Service
+      selector:
+        message: "lambda i: 'Counter: ' + str(i)"
+      args:
+        url: http://localhost:8123
+        token: "{{env::HA_TOKEN}}"
+        domain: notify
+        service: notify

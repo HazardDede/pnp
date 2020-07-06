@@ -1,0 +1,46 @@
+# Watches the directory '/tmp/camera' for file changes on image files and
+# publishes them to a message queue (base64 encoded).
+#
+# Then the image data is pulled from the queue and a face recognition
+# is executed. The result is a tagged file (known and unknown persons) which
+# will be dumped to the specified directory.
+#
+
+- name: image_watcher
+  pull:
+    plugin: pnp.plugins.pull.fs.FileSystemWatcher
+    args:
+      path: "/tmp/camera"
+      events: [created]
+      ignore_directories: true
+      patterns: ['*.jpeg', '*.jpg', '*.png']
+      load_file: true
+      base64: true
+
+  push:
+    plugin: pnp.plugins.push.mqtt.Publish
+    selector: payload.file.content
+    args:
+      host: localhost
+      topic: camera/images
+
+- name: image_processor
+  pull:
+    plugin: pnp.plugins.pull.mqtt.Subscribe
+    args:
+      host: localhost
+      topic: camera/images
+  push:
+    plugin: pnp.plugins.push.ml.FaceR
+    selector: b64decode(payload.payload)
+    args:
+      known_faces_dir: '/tmp/faces'
+      lazy: true
+    deps:
+      - plugin: pnp.plugins.push.simple.Echo
+        selector: (payload['known_faces'], payload['no_of_faces'])
+      - plugin: pnp.plugins.push.fs.FileDump
+        selector: payload['tagged_image']
+        args:
+          directory: '.'
+          extension: '.png'

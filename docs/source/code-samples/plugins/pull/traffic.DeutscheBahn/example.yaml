@@ -1,0 +1,12 @@
+tasks:
+  - name: deutschebahn
+    pull:
+      plugin: pnp.plugins.pull.traffic.DeutscheBahn
+      args:
+        origin: Hamburg Hbf
+        destination: München Hbf
+        only_direct: true  # Only show direct transfers wo change. Default is False.
+        instant_run: true
+        interval: 1m
+    push:
+      plugin: pnp.plugins.push.simple.Echo

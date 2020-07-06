@@ -1,0 +1,21 @@
+tasks:
+  - name: fitbit_steps
+    pull:
+      plugin: pnp.plugins.pull.fitbit.Current
+      args:
+        config: "{{env::FITBIT_AUTH}}"
+        instant_run: true
+        interval: 5m
+        resources:
+          - activities/steps
+    push:
+      - plugin: pnp.plugins.push.mqtt.Discovery
+        selector: "data.get('activities/steps')"
+        args:
+          host: localhost
+          discovery_prefix: homeassistant
+          component: sensor
+          object_id: fitbit_steps
+          config:
+            name: "{{var::object_id}}"
+            icon: "mdi:soccer"

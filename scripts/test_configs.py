@@ -1,13 +1,11 @@
 import os
-from itertools import chain
-from ruamel import yaml
 
 import pytest
 from argresolver.utils import modified_environ
+from ruamel import yaml
 
 from pnp.app import Application
 
-CONFIG_PATH = os.path.join(os.path.dirname(__file__), '../config')
 DOCS_PATH = os.path.join(os.path.dirname(__file__), '../docs')
 FITBIT_AUTH_PATH = '/tmp/fitbit.conf'
 GMAIL_AUTH_PATH = '/tmp/gmail.conf'
@@ -47,7 +45,7 @@ def get_files_from_path(base_path, extensions):
 
 def get_files():
     extensions = ('.yaml', '.yml', '.json')
-    return chain(get_files_from_path(CONFIG_PATH, extensions), get_files_from_path(DOCS_PATH, extensions))
+    return get_files_from_path(DOCS_PATH, extensions)
 
 
 @pytest.yield_fixture(scope='module', autouse=True)

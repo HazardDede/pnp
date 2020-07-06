@@ -1,9 +1,0 @@
-# Plugins
-
-!TOC
-
-!INCLUDE "docs/plugins/pull/README.md", 1
-
-!INCLUDE "docs/plugins/push/README.md", 1
-
-!INCLUDE "docs/plugins/udf/README.md", 1

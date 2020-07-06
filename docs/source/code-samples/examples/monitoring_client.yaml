@@ -1,0 +1,22 @@
+# Client component
+# Sends statistics about the host system (like cpu usage, ram usage, ...)
+# to a mqtt broker every 30 seconds.
+
+tasks:
+  - name: stats
+    pull:
+      plugin: pnp.plugins.pull.monitor.Stats
+      args:
+        interval: 30s
+        instant_run: true
+    push:
+      plugin: pnp.plugins.push.mqtt.Publish
+      args:
+        host: "{{env::MQTT_HOST}}"
+        topic: devices/my_name/stats
+        port: 1883
+        retain: true
+        # Each item of the payload-dict (cpu_count, cpu_usage, ...) will be pushed to the broker as multiple items.
+        # The key of the item will be appended to the topic, e.g. `devices/localhost/cpu_count`.
+        # The value of the item is the actual payload.
+        multi: true

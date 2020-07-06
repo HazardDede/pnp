@@ -1,8 +1,0 @@
-- name: repeat
-  pull:
-    plugin: pnp.plugins.pull.simple.Repeat
-    args:
-      repeat: "Hello World"  # Repeats 'Hello World'
-      interval: 1s  # Every second
-  push:
-    plugin: pnp.plugins.push.simple.Echo

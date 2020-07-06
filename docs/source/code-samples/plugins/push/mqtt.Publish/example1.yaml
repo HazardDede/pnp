@@ -1,0 +1,14 @@
+# Demonstrates the basic mqtt.Publish
+
+tasks:
+  - name: mqtt
+    pull:
+      plugin: pnp.plugins.pull.simple.Count
+    push:
+      # Will push the counter to the 'home/counter/state' topic
+      plugin: pnp.plugins.push.mqtt.Publish
+      args:
+        host: localhost
+        topic: home/counter/state
+        port: 1883
+        retain: true

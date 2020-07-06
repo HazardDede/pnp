@@ -1,0 +1,23 @@
+# Pull triggers when a file is created in the specified directory
+# The GMail push will send an e-mail to a specific recipient with the created file attached
+tasks:
+  - name: gmail
+    pull:
+      plugin: pnp.plugins.pull.fs.FileSystemWatcher
+      args:
+        path: "/tmp"
+        ignore_directories: true
+        events:
+          - created
+        load_file: false
+    push:
+      plugin: pnp.plugins.push.mail.GMail
+      selector:
+        subject: "lambda p: basename(p.source)"  # basename(p.source) = file name
+        data:  # Message body -> None -> Just the attachment
+        attachment: "lambda p: p.source"  # Attachment -> p.source = absolute path
+      args:
+        token_file: "{{env::GMAIL_TOKEN_FILE}}"
+        recipient: "{{env::GMAIL_RECIPIENT}}"  # Overridable with envelope
+        subject: "Override me"  # Overridable with envelope
+        sender: "pnp"  # Overridable with envelope

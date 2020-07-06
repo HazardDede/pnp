@@ -1,0 +1,26 @@
+# Please point your environment variable `FITBIT_AUTH` to your authentication
+# configuration
+
+tasks:
+  - name: fitbit_goal
+    pull:
+      plugin: pnp.plugins.pull.fitbit.Goal
+      args:
+        config: "{{env::FITBIT_AUTH}}"
+        instant_run: true
+        interval: 5m
+        goals:
+          - body/fat
+          - body/weight
+          - activities/daily/activeMinutes
+          - activities/daily/caloriesOut
+          - activities/daily/distance
+          - activities/daily/floors
+          - activities/daily/steps
+          - activities/weekly/distance
+          - activities/weekly/floors
+          - activities/weekly/steps
+          - foods/calories
+          - foods/water
+    push:
+      - plugin: pnp.plugins.push.simple.Echo

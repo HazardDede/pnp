@@ -1,0 +1,5 @@
+# Contents of repeat.pull
+plugin: pnp.plugins.pull.simple.Repeat
+args:
+  wait: 1
+  repeat: "{{env::MESSAGE}}"

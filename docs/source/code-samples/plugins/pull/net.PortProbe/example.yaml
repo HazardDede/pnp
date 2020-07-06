@@ -1,0 +1,11 @@
+tasks:
+  - name: port_probe
+    pull:
+      plugin: pnp.plugins.pull.net.PortProbe
+      args:
+        server: localhost  # Server name or ip address, default is localhost
+        port: 9999  # The port to probe if somebody is listening
+        interval: 5s  # Probe the port every five seconds ...
+        instant_run: true  # ... and run as soon as pnp starts
+    push:
+      - plugin: pnp.plugins.push.simple.Echo
