@@ -4,7 +4,7 @@ zway.ZwayPoll
 ================================ ====== ============ ========
 plugin                           type   extra        version
 ================================ ====== ============ ========
-pnp.plugins.pull.zway.ZwayPoll   poll   miflora      0.16.0
+pnp.plugins.pull.zway.ZwayPoll   poll   none         < 0.10.0
 ================================ ====== ============ ========
 
 **Description**
