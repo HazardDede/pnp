@@ -52,7 +52,7 @@ version = "0.7.12"
 category = "main"
 description = "An unobtrusive argparse wrapper with natural syntax"
 name = "argh"
-optional = false
+optional = true
 python-versions = "*"
 version = "0.26.2"
 
@@ -673,17 +673,6 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "1.4.3"
 
 [[package]]
-category = "dev"
-description = "Markdown preprocessor"
-name = "markdownpp"
-optional = false
-python-versions = "*"
-version = "1.5.1"
-
-[package.dependencies]
-Watchdog = ">=0.8.3"
-
-[[package]]
 category = "main"
 description = "Safely add untrusted strings to HTML/XML markup."
 name = "markupsafe"
@@ -845,7 +834,7 @@ version = "0.8.0"
 category = "main"
 description = "File system general utilities"
 name = "pathtools"
-optional = false
+optional = true
 python-versions = "*"
 version = "0.1.2"
 
@@ -1534,7 +1523,7 @@ version = "0.14.0"
 category = "main"
 description = "Filesystem events monitoring"
 name = "watchdog"
-optional = false
+optional = true
 python-versions = "*"
 version = "0.8.3"
 
@@ -1630,7 +1619,7 @@ pushbullet = ["pushbullet.py", "urllib3"]
 sound = ["PyAudio", "numpy", "scipy"]
 
 [metadata]
-content-hash = "165e9f38f7305b3b7a53d9401caea70ab43b055cadd200eaff4a0c1d84238a57"
+content-hash = "2526811d3ba13d00e796e7412649e5eab6f5a39c185b77cba369d738b932ac9e"
 python-versions = "^3.5,>=3.5.3"
 
 [metadata.files]
@@ -1929,9 +1918,6 @@ lazy-object-proxy = [
     {file = "lazy_object_proxy-1.4.3-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:a6ae12d08c0bf9909ce12385803a543bfe99b95fe01e752536a60af2b7797c62"},
     {file = "lazy_object_proxy-1.4.3-cp38-cp38-win32.whl", hash = "sha256:5541cada25cd173702dbd99f8e22434105456314462326f06dba3e180f203dfd"},
     {file = "lazy_object_proxy-1.4.3-cp38-cp38-win_amd64.whl", hash = "sha256:59f79fef100b09564bc2df42ea2d8d21a64fdcda64979c0fa3db7bdaabaf6239"},
-]
-markdownpp = [
-    {file = "MarkdownPP-1.5.1.tar.gz", hash = "sha256:a70babf819a6cf7f1035400ffa5763799fa67f2efcb5e701a59fc5ff79dd9696"},
 ]
 markupsafe = [
     {file = "MarkupSafe-1.1.1-cp27-cp27m-macosx_10_6_intel.whl", hash = "sha256:09027a7803a62ca78792ad89403b1b7a73a01c8cb65909cd876f7fcebd79b161"},

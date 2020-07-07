@@ -6,9 +6,9 @@ authors = ["Dennis Muth <d.muth@gmx.net>"]
 maintainers = ["Dennis Muth <d.muth@gmx.net>"]
 license = "MIT"
 readme = "README.md"
-homepage = "https://github.com/HazardDede/pnp"
+homepage = "https://pnp.readthedocs.io/"
 repository = "https://github.com/HazardDede/pnp"
-documentation = "https://github.com/HazardDede/pnp/blob/master/README.md"
+documentation = "https://pnp.readthedocs.io/"
 keywords = ["push", "pull", "data", "pipeline"]
 classifiers = [
     'Development Status :: 3 - Alpha',
@@ -94,7 +94,6 @@ astroid = "^2.4.0"
 bumpversion = "^0.5.3"
 coveralls = "^2.0.0"
 flake8 = "^3.7.9"
-MarkdownPP = "^1.5.1"
 mock = "<=3.0.5"
 mypy = "^0.770"
 pylint = "^2.5.0"
