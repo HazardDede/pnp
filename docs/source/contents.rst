@@ -13,11 +13,3 @@ Pull 'n' Push
    usage/docker
    examples
    changelog
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
