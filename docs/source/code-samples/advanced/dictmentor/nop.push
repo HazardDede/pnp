@@ -1,0 +1,2 @@
+# Contents of nop.push
+plugin: pnp.plugins.push.simple.Nop

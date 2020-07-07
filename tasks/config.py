@@ -8,7 +8,6 @@ VERSION = "0.23.0"
 
 # PATH STUFF
 PROJECT_ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-CONFIGS_PATH = os.path.join(PROJECT_ROOT_PATH, 'config')
 DOCS_PATH = os.path.join(PROJECT_ROOT_PATH, 'docs')
 SCRIPTS_PATH = os.path.join(PROJECT_ROOT_PATH, 'scripts')
 SOURCE_PATH = os.path.join(PROJECT_ROOT_PATH, 'pnp')

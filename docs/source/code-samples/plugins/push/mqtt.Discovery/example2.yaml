@@ -1,0 +1,26 @@
+name: service_probing
+pull:
+  plugin: pnp.plugins.pull.net.PortProbe
+  args:
+    server: server  # Server name or ip address, default is localhost
+    port: 3000  # The port to probe if somebody is listening
+    timeout: 5
+    interval: 2m  # Probe the port every five seconds ...
+    instant_run: true  # ... and run as soon as pnp starts
+push:
+  - plugin: pnp.plugins.push.mqtt.Discovery
+    selector:
+      data: "lambda data: 'OFF' if data.get('reachable') else 'ON'"
+      object_id: "service"
+      attributes:
+        friendly_name: My Service
+        icon: mdi:monitor-dashboard
+    args:
+      host: "{{env::MQTT_HOST}}"
+      discovery_prefix: "{{env::MQTT_BASE_TOPIC}}"
+      component: binary_sensor
+      config:
+        name: "{{var::object_id}}"
+        device_class: problem
+        state_topic: "{{var::state_topic}}"
+        json_attributes_topic: "{{var::json_attributes_topic}}"

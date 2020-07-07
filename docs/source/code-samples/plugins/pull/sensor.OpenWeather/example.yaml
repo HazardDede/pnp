@@ -1,0 +1,14 @@
+tasks:
+  - name: openweather
+    pull:
+      plugin: pnp.plugins.pull.sensor.OpenWeather
+      args:
+        city_name: "Hamburg,DE"  # Alternative: pass lat and lon
+        # lon: 10
+        # lat: 53.55
+        units: metric  # imperial (fahrenheit + miles/hour), metric (celsius + m/secs), kelvin (kelvin + m/secs)
+        instant_run: true
+        # tz: GMT
+        api_key: "{{env::OPENWEATHER_API_KEY}}"
+    push:
+      plugin: pnp.plugins.push.simple.Echo

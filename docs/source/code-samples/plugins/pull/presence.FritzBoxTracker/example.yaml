@@ -1,0 +1,12 @@
+tasks:
+  - name: fritzbox_tracker
+    pull:
+      plugin: pnp.plugins.pull.presence.FritzBoxTracker
+      args:
+        host: 169.254.1.1  # IP of your Fritz!Box. Default is 169.254.1.1
+        user: admin  # User name. Default is admin
+        password: ''  # Password. Default is an empty string
+        offline_delay: 0  # How many intervals to wait before marking a device as not connected after the fritzbox reported so
+        instant_run: true  # ... and run as soon as pnp starts
+    push:
+      - plugin: pnp.plugins.push.simple.Echo

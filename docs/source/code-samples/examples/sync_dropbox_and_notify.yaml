@@ -1,0 +1,30 @@
+# Every time a file is created or modified in /tmp
+# the file is uploaded to dropbox and you are notified
+# about it via pushbullet.
+#
+# You need to set your environment variables properly:
+# - DROPBOX_API_KEY
+# - PUSHBULLET_API_KEY
+
+- name: dropbox_sync_notify
+  pull:
+    plugin: pnp.plugins.pull.fs.FileSystemWatcher
+    args:
+      path: "/tmp"
+      ignore_directories: true
+      events:
+        - created
+        - modified
+      load_file: false
+  push:
+    - plugin: pnp.plugins.push.storage.Dropbox
+      args:
+        api_key: "{{env::DROPBOX_API_KEY}}"
+      selector:
+        data: "lambda data: data.source"  # Absolute path to file
+        target_file_name: "lambda data: basename(data.source)"  # File name only
+      deps:
+        - plugin: pnp.plugins.push.notify.Pushbullet
+          args:
+            api_key: "{{env::PUSHBULLET_API_KEY}}"
+          selector: data.raw_link

@@ -1,0 +1,14 @@
+api:
+  port: 9999
+  endpoints:
+    swagger: true
+    metrics: false
+tasks:
+  - name: my_task
+    pull:
+      plugin: pnp.plugins.pull.monitor.Stats
+      args:
+        # No schedule -> Execution: `curl -X POST http://localhost:9999/trigger?task=my_task`
+        interval:
+    push:
+      - plugin: pnp.plugins.push.simple.Echo

@@ -1,0 +1,20 @@
+# Every sunday at 1am a backup of the specified directory is created
+# and stored at the dropbox service.
+
+tasks:
+  - name: cron_backup
+    pull:
+      plugin: pnp.plugins.pull.simple.Cron
+      args:
+        expressions:
+          - "0 1 * * SUN {{env::BACKUP_FOLDER}}"
+    push:
+      plugin: pnp.plugins.push.fs.Zipper
+      deps:
+        - plugin: pnp.plugins.push.storage.Dropbox
+          args:
+            api_key: "{{env::DROPBOX_API_KEY}}"
+            create_shared_link: false
+          selector:
+            data: "lambda payload: payload"
+            target_file_name: "lambda payload: '{}_{}'.format(str(now()), basename(payload))"

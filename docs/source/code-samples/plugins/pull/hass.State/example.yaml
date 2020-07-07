@@ -1,0 +1,13 @@
+tasks:
+  - name: hass_state
+    pull:
+      plugin: pnp.plugins.pull.hass.State
+      args:
+        url: http://localhost:8123
+        token: "{{env::HA_TOKEN}}"
+        exclude:
+          - light.lamp
+        include:
+          - light.*
+    push:
+      - plugin: pnp.plugins.push.simple.Echo

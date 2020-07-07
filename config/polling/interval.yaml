@@ -1,9 +1,0 @@
----
-- name: interval_stats
-  pull:
-    plugin: pnp.plugins.pull.monitor.Stats
-    args:
-      interval: "1m"  # Run every minute: Not necessarily @ :00
-      instant_run: true
-  push:
-    - plugin: pnp.plugins.push.simple.Echo

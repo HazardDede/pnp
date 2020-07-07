@@ -1,0 +1,13 @@
+tasks:
+  - name: unwrapping
+    pull:
+      plugin: pnp.plugins.pull.simple.Repeat
+      args:
+        interval: 1s
+        repeat:
+          - 1
+          - 2
+          - 3
+    push:
+      - plugin: pnp.plugins.push.simple.Echo
+        unwrap: true  # Magic!

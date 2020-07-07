@@ -1,0 +1,22 @@
+# Server component
+# Listens to the mqtt topic where the readings from each client are stored.
+# If a new reading arrives it will be send to an influx database
+# to save it for later evaluation.
+
+tasks:
+  - name: stats_mqtt_pull
+    pull:
+      plugin: pnp.plugins.pull.mqtt.MQTTPull
+      args:
+        host: "{{env::MQTT_HOST}}"
+        topic: devices/+/stats/#
+    push:
+      plugin: pnp.plugins.push.timedb.InfluxPush
+      selector: "{'data': payload}"
+      args:
+        host: "localhost"
+        port: 8086
+        user: "the_user"
+        password: "the_password"
+        database: "my_db"
+        protocol: "{payload.levels[3]},device={payload.levels[1]},domain=stats value={payload.payload}"

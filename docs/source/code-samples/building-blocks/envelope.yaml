@@ -1,0 +1,23 @@
+# Uses an advanced selector to override push arguments during
+# runtime
+
+tasks:
+  - name: envelope
+    pull:
+      plugin: pnp.plugins.pull.simple.Count
+      args:
+        interval: 1s
+    push:
+      - plugin: pnp.plugins.push.mqtt.Publish
+        # This is an advanced selector. See section Advanced Selector for details
+        selector:
+          # This is the actual counter
+          payload: "lambda payload: payload"
+          # This configures the topic based on the counter payload
+          # It can be either counter/even or counter/odd
+          topic: "lambda payload: 'counter/{}'.format('even' if payload % 2 == 0 else 'odd')"
+        args:
+          host: localhost
+          topic: home/counter/state
+          port: 1883
+          retain: true

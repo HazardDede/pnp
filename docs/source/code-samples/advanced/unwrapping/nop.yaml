@@ -1,0 +1,20 @@
+tasks:
+  - name: unwrapping
+    pull:
+      plugin: pnp.plugins.pull.simple.Repeat
+      args:
+        interval: 1s
+        repeat:
+          - 1
+          - 2
+          - 3
+    push:
+      - plugin: pnp.plugins.push.simple.Nop
+        # You can add items to a list ...
+        selector: "data + [4, 5, 6]"
+        # ... and not unwrap (which is the default) ...
+        unwrap: false
+        # ... and use unwrap: true in a dependant push
+        deps:
+          - plugin: pnp.plugins.push.simple.Echo
+            unwrap: true

@@ -1,0 +1,14 @@
+# Basic example - just echoing events
+
+tasks:
+  - name: motioneye_watcher
+    pull:
+      plugin: pnp.plugins.pull.camera.MotionEyeWatcher
+      args:
+        path: "{{env::MOTIONEYE_MEDIA_PATH}}"
+        image_ext: jpg
+        movie_ext: mp4
+        motion_cool_down: 30s
+        defer_modified: 5
+    push:
+      plugin: pnp.plugins.push.simple.Echo

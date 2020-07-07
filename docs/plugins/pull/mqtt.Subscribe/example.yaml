@@ -1,9 +1,0 @@
-- name: mqtt
-  pull:
-    plugin: pnp.plugins.pull.mqtt.Subscribe
-    args:
-      host: localhost
-      port: 1883
-      topic: test/#
-  push:
-    plugin: pnp.plugins.push.simple.Echo
