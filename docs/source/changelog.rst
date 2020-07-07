@@ -1,8 +1,9 @@
 Changelog
 =========
 
-**0.24.0 (pending)**
+**0.24.0**
 
+* Migrates the documentation to Read the Docs: `https://pnp.readthedocs.io/en/latest/ <https://pnp.readthedocs.io/en/latest/>`_
 * Implements an API
 * **Breaking**: **pull.zway.ZwayReceiver** integrates it's endpoint into the api
 * **Breaking**: **pull.http.Server** integrates the endpoint into the api
