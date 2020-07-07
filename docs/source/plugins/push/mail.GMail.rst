@@ -4,7 +4,7 @@ mail.GMail
 ================================ ====== ============ ========
 plugin                           type   extra        version
 ================================ ====== ============ ========
-pnp.plugins.push.mail.GMail      push   none         0.15.0
+pnp.plugins.push.mail.GMail      push   gmail        0.15.0
 ================================ ====== ============ ========
 
 **Description**
