@@ -6,7 +6,7 @@ Prelude
 
 Each new version of **pnp** will also provide a new docker image.
 
-.. code-block::
+.. code-block:: bash
 
    # Run your container interactive and delete it after use
    docker run -it --rm -v <path/to/config.yaml>:/config/config.yaml hazard/pnp:latest
@@ -25,7 +25,7 @@ By default every version gets its own tag.
 
 For example if you want to use pnp version **0.21.0**
 
-.. code-block::
+.. code-block:: bash
 
    docker run -it --rm -v <path/to/config.yaml>:/config/config.yaml hazard/pnp:0.21.0
 
@@ -38,7 +38,7 @@ Mounting a config directory
 Sometimes you need to add **auxiliary files** like a logging configuration, authentication tokens, dictmentor resources, ....
 To make this possible you can mount a directory instead of just a single configuration file.
 
-.. code-block::
+.. code-block:: bash
 
    docker run -it --rm -v <path/to/folder:/config hazard/pnp:0.21.0
 

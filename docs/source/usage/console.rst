@@ -1,7 +1,7 @@
 Console Runner
 ==============
 
-.. code-block::
+.. code-block:: text
 
     > pnp --help
     Pull 'n' Push
