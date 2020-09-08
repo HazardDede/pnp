@@ -555,6 +555,26 @@ def on_off(value: Any) -> str:
     return 'on' if try_parse_bool(value, default=False) else 'off'
 
 
+def bps_mbps(val: float) -> float:
+    """
+    Converts bits per second (bps) into megabits per second (mbps).
+
+    Examples:
+
+        >>> bps_mbps(1_000_000)
+        1.0
+        >>> bps_mbps(1_129_000)
+        1.13
+
+    Args:
+        val (float): The value in bits per second to convert.
+
+    Returns:
+        Returns val in megabits per second.
+    """
+    return round(float(val) / 1_000_000, 2)
+
+
 def get_file_mode(file_path: str, mode: str) -> str:
     """
     Returns 'rb' if mode = 'binary'.

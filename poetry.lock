@@ -1312,6 +1312,14 @@ python-versions = "*"
 version = "1.9.6"
 
 [[package]]
+category = "main"
+description = "Command line interface for testing internet bandwidth using speedtest.net"
+name = "speedtest-cli"
+optional = true
+python-versions = "*"
+version = "2.1.2"
+
+[[package]]
 category = "dev"
 description = "Python documentation generator"
 name = "sphinx"
@@ -1617,9 +1625,10 @@ gpio = ["RPi.GPIO"]
 miflora = ["miflora"]
 pushbullet = ["pushbullet.py", "urllib3"]
 sound = ["PyAudio", "numpy", "scipy"]
+speedtest = ["speedtest-cli"]
 
 [metadata]
-content-hash = "2526811d3ba13d00e796e7412649e5eab6f5a39c185b77cba369d738b932ac9e"
+content-hash = "c1a39372b09b87db161122501bde7d4e917a9ba64907bcb96943e54961d2ab28"
 python-versions = "^3.5,>=3.5.3"
 
 [metadata.files]
@@ -2346,6 +2355,10 @@ snowballstemmer = [
 soupsieve = [
     {file = "soupsieve-1.9.6-py2.py3-none-any.whl", hash = "sha256:feb1e937fa26a69e08436aad4a9037cd7e1d4c7212909502ba30701247ff8abd"},
     {file = "soupsieve-1.9.6.tar.gz", hash = "sha256:7985bacc98c34923a439967c1a602dc4f1e15f923b6fcf02344184f86cc7efaa"},
+]
+speedtest-cli = [
+    {file = "speedtest-cli-2.1.2.tar.gz", hash = "sha256:cf1d386222f94c324e3125ba9a0d187e46d4a13dca08c023bdb9a23096be2e54"},
+    {file = "speedtest_cli-2.1.2-py2.py3-none-any.whl", hash = "sha256:2335306da12014c2da750db3befa3ddf424a303ddbaa399fbfb6a1bf870a5532"},
 ]
 sphinx = [
     {file = "Sphinx-3.1.1-py3-none-any.whl", hash = "sha256:97c9e3bcce2f61d9f5edf131299ee9d1219630598d9f9a8791459a4d9e815be5"},

@@ -46,6 +46,8 @@ arguments to control their polling behavior.
 
 .. include:: pull/net.PortProbe.rst
 
+.. include:: pull/net.Speedtest.rst
+
 .. include:: pull/net.SSLVerify.rst
 
 .. include:: pull/presence.FritzBoxTracker.rst

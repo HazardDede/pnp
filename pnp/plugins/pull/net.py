@@ -5,9 +5,12 @@ import ssl
 from datetime import datetime, timedelta
 from typing import Tuple
 
+from glom import glom
+
+from pnp.plugins import load_optional_module
 from pnp.plugins.pull import Polling
 from pnp.typing import Payload
-from pnp.utils import is_local
+from pnp.utils import is_local, bps_mbps
 
 
 class PortProbe(Polling):
@@ -67,6 +70,50 @@ class PortProbe(Polling):
             return False
         except socket.error:
             return True
+
+
+class Speedtest(Polling):
+    """
+    Periodically tests your real internet download / upload speed as well as the ping latency.
+    """
+
+    EXTRA = 'speedtest'
+
+    OUTPUT_SPEC = {
+        'download_speed_bps': 'download',  # in Bits/s
+        'download_speed_mbps': ('download', bps_mbps),  # in Megabits/s
+        'upload_speed_bps': 'upload',  # in Bits/s
+        'upload_speed_mbps': ('upload', bps_mbps),  # in Bits/s
+        'ping_latency': 'ping',  # in ms
+        'result_image': 'share',  # Image provided by speedtest.net to share
+        'server': {
+            'name': 'server.sponsor',  # The sponsor of the host
+            'host': 'server.host',  # The host name
+            'location': {
+                'city': 'server.name',
+                'country': 'server.country',
+                'lat': 'server.lat',
+                'lon': 'server.lon'
+            }
+        },
+        'client': {
+            'isp': 'client.isp',  # Your Internet service provider
+            'rating': 'client.isprating'  # The rating of your isp
+        }
+    }
+
+    def poll(self) -> Payload:
+        speedtest = load_optional_module('speedtest', self.EXTRA)
+
+        client = speedtest.Speedtest()
+        client.get_servers()
+        client.get_best_server()
+        client.download(threads=None)
+        client.upload(threads=None)
+        client.results.share()
+
+        res = client.results.dict()
+        return glom(res, self.OUTPUT_SPEC)
 
 
 class SSLVerify(Polling):
