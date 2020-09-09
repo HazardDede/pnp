@@ -36,6 +36,18 @@ tasks:
             state_topic: "{{var::state_topic}}"
             unit_of_measurement: "Mbps"
       - plugin: pnp.plugins.push.mqtt.Discovery
+        selector: "data.get('ping_latency')"
+        args:
+          host: localhost
+          discovery_prefix: homeassistant
+          component: sensor
+          object_id: speedtest_ping
+          config:
+            name: "{{var::object_id}}"
+            icon: "mdi:lan-pending"
+            state_topic: "{{var::state_topic}}"
+            unit_of_measurement: "ms"
+      - plugin: pnp.plugins.push.mqtt.Discovery
         selector:
           data: "lambda data: data.get('server').get('name')"
           attributes:
