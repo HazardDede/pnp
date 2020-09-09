@@ -16,6 +16,8 @@ PACKAGES=(
     gcc
     # Necessary for bluepy python3 package
     libglib2.0-dev
+    # Necessary for speedtest-cli python3 package
+    libffi-dev
 )
 
 # Required debian packages for building dependencies
