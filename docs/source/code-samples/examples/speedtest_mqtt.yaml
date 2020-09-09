@@ -1,0 +1,55 @@
+# We use the api to test our speed when we want
+#   curl -X POST "http://localhost:80/trigger?task=speedtest" -H "accept: application/json"
+api:
+  port: 80
+  endpoints:
+    swagger: true
+tasks:
+  - name: speedtest
+    pull:
+      plugin: pnp.plugins.pull.net.Speedtest
+      args:
+        interval: "0 6 * * *"  # Run every morning at 6 am
+    push:
+      - plugin: pnp.plugins.push.mqtt.Discovery
+        selector: "data.get('download_speed_mbps')"
+        args:
+          host: localhost
+          discovery_prefix: homeassistant
+          component: sensor
+          object_id: speedtest_download
+          config:
+            name: "{{var::object_id}}"
+            icon: "mdi:cloud-download-outline"
+            state_topic: "{{var::state_topic}}"
+            unit_of_measurement: "Mbps"
+      - plugin: pnp.plugins.push.mqtt.Discovery
+        selector: "data.get('upload_speed_mbps')"
+        args:
+          host: localhost
+          discovery_prefix: homeassistant
+          component: sensor
+          object_id: speedtest_upload
+          config:
+            name: "{{var::object_id}}"
+            icon: "mdi:cloud-upload-outline"
+            state_topic: "{{var::state_topic}}"
+            unit_of_measurement: "Mbps"
+      - plugin: pnp.plugins.push.mqtt.Discovery
+        selector:
+          data: "lambda data: data.get('server').get('name')"
+          attributes:
+            isp: "lambda data: data.get('client').get('isp')"
+            rating: "lambda data: data.get('client').get('rating')"
+            host: "lambda data: data.get('server').get('host')"
+            result_image: "lambda data: data.get('result_image')"
+        args:
+          host: localhost
+          discovery_prefix: homeassistant
+          component: sensor
+          object_id: speedtest_host
+          config:
+            name: "{{var::object_id}}"
+            icon: "mdi:cloud-sync-outline"
+            state_topic: "{{var::state_topic}}"
+            json_attributes_topic: "{{var::json_attributes_topic}}"
