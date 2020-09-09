@@ -561,9 +561,9 @@ def bps_mbps(val: float) -> float:
 
     Examples:
 
-        >>> bps_mbps(1_000_000)
+        >>> bps_mbps(1000000)
         1.0
-        >>> bps_mbps(1_129_000)
+        >>> bps_mbps(1129000)
         1.13
 
     Args:
@@ -572,7 +572,7 @@ def bps_mbps(val: float) -> float:
     Returns:
         Returns val in megabits per second.
     """
-    return round(float(val) / 1_000_000, 2)
+    return round(float(val) / 1000000, 2)
 
 
 def get_file_mode(file_path: str, mode: str) -> str:
