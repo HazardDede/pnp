@@ -9,7 +9,7 @@ before_install:
   - sudo apt-get install -yy portaudio19-dev
 install:
   - pip install poetry
-  - poetry install -E "dropbox fitbit fritz fswatcher ftp gmail miflora pushbullet sound"
+  - poetry install -E "dropbox fitbit fritz fswatcher ftp gmail miflora pushbullet sound speedtest"
 script:
   - poetry run inv lint
   - poetry run inv test

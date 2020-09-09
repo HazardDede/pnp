@@ -9,6 +9,12 @@ Backup to dropbox
 .. literalinclude:: ./code-samples/examples/backup.yaml
    :language: YAML
 
+Expose internet speed to home assistant
+---------------------------------------
+
+.. literalinclude:: ./code-samples/examples/speedtest_mqtt.yaml
+   :language: YAML
+
 Fitbit to home assistant
 ------------------------
 
