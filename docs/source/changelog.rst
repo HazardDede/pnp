@@ -1,6 +1,11 @@
 Changelog
 =========
 
+**0.25.0**
+
+* Implements **pull.net.Speeedtest** for testing your internet connection speed
+* Fixes documentation regarding **push.fs.Zipper**
+
 **0.24.0**
 
 * Migrates the documentation to Read the Docs: `https://pnp.readthedocs.io/en/latest/ <https://pnp.readthedocs.io/en/latest/>`_
