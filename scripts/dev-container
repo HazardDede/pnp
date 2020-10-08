@@ -19,10 +19,18 @@ function run() {
 
     SOURCE=`abspath "${PACKAGE}/.."`
 
+    distro=slim
+
+    if [ ${VERSION} == "3.8" -o ${VERSION} == "3.9" ]; then
+        distro=buster
+    fi
+
+    echo "Ubuntu Distribution is: ${distro}"
+
     docker run -it --rm \
         -v ${SOURCE}:/src \
-        python:${VERSION}-stretch \
-        bash -c "cd /src; pip install poetry && poetry install -E 'dropbox fitbit fswatcher ftp gmail miflora pushbullet' && bash"
+        python:${VERSION}-${distro} \
+        bash -c "cd /src; pip install poetry && poetry install -E 'dropbox fitbit fswatcher ftp gmail miflora pushbullet speedtest' && bash"
 }
 
 PYVERSION=$1

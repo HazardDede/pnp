@@ -754,7 +754,7 @@ def parse_duration_literal(literal: DurationLiteral) -> int:
         value_str, unit = _str[:-1], _str[-1].lower()
         value = try_parse_int(value_str)
         if value is None or unit not in seconds_per_unit:
-            raise TypeError("Interval '{}' is not a valid literal".format(literal))
+            raise TypeError("Interval '{}' is not a valid literal".format(literal)) from None
         return value * seconds_per_unit[unit]
 
 
