@@ -114,10 +114,10 @@ class PayloadSelector(Singleton):
         # -> assumes to be callable code with payload argument
         try:
             possible_fun = self._eval_wrapper(str(snippet), payload)
-        except EvaluationError:
+        except EvaluationError as eve:
             if str(snippet).startswith('lambda'):
                 raise EvaluationError("Your lambda is errorneous: '{snippet}'".format(
-                    **locals()))
+                    **locals())) from eve
             # Evaluation failed -> assume that is string literal (dict key/value or list item)
             return snippet
 
@@ -131,9 +131,9 @@ class PayloadSelector(Singleton):
             possible_fun.__globals__[k] = v
         try:
             return possible_fun(payload)
-        except:
+        except Exception as exc:
             raise EvaluationError("Error when running the selector lambda: '{snippet}'".format(
-                **locals()))
+                **locals())) from exc
 
     def eval_selector(self, selector: SelectorExpression, payload: Payload) -> Payload:
         """Applies the specified selector to the given payload."""

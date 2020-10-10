@@ -1,6 +1,14 @@
 Changelog
 =========
 
+**0.25.0**
+
+* **Breaking**: Removes python 3.5 support
+* **Breaking**: Updates dependencies
+* **Feature**: Adds official python 3.8 support
+* **Feature**: Implements **pull.net.Speeedtest** for testing your internet connection speed
+* **Fix**: Fixes documentation regarding **push.fs.Zipper**
+
 **0.24.0**
 
 * Migrates the documentation to Read the Docs: `https://pnp.readthedocs.io/en/latest/ <https://pnp.readthedocs.io/en/latest/>`_

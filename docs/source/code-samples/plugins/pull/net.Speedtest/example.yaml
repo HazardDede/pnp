@@ -1,0 +1,10 @@
+tasks:
+  - name: speedtest
+    pull:
+      plugin: pnp.plugins.pull.net.Speedtest
+      args:
+        num_parallel_requests: 2  # Number of parallel requests
+        interval: 1h  # Run every hour
+        instant_run: true  # Run as soon as pnp starts
+    push:
+      - plugin: pnp.plugins.push.simple.Echo

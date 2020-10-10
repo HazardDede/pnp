@@ -19,7 +19,7 @@ def load_optional_module(namespace: str, extra: str) -> Any:
     try:
         return import_module(namespace)
     except ImportError:
-        raise InstallOptionalExtraError(extra)
+        raise InstallOptionalExtraError(extra) from None
 
 
 class PluginStoppedError(RuntimeError):
@@ -142,9 +142,9 @@ def load_plugin(plugin_path: str, plugin_type: Union[type, str], instantiate: bo
         return cast(Plugin, clazz(**kwargs)) if instantiate else cast(Callable[..., Any], clazz)
     except AttributeError:
         raise ClassNotFoundError('Class {} was not found in namespace {}'
-                                 .format(clazz_name, namespace))
+                                 .format(clazz_name, namespace)) from None
     except ImportError:
-        raise NamespaceNotFoundError("Namespace '{}' not found".format(namespace))
+        raise NamespaceNotFoundError("Namespace '{}' not found".format(namespace)) from None
     except TypeError as terr:
         raise InvocationError("Invoked constructor from class '{}' in namespace '{}' failed"
                               .format(clazz_name, namespace)) from terr

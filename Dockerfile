@@ -38,6 +38,7 @@ RUN poetry export \
         --without-hashes \
         -E "dropbox" -E "fitbit" -E "fritz" -E "fswatcher" \
         -E "ftp" -E "gmail" -E "miflora" -E "pushbullet" \
+        -E "speedtest" \
         -f requirements.txt \
         > requirements.txt && \
     pip3 install \
