@@ -19,11 +19,11 @@ function run() {
 
     SOURCE=`abspath "${PACKAGE}/.."`
 
-    distro=slim
+    distro=buster
 
-    if [ ${VERSION} == "3.8" -o ${VERSION} == "3.9" ]; then
-        distro=buster
-    fi
+#    if [ ${VERSION} == "3.8" -o ${VERSION} == "3.9" ]; then
+#        distro=buster
+#    fi
 
     echo "Ubuntu Distribution is: ${distro}"
 
