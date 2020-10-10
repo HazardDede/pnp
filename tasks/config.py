@@ -3,7 +3,7 @@ import os
 from invoke import task
 
 # VERSION
-VERSION = "0.24.0"
+VERSION = "0.25.0"
 
 
 # PATH STUFF
