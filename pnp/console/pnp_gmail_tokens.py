@@ -29,9 +29,7 @@ def main(credential_file, token_file):
         pickle.dump(creds, tfp)
 
     print("Tokens successfully written to: {}".format(token_file))
-    return 0
 
 
 if __name__ == '__main__':
-    import sys
-    sys.exit(main())  # pylint: disable=no-value-for-parameter
+    main()  # pylint: disable=no-value-for-parameter

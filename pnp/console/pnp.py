@@ -71,5 +71,4 @@ def main(configfile, check, log, log_level):
 
 
 if __name__ == '__main__':
-    import sys
-    sys.exit(main())  # pylint: disable=no-value-for-parameter
+    main()  # pylint: disable=no-value-for-parameter
