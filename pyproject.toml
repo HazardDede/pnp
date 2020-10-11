@@ -89,6 +89,7 @@ sanic_prometheus = "^0.2.0"
 aiohttp = "^3.6.2"
 typeguard = "^2.7.1"
 async_generator = "^1.10"
+click = "^7.1.2"
 
 [tool.poetry.dev-dependencies]
 astroid = "^2.4.0"

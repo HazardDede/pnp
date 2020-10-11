@@ -241,7 +241,7 @@ version = "3.0.4"
 category = "main"
 description = "Composable command line interface toolkit"
 name = "click"
-optional = true
+optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 version = "7.1.2"
 
@@ -1634,7 +1634,7 @@ sound = ["PyAudio", "numpy", "scipy"]
 speedtest = ["speedtest-cli"]
 
 [metadata]
-content-hash = "b0a572a6ec2076f8957a1e0003b56c1b32cb8143d411067ae8f00a631c62901d"
+content-hash = "014d950f1938173518757df5cbab3af008bdb3d3eb30be3c7ed7ad8a41bbab30"
 python-versions = "^3.6"
 
 [metadata.files]

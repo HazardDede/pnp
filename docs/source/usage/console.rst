@@ -4,17 +4,16 @@ Console Runner
 .. code-block:: text
 
     > pnp --help
-    Pull 'n' Push
+    Usage: pnp [OPTIONS] CONFIGFILE
 
-    Usage:
-      pnp [(-v | --verbose)] [--log=<log_conf>] <configuration>
-      pnp (-c | --check) <configuration>
-      pnp (-h | --help)
-      pnp --version
+      Pull 'n' Push. Runs or checks the given CONFIGFILE
 
     Options:
-      -c --check        Only check configuration and do not run it.
-      -v --verbose      Switches log level to debug.
-      --log=<log_conf>  Specify logging configuration to load.
-      -h --help         Show this screen.
-      --version         Show version.
+      -c, --check                     Only check the given config file and do not
+                                      run it.
+
+      --log FILE                      Specify logging configuration to load.
+      --log-level [DEBUG|INFO|WARNING|ERROR]
+                                      Overrides the log level.
+      --version                       Show the version and exit.
+      --help                          Show this message and exit.
