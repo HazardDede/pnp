@@ -6,14 +6,18 @@ import os
 
 import click
 from ruamel import yaml
+from sty import fg, bg, ef, rs
 
 from pnp import __version__
 from pnp.app import Application
+from pnp.logo import PNP
 from pnp.utils import get_first_existing_file
 
 CONFIG_FILE_TYPE = click.Path(exists=True, dir_okay=False, resolve_path=True)
 LOG_FILE_TYPE = click.Path(exists=True, dir_okay=False, resolve_path=True)
 LOG_LEVEL_CHOICES = ['DEBUG', 'INFO', 'WARNING', 'ERROR']
+
+DSPACE = " " * 2
 
 
 def _setup_logging(*candidates, log_level_override=None, env_key='PNP_LOG_CONF'):
@@ -33,6 +37,60 @@ def _setup_logging(*candidates, log_level_override=None, env_key='PNP_LOG_CONF')
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                             level=log_level_override or logging.INFO)
         logging.info("Logging loaded with basic configuration")
+
+
+def _print_api_config(config):
+    def helper():
+        if not config.api:
+            return f'{fg.yellow}No API configured{fg.rs}'
+        return f'{fg.green}{config.api}{fg.rs}'
+
+    print(f"{ef.bold}API{rs.all}\n{DSPACE}{helper()}")
+
+
+def _print_udf_config(config):
+    print_str = f"{ef.bold}UDFs{rs.all}\n"
+    if not config.udfs:
+        print_str += f"{DSPACE}{fg.yellow}No UDFs configured{fg.rs}"
+    else:
+        all_udfs = [f"{DSPACE}- {fg.green}{str(udf)}{fg.rs}" for udf in config.udfs]
+        print_str += "\n".join(all_udfs)
+    print(print_str)
+
+
+def _print_engine_config(config):
+    engine_str = f"{fg.green}{str(config.engine)}{fg.rs}"
+    print(f"{ef.bold}Engine{rs.all}\n{DSPACE}{engine_str}")
+
+
+def _stringify_single_push(push, level):
+    res = f"{DSPACE * level}- {fg.green}{push.instance}{fg.rs}\n"
+    level += 1
+    res += f"{DSPACE * level}{ef.bold}Selector{rs.all}: {push.selector}"
+    if push.deps:
+        res += "\n" + _stringify_push_config(push.deps, level, "Dependencies")
+    return res
+
+
+def _stringify_push_config(pushes, level=2, label="Push"):
+    res = f"{DSPACE * level}{ef.bold}{label}{rs.all}\n"
+    all_pushes = [_stringify_single_push(push, level + 1) for push in pushes]
+    res += "\n".join(all_pushes)
+    return res
+
+
+def _print_tasks_config(config):
+    print_str = f"{ef.bold}Tasks{rs.all}\n"
+    all_tasks = []
+    for task in config.tasks.values():
+        task_str = ""
+        task_str += f"{DSPACE}- {ef.bold}{task.name}{rs.all}\n"
+        task_str += f"{DSPACE * 2}{ef.bold}Pull{rs.all}\n"
+        task_str += f"{DSPACE * 3}{fg.green}{task.pull.instance}{fg.rs}\n"
+        task_str += _stringify_push_config(task.pushes)
+        all_tasks.append(task_str)
+    print_str += "\n".join(all_tasks)
+    print(print_str)
 
 
 @click.command('pnp')
@@ -60,13 +118,22 @@ def _setup_logging(*candidates, log_level_override=None, env_key='PNP_LOG_CONF')
 @click.version_option(version=__version__)
 def main(configfile, check, log, log_level):
     """Pull 'n' Push. Runs or checks the given CONFIGFILE"""
-    log_level_override = log_level or os.environ.get('LOG_LEVEL')
-    _setup_logging(
-        log, 'logging.yaml', os.path.join(os.path.dirname(configfile), 'logging.yaml'),
-        log_level_override=log_level_override
-    )
+    print(f"{ef.bold}Welcome to {fg.green}pnp{fg.rs} @ {fg.green}{__version__}{rs.all}")
+    print(f"{fg.green}{bg.black}{PNP}{bg.rs}{fg.rs}")
+
     app = Application.from_file(configfile)
+    config = app.config
+    _print_api_config(config)
+    _print_engine_config(config)
+    _print_udf_config(config)
+    _print_tasks_config(config)
+
     if not check:
+        log_level_override = log_level or os.environ.get('LOG_LEVEL')
+        _setup_logging(
+            log, 'logging.yaml', os.path.join(os.path.dirname(configfile), 'logging.yaml'),
+            log_level_override=log_level_override
+        )
         app.start()
 
 

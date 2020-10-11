@@ -1433,6 +1433,14 @@ version = "0.4.1"
 
 [[package]]
 category = "main"
+description = ""
+name = "sty"
+optional = false
+python-versions = "*"
+version = "1.0.0b12"
+
+[[package]]
+category = "main"
 description = "Sync-to-async and async-to-sync function wrappers"
 name = "syncasync"
 optional = false
@@ -1634,7 +1642,7 @@ sound = ["PyAudio", "numpy", "scipy"]
 speedtest = ["speedtest-cli"]
 
 [metadata]
-content-hash = "18979bcf71069d144bca4f06c64da12f256e040976f099335bb3d8746912b29f"
+content-hash = "76e7bb6ec968bd4c825fe5315659992ac823cbb89e519bfcf4587d4543d12dc4"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -2409,6 +2417,9 @@ sphinxcontrib-serializinghtml = [
 sqlparse = [
     {file = "sqlparse-0.4.1-py3-none-any.whl", hash = "sha256:017cde379adbd6a1f15a61873f43e8274179378e95ef3fede90b5aa64d304ed0"},
     {file = "sqlparse-0.4.1.tar.gz", hash = "sha256:0f91fd2e829c44362cbcfab3e9ae12e22badaa8a29ad5ff599f9ec109f0454e8"},
+]
+sty = [
+    {file = "sty-1.0.0b12-py3-none-any.whl", hash = "sha256:46563babbe6e1944de9d013e9c1ffbde02c90ae4858b2fa47648f7b2f2b198ae"},
 ]
 syncasync = [
     {file = "syncasync-20180812-py2.py3-none-any.whl", hash = "sha256:f581db7f968b88c8eea83b06341025a4588bbbcecc83345956a85f0ae9777729"},

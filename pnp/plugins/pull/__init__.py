@@ -139,7 +139,7 @@ class AsyncPullNowMixin:
         raise NotImplementedError()
 
 
-@auto_str_ignore(['_scheduler'])
+@auto_str_ignore(['_scheduler', 'is_cron', '_is_running', '_instant_run'])
 class Polling(AsyncPullBase, AsyncPullNowMixin):
     """
     Base class for polling plugins.
