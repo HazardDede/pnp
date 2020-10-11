@@ -49,16 +49,9 @@ RUN poetry export \
 
 COPY . .
 
-# Make sure that proper entrypoint (like pnp) are installed
-RUN poetry build && \
-    pip3 install \
-        --no-cache-dir \
-        --extra-index-url https://www.piwheels.org/simple \
-        "dist/$(poetry version | tr ' ' '-')-py3-none-any.whl"
-
 # Due to some errors with the wheel file from piwheels (segfault)
 # we have to remove uvloop
 # We do not need to reinstall because we do not use uvloop
 RUN pip3 uninstall --yes uvloop
 
-CMD ["pnp", "/config/config.yaml"]
+CMD ["python3", "-m", "pnp", "/config/config.yaml"]
