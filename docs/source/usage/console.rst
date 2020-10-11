@@ -1,6 +1,8 @@
 Console Runner
 ==============
 
+If you install `pnp` via `pip` it will automatically install a script you can invoke:
+
 .. code-block:: text
 
     > pnp --help
@@ -9,7 +11,7 @@ Console Runner
       Pull 'n' Push. Runs or checks the given CONFIGFILE
 
     Options:
-      -c, --check                     Only check the given config file and do not
+      -c, --check                     Only check the given config file but does not
                                       run it.
 
       --log FILE                      Specify logging configuration to load.
@@ -17,3 +19,9 @@ Console Runner
                                       Overrides the log level.
       --version                       Show the version and exit.
       --help                          Show this message and exit.
+
+Alternatively you can call the module via python interpreter:
+
+.. code-block:: bash
+
+   python3 -m pnp --help
