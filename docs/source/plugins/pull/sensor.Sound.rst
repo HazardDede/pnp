@@ -60,7 +60,7 @@ Practical example: I use this plugin to recognize my doorbell without tampering 
 .. NOTE::
 
    * You can list your available input devices: ``pnp_record_sound --list``
-   * You can record a wav file from an input device: ``pnp_record_sound <out.wav> <seconds_to_record> --index=<idx>``
+   * You can record a wav file from an input device: ``pnp_record_sound <out.wav> --seconds=<seconds_to_record> --index=<idx>``
    * This one is _not_ pre-installed when using the docker image. Would be grateful if anyone can integrate it
 
 **Result**
