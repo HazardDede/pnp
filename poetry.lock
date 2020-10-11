@@ -335,7 +335,7 @@ python-versions = "*"
 version = "19.21.0"
 
 [[package]]
-category = "main"
+category = "dev"
 description = "Pythonic argument parser, that will make you smile"
 name = "docopt"
 optional = false
@@ -1634,7 +1634,7 @@ sound = ["PyAudio", "numpy", "scipy"]
 speedtest = ["speedtest-cli"]
 
 [metadata]
-content-hash = "014d950f1938173518757df5cbab3af008bdb3d3eb30be3c7ed7ad8a41bbab30"
+content-hash = "18979bcf71069d144bca4f06c64da12f256e040976f099335bb3d8746912b29f"
 python-versions = "^3.6"
 
 [metadata.files]
