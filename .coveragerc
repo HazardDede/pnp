@@ -2,6 +2,7 @@
 source = pnp
 
 omit =
+    pnp/__main__.py
     pnp/console/*
 
 
