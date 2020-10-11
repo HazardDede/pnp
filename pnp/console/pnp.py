@@ -44,7 +44,7 @@ def _setup_logging(*candidates, log_level_override=None, env_key='PNP_LOG_CONF')
 @click.option(
     '-c', '--check',
     is_flag=True,
-    help="Only check the given config file and do not run it."
+    help="Only check the given config file but does not run it."
 )
 @click.option(
     '--log',
