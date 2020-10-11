@@ -1,20 +1,4 @@
-"""Pull 'n' Push Sound recorder
-
-Usage:
-  pnp_record_sound <output_file> <seconds> [--index=<idx>]
-  pnp_record_sound --list
-  pnp_record_sound (-h | --help)
-
-Options:
-  -h --help         Show this screen.
-  --list            Shows all available mic devices and their associated index
-
-Args:
-  output_file       File to write (wav)
-  seconds           Number of seconds to record
-  --index=<idx>     Optionally specify the index of the mic to record the sound
-
-"""
+"""Pull 'n' Push Sound recorder."""
 import sys
 
 import click
@@ -75,7 +59,7 @@ def list_devices(ctx, param, value):
     callback=list_devices,
     expose_value=False,
     is_eager=True,
-    help="Shows all available mic devices and their associated index and exits."
+    help="Shows all available mic devices and their associated index and exit."
 )
 def main(output_file, seconds, index):
     """Pull 'n' Push Sound recorder."""
