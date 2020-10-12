@@ -90,6 +90,7 @@ typeguard = "^2.7.1"
 async_generator = "^1.10"
 click = "^7.1.2"
 sty = "^1.0.0-beta.12"
+coloredlogs = "^14.0"
 
 [tool.poetry.dev-dependencies]
 astroid = "^2.4.0"

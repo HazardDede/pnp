@@ -5,6 +5,7 @@ import logging.config
 import os
 
 import click
+import coloredlogs
 from ruamel import yaml
 from sty import fg, bg, ef, rs
 
@@ -32,14 +33,16 @@ def _setup_logging(*candidates, log_level_override=None, env_key='PNP_LOG_CONF')
         with open(log_file_path, 'rt') as fhandle:
             config = yaml.safe_load(fhandle.read())
         logging.config.dictConfig(config)
-        if log_level_override:
-            logging.getLogger().setLevel(log_level_override)
         logging_conf = log_file_path
     else:
-        logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                            level=log_level_override or logging.INFO)
+        if not log_level_override:
+            log_level_override = "INFO"
         logging_conf = "Basic logging"
 
+    coloredlogs.install(
+        fmt='%(asctime)s %(name)s %(levelname)s %(message)s',
+        level=log_level_override or logging.getLogger().level
+    )
     return logging_conf
 
 
