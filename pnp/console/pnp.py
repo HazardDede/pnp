@@ -13,10 +13,11 @@ from pnp.app import Application
 from pnp.logo import PNP
 from pnp.utils import get_first_existing_file
 
-CONFIG_FILE_TYPE = click.Path(exists=True, dir_okay=False, resolve_path=True)
-LOG_FILE_TYPE = click.Path(exists=True, dir_okay=False, resolve_path=True)
-LOG_LEVEL_CHOICES = ['DEBUG', 'INFO', 'WARNING', 'ERROR']
 
+# Default log file name
+DEFAULT_LOGGING_FILE_NAME = 'logging.yaml'
+
+# Double space
 DSPACE = " " * 2
 
 
@@ -27,16 +28,19 @@ def _setup_logging(*candidates, log_level_override=None, env_key='PNP_LOG_CONF')
     if env_path:
         log_file_path = env_path
     if log_file_path and os.path.exists(log_file_path):
+        log_file_path = os.path.abspath(log_file_path)
         with open(log_file_path, 'rt') as fhandle:
             config = yaml.safe_load(fhandle.read())
         logging.config.dictConfig(config)
         if log_level_override:
             logging.getLogger().setLevel(log_level_override)
-        logging.info("Logging loaded from: %s", log_file_path)
+        logging_conf = log_file_path
     else:
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                             level=log_level_override or logging.INFO)
-        logging.info("Logging loaded with basic configuration")
+        logging_conf = "Basic logging"
+
+    return logging_conf
 
 
 def _print_api_config(config):
@@ -64,9 +68,10 @@ def _print_engine_config(config):
 
 
 def _stringify_single_push(push, level):
-    res = f"{DSPACE * level}- {fg.green}{push.instance}{fg.rs}\n"
+    res = f"{DSPACE * level}- {fg.green}{push.instance}{fg.rs}"
     level += 1
-    res += f"{DSPACE * level}{ef.bold}Selector{rs.all}: {push.selector}"
+    if push.selector:
+        res += f"\n{DSPACE * level}{ef.bold}Selector{rs.all}: {push.selector}"
     if push.deps:
         res += "\n" + _stringify_push_config(push.deps, level, "Dependencies")
     return res
@@ -96,7 +101,7 @@ def _print_tasks_config(config):
 @click.command('pnp')
 @click.argument(
     'configfile',
-    type=CONFIG_FILE_TYPE,
+    type=click.Path(exists=True, dir_okay=False, resolve_path=True),
     required=True,
 )
 @click.option(
@@ -105,24 +110,30 @@ def _print_tasks_config(config):
     help="Only check the given config file but does not run it."
 )
 @click.option(
+    '--no-log-probe',
+    is_flag=True,
+    help="Disables the automatic logging configuration probing."
+)
+@click.option(
     '--log',
-    type=LOG_FILE_TYPE,
+    type=click.Path(exists=True, dir_okay=False, resolve_path=True),
     help="Specify logging configuration to load."
 )
 @click.option(
     '--log-level',
-    type=click.Choice(LOG_LEVEL_CHOICES, case_sensitive=False),
+    type=click.Choice(['DEBUG', 'INFO', 'WARNING', 'ERROR'], case_sensitive=False),
     default=None,
     help="Overrides the log level."
 )
 @click.version_option(version=__version__)
-def main(configfile, check, log, log_level):
+def main(configfile, check, log, log_level, no_log_probe):
     """Pull 'n' Push. Runs or checks the given CONFIGFILE"""
     print(f"{ef.bold}Welcome to {fg.green}pnp{fg.rs} @ {fg.green}{__version__}{rs.all}")
     print(f"{fg.green}{bg.black}{PNP}{bg.rs}{fg.rs}")
 
     app = Application.from_file(configfile)
     config = app.config
+
     _print_api_config(config)
     _print_engine_config(config)
     _print_udf_config(config)
@@ -130,10 +141,20 @@ def main(configfile, check, log, log_level):
 
     if not check:
         log_level_override = log_level or os.environ.get('LOG_LEVEL')
-        _setup_logging(
-            log, 'logging.yaml', os.path.join(os.path.dirname(configfile), 'logging.yaml'),
+        probing_log_conf = [log]
+        if not no_log_probe:
+            probing_log_conf += [
+                # logging.yaml in cwd
+                DEFAULT_LOGGING_FILE_NAME,
+                # logging.yaml in pnp config loc
+                os.path.join(os.path.dirname(configfile), DEFAULT_LOGGING_FILE_NAME)
+            ]
+        logging_config_path = _setup_logging(
+            *probing_log_conf,
             log_level_override=log_level_override
         )
+        print(f"{ef.bold}Logging{rs.all}\n{DSPACE}{fg.green}{logging_config_path}{fg.rs}")
+
         app.start()
 
 

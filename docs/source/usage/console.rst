@@ -11,8 +11,11 @@ If you install `pnp` via `pip` it will automatically install a script you can in
       Pull 'n' Push. Runs or checks the given CONFIGFILE
 
     Options:
-      -c, --check                     Only check the given config file but does not
-                                      run it.
+      -c, --check                     Only check the given config file but does
+                                      not run it.
+
+      --no-log-probe                  Disables the automatic logging configuration
+                                      probing.
 
       --log FILE                      Specify logging configuration to load.
       --log-level [DEBUG|INFO|WARNING|ERROR]

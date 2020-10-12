@@ -147,14 +147,25 @@ You can use different logging configurations in two ways:
 Either by specify the logging configuration when starting ``pnp`` via the console
 or by setting the environment variable ``PNP_LOG_CONF`` and then run ``pnp``.
 
-.. code-block::
-   bash
+.. code-block:: bash
 
-   # Specify when starting pnp
+   # Specify explicitly when starting pnp
    pnp --log=<logging_configuration> <pnp_configuration>
+
    # Specify by environment variable
    export PNP_LOG_CONF=<logging_configuration>
    pnp <pnp_configuration>
+
+If you do not specify a logging configuration explicitly pnp will search for a ``logging.yaml``
+1. in the current working directory
+2. in the directory where your pnp configuration file is located
+
+You can disable this automatic and implicit logging configuration probing by starting pnp
+by passing ``--no-log-probe``:
+
+.. code-block:: bash
+
+   pnp --no-log-probe <pnp_configuration>
 
 
 A simple logging configuration that will log severe errors to a separate
