@@ -1,6 +1,14 @@
 Changelog
 =========
 
+**0.26.0**
+
+* **Breaking**: Overhaul of the console scripts (see :ref:`Console Runner`) `#29 <https://github.com/HazardDede/pnp/pull/29>`_
+* **Feature**: Colorful printing of configuration and logging `#29 <https://github.com/HazardDede/pnp/pull/29>`_
+* **Feature**: Migrates Dockerfile from stretch to buster `#27 <https://github.com/HazardDede/pnp/pull/27>`_
+* **Fix**: Proper handling of ``docker stop`` `#30 <https://github.com/HazardDede/pnp/pull/30>`_
+
+
 **0.25.0**
 
 * **Breaking**: Removes python 3.5 support

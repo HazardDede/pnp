@@ -1,3 +1,5 @@
+.. _Console Runner:
+
 Console Runner
 ==============
 
