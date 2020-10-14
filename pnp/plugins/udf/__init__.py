@@ -9,10 +9,12 @@ from pnp.plugins import Plugin
 from pnp.utils import (
     parse_duration_literal,
     DurationLiteral,
-    make_hashable
+    make_hashable,
+    auto_str_ignore
 )
 
 
+@auto_str_ignore(['_cache'])
 class UserDefinedFunction(Plugin):
     """Base class for a user defined expression."""
 

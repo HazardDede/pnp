@@ -91,17 +91,3 @@ class UDFModel:
 
 
 TaskSet = Dict[str, TaskModel]
-
-
-def tasks_to_str(tasks: TaskSet) -> str:
-    """Transforms a set of tasks to a human readable representation."""
-    res = []
-    for _, task in tasks.items():
-        res.append('{task.name} {{'.format(task=task))
-        res.append('\tpull = {task.pull}'.format(task=task))
-        res.append('\tpushes = ['.format())
-        for push in task.pushes:
-            res.append('\t\t{push}'.format(push=push))
-        res.append('\t]')
-        res.append('}')
-    return "\n".join(res)

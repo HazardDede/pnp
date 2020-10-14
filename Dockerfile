@@ -47,10 +47,4 @@ RUN poetry export \
 
 COPY . .
 
-# Make sure that proper entrypoint (like pnp) are installed
-RUN poetry build && \
-    pip3 install \
-        --no-cache-dir \
-        "dist/$(poetry version | tr ' ' '-')-py3-none-any.whl"
-
-CMD ["pnp", "/config/config.yaml"]
+CMD ["python3", "-m", "pnp", "/config/config.yaml"]
