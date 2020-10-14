@@ -2,7 +2,7 @@
 # Notice: Keep this file in sync with Dockerfile
 #
 
-FROM arm32v7/python:3.7-slim-stretch
+FROM arm32v7/python:3.7-slim-buster
 COPY qemu-arm-static /usr/bin
 
 LABEL maintainer="Dennis Muth <d.muth@gmx.net>"
@@ -49,9 +49,5 @@ RUN poetry export \
 
 COPY . .
 
-# Due to some errors with the wheel file from piwheels (segfault)
-# we have to remove uvloop
-# We do not need to reinstall because we do not use uvloop
-RUN pip3 uninstall --yes uvloop
 
 CMD ["python3", "-m", "pnp", "/config/config.yaml"]
