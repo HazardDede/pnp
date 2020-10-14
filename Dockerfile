@@ -6,6 +6,9 @@ FROM python:3.7-slim-stretch
 
 LABEL maintainer="Dennis Muth <d.muth@gmx.net>"
 
+# Override default SIGTERM to SIGINT (Ctrl+C)
+STOPSIGNAL SIGINT
+
 # See below for BUILD ARG 'INSTALL_DEV_PACKAGES'
 # ARG INSTALL_DEV_PACKAGES="no"
 
