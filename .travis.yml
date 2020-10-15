@@ -7,8 +7,9 @@ python:
 before_install:
   - sudo apt-get install -yy gcc
   - sudo apt-get install -yy portaudio19-dev
+  - pip install --upgrade pip
+  - pip install --upgrade poetry
 install:
-  - pip install poetry
   - poetry install -E "dropbox fitbit fritz fswatcher ftp gmail miflora pushbullet sound speedtest"
 script:
   - poetry run inv lint
