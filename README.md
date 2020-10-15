@@ -1,6 +1,6 @@
 # Pull 'n' Push
 
-[![Python](https://img.shields.io/badge/Python-3.5%20%7C%203.6%20%7C%203.7-green.svg)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.6%20%7C%203.7%20%7C%203.8-green.svg)](https://www.python.org/)
 [![PyPI version](https://badge.fury.io/py/pnp.svg)](https://badge.fury.io/py/pnp)
 [![Docs](https://readthedocs.org/projects/pnp/badge/?version=stable)](https://pnp.readthedocs.io/en/stable/?badge=stable)
 [![GitHub Activity](https://img.shields.io/github/commit-activity/y/HazardDede/pnp.svg)](https://github.com/HazardDede/pnp/commits/master)
