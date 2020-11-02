@@ -1,7 +1,7 @@
 """Pull 'n' Push."""
 import warnings
 
-__version__ = "0.25.0"
+__version__ = "0.26.0"
 __author__ = "Dennis Muth <d.muth@gmx.net>"
 
 

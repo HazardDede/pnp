@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pnp"
-version = "0.25.0"
+version = "0.26.0"
 description = "Pull 'n' Push"
 authors = ["Dennis Muth <d.muth@gmx.net>"]
 maintainers = ["Dennis Muth <d.muth@gmx.net>"]
