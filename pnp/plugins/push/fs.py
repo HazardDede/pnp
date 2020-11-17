@@ -85,10 +85,11 @@ class Zipper(PushBase):
 
     """
 
-    def __init__(self, source=None, out_path=None, **kwargs):
+    def __init__(self, source=None, out_path=None, archive_name=None, **kwargs):
         super().__init__(**kwargs)
         self.source = self._parse_source(source)
         self.out_path = self._parse_out_path(out_path)
+        self.archive_name = self._parse_archive_name(archive_name)
 
     @staticmethod
     def _parse_source(value):
@@ -107,22 +108,33 @@ class Zipper(PushBase):
         validator.is_directory(out_path=value)
         return os.path.abspath(str(value))
 
+    @staticmethod
+    def _parse_archive_name(value):
+        return value and str(value)
+
     @enveloped
+    @parse_envelope('archive_name')
     @drop_envelope
-    def push(self, payload):
+    def push(self, archive_name, payload):  # pylint: disable=arguments-differ
         source = self._parse_source(self.source or payload)
 
         if os.path.isdir(source):
             # Directory branch
             from ...shared.zipping import zipdir, zipignore
             base_dir_name = os.path.basename(os.path.normpath(source))
-            out_file = os.path.join(self.out_path, base_dir_name + '.zip')
+            out_file = (
+                os.path.join(self.out_path, archive_name) if archive_name else
+                os.path.join(self.out_path, base_dir_name + '.zip')
+            )
             ignore_list = zipignore(source)
             zipdir(source, out_file, ignore_list)
             return out_file
 
         # File branch
         from ...shared.zipping import zipfiles
-        out_file = os.path.join(self.out_path, os.path.basename(source) + '.zip')
+        out_file = (
+            os.path.join(self.out_path, archive_name) if archive_name else
+            os.path.join(self.out_path, os.path.basename(source) + '.zip')
+        )
         zipfiles(source, out_file)
         return out_file
