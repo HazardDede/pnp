@@ -28,9 +28,22 @@ def test_push_mqtt_discovery(monkeypatch):
 
     assert call_cnt == 2
     # config
-    assert calls[0] == {'topic': 'pytest/sensor/12345/pytest_sensor/config', 'payload': '{"friendly_name": "pytest_sensor"}', 'hostname': 'doesnotmatter', 'port': 1883, 'retain': True, 'auth': None, 'qos': 0}
+    payload = calls[0].pop('payload')
+    assert calls[0] == {
+        'topic': 'pytest/sensor/12345/pytest_sensor/config',
+        'hostname': 'doesnotmatter', 'port': 1883, 'retain': True, 'auth': None, 'qos': 0
+    }
+    assert json.loads(payload) == {
+        "friendly_name": "pytest_sensor",
+        "state_topic": "pytest/sensor/12345/pytest_sensor/state",
+        "json_attributes_topic": "pytest/sensor/12345/pytest_sensor/attributes"
+    }
     # state
-    assert calls[1] == {'topic': 'pytest/sensor/12345/pytest_sensor/state', 'payload': 10, 'hostname': 'doesnotmatter', 'port': 1883, 'retain': True, 'auth': None, 'qos': 0}
+    assert calls[1] == {
+        'topic': 'pytest/sensor/12345/pytest_sensor/state',
+        'payload': 10,
+        'hostname': 'doesnotmatter', 'port': 1883, 'retain': True, 'auth': None, 'qos': 0
+    }
 
 
 def test_push_mqtt_discovery_envelope_override(monkeypatch):
@@ -58,9 +71,22 @@ def test_push_mqtt_discovery_envelope_override(monkeypatch):
 
     assert call_cnt == 2
     # config
-    assert calls[0] == {'topic': 'pytest/sensor/node_override/object_override/config', 'payload': '{"friendly_name": "pytest_sensor"}', 'hostname': 'doesnotmatter', 'port': 1883, 'retain': True, 'auth': None, 'qos': 0}
+    payload = calls[0].pop('payload')
+    assert calls[0] == {
+        'topic': 'pytest/sensor/node_override/object_override/config',
+        'hostname': 'doesnotmatter', 'port': 1883, 'retain': True, 'auth': None, 'qos': 0,
+    }
+    assert json.loads(payload) == {
+        "friendly_name": "pytest_sensor",
+        "state_topic": "pytest/sensor/node_override/object_override/state",
+        "json_attributes_topic": "pytest/sensor/node_override/object_override/attributes"
+    }
     # state
-    assert calls[1] == {'topic': 'pytest/sensor/node_override/object_override/state', 'payload': 10, 'hostname': 'doesnotmatter', 'port': 1883, 'retain': True, 'auth': None, 'qos': 0}
+    assert calls[1] == {
+        'topic': 'pytest/sensor/node_override/object_override/state',
+        'payload': 10,
+        'hostname': 'doesnotmatter', 'port': 1883, 'retain': True, 'auth': None, 'qos': 0
+    }
 
 
 def test_push_mqtt_config_vars(monkeypatch):
@@ -88,4 +114,10 @@ def test_push_mqtt_config_vars(monkeypatch):
 
     assert call_cnt == 2
     # config
-    assert json.loads(calls[0]['payload']) == {'friendly_name': 'pytest_sensor', 'object_id': 'pytest_sensor', 'node_id': '12345'}
+    assert json.loads(calls[0]['payload']) == {
+        'friendly_name': 'pytest_sensor',
+        'object_id': 'pytest_sensor',
+        'node_id': '12345',
+        'json_attributes_topic': 'pytest/sensor/12345/pytest_sensor/attributes',
+        'state_topic': 'pytest/sensor/12345/pytest_sensor/state'
+    }

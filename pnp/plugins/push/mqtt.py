@@ -12,17 +12,19 @@ from pnp.utils import try_parse_bool, auto_str_ignore
 class Discovery(MQTTBase, PushBase):
     """
     See Also:
-        https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/mqtt.Discovery/index.md
+        https://pnp.readthedocs.io/en/stable/plugins/index.html#mqtt-discovery
     """
     SUPPORTED_COMPONENTS = ['alarm_control_panel', 'binary_sensor', 'camera', 'cover', 'fan',
                             'climate', 'light', 'lock', 'sensor', 'switch']
 
+    CONST_STATE_TOPIC = 'state_topic'
+    CONST_JSON_ATTRIBUTES_TOPIC = 'json_attributes_topic'
+
     def __init__(self, discovery_prefix, component, config, object_id=None, node_id=None, **kwargs):
         super().__init__(**kwargs)
         self.discovery_prefix = str(discovery_prefix)
-        validator.is_instance(str, component=component)
-        validator.one_of(self.SUPPORTED_COMPONENTS, component=component)
-        self.component = component
+        validator.one_of(self.SUPPORTED_COMPONENTS, component=str(component))
+        self.component = str(component)
         self.object_id = self._parse_object_id(object_id)
         validator.is_instance(dict, config=config)
         self._config = config
@@ -69,11 +71,27 @@ class Discovery(MQTTBase, PushBase):
                     node_id=node_id,
                     base_topic=base_topic,
                     config_topic=config_topic,
-                    state_topic=state_topic,
-                    json_attributes_topic=attr_topic
+                    **{
+                        self.CONST_STATE_TOPIC: state_topic,
+                        self.CONST_JSON_ATTRIBUTES_TOPIC: attr_topic
+                    }
                 )
             )
             config_augmented = mentor.augment(self.config)
+            if self.CONST_STATE_TOPIC in config_augmented:
+                self.logger.warning(
+                    "%s is part of your config, but will be ignored",
+                    self.CONST_STATE_TOPIC
+                )
+            if self.CONST_JSON_ATTRIBUTES_TOPIC in config_augmented:
+                self.logger.warning(
+                    "%s is part of your config, but will be ignored",
+                    self.CONST_JSON_ATTRIBUTES_TOPIC
+                )
+
+            config_augmented[self.CONST_STATE_TOPIC] = state_topic
+            config_augmented[self.CONST_JSON_ATTRIBUTES_TOPIC] = attr_topic
+
             self._publish(config_augmented, config_topic, retain=True)
             self.configured[configure_key] = True
 
