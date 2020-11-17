@@ -48,10 +48,12 @@ class PortProbe(Polling):
         """Will open a socket connection and try to connect to the specified port."""
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.settimeout(self.timeout)
-            result = sock.connect_ex((self.server, self.port))
             try:
+                result = sock.connect_ex((self.server, self.port))
                 # This might fail if the socket couldn't connect
                 sock.shutdown(socket.SHUT_RDWR)
+            except socket.gaierror:
+                result = 1
             except OSError:
                 pass
             return result == 0
