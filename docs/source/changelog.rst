@@ -1,6 +1,10 @@
 Changelog
 =========
 
+**0.26.1**
+
+* **Fix**: ``pull.net.PortProbe``: Catches a socket error when there is no route to the target host `#32 <https://github.com/HazardDede/pnp/pull/32>`_
+
 **0.26.0**
 
 * **Breaking**: Overhaul of the console scripts (see :ref:`Console Runner`) `#29 <https://github.com/HazardDede/pnp/pull/29>`_
