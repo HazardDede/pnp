@@ -1,8 +1,6 @@
 api:
   port: 9999  # API listens on port 9999; mandatory
   endpoints:  # Optional
-    # Enable swagger endpoint: http://localhost:9999/swagger, default is false.
-    swagger: true
     # Enable metrics endpoint: http://localhost:9999/metrics, default is false.
     metrics: true
 tasks:

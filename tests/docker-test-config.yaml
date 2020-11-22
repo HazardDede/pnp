@@ -1,7 +1,6 @@
 api:
   port: 80
   endpoints:
-    swagger: true
     metrics: true
 engine: !engine
   type: pnp.engines.AsyncEngine
