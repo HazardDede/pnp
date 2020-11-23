@@ -8,7 +8,7 @@
 # - HA_HOST: Your home assistant url (incl. port)
 # - HA_TOKEN: Your home assistant long lived access token
 # - DROPBOX_API_KEY: Your dropbox api key
-# - PUSHBULLET_API_KEY: Your pushbullet api key
+# - SLACK_API_KEY: Your pushbullet api key
 
 udfs:
   # Defines the udf. name is the actual alias you can call in selector
@@ -77,7 +77,8 @@ tasks:
               data: "lambda data: data.source"
               target_file_name: "lambda data: basename(data.source)"
             deps:
-              - plugin: pnp.plugins.push.notify.Pushbullet
-                args:
-                  api_key: "{{env::PUSHBULLET_API_KEY}}"
+              - plugin: pnp.plugins.push.notify.Slack
                 selector: data.raw_link
+                args:
+                  api_key: "{{env::SLACK_API_KEY}}"  # Your slack api key.
+                  channel: test  # The channel to post to. Mandatory

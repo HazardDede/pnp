@@ -93,15 +93,11 @@ and set the ``unwrap`` option to invoke a ``push`` for each element of an ``iter
 
 .. include:: push/http.Call.rst
 
-.. include:: push/mail.GMail.rst
-
 .. include:: push/ml.FaceR.rst
 
 .. include:: push/mqtt.Discovery.rst
 
 .. include:: push/mqtt.Publish.rst
-
-.. include:: push/notify.Pushbullet.rst
 
 .. include:: push/notify.Slack.rst
 

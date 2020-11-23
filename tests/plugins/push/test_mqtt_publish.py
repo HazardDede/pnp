@@ -4,7 +4,8 @@ import pytest
 from pnp.plugins.push.mqtt import Publish
 
 
-def test_mqtt_push(monkeypatch):
+@pytest.mark.asyncio
+async def test_mqtt_push(monkeypatch):
 
     def call_validator(**kwargs):
         assert kwargs.get('topic') == 'test/foo/bar'
@@ -18,7 +19,7 @@ def test_mqtt_push(monkeypatch):
     monkeypatch.setattr(paho.mqtt.publish, 'single', call_validator)
 
     dut = Publish(name='pytest', host='localhost', topic='test/foo/bar')
-    dut._push("This is the payload")
+    await dut.push("This is the payload")
 
 
 def test_mqtt_push_with_qos():
@@ -34,7 +35,8 @@ def test_mqtt_push_with_qos():
     assert dut.qos == 2
 
 
-def test_mqtt_push_with_envelope_override(monkeypatch):
+@pytest.mark.asyncio
+async def test_mqtt_push_with_envelope_override(monkeypatch):
 
     def call_validator(**kwargs):
         assert kwargs.get('topic') == 'override'
@@ -48,14 +50,15 @@ def test_mqtt_push_with_envelope_override(monkeypatch):
     monkeypatch.setattr(paho.mqtt.publish, 'single', call_validator)
 
     dut = Publish(name='pytest', host='localhost', topic='test/foo/bar')
-    dut._push(dict(data="This is the payload", topic='override', retain=True, qos=2))
+    await dut.push(dict(data="This is the payload", topic='override', retain=True, qos=2))
 
     dut = Publish(name='pytest', host='localhost')
     with pytest.raises(ValueError):
-        dut._push(dict(data="This is the payload", retain=True, qos=2))
+        await dut.push(dict(data="This is the payload", retain=True, qos=2))
 
 
-def test_mqtt_push_with_credentials(monkeypatch):
+@pytest.mark.asyncio
+async def test_mqtt_push_with_credentials(monkeypatch):
 
     def call_validator(**kwargs):
         assert kwargs.get('topic') == 'test/foo/bar'
@@ -68,10 +71,11 @@ def test_mqtt_push_with_credentials(monkeypatch):
     monkeypatch.setattr(paho.mqtt.publish, 'single', call_validator)
 
     dut = Publish(name='pytest', host='localhost', topic='test/foo/bar', user="foo", password="bar")
-    dut._push("This is the payload")
+    await dut.push("This is the payload")
 
 
-def test_mqtt_push_in_multi_mode(monkeypatch):
+@pytest.mark.asyncio
+async def test_mqtt_push_in_multi_mode(monkeypatch):
     call_count = 0
 
     def call_validator(**kwargs):
@@ -88,13 +92,14 @@ def test_mqtt_push_in_multi_mode(monkeypatch):
     monkeypatch.setattr(paho.mqtt.publish, 'single', call_validator)
 
     dut = Publish(name='pytest', host='localhost', topic='test/foo/bar', multi=True)
-    dut._push({"attr1": "payload1", "attr2": "payload2", "attr3": "payload3"})
-    dut._push({"topic": "test/foo/bar/", "payload": {"attr4": "payload4"}})
+    await dut.push({"attr1": "payload1", "attr2": "payload2", "attr3": "payload3"})
+    await dut.push({"topic": "test/foo/bar/", "payload": {"attr4": "payload4"}})
 
     assert call_count == 4
 
 
-def test_mqtt_push_in_multi_mode_without_dict(monkeypatch):
+@pytest.mark.asyncio
+async def test_mqtt_push_in_multi_mode_without_dict(monkeypatch):
     def call_validator(**kwargs):
         assert False
 
@@ -102,10 +107,11 @@ def test_mqtt_push_in_multi_mode_without_dict(monkeypatch):
 
     dut = Publish(name='pytest', host='localhost', topic='test/foo/bar', multi=True)
     with pytest.raises(TypeError):
-        dut._push("This is not a dictionary, biatch!")
+        await dut.push("This is not a dictionary, biatch!")
 
 
-def test_mqtt_push_in_multi_mode_with_error_not_aborting_other(monkeypatch):
+@pytest.mark.asyncio
+async def test_mqtt_push_in_multi_mode_with_error_not_aborting_other(monkeypatch):
     call_count = 0
 
     def call_validator(**kwargs):
@@ -119,6 +125,6 @@ def test_mqtt_push_in_multi_mode_with_error_not_aborting_other(monkeypatch):
     monkeypatch.setattr(paho.mqtt.publish, 'single', call_validator)
 
     dut = Publish(name='pytest', host='localhost', topic='test/foo/bar', multi=True)
-    dut._push({"attr1": "payload1", "attr2": "payload2", "attr3": "payload3"})
+    await dut.push({"attr1": "payload1", "attr2": "payload2", "attr3": "payload3"})
 
     assert call_count == 3

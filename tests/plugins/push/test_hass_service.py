@@ -31,7 +31,8 @@ class HassResponseDummy:
         raise RuntimeError("Accessing json() is prohibited when status_code <> 200")
 
 
-def test_hass_state_for_correctness(monkeypatch):
+@pytest.mark.asyncio
+async def test_valid_call(monkeypatch):
     called = False
 
     def call_validator(url, *args, headers=None, timeout=None, data=None, **kwargs):
@@ -52,11 +53,12 @@ def test_hass_state_for_correctness(monkeypatch):
 
     dut = Service(name='pytest', url=HASS_URL, token=HA_TOKEN, timeout=TIMEOUT, domain=DOMAIN, service=SERVICE)
 
-    dut._push(DATA)
+    await dut.push(DATA)
     assert called
 
 
-def test_hass_state_for_error(monkeypatch):
+@pytest.mark.asyncio
+async def test_errornous_call(monkeypatch):
     def call_validator(*args, **kwargs):
         return HassResponseDummy(402)
 
@@ -65,5 +67,8 @@ def test_hass_state_for_error(monkeypatch):
 
     dut = Service(name='pytest', url=HASS_URL, token=HA_TOKEN, timeout=TIMEOUT, domain=DOMAIN, service=SERVICE)
 
-    with pytest.raises(RuntimeError, match="Failed to call the service services/frontend/set_theme @ http://hass:8123") as e:
-        dut._push(DATA)
+    with pytest.raises(
+            RuntimeError,
+            match="Failed to call the service services/frontend/set_theme @ http://hass:8123"
+    ):
+        await dut.push(DATA)
