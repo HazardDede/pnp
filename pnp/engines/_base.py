@@ -1,6 +1,5 @@
 """Contains base classes for engines."""
 
-import asyncio
 import copy
 from abc import abstractmethod
 from datetime import datetime
@@ -10,8 +9,9 @@ import attr
 
 from pnp import validator
 from pnp.models import TaskSet, PushModel
-from pnp.plugins.push import AsyncPushBase
+from pnp.plugins.push import AsyncPush, SyncPush
 from pnp.selector import PayloadSelector
+from pnp.shared.async_ import run_sync
 from pnp.typing import Payload
 from pnp.utils import (
     Loggable, Singleton, parse_duration_literal, DurationLiteral, auto_str,
@@ -162,45 +162,49 @@ class PushExecutor(Loggable, Singleton):
     after the (optional) selector did some magic to it.
     """
 
-    async def _execute_internal(self, ident: str, payload: Payload, push: PushModel,
-                                result_callback: Optional[PushResultCallback] = None) -> None:
+    async def _internal(
+            self, ident: str, payload: Payload, push: PushModel,
+            result_callback: Optional[PushResultCallback] = None
+    ) -> None:
         self.logger.debug("[%s] Selector: Applying '%s' to '%s'", ident, push.selector, payload)
-        loop = asyncio.get_event_loop()
         # The selector expression has no async support
-        # pylint: disable=no-member
-        payload = await loop.run_in_executor(None, PayloadSelector.instance.eval_selector,
-                                             push.selector, copy.deepcopy(payload))
-        # pylint: enable=no-member
+        payload = await run_sync(
+            PayloadSelector().eval_selector, push.selector, copy.deepcopy(payload)
+        )
 
-        # Only make the push if the selector wasn't evaluated to suppress the push
-        if payload is not PayloadSelector.instance.suppress:  # pylint: disable=no-member
-            self.logger.debug("[%s] Emitting '%s' to push '%s'", ident, payload, push.instance)
-            if push.instance.supports_async and isinstance(push.instance, AsyncPushBase):
-                push_result = await push.instance.async_push(payload=payload)
-            else:
-                push_result = await loop.run_in_executor(None, push.instance.push, payload)
-
-            # Trigger any dependent pushes
-            for dependency in push.deps:
-                if result_callback:
-                    # Delegate work back to the engine
-                    self.logger.debug(
-                        "[%s] Dependency callback is given. Delegating work back to engine", ident
-                    )
-                    result_callback(push_result, dependency)
-                else:
-                    # No delegation callback defined: The executor will recursively call itself
-                    self.logger.debug(
-                        "[%s] No callback is given. Recursively process dependencies", ident
-                    )
-                    await self.async_execute(ident, push_result, dependency)
-        else:
+        if PayloadSelector().should_suppress(payload):
             self.logger.debug(
                 "[%s] Selector evaluated to suppress literal. Skipping the push", ident
             )
+            return
 
-    async def async_execute(self, ident: str, payload: Payload, push: PushModel,
-                            result_callback: Optional[PushResultCallback] = None) -> None:
+        self.logger.debug("[%s] Emitting '%s' to push '%s'", ident, payload, push.instance)
+        if isinstance(push.instance, AsyncPush):
+            push_result = await push.instance.push(payload=payload)
+        elif isinstance(push.instance, SyncPush):
+            push_result = await run_sync(push.instance.push, payload)
+        else:
+            assert False, "Push instance is neither a SyncPush nor an AsyncPush"
+
+        # Trigger any dependent pushes
+        for dependency in push.deps:
+            if result_callback:
+                # Delegate work back to the engine
+                self.logger.debug(
+                    "[%s] Dependency callback is given. Delegating work back to engine", ident
+                )
+                result_callback(push_result, dependency)
+            else:
+                # No delegation callback defined: The executor will recursively call itself
+                self.logger.debug(
+                    "[%s] No callback is given. Recursively process dependencies", ident
+                )
+                await self.execute(ident, push_result, dependency)
+
+    async def execute(
+            self, ident: str, payload: Payload, push: PushModel,
+            result_callback: Optional[PushResultCallback] = None
+    ) -> None:
         """
         Executes the given push (in an asynchronous context) by passing the specified payload.
         In concurrent environments there might be multiple executions in parallel.
@@ -216,7 +220,6 @@ class PushExecutor(Loggable, Singleton):
             push (PushModel): The push instance that has to process the payload.
             result_callback (callable): See explanation above.
         """
-
         validator.is_instance(PushModel, push=push)
 
         if result_callback and not callable(result_callback):
@@ -226,9 +229,11 @@ class PushExecutor(Loggable, Singleton):
             result_callback = None
 
         if push.unwrap and is_iterable_but_no_str(payload):
+            # Payload unwrapping
             length = len(payload)
             self.logger.debug("[%s] Unwrapping payload to %s individual items", ident, str(length))
             for item in payload:
-                await self._execute_internal(ident, item, push, result_callback)
+                await self._internal(ident, item, push, result_callback)
         else:
-            await self._execute_internal(ident, payload, push, result_callback)
+            # Standard way
+            await self._internal(ident, payload, push, result_callback)

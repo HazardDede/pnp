@@ -6,7 +6,7 @@ from typing import Optional, Any
 
 from pnp.engines._base import Engine, RetryHandler, SimpleRetryHandler, PushExecutor
 from pnp.models import TaskSet, TaskModel, PushModel
-from pnp.plugins.push import PushBase
+from pnp.plugins.push import Push
 from pnp.shared.async_ import async_sleep_until_interrupt
 from pnp.typing import Payload
 from pnp.utils import auto_str_ignore, PY37
@@ -165,13 +165,13 @@ class AsyncEngine(Engine):
 
     async def _schedule_push(self, payload: Payload, push: PushModel) -> None:
         assert isinstance(push, PushModel)
-        assert isinstance(push.instance, PushBase)
+        assert isinstance(push.instance, Push)
 
         def _callback(result: Payload, dependency: PushModel) -> None:
             asyncio.run_coroutine_threadsafe(self._schedule_push(result, dependency), self.loop)
 
         try:
-            await PushExecutor().async_execute(
+            await PushExecutor().execute(
                 push.instance.name,
                 payload,
                 push,

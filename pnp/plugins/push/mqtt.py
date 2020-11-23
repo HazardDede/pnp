@@ -3,13 +3,13 @@
 from dictmentor import DictMentor, ext
 
 from pnp import validator
-from pnp.plugins.push import PushBase, enveloped, parse_envelope, drop_envelope
+from pnp.plugins.push import SyncPush, enveloped, parse_envelope, drop_envelope
 from pnp.shared.mqtt import MQTTBase
 from pnp.utils import try_parse_bool, auto_str_ignore
 
 
 @auto_str_ignore(['configured'])
-class Discovery(MQTTBase, PushBase):
+class Discovery(MQTTBase, SyncPush):
     """
     See Also:
         https://pnp.readthedocs.io/en/stable/plugins/index.html#mqtt-discovery
@@ -114,7 +114,7 @@ class Discovery(MQTTBase, PushBase):
         return payload
 
 
-class Publish(MQTTBase, PushBase):
+class Publish(MQTTBase, SyncPush):
     """
     This push will push the given `payload` to a mqtt broker (in this case mosquitto).
     The broker is specified by `host` and `port`. In addition a topic needs to be specified

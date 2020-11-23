@@ -1,12 +1,12 @@
 """Home assistant related push plugins"""
 
-from pnp.plugins.push import PushBase
+from pnp.plugins.push import SyncPush
 from pnp.shared.hass import HassApi
 from pnp.utils import auto_str_ignore
 
 
 @auto_str_ignore(['_client', 'token'])
-class Service(PushBase):
+class Service(SyncPush):
     """
     Calls a home assistant service providing the payload as service-data.
 

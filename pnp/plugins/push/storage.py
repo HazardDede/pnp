@@ -4,12 +4,12 @@ from typing import Optional, Any
 from typeguard import typechecked
 
 from pnp.plugins import load_optional_module
-from pnp.plugins.push import PushBase, enveloped, parse_envelope, drop_envelope
+from pnp.plugins.push import SyncPush, enveloped, parse_envelope, drop_envelope
 from pnp.utils import auto_str_ignore, get_bytes
 
 
 @auto_str_ignore(['api_key'])
-class Dropbox(PushBase):
+class Dropbox(SyncPush):
     """
     Uploads provided file to the specified dropbox account.
 

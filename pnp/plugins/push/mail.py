@@ -5,12 +5,12 @@ import os
 
 from pnp import validator
 from pnp.plugins import load_optional_module
-from pnp.plugins.push import PushBase, enveloped, parse_envelope
+from pnp.plugins.push import SyncPush, enveloped, parse_envelope
 from pnp.shared.mime import Mail
 from pnp.utils import FileLock, make_list, is_iterable_but_no_str
 
 
-class GMail(PushBase):
+class GMail(SyncPush):
     """
     Sends an e-mail via the gmail api.
 

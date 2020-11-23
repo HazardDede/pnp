@@ -1,9 +1,9 @@
 import pytest
 
-from pnp.plugins.push import PushBase
+from pnp.plugins.push import SyncPush
 
 
-class Foo(PushBase):
+class Foo(SyncPush):
     def __init__(self):
         super().__init__(name='foo')
         self.a = 1

@@ -5,7 +5,7 @@ from typing import Dict, List, Optional, Union
 import attr
 
 from pnp.plugins.pull import PullBase
-from pnp.plugins.push import PushBase
+from pnp.plugins.push import Push
 from pnp.plugins.udf import UserDefinedFunction
 from pnp.typing import AnyCallable, SelectorExpression
 from pnp.validator import attrs_validate_list_items
@@ -27,8 +27,8 @@ class PullModel:
 class PushModel:
     """Model representing a push."""
     instance = attr.ib(
-        validator=attr.validators.instance_of(PushBase)  # type: ignore
-    )  # type: PushBase
+        validator=attr.validators.instance_of(Push)  # type: ignore
+    )  # type: Push
 
     selector = attr.ib(
         validator=attr.validators.instance_of((str, list, dict, type(None))),

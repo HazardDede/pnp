@@ -5,13 +5,13 @@ import os
 
 from pnp import validator
 from pnp.plugins import load_optional_module
-from pnp.plugins.push import PushBase, enveloped, drop_envelope
+from pnp.plugins.push import SyncPush, enveloped, drop_envelope
 from pnp.utils import make_list, auto_str_ignore
 from pnp.validator import one_not_none
 
 
 @auto_str_ignore(['known_encodings'])
-class FaceR(PushBase):
+class FaceR(SyncPush):
     """
     FaceR (short one for face recognition) tags known faces in images.
     Output is the image with all faces tagged whether with the known name or an `unknown_label`.

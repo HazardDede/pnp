@@ -23,7 +23,7 @@ class PayloadSelector(Singleton):
         self._register_globals()
 
     @property
-    def suppress(self) -> object:
+    def suppress(self) -> Any:
         """Return the suppress literal."""
         return self._suppress_literal
 
@@ -32,6 +32,10 @@ class PayloadSelector(Singleton):
         """Returns available aliases for the suppress literal."""
         uppers = ["SUPPRESS", "SUPPRESSME", "SUPPRESSPUSH", "SUPPRESS_ME", "SUPPRESS_PUSH"]
         return uppers + [item.lower() for item in uppers]
+
+    def should_suppress(self, payload: Payload) -> bool:
+        """Returns True if the payload is a suppress literal; otherwise False."""
+        return payload is self.suppress
 
     def _register_globals(self) -> None:
         self._custom["abs"] = abs

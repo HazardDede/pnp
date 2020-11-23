@@ -5,13 +5,13 @@ from typing import Any, Dict, List, Optional
 import slacker
 
 from pnp.plugins import load_optional_module
-from pnp.plugins.push import PushBase, enveloped, parse_envelope
+from pnp.plugins.push import SyncPush, enveloped, parse_envelope
 from pnp.typing import Envelope, Payload
 from pnp.utils import auto_str_ignore, make_list
 
 
 @auto_str_ignore(['api_key'])
-class Pushbullet(PushBase):
+class Pushbullet(SyncPush):
     """
     Sends a message to the Pushbullet service. The type of the message will guessed:
 
@@ -91,7 +91,7 @@ class Pushbullet(PushBase):
 
 
 @auto_str_ignore(['api_key', '_slacker', '_user_cache'])
-class Slack(PushBase):
+class Slack(SyncPush):
     """
     Sends a message to slack. Optionally you can specify users to ping.
 

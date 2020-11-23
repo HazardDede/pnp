@@ -14,7 +14,7 @@ from pnp.engines import Engine as RealEngine, RetryHandler
 from pnp.models import UDFModel, PullModel, PushModel, TaskModel, TaskSet, APIModel
 from pnp.plugins import load_plugin
 from pnp.plugins.pull import PullBase
-from pnp.plugins.push import PushBase
+from pnp.plugins.push import Push
 from pnp.plugins.udf import UserDefinedFunction
 from pnp.utils import make_list
 
@@ -172,9 +172,9 @@ def _mk_push(task_config: Box, **extra: Any) -> List[PushModel]:
             args = {'name': push_name, **extra, **push[Schemas.plugin_args_name]}
             unwrap = getattr(push, Schemas.push_unwrap_name, False)
             yield PushModel(
-                instance=cast(PushBase, load_plugin(
+                instance=cast(Push, load_plugin(
                     plugin_path=push[Schemas.plugin_name],
-                    plugin_type=PushBase,
+                    plugin_type=Push,
                     instantiate=True,
                     **args
                 )),

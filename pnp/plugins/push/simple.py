@@ -4,12 +4,12 @@ from functools import partial
 from typing import Union, Any
 
 from pnp import validator
-from pnp.plugins.push import enveloped, PushBase, AsyncPushBase
+from pnp.plugins.push import enveloped, SyncPush, AsyncPush
 from pnp.shared.exc import TemplateError
 from pnp.utils import parse_duration_literal, make_list
 
 
-class Echo(AsyncPushBase):
+class Echo(AsyncPush):
     """
     This push simply logs the `payload` via the `logging` module.
 
@@ -18,8 +18,9 @@ class Echo(AsyncPushBase):
 
     Examples:
 
+        >>> import asyncio
         >>> dut = Echo(name="echo_push")
-        >>> dut.push("I will be logged")
+        >>> asyncio.run(dut.push("I will be logged"))
         'I will be logged'
     """
 
@@ -27,13 +28,13 @@ class Echo(AsyncPushBase):
         super().__init__(**kwargs)
 
     @enveloped
-    async def async_push(self, envelope, payload):  # pylint: disable=arguments-differ
+    async def push(self, envelope, payload):  # pylint: disable=arguments-differ
         self.logger.info("Got '%s' with envelope '%s'", payload, envelope)
         # Payload as is. With envelope (if any)
         return {'data': payload, **envelope} if envelope else payload
 
 
-class Nop(AsyncPushBase):
+class Nop(AsyncPush):
     """
     Executes no operation at all. A call to push(...) just returns the payload.
     This push is useful when you only need the power of the selector for dependent pushes.
@@ -45,29 +46,23 @@ class Nop(AsyncPushBase):
 
     Examples:
 
+        >>> import asyncio
         >>> dut = Nop(name="nop_push")
-        >>> dut.push('I will be returned unaltered')
+        >>> asyncio.run(dut.push('I will be returned unaltered'))
         'I will be returned unaltered'
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.last_payload = None
 
-    async def async_push(self, payload):
+    async def push(self, payload):
         self.last_payload = payload
         return payload
 
 
-class Wait(AsyncPushBase):
+class Wait(AsyncPush):
     """
     Performs a sleep operation and wait for some time to go by.
-
-    IMPORTANT: Some engines do have a worker pool (like ThreadEngine).
-        This push will use a slot in this pool and will first release it when the waiting
-        time interval is over. Use with caution.
-
-    See Also:
-        https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/simple.Wait/index.md
     """
     def __init__(self, wait_for: Union[str, float, int], **kwargs: Any):
         super().__init__(**kwargs)
@@ -76,27 +71,19 @@ class Wait(AsyncPushBase):
         else:
             self.waiting_interval = float(parse_duration_literal(wait_for))
 
-    def push(self, payload):
-        import time
-        time.sleep(self.waiting_interval)
-        return payload
-
-    async def async_push(self, payload):
+    async def push(self, payload):
         import asyncio
         await asyncio.sleep(self.waiting_interval)
         return payload
 
 
-class Execute(PushBase):
+class Execute(SyncPush):
     """
     Executes a command with given arguments in a shell of the operating system.
     Both `command` and `args` may include placeholders (e.g. `{{placeholder}}`) which are injected
     at runtime by passing the specified payload after selector transformation.
 
     Will return the exit code of the command and optionally the output from stdout and stderr.
-
-    See Also:
-        https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/simple.Execute/index.md
     """
     def __init__(self, command, args=None, cwd=None, capture=True, timeout="5s", **kwargs):
         super().__init__(**kwargs)

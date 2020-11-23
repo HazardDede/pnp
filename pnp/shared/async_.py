@@ -41,7 +41,7 @@ async def async_sleep_until_interrupt(
     sleep_time: float, interrupt_fun: Callable[[], Coroutine[Any, Any, bool]],
     interval: float = 0.5
 ) -> None:
-    """Call this method to sleep an interruptable sleep until the interrupt coroutine returns
+    """Call this method to sleep an interruptable sleep until the interrupt co-routine returns
     True."""
     validator.is_function(interrupt_fun=interrupt_fun)
 
@@ -49,3 +49,9 @@ async def async_sleep_until_interrupt(
         if await interrupt_fun():
             raise StopCycleError()
     await async_interruptible_sleep(sleep_time, callback, interval=interval)
+
+
+async def run_sync(func: Callable[..., Any], *args: Any) -> Any:
+    """Runs sync code in an async compatible non-blocking way using an executor."""
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, func, *args)

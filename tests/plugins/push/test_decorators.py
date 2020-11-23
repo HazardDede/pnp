@@ -1,11 +1,11 @@
 import pytest
 
-from pnp.plugins.push import enveloped, PushBase, parse_envelope, drop_envelope
+from pnp.plugins.push import enveloped, SyncPush, parse_envelope, drop_envelope
 
 
 @pytest.yield_fixture(scope='function')
 def push_enveloped():
-    class _Dummy(PushBase):
+    class _Dummy(SyncPush):
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
 
@@ -45,7 +45,7 @@ async def test_enveloped_for_correct_split(push_enveloped):
 
 
 def test_parse_envelope_for_doc():
-    class _Dummy(PushBase):
+    class _Dummy(SyncPush):
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
 
@@ -65,7 +65,7 @@ def test_parse_envelope_for_doc():
 
 @pytest.mark.asyncio
 async def test_parse_envelope():
-    class _Dummy(PushBase):
+    class _Dummy(SyncPush):
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
 
@@ -105,7 +105,7 @@ async def test_parse_envelope():
 
 
 def test_parse_envelope_with_parser():
-    class _Dummy(PushBase):
+    class _Dummy(SyncPush):
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
 
@@ -124,7 +124,7 @@ def test_parse_envelope_with_parser():
 
 
 def test_parse_envelope_with_instance_var():
-    class _Dummy(PushBase):
+    class _Dummy(SyncPush):
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
             self.key1 = 'instance'
@@ -141,7 +141,7 @@ def test_parse_envelope_with_instance_var():
 
 @pytest.mark.asyncio
 async def test_enveloped_parse_envelope_combination():
-    class _Dummy(PushBase):
+    class _Dummy(SyncPush):
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
 
@@ -177,7 +177,7 @@ async def test_enveloped_parse_envelope_combination():
 
 @pytest.mark.asyncio
 async def test_drop_envelope():
-    class _Dummy(PushBase):
+    class _Dummy(SyncPush):
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
 

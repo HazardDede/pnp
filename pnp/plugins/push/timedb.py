@@ -1,11 +1,11 @@
 """Time database related push plugins."""
 
-from pnp.plugins.push import PushBase, enveloped
+from pnp.plugins.push import SyncPush, enveloped
 from pnp.utils import auto_str_ignore
 
 
 @auto_str_ignore(['password'])
-class InfluxPush(PushBase):
+class InfluxPush(SyncPush):
     """
     Pushes the given `payload` to an influx database using the line `protocol`.
     You have to specify `host`, `port`, `user`, `password` and the `database`.

@@ -6,10 +6,10 @@ import requests
 
 from pnp import utils
 from pnp import validator
-from pnp.plugins.push import PushBase, PushExecutionError, enveloped, parse_envelope
+from pnp.plugins.push import SyncPush, PushExecutionError, enveloped, parse_envelope
 
 
-class Call(PushBase):
+class Call(SyncPush):
     """
     Makes a request to a http resource.
 

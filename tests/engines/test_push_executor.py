@@ -10,7 +10,7 @@ async def test_basic():
     payload = dict(a="This is the payload", b="another ignored key by selector")
     push_instance = Nop(name='doctest')
     push = PushModel(instance=push_instance, selector='data.a', deps=[], unwrap=False)
-    await PushExecutor().async_execute("pytest", payload, push)
+    await PushExecutor().execute("pytest", payload, push)
     assert push_instance.last_payload == 'This is the payload'
 
 
@@ -20,7 +20,7 @@ async def test_push_executor_with_selector():
     push_instance = Nop(name='pytest')
     push = PushModel(instance=push_instance, selector="data.a", unwrap=False, deps=[])
     dut = PushExecutor()
-    await dut.async_execute("id", payload, push, result_callback=None)
+    await dut.execute("id", payload, push, result_callback=None)
 
     assert push_instance.last_payload == "Actual payload"
 
@@ -34,7 +34,7 @@ async def test_push_executor_with_deps():
     push = PushModel(instance=push_instance, selector=None, unwrap=False, deps=[dep_push])
 
     dut = PushExecutor()
-    await dut.async_execute("id", payload, push, result_callback=None)
+    await dut.execute("id", payload, push, result_callback=None)
 
     assert push_instance.last_payload == "Actual payload"
     assert dep_instance.last_payload == "Actual payload"
@@ -45,7 +45,7 @@ async def test_push_executor_with_deps():
         assert payload == "Actual payload"
         assert push == dep_push
         call_cnt += 1
-    await dut.async_execute("id", payload, push, result_callback=callback)
+    await dut.execute("id", payload, push, result_callback=callback)
     assert call_cnt == 1
 
 
@@ -64,7 +64,7 @@ async def test_push_executor_unwrap():
         assert payload in input
         assert push is dep_push
         call_cnt += 1
-    await dut.async_execute("id", input, push, result_callback=callback)
+    await dut.execute("id", input, push, result_callback=callback)
     assert call_cnt == 3
 
 
@@ -83,5 +83,5 @@ async def test_push_executor_unwrap_selector():
         assert payload in ['o', 't']
         assert push is dep_push
         call_cnt += 1
-    await dut.async_execute("id", input, push, result_callback=callback)
+    await dut.execute("id", input, push, result_callback=callback)
     assert call_cnt == 3

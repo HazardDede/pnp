@@ -16,7 +16,7 @@ class ErroneousPull(pull.PullBase):
             "Something went wrong for the {} time. Once again...".format(self.call_count))
 
 
-class ErroneousPush(push.PushBase):
+class ErroneousPush(push.SyncPush):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.call_count = 0

@@ -4,10 +4,10 @@ import os
 import time
 
 from pnp import validator
-from pnp.plugins.push import PushBase, enveloped, parse_envelope, drop_envelope
+from pnp.plugins.push import SyncPush, enveloped, parse_envelope, drop_envelope
 
 
-class FileDump(PushBase):
+class FileDump(SyncPush):
     """
     This push dumps the given `payload` to a file to the specified `directory`.
     If argument `file_name` is None, a name will be generated based on the current datetime
@@ -65,7 +65,7 @@ class FileDump(PushBase):
         return file_path
 
 
-class Zipper(PushBase):
+class Zipper(SyncPush):
     """
     Zips the given source directory or file and returns the path to the created zip
     archive.
