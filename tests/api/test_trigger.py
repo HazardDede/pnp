@@ -15,7 +15,7 @@ from tests.dummies.polling import SyncPollingDummy, AsyncPollingDummy, NoPolling
 async def test_endpoint_working(clazz):
     polling = clazz(name='pytest_pull')
     result = []
-    polling.on_payload = lambda pull, payload: result.append(payload)
+    polling.callback(lambda pull, payload: result.append(payload))
     tasks = {
         'pytest': TaskModel(
             name='pytest',
@@ -84,8 +84,8 @@ async def test_endpoint_not_a_poll():
 
         assert status == 422
         assert json_ == {
-            'detail': "Task 'pytest' does not support pull_now() / async_pull_now(). "
-                      "Implement PullNowMixin / AsyncPullMixin for support"
+            'detail': "Task 'pytest' does not support pull_now(). "
+                      "Implement PullNowMixin / AsyncPullNowMixin for support"
         }
 
 

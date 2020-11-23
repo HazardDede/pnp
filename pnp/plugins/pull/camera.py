@@ -102,7 +102,7 @@ class MotionEyeWatcher(FileSystemWatcher):
                 operator, source
             )
 
-    def stop(self):
+    def _stop(self):
         if self._debouncer:
             self._debouncer.execute_now()
-        super().stop()
+        super()._stop()

@@ -10,7 +10,7 @@ import schema as sc
 
 from pnp import validator
 from pnp.plugins import load_optional_module
-from pnp.plugins.pull import PullBase, Polling, PollingError
+from pnp.plugins.pull import PollingError, SyncPolling, SyncPull
 from pnp.shared.sound import (
     WavFile,
     similarity_pearson,
@@ -27,7 +27,7 @@ from pnp.utils import (
 )
 
 
-class DHT(Polling):
+class DHT(SyncPolling):
     """
     Periodically polls a dht11 or dht22 (aka am2302) for temperature and humidity readings.
     Polling interval is controlled by `interval`.
@@ -57,7 +57,7 @@ class DHT(Polling):
             from ...mocking import DHTMock as Pkg
         return Pkg
 
-    def poll(self):
+    def _poll(self):
         # Adafruit package is optional - import at the last moment
         pkg = self._load_dht_package()
 
@@ -75,7 +75,7 @@ class DHT(Polling):
 
 
 @auto_str_ignore(['_poller'])
-class MiFlora(Polling):
+class MiFlora(SyncPolling):
     """
     Periodically polls a xiaomi miflora plant sensor for sensor readings via btle.
 
@@ -134,7 +134,7 @@ class MiFlora(Polling):
         res = {para: self._poller.parameter_value(para) for para in reading_params}
         return {**res, **{'firmware': self._poller.firmware_version()}}
 
-    def poll(self):
+    def _poll(self):
         self._init()
         self._connect_sensor()
         readings = self._get_sensor_readings()
@@ -143,7 +143,7 @@ class MiFlora(Polling):
 
 
 @auto_str_ignore(ignore_list=["api_key"])
-class OpenWeather(Polling):
+class OpenWeather(SyncPolling):
     """
     Periodically polls weather data from the OpenWeatherMap api.
 
@@ -169,7 +169,7 @@ class OpenWeather(Polling):
         from tzlocal import get_localzone
         self._tz = get_localzone() if self.tzone is None else timezone(self.tzone)
 
-    def poll(self):
+    def _poll(self):
         url = self._create_request_url()
         resp = requests.get(url)
         if resp.status_code != 200:
@@ -206,7 +206,7 @@ class OpenWeather(Polling):
 
 # pylint: disable=too-many-instance-attributes
 @auto_str_ignore(ignore_list=[])
-class Sound(PullBase):
+class Sound(SyncPull):
     """
     Listens to the microphone in realtime and searches the stream for a specific sound pattern.
     Practical example: I use this plugin to recognize my doorbell without tampering with
@@ -334,7 +334,7 @@ class Sound(PullBase):
             'sound': file_name
         })
 
-    def pull(self):
+    def _pull(self):
         self._check_dependencies()
         np = load_optional_module('numpy', self.EXTRA)
         pyaudio = load_optional_module('pyaudio', self.EXTRA)

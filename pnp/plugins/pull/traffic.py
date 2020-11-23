@@ -5,14 +5,14 @@ from datetime import datetime
 from glom import glom, Coalesce
 from schiene import Schiene
 
-from pnp.plugins.pull import Polling
+from pnp.plugins.pull import SyncPolling
 
 
 def _not(value):
     return not value
 
 
-class DeutscheBahn(Polling):
+class DeutscheBahn(SyncPolling):
     """Pulls the next trains that start from the origin destined for the given destination."""
 
     # Basically to easily adapt when the schiene package changes
@@ -34,7 +34,7 @@ class DeutscheBahn(Polling):
         self.destination = str(destination)
         self.only_direct = bool(only_direct)
 
-    def poll(self):
+    def _poll(self):
         api = Schiene()
         connections = api.connections(
             self.origin,

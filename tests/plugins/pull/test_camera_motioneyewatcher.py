@@ -34,7 +34,7 @@ def _sleep(tmpdir, dut, secs=.5):
     time.sleep(secs)
 
 
-def _do_operations(config, operations, expected):
+async def _do_operations(config, operations, expected):
     events = []
 
     def callback(plugin, payload):
@@ -43,9 +43,8 @@ def _do_operations(config, operations, expected):
     with tempfile.TemporaryDirectory() as tmpdir:
         dut = MotionEyeWatcher(name='pytest', path=tmpdir, **config)
 
-        runner = make_runner(dut, callback)
-        with start_runner(runner):
-
+        runner = await make_runner(dut, callback)
+        async with start_runner(runner):
             for op in operations:
                 op(tmpdir, dut)
 
@@ -54,8 +53,9 @@ def _do_operations(config, operations, expected):
     assert all([actual == expected for actual, expected in zip(events, exp)])
 
 
+@pytest.mark.asyncio
 @pytest.mark.skipif(not _required_packages_installed(), reason="requires package watchdog")
-def test_motioneye_watcher():
+async def test_motioneye_watcher():
     def expected(tmpdir):
         return [
             dict(event="motion", state="on"),
@@ -70,7 +70,7 @@ def test_motioneye_watcher():
             dict(event="motion", state="off"),
         ]
 
-    _do_operations(
+    await _do_operations(
         config=dict(motion_cool_down=1),
         operations=[
             partial(_touch, filename="image.jpg"),
@@ -87,8 +87,9 @@ def test_motioneye_watcher():
     )
 
 
+@pytest.mark.asyncio
 @pytest.mark.skipif(not _required_packages_installed(), reason="requires package watchdog")
-def test_motioneye_watcher_images_only():
+async def test_motioneye_watcher_images_only():
     def expected(tmpdir):
         return [
             dict(event="motion", state="on"),
@@ -102,7 +103,7 @@ def test_motioneye_watcher_images_only():
             dict(event="motion", state="off"),
         ]
 
-    _do_operations(
+    await _do_operations(
         config=dict(motion_cool_down=1, movie_ext=None),
         operations=[
             partial(_touch, filename="image.jpg"),
@@ -118,8 +119,9 @@ def test_motioneye_watcher_images_only():
     )
 
 
+@pytest.mark.asyncio
 @pytest.mark.skipif(not _required_packages_installed(), reason="requires package watchdog")
-def test_motioneye_watcher_movies_only():
+async def test_motioneye_watcher_movies_only():
     def expected(tmpdir):
         return [
             dict(event="motion", state="on"),
@@ -127,7 +129,7 @@ def test_motioneye_watcher_movies_only():
             dict(event="motion", state="off"),
         ]
 
-    _do_operations(
+    await _do_operations(
         config=dict(motion_cool_down=1, image_ext=None),
         operations=[
             partial(_touch, filename="image.jpg"),

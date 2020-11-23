@@ -5,7 +5,7 @@ import pnp.plugins.pull as pull
 import pnp.plugins.push as push
 
 
-class ErroneousPull(pull.PullBase):
+class ErroneousPull(pull.Pull):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.call_count = 0
@@ -21,7 +21,7 @@ class ErroneousPush(push.SyncPush):
         super().__init__(**kwargs)
         self.call_count = 0
 
-    def push(self, payload):
+    def _push(self, payload):
         self.call_count += 1
         raise ValueError(
             "Something went wrong for the {} time. Once again...".format(self.call_count))
@@ -44,10 +44,10 @@ class AsyncLongPoll(pull.AsyncPolling):
         super().__init__(**kwargs)
         self.call_count = 0
 
-    def poll(self):
+    def _poll(self):
         return self._call_async_poll_from_sync()
 
-    async def async_poll(self):
+    async def poll(self):
         await asyncio.sleep(5)
         self.call_count += 1
         return "Long polling done: {}".format(self.call_count)

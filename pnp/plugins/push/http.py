@@ -42,7 +42,7 @@ class Call(SyncPush):
     @parse_envelope('url')
     @parse_envelope('method')
     @parse_envelope('fail_on_error')
-    def push(self, url, method, fail_on_error, envelope, payload):  # pylint: disable=arguments-differ
+    def _push(self, url, method, fail_on_error, envelope, payload):  # pylint: disable=arguments-differ
         if isinstance(payload, (dict, list, tuple)):
             try:
                 payload = json.dumps(payload)

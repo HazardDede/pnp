@@ -23,10 +23,11 @@ class FileDump(SyncPush):
     Examples:
 
         >>> import tempfile
+        >>> import asyncio
         >>> with tempfile.TemporaryDirectory() as tmpdir:
         ...     # Automatic generated file name with extension '.dump'
         ...     dut = FileDump(name='doctest', directory=tmpdir, binary_mode=False)
-        ...     created_file = dut.push("I am the content")  #  e.g. 20180616-123159.dump
+        ...     created_file = asyncio.run(dut.push("I am the content"))
         ...     with open(created_file, 'r') as fs:
         ...         assert fs.read() == "I am the content"
 
@@ -55,7 +56,7 @@ class FileDump(SyncPush):
     @parse_envelope('file_name')
     @parse_envelope('extension')
     @drop_envelope
-    def push(self, file_name, extension, payload):  # pylint: disable=arguments-differ
+    def _push(self, file_name, extension, payload):  # pylint: disable=arguments-differ
         if file_name is None:
             file_name = time.strftime("%Y%m%d-%H%M%S")
         file_path = os.path.join(self.directory, file_name + extension)
@@ -115,7 +116,7 @@ class Zipper(SyncPush):
     @enveloped
     @parse_envelope('archive_name')
     @drop_envelope
-    def push(self, archive_name, payload):  # pylint: disable=arguments-differ
+    def _push(self, archive_name, payload):  # pylint: disable=arguments-differ
         source = self._parse_source(self.source or payload)
 
         if os.path.isdir(source):

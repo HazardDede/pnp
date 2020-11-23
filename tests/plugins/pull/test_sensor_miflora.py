@@ -28,7 +28,7 @@ def poller():
 
 def test_miflora_for_smoke(poller):
     dut = MiFlora(mac='C4:7C:8D:67:50:AB', name="pytest")
-    res = dut.poll()
+    res = dut._poll()
     assert isinstance(res, dict)
     assert res.get('conductivity') == 800
     assert res.get('light') == 2000
@@ -45,7 +45,7 @@ def test_miflora_backend_exception(poller):
 
     dut = MiFlora(mac='C4:7C:8D:67:50:AB', name="pytest")
     with pytest.raises(PollingError):
-        dut.poll()
+        dut._poll()
 
     def raise_exc():
         from btlewrap import BluetoothBackendException
@@ -54,4 +54,4 @@ def test_miflora_backend_exception(poller):
 
     dut = MiFlora(mac='C4:7C:8D:67:50:AB', name="pytest")
     with pytest.raises(PollingError):
-        dut.poll()
+        dut._poll()

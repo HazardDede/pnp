@@ -45,7 +45,7 @@ def test_facer_find_known():
     trump_jpg = os.path.join(path_to_faces(), 'trump.jpg')
     with open(trump_jpg, 'rb') as fs:
         jpg = fs.read()
-    res = dut.push(jpg)
+    res = dut._push(jpg)
 
     assert isinstance(res, dict)
     assert all(item in res for item in ['tagged_image', 'no_of_faces', 'known_faces'])
@@ -64,7 +64,7 @@ def test_facer_find_known_lazy_mode():
     trump_jpg = os.path.join(path_to_faces(), 'trump.jpg')
     with open(trump_jpg, 'rb') as fs:
         jpg = fs.read()
-    dut.push(jpg)
+    dut._push(jpg)
 
     assert dut.face_recognition is not None
     assert dut.known_names is not None

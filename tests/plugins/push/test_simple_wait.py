@@ -24,4 +24,4 @@ def test_init():
 @pytest.mark.asyncio
 async def test_async_push_for_smoke():
     dut = DUT(0.01)
-    assert await dut.push("TEST") == "TEST"
+    assert await dut._push("TEST") == "TEST"

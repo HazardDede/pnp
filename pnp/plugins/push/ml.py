@@ -111,7 +111,7 @@ class FaceR(SyncPush):
 
     @enveloped
     @drop_envelope
-    def push(self, payload):
+    def _push(self, payload):
         if not self.face_recognition:
             self._configure()
 

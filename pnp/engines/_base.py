@@ -9,7 +9,6 @@ import attr
 
 from pnp import validator
 from pnp.models import TaskSet, PushModel
-from pnp.plugins.push import AsyncPush, SyncPush
 from pnp.selector import PayloadSelector
 from pnp.shared.async_ import run_sync
 from pnp.typing import Payload
@@ -179,12 +178,7 @@ class PushExecutor(Loggable, Singleton):
             return
 
         self.logger.debug("[%s] Emitting '%s' to push '%s'", ident, payload, push.instance)
-        if isinstance(push.instance, AsyncPush):
-            push_result = await push.instance.push(payload=payload)
-        elif isinstance(push.instance, SyncPush):
-            push_result = await run_sync(push.instance.push, payload)
-        else:
-            assert False, "Push instance is neither a SyncPush nor an AsyncPush"
+        push_result = await push.instance.push(payload)
 
         # Trigger any dependent pushes
         for dependency in push.deps:

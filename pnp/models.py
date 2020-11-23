@@ -4,7 +4,7 @@ from typing import Dict, List, Optional, Union
 
 import attr
 
-from pnp.plugins.pull import PullBase
+from pnp.plugins.pull import Pull
 from pnp.plugins.push import Push
 from pnp.plugins.udf import UserDefinedFunction
 from pnp.typing import AnyCallable, SelectorExpression
@@ -19,8 +19,8 @@ def _validate_push_dependencies(instance, attrib, val):  # type: ignore
 class PullModel:
     """Model representing a pull."""
     instance = attr.ib(
-        validator=attr.validators.instance_of(PullBase)  # type: ignore
-    )  # type: PullBase
+        validator=attr.validators.instance_of(Pull)  # type: ignore
+    )  # type: Pull
 
 
 @attr.s

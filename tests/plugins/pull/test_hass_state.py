@@ -4,6 +4,8 @@ import warnings
 from threading import Thread, Event
 
 import asyncio
+
+import pytest
 import websockets
 
 import pnp.plugins.pull.hass as hass
@@ -77,7 +79,8 @@ class WebSocketFakeServer:
         wait_for_event(self.stopped)
 
 
-def test_hass_state_for_smoke():
+@pytest.mark.asyncio
+async def test_hass_state_for_smoke():
     fake = WebSocketFakeServer()
     fake.start()
     wait_for_event(fake.started)
@@ -87,8 +90,8 @@ def test_hass_state_for_smoke():
         events.append(payload)
 
     dut = hass.State(name='pytest', url='ws://localhost:8123', token='abcdefg')
-    runner = make_runner(dut, callback)
-    with start_runner(runner):
+    runner = await make_runner(dut, callback)
+    async with start_runner(runner):
         time.sleep(2)
 
     assert len(events) == 10

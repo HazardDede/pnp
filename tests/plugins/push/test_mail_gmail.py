@@ -64,7 +64,7 @@ def test_gmail_for_smoke(mail_create_text, google_request, google_build, token_f
     mail_create_text.return_value = mock.Mock(as_bytes=lambda: b'12345678')
 
     dut = GMail(name='pytest', token_file=token_file, recipient='anybody@somebody.com', subject='subject')
-    dut.push("This is the content")
+    dut._push("This is the content")
 
     mail_create_text.assert_called_with('pnp', 'anybody@somebody.com', 'subject', 'This is the content')
 
@@ -82,7 +82,7 @@ def test_gmail_with_attachment_for_smoke(mail_create_attach, google_request, goo
     mail_create_attach.return_value = mock.Mock(as_bytes=lambda: b'12345678')
 
     dut = GMail(name='pytest', token_file=token_file, recipient='anybody@somebody.com', subject='subject')
-    dut.push(dict(data="This is the content", attachment=attachment))
+    dut._push(dict(data="This is the content", attachment=attachment))
 
     mail_create_attach.assert_called_with('pnp', 'anybody@somebody.com', 'subject', attachment,'This is the content')
 
@@ -97,7 +97,7 @@ def test_gmail_with_attachment_for_smoke(mail_create_attach, google_request, goo
 @mock.patch('google.auth.transport.requests.Request')
 def test_gmail_for_token_refresh(google_request, google_build, expired_token_file):
     dut = GMail(name='pytest', token_file=expired_token_file, recipient='anybody@somebody.com', subject='subject')
-    dut.push("This is the content")
+    dut._push("This is the content")
 
     google_build.assert_called_once()
     google_request.assert_called_once()
@@ -116,7 +116,7 @@ def test_gmail_envelope_override(mail_create_text, google_request, google_build,
     mail_create_text.return_value = mock.Mock(as_bytes=lambda: b'12345678')
 
     dut = GMail(name='pytest', token_file=token_file, recipient='anybody@somebody.com', subject='subject')
-    dut.push(dict(subject='new subject', recipient='a@a.com', data='This is the content', sender='sender'))
+    dut._push(dict(subject='new subject', recipient='a@a.com', data='This is the content', sender='sender'))
 
     mail_create_text.assert_called_with('sender', 'a@a.com', 'new subject', 'This is the content')
 
@@ -128,6 +128,6 @@ def test_gmail_multiple_recipients(mail_create_text, google_request, google_buil
     mail_create_text.return_value = mock.Mock(as_bytes=lambda: b'12345678')
 
     dut = GMail(name='pytest', token_file=token_file, recipient=['a@a.com', 'b@b.com'], subject='subject')
-    dut.push("This is the content")
+    dut._push("This is the content")
 
     mail_create_text.assert_called_with('pnp', 'a@a.com,b@b.com', 'subject', 'This is the content')

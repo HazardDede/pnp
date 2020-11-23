@@ -34,7 +34,7 @@ def test_zway_poll(monkeypatch):
 
     dut = ZwayPoll(name='pytest', url=zway_url, user=zway_user, password=zway_password)
 
-    assert dut.poll() == {}
+    assert dut._poll() == {}
 
 
 def test_zway_poll_on_error(monkeypatch):
@@ -57,4 +57,4 @@ def test_zway_poll_on_error(monkeypatch):
     monkeypatch.setattr(requests, 'get', call_validator)
     dut = ZwayPoll(name='pytest', url=zway_url, user=zway_user, password=zway_password)
     with pytest.raises(PollingError):
-        dut.poll()
+        dut._poll()

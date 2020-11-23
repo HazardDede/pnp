@@ -32,7 +32,7 @@ def test_deutsche_bahn_poll(mock_schiene):
     mock_schiene.return_value.connections.return_value = OUTPUT
 
     dut = DeutscheBahn(name='pytest', origin='origin', destination='destination')
-    res = dut.poll()
+    res = dut._poll()
     assert res == [{
         'departure': '09:01', 'arrival': '15:09', 'travel_time': '6:04',
         'products': ['ICE'], 'transfers': 1, 'canceled': False, 'delayed': True,

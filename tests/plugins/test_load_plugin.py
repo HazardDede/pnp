@@ -2,11 +2,11 @@ import pytest
 
 from pnp.plugins import load_plugin, InvocationError, NamespaceNotFoundError, ClassNotFoundError, PluginTypeError
 from pnp.plugins.pull.simple import Repeat
-from pnp.plugins.pull import PullBase
+from pnp.plugins.pull import Pull
 
 
 def test_load_plugin():
-    plugin = load_plugin("pnp.plugins.pull.simple.Repeat", PullBase, name='pytest', repeat="Hello World", wait=1)
+    plugin = load_plugin("pnp.plugins.pull.simple.Repeat", Pull, name='pytest', repeat="Hello World", wait=1)
     assert plugin is not None
     assert isinstance(plugin, Repeat)
     assert str(plugin) == "Repeat(interval=1.0, name='pytest', repeat='Hello World')"

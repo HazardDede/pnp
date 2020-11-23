@@ -4,11 +4,11 @@ from typing import Dict, Any, List, Optional
 
 from pnp import validator
 from pnp.plugins import load_optional_module
-from pnp.plugins.pull import Polling
+from pnp.plugins.pull import SyncPolling
 from pnp.typing import Payload
 
 
-class FritzBoxTracker(Polling):
+class FritzBoxTracker(SyncPolling):
     """Tracks connected / not connected devices using the Fritz!Box api."""
 
     EXTRA = 'fritz'
@@ -103,7 +103,7 @@ class FritzBoxTracker(Polling):
 
         return res
 
-    def poll(self) -> Payload:
+    def _poll(self) -> Payload:
         self._setup()
         if not self.fritz_box:
             return None  # No connection, no data

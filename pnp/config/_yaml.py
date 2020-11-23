@@ -13,7 +13,7 @@ from pnp.config._base import Configuration, ConfigLoader
 from pnp.engines import Engine as RealEngine, RetryHandler
 from pnp.models import UDFModel, PullModel, PushModel, TaskModel, TaskSet, APIModel
 from pnp.plugins import load_plugin
-from pnp.plugins.pull import PullBase
+from pnp.plugins.pull import Pull
 from pnp.plugins.push import Push
 from pnp.plugins.udf import UserDefinedFunction
 from pnp.utils import make_list
@@ -153,9 +153,9 @@ def _mk_pull(task_config: Box, **extra: Any) -> PullModel:
     pull_args = task_config[Schemas.task_pull_name][Schemas.plugin_args_name]
     plugin = task_config[Schemas.task_pull_name][Schemas.plugin_name]
     args = {'name': name, **extra, **pull_args}
-    return PullModel(instance=cast(PullBase, load_plugin(
+    return PullModel(instance=cast(Pull, load_plugin(
         plugin_path=plugin,
-        plugin_type=PullBase,
+        plugin_type=Pull,
         instantiate=True,
         **args
     )))

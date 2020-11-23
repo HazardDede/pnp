@@ -6,7 +6,7 @@ from pnp.plugins.push.notify import Pushbullet
 @patch('pushbullet.Pushbullet')
 def test_pushbullet_str_results_to_push_note(mock_pb):
     dut = Pushbullet(name='pytest', api_key='secret', title='pytest')
-    dut.push("This is a string")
+    dut._push("This is a string")
 
     mock_pb.assert_called
     mock_pb.return_value.push_note.assert_called
@@ -16,7 +16,7 @@ def test_pushbullet_str_results_to_push_note(mock_pb):
 @patch('pushbullet.Pushbullet')
 def test_pushbullet_link_results_to_push_link(mock_pb):
     dut = Pushbullet(name='pytest', api_key='secret', title='pytest')
-    dut.push("http://anyhost:1656/content?raw=1")
+    dut._push("http://anyhost:1656/content?raw=1")
 
     mock_pb.assert_called
     mock_pb.return_value.push_link.assert_called
@@ -26,7 +26,7 @@ def test_pushbullet_link_results_to_push_link(mock_pb):
 @patch('pushbullet.Pushbullet')
 def test_pushbullet_file_link_results_to_push_file(mock_pb):
     dut = Pushbullet(name='pytest', api_key='secret', title='pytest')
-    dut.push("http://anyhost:1656/content.jpg?raw=1")
+    dut._push("http://anyhost:1656/content.jpg?raw=1")
 
     mock_pb.assert_called
     mock_pb.return_value.push_file.assert_called

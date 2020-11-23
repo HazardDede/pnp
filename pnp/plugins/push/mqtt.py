@@ -100,7 +100,7 @@ class Discovery(MQTTBase, SyncPush):
     @parse_envelope('node_id')
     @parse_envelope('attributes')
     @drop_envelope
-    def push(self, object_id, node_id, attributes, payload):  # pylint: disable=arguments-differ
+    def _push(self, object_id, node_id, attributes, payload):  # pylint: disable=arguments-differ
         if object_id is None:
             raise ValueError("object_id was not defined either by the __init__ nor by the envelope")
 
@@ -148,7 +148,7 @@ class Publish(MQTTBase, SyncPush):
     @parse_envelope('topic')
     @parse_envelope('retain')
     @parse_envelope('qos')
-    def push(self, topic, retain, qos, envelope, payload):  # pylint: disable=arguments-differ
+    def _push(self, topic, retain, qos, envelope, payload):  # pylint: disable=arguments-differ
         if topic is None:
             raise ValueError("Topic was not defined either by the __init__ nor by the envelope")
 

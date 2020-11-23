@@ -2,10 +2,11 @@
 
 import asyncio
 import time
-from typing import Optional, Any
+from typing import Optional
 
 from pnp.engines._base import Engine, RetryHandler, SimpleRetryHandler, PushExecutor
 from pnp.models import TaskSet, TaskModel, PushModel
+from pnp.plugins.pull import SyncPull
 from pnp.plugins.push import Push
 from pnp.shared.async_ import async_sleep_until_interrupt
 from pnp.typing import Payload
@@ -38,7 +39,6 @@ class AsyncEngine(Engine):
 
         try:
             await asyncio.gather(*coros)
-            # self.loop.run_until_complete(asyncio.gather(*coros, loop=self.loop))
         except KeyboardInterrupt:
             self.stop()
 
@@ -84,7 +84,8 @@ class AsyncEngine(Engine):
 
     async def _start_task(self, task: TaskModel) -> None:
         """Start the given task."""
-        def on_payload(plugin: Any, payload: Payload) -> None:  # pylint: disable=unused-argument
+        def on_payload_sync(pull: SyncPull, payload: Payload) -> None:
+            _ = pull  # Fake usage
             for push in task.pushes:
                 self.logger.debug(
                     "[Task-%s] Execution of item '%s' for push '%s'",
@@ -94,14 +95,11 @@ class AsyncEngine(Engine):
                 )
                 asyncio.run_coroutine_threadsafe(self._schedule_push(payload, push), self.loop)
 
-        task.pull.instance.on_payload = on_payload  # type: ignore
+        task.pull.instance.callback(on_payload_sync)
 
         while not task.pull.instance.stopped:
             try:
-                if task.pull.instance.supports_async:
-                    await task.pull.instance.async_pull()  # type: ignore
-                else:
-                    await self.loop.run_in_executor(None, task.pull.instance.pull)
+                await task.pull.instance.pull()
 
                 if not task.pull.instance.stopped and not task.pull.instance.can_exit:
                     # Bad thing... Pulling exited unexpectedly
@@ -116,7 +114,8 @@ class AsyncEngine(Engine):
                     task.name,
                     task.pull.instance
                 )
-                self.loop.call_soon_threadsafe(task.pull.instance.stop)
+                await self._stop_task(task)
+                # self.loop.call_soon_threadsafe(task.pull.instance.stop)
             except:  # pylint: disable=bare-except
                 # Bad thing... Pulling exited with exception
                 self.logger.exception(
@@ -131,7 +130,7 @@ class AsyncEngine(Engine):
         if task.pull.instance.stopped:
             return
         if task.pull.instance.can_exit:
-            task.pull.instance.stop()
+            await task.pull.instance.stop()
             return
 
         directive = await self.retry_handler.handle_error()
@@ -141,7 +140,7 @@ class AsyncEngine(Engine):
                 task.name,
                 task.pull.instance,
             )
-            task.pull.instance.stop()
+            await task.pull.instance.stop()
             return
 
         self.logger.info(
@@ -158,10 +157,7 @@ class AsyncEngine(Engine):
     async def _stop_task(self, task: TaskModel) -> None:
         self.logger.info("Stopping task %s", task.name)
         instance = task.pull.instance
-        if instance.supports_async:
-            await instance.async_stop()  # type: ignore
-        else:
-            await self.loop.run_in_executor(None, instance.stop)
+        await instance.stop()
 
     async def _schedule_push(self, payload: Payload, push: PushModel) -> None:
         assert isinstance(push, PushModel)

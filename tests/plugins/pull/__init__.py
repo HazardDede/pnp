@@ -1,8 +1,9 @@
+import asyncio
 from collections import namedtuple
-from contextlib import contextmanager
+from contextlib import contextmanager, asynccontextmanager
 from threading import Thread
 
-from pnp.plugins.pull import PullBase
+from pnp.plugins.pull import Pull
 
 Runner = namedtuple("Runner", ["pull", "start", "stop", "join", "raise_on_error"])
 MqttMessage = namedtuple("MqttMessage", ["payload", "topic"])
@@ -12,25 +13,26 @@ def dummy_callback(plugin, payload):
     pass
 
 
-@contextmanager
-def start_runner(runner):
+@asynccontextmanager
+async def start_runner(runner):
     runner.start()
     try:
         yield
     finally:
-        runner.stop()
+        await runner.stop()
         runner.join()
         runner.raise_on_error()
 
 
-def make_runner(plugin, callback):
-    assert isinstance(plugin, PullBase)
-    plugin.on_payload = callback
+async def make_runner(plugin, callback):
+    assert isinstance(plugin, Pull)
+    plugin.callback(callback)
 
     error = None
     def _wrapper():
         try:
-            plugin.pull()
+            loop = asyncio.new_event_loop()
+            loop.run_until_complete(plugin.pull())
         except:
             import traceback
             nonlocal error
@@ -41,8 +43,8 @@ def make_runner(plugin, callback):
     def start():
         t.start()
 
-    def stop():
-        plugin.stop()
+    async def stop():
+        await plugin.stop()
 
     def join():
         t.join()

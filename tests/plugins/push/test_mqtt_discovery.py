@@ -24,7 +24,7 @@ def test_push_mqtt_discovery(monkeypatch):
         node_id='12345',
         name='pytest__push'
     )
-    dut.push(10)
+    dut._push(10)
 
     assert call_cnt == 2
     # config
@@ -67,7 +67,7 @@ def test_push_mqtt_discovery_envelope_override(monkeypatch):
         node_id='12345',
         name='pytest__push',
     )
-    dut.push({'data': 10, 'object_id': 'object_override', 'node_id': 'node_override'})
+    dut._push({'data': 10, 'object_id': 'object_override', 'node_id': 'node_override'})
 
     assert call_cnt == 2
     # config
@@ -110,7 +110,7 @@ def test_push_mqtt_config_vars(monkeypatch):
         node_id='12345',
         name='pytest__push',
     )
-    dut.push(10)
+    dut._push(10)
 
     assert call_cnt == 2
     # config

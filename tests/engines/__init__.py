@@ -8,7 +8,7 @@ def run_engine(engine, tasks):
     try:
         t.start()
         time.sleep(1)
-        engine.stop()
+        engine._stop()
         t.join(timeout=2)
     finally:
         if t.is_alive():

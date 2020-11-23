@@ -88,7 +88,7 @@ class _FitbitBase(AsyncPolling):
             self._tokens = new_config
             self.logger.debug("Saving tokens to %s: Lock released", self._config)
 
-    async def async_poll(self):
+    async def _poll(self):
         raise NotImplementedError()  # pragma: no cover
 
 
@@ -154,7 +154,7 @@ class Current(_FitbitBase):
     def _call(self, resource):
         return self._resource_map.get(resource)(resource)
 
-    async def async_poll(self):
+    async def _poll(self):
         loop = asyncio.get_event_loop()
         coros = [loop.run_in_executor(None, self._call, res) for res in self._resources]
         results = await asyncio.gather(*coros)
@@ -174,7 +174,7 @@ class Devices(_FitbitBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    async def async_poll(self):
+    async def _poll(self):
         devices = await asyncio.get_event_loop().run_in_executor(None, self.client.get_devices)
         return [transform_dict_items(d, keys_fun=camel_to_snake) for d in devices]
 
@@ -227,7 +227,7 @@ class Goal(_FitbitBase):
     def _call(self, goal):
         return self._goals_map.get(goal)(goal)
 
-    async def async_poll(self):
+    async def _poll(self):
         loop = asyncio.get_event_loop()
         coros = [loop.run_in_executor(None, self._call, goal) for goal in self._goals]
         results = await asyncio.gather(*coros)

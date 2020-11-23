@@ -12,7 +12,7 @@ def test_slack_push(slacker_mock):
         channel='pytest',
         name='pytest'
     )
-    dut.push('Simple message')
+    dut._push('Simple message')
 
     slacker_mock.return_value.chat.post_message.assert_called_once_with(
         text='Simple message',
@@ -51,7 +51,7 @@ def test_slack_push_with_ping_user(slacker_mock):
     )
 
     # Use the real_name
-    dut.push('Simple message')
+    dut._push('Simple message')
     slacker_mock.return_value.chat.post_message.assert_called_with(
         text='<@42> Simple message',
         channel='#pytest',
@@ -60,7 +60,7 @@ def test_slack_push_with_ping_user(slacker_mock):
     )
 
     # Envelope override with name
-    dut.push({'data': 'Simple message', 'ping_users': 'another_user'})
+    dut._push({'data': 'Simple message', 'ping_users': 'another_user'})
     slacker_mock.return_value.chat.post_message.assert_called_with(
         text='<@99> Simple message',
         channel='#pytest',
@@ -69,7 +69,7 @@ def test_slack_push_with_ping_user(slacker_mock):
     )
 
     # Envelope override with unknown user
-    dut.push({'data': 'Simple message', 'ping_users': 'unknown_user'})
+    dut._push({'data': 'Simple message', 'ping_users': 'unknown_user'})
     slacker_mock.return_value.chat.post_message.assert_called_with(
         text='Simple message',
         channel='#pytest',

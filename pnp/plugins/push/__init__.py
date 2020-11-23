@@ -9,6 +9,7 @@ from typing import Any, Callable, Optional, Dict, Iterable, Union, cast, List, T
 from pnp import utils
 from pnp import validator
 from pnp.plugins import Plugin
+from pnp.shared.async_ import run_sync
 from pnp.typing import Envelope, Payload
 
 # Push function typing alias
@@ -254,12 +255,20 @@ class Push(Plugin):
         # We popped the real payload -> all what is left in payload is the envelope
         return payload, real_payload
 
+    async def push(self, payload: Payload) -> Payload:
+        """Transforms the payload and/or pushes it to a sink."""
+        if isinstance(self, SyncPush):
+            return await run_sync(self._push, payload)  # pylint: disable=no-member
+        if isinstance(self, AsyncPush):
+            return await self._push(payload)  # pylint: disable=no-member
+        raise TypeError("Instance is neither a SyncPush nor an AsyncPush")
+
 
 class SyncPush(Push):
     """Base class for all synchronous push plugins."""
 
     @abstractmethod
-    def push(self, payload: Payload) -> Payload:
+    def _push(self, payload: Payload) -> Payload:
         """
         This is where the hard work happens.
 
@@ -273,7 +282,7 @@ class AsyncPush(Push):
     """Base class for all asynchronous push plugins."""
 
     @abstractmethod
-    async def push(self, payload: Payload) -> Payload:
+    async def _push(self, payload: Payload) -> Payload:
         """
         This is where the hard work happens.
 

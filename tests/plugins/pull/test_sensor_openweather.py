@@ -30,7 +30,8 @@ def patch_requests_for_openweather(monkeypatch, status_code, response):
     monkeypatch.setattr(requests, 'get', call_validator)
 
 
-def test_openweather_for_valid_response(monkeypatch):
+@pytest.mark.asyncio
+async def test_openweather_for_valid_response(monkeypatch):
     response = json.loads(VALID_RESPONSE)
 
     patch_requests_for_openweather(monkeypatch, 200, response)
@@ -41,8 +42,8 @@ def test_openweather_for_valid_response(monkeypatch):
     def callback(plugin, payload):
         events.append(payload)
 
-    runner = make_runner(dut, callback)
-    with start_runner(runner):
+    runner = await make_runner(dut, callback)
+    async with start_runner(runner):
         time.sleep(1)
 
     assert len(events) > 0

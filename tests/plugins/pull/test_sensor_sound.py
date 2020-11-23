@@ -26,9 +26,9 @@ def _package_installed():
         return False
 
 
+@pytest.mark.asyncio
 @pytest.mark.skipif(not _package_installed(), reason="requires package pyaudio, numpy, scipy")
-@patch('pyaudio.PyAudio', MOCK)
-def test_for_smoke_with_mode_pearson():
+async def test_for_smoke_with_mode_pearson():
     config = [{Sound.WavConfig.CONF_PATH: DING_SOUND}]
     dut = Sound(name='pytest', wav_files=config)
 
@@ -36,11 +36,12 @@ def test_for_smoke_with_mode_pearson():
     def callback(sender, payload):
         events.append(payload)
 
-    runner = make_runner(dut, callback)
-    with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", category=DeprecationWarning)
-        with start_runner(runner):
-            time.sleep(1)
+    with patch('pyaudio.PyAudio', MOCK):
+        runner = await make_runner(dut, callback)
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
+            async with start_runner(runner):
+                time.sleep(1)
 
     assert len(events) >= 1
     item = events[0]

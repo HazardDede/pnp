@@ -51,7 +51,7 @@ class Dropbox(SyncPush):
     @enveloped
     @parse_envelope('target_file_name')
     @drop_envelope
-    def push(self, target_file_name, payload):  # pylint: disable=arguments-differ
+    def _push(self, target_file_name, payload):  # pylint: disable=arguments-differ
         target_file_name = self._sanitze_target_file_name(target_file_name)
 
         # Upload file or stream to dropbox

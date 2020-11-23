@@ -32,7 +32,7 @@ def http_call(mp, call_method='GET', call_url='http://localhost:1234/foo/bar', c
     mp.setattr(requests, 'request', call_validator)
     dut = Call(name='pytest', url=call_url, method=call_method, **kwargs)
 
-    return dut.push(call_data)
+    return dut._push(call_data)
 
 
 def test_http_call_push(monkeypatch):

@@ -3,16 +3,9 @@
 import asyncio
 from typing import Callable, Any, Coroutine
 
-from syncasync import async_to_sync  # type: ignore
-
 from pnp import validator
+from pnp.typing import T
 from pnp.utils import StopCycleError
-
-
-def async_from_sync(fun: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
-    """Calls an async function from a synchronous context."""
-    validator.is_function(fun=fun)
-    return async_to_sync(fun)(*args, **kwargs)
 
 
 async def async_interruptible_sleep(
@@ -51,7 +44,7 @@ async def async_sleep_until_interrupt(
     await async_interruptible_sleep(sleep_time, callback, interval=interval)
 
 
-async def run_sync(func: Callable[..., Any], *args: Any) -> Any:
+async def run_sync(func: Callable[..., T], *args: Any) -> T:
     """Runs sync code in an async compatible non-blocking way using an executor."""
     loop = asyncio.get_event_loop()
     return await loop.run_in_executor(None, func, *args)

@@ -101,7 +101,7 @@ class GMail(SyncPush):
     @parse_envelope('recipient')
     @parse_envelope('subject')
     @parse_envelope('sender')
-    def push(self, recipient, subject, sender, envelope, payload):  # pylint: disable=arguments-differ
+    def _push(self, recipient, subject, sender, envelope, payload):  # pylint: disable=arguments-differ
         file_path = envelope.get('attachment')
 
         if subject is None:

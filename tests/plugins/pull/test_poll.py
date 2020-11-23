@@ -1,12 +1,15 @@
 import time
 from datetime import datetime
 
+import pytest
+
 from pnp.plugins.pull import StopPollingError
 from pnp.plugins.pull.simple import CustomPolling
 from . import make_runner, start_runner
 
 
-def test_poll():
+@pytest.mark.asyncio
+async def test_poll():
     events = []
     def callback(plugin, payload):
         events.append(payload)
@@ -17,14 +20,15 @@ def test_poll():
     dut = CustomPolling(name='pytest', interval="1s", scheduled_callable=poll)
     assert not dut.is_cron
     assert dut._poll_interval == 1
-    runner = make_runner(dut, callback)
-    with start_runner(runner):
+    runner = await make_runner(dut, callback)
+    async with start_runner(runner):
         time.sleep(3)
 
     assert len(events) >= 2
 
 
-def test_poll_for_aborting():
+@pytest.mark.asyncio
+async def test_poll_for_aborting():
     events = []
     def callback(plugin, payload):
         events.append(payload)
@@ -32,8 +36,8 @@ def test_poll_for_aborting():
     def poll():
         raise StopPollingError()
 
-    runner = make_runner(CustomPolling(name='pytest', interval="1s", scheduled_callable=poll), callback)
-    with start_runner(runner):
+    runner = await make_runner(CustomPolling(name='pytest', interval="1s", scheduled_callable=poll), callback)
+    async with start_runner(runner):
         time.sleep(1)
 
     assert len(events) == 0

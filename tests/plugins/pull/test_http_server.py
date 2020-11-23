@@ -16,9 +16,9 @@ async def _run_test(
         output = payload
 
     dut = Server(prefix_path='pytest', name='pytest', allowed_methods=allowed_methods)
-    runner = make_runner(dut, callback)
+    runner = await make_runner(dut, callback)
     async with api_start() as api:
-        with start_runner(runner):
+        async with start_runner(runner):
             kwargs = dict(url=url.format(port=api.port))
             if data is not None:
                 kwargs['data'] = data
@@ -113,17 +113,22 @@ async def test_http_server_query_params_wo_value():
 
 
 @pytest.mark.asyncio
-async def test_http_server_query_different_methods():
+async def test_http_server_query_different_methods_1():
     def assert_this(payload):
         assert payload['method'] == 'GET'
+
     await _run_test(
         url='http://localhost:{port}/pytest/resource/endpoint/queryparam?foo=&bar=&bar',
         data=None,
         assertion_fun=assert_this
     )
 
+
+@pytest.mark.asyncio
+async def test_http_server_query_different_methods_2():
     def assert_this(payload):
         assert payload['method'] == 'POST'
+
     await _run_test(
         url='http://localhost:{port}/pytest/resource/endpoint/queryparam?foo=&bar=&bar',
         data=None,
@@ -132,8 +137,12 @@ async def test_http_server_query_different_methods():
         assertion_fun=assert_this
     )
 
+
+@pytest.mark.asyncio
+async def test_http_server_query_different_methods_3():
     def assert_this(payload):
         assert payload is None
+
     await _run_test(
         url='http://localhost:{port}/pytest/resource/endpoint/queryparam?foo=&bar=&bar',
         data=None,

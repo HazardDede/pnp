@@ -56,7 +56,7 @@ class Pushbullet(SyncPush):
             return name
 
     @enveloped
-    def push(self, envelope, payload):  # pylint: disable=arguments-differ
+    def _push(self, envelope, payload):  # pylint: disable=arguments-differ
         pbullet, urlparse = self._load_deps()
         client = pbullet.Pushbullet(self.api_key)
         urlprofile = urlparse.urlparse(payload)
@@ -178,8 +178,8 @@ class Slack(SyncPush):
     @parse_envelope('username')
     @parse_envelope('emoji')
     @parse_envelope('ping_users')
-    def push(self, channel: str, username: str, emoji: str,  # pylint: disable=arguments-differ
-             ping_users: List[str], envelope: Envelope, payload: Payload):
+    def _push(self, channel: str, username: str, emoji: str,  # pylint: disable=arguments-differ
+              ping_users: List[str], envelope: Envelope, payload: Payload):
 
         text = self._build_message_text(str(payload), ping_users)
         self._slacker.chat.post_message(

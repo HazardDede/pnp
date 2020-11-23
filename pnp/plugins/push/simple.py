@@ -28,7 +28,7 @@ class Echo(AsyncPush):
         super().__init__(**kwargs)
 
     @enveloped
-    async def push(self, envelope, payload):  # pylint: disable=arguments-differ
+    async def _push(self, envelope, payload):  # pylint: disable=arguments-differ
         self.logger.info("Got '%s' with envelope '%s'", payload, envelope)
         # Payload as is. With envelope (if any)
         return {'data': payload, **envelope} if envelope else payload
@@ -55,7 +55,7 @@ class Nop(AsyncPush):
         super().__init__(**kwargs)
         self.last_payload = None
 
-    async def push(self, payload):
+    async def _push(self, payload):
         self.last_payload = payload
         return payload
 
@@ -71,7 +71,7 @@ class Wait(AsyncPush):
         else:
             self.waiting_interval = float(parse_duration_literal(wait_for))
 
-    async def push(self, payload):
+    async def _push(self, payload):
         import asyncio
         await asyncio.sleep(self.waiting_interval)
         return payload
@@ -160,7 +160,7 @@ class Execute(SyncPush):
             proc.stdout.close()
             proc.stderr.close()
 
-    def push(self, payload):
+    def _push(self, payload):
         if isinstance(payload, dict):
             subs = payload
         else:

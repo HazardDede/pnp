@@ -1,17 +1,20 @@
 import time
 
+import pytest
+
 from pnp.plugins.pull.simple import Repeat
 from . import make_runner, start_runner
 
 
-def test_repeat_pull():
+@pytest.mark.asyncio
+async def test_repeat_pull():
     events = []
     def callback(plugin, payload):
         events.append(payload)
 
     dut = Repeat(name='pytest', repeat="Hello World", wait=0.001)
-    runner = make_runner(dut, callback)
-    with start_runner(runner):
+    runner = await make_runner(dut, callback)
+    async with start_runner(runner):
         time.sleep(0.01)
 
     assert len(events) >= 2

@@ -27,7 +27,7 @@ class InfluxPush(SyncPush):
         self.protocol = str(protocol)
 
     @enveloped
-    def push(self, envelope, payload):  # pylint: disable=arguments-differ
+    def _push(self, envelope, payload):  # pylint: disable=arguments-differ
         points = [self.protocol.format(payload=payload)]
         self.logger.debug("Writing '%s' to influxdb", str(points))
 

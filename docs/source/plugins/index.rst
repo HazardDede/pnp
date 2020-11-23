@@ -72,8 +72,6 @@ arguments to control their polling behavior.
 
 .. include:: pull/zway.ZwayPoll.rst
 
-.. include:: pull/zway.ZwayReceiver.rst
-
 
 Pushes
 ------

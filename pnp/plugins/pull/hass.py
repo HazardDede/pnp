@@ -5,12 +5,12 @@ import json
 
 import asyncws
 
-from pnp.plugins.pull import AsyncPullBase
+from pnp.plugins.pull import AsyncPull
 from pnp.utils import make_list, auto_str_ignore, include_or_exclude, wildcards_to_regex
 
 
 @auto_str_ignore(['token', '_websocket', '_loop', '_include_regex', '_exclude_regex'])
-class State(AsyncPullBase):
+class State(AsyncPull):
     """
     Connects to the home assistant websocket api and listens for state changes.
     If no include or exclude is defined it will report all state changes.
@@ -56,7 +56,7 @@ class State(AsyncPullBase):
         new_state = _layout_state(state_data.get('new_state', {}))
         return {'entity_id': entity_id, 'old_state': old_state, 'new_state': new_state}
 
-    def _emit(self, message):
+    async def _emit(self, message):
         payload = self._layout_message(message)
         if include_or_exclude(payload['entity_id'], self._include_regex, self._exclude_regex):
             self.notify(payload)
@@ -93,15 +93,15 @@ class State(AsyncPullBase):
             elif message.get('type', '') == 'result':
                 pass
             elif message.get('type', '') == 'event':
-                self._emit(message)
+                await self._emit(message)
             else:
                 self.logger.warning("Got unexpected message '%s'", message)
 
-    async def async_stop(self):
-        await super().async_stop()
+    async def _stop(self):
+        await super()._stop()
         if self._websocket:
             await self._websocket.close()
 
-    async def async_pull(self):
+    async def _pull(self):
         self._loop = asyncio.get_event_loop()
         await self._receive_states()

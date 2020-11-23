@@ -41,6 +41,6 @@ class Service(SyncPush):
                 )
             ) from exc
 
-    def push(self, payload):
+    def _push(self, payload):
         self._call(payload)
         return payload
