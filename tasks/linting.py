@@ -32,6 +32,8 @@ def mypy(ctx):
         "{}/selector.py".format(SOURCE_PATH),
         "{}/utils.py".format(SOURCE_PATH),
         "{}/validator.py".format(SOURCE_PATH),
+        "{}/api/*.py".format(SOURCE_PATH),
+        "{}/api/endpoints/*.py".format(SOURCE_PATH),
         "{}/engines/*.py".format(SOURCE_PATH),
         "{}/plugins/__init__.py".format(SOURCE_PATH),
         "{}/plugins/pull/__init__.py".format(SOURCE_PATH),

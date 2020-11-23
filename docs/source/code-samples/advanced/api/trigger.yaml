@@ -1,7 +1,6 @@
 api:
   port: 9999
   endpoints:
-    swagger: true
     metrics: false
 tasks:
   - name: my_task

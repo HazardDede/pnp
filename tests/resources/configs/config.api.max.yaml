@@ -1,7 +1,6 @@
 api:
-  port: 12345
+  port: 23456
   endpoints:
-    swagger: true
     metrics: true
 tasks:
   - name: pytest

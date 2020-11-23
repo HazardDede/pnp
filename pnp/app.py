@@ -5,6 +5,7 @@ from typing import Optional
 from typeguard import typechecked
 
 from pnp.api import RestAPI
+from pnp.api.endpoints import Trigger
 from pnp.config import load_config, Configuration
 from pnp.engines import DEFAULT_ENGINE, Engine
 from pnp.selector import PayloadSelector
@@ -29,13 +30,12 @@ class Application(Loggable):
             self._api = RestAPI()
             self._api.create_api(
                 enable_metrics=config.api.enable_metrics,
-                enable_swagger=config.api.enable_swagger
             )
-            self._api.add_trigger_endpoint(self._tasks)
+            Trigger(config.tasks).attach(self._api.fastapi)
 
     @property
     def api(self) -> Optional[RestAPI]:
-        """Return the api that is running. If no api is available `None` is returned."""
+        """Return the api that is configured. If no api is available `None` is returned."""
         return self._api
 
     @property
@@ -65,7 +65,7 @@ class Application(Loggable):
             loop.run_until_complete(_run_coros())
         except KeyboardInterrupt:
             if self._api:
-                self._api.shutdown()
+                loop.run_until_complete(self._api.shutdown())
             self._engine.stop()
 
     @classmethod

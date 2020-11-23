@@ -162,4 +162,4 @@ def test_api():
     assert config.api == APIModel(port=12345, enable_swagger=False, enable_metrics=False)
 
     config = dut.load_config(path_to_config('config.api.max.yaml'))
-    assert config.api == APIModel(port=12345, enable_swagger=True, enable_metrics=True)
+    assert config.api == APIModel(port=23456, enable_swagger=False, enable_metrics=True)

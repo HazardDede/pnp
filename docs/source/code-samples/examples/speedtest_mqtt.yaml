@@ -2,8 +2,6 @@
 #   curl -X POST "http://localhost:80/trigger?task=speedtest" -H "accept: application/json"
 api:
   port: 80
-  endpoints:
-    swagger: true
 tasks:
   - name: speedtest
     pull:

@@ -1,5 +1,6 @@
 import pytest
 
+from pnp.api.endpoints import Trigger
 from pnp.models import TaskModel, PullModel, PushModel
 from pnp.plugins.push.simple import Nop
 from tests.conftest import api_start, api_post
@@ -23,7 +24,7 @@ async def test_endpoint_working(clazz):
         )
     }
     async with api_start() as api:
-        api.add_trigger_endpoint(tasks)
+        Trigger(tasks).attach(api.fastapi)
         url = 'http://127.0.0.1:{}/trigger?task=pytest'.format(api.port)
         status, json_ = await api_post(url)
 
@@ -35,13 +36,18 @@ async def test_endpoint_working(clazz):
 @pytest.mark.asyncio
 async def test_endpoint_no_task():
     async with api_start() as api:
-        api.add_trigger_endpoint({})
+        Trigger([]).attach(api.fastapi)
         url = 'http://127.0.0.1:{}/trigger'.format(api.port)
         status, json_ = await api_post(url)
 
-        assert status == 400
-        assert list(json_.keys()) == ['message']
-        assert json_['message'] == "Argument 'task' in query string not set."
+        assert status == 422
+        assert json_ == {
+            'detail': [{
+                'loc': ['query', 'task'],
+                'msg': 'field required',
+                'type': 'value_error.missing'
+            }]
+        }
 
 
 @pytest.mark.asyncio
@@ -54,13 +60,12 @@ async def test_endpoint_unknown_task():
         )
     }
     async with api_start() as api:
-        api.add_trigger_endpoint(tasks)
+        Trigger(tasks).attach(api.fastapi)
         url = 'http://127.0.0.1:{}/trigger?task=unknown'.format(api.port)
         status, json_ = await api_post(url)
 
-        assert status == 400
-        assert list(json_.keys()) == ['message']
-        assert json_['message'] == "Value 'unknown' of argument 'task' is not a known task."
+        assert status == 422
+        assert json_ == {'detail': "Given task name 'unknown' is not a known task."}
 
 
 @pytest.mark.asyncio
@@ -73,14 +78,15 @@ async def test_endpoint_not_a_poll():
         )
     }
     async with api_start() as api:
-        api.add_trigger_endpoint(tasks)
+        Trigger(tasks).attach(api.fastapi)
         url = 'http://127.0.0.1:{}/trigger?task=pytest'.format(api.port)
         status, json_ = await api_post(url)
 
-        assert status == 400
-        assert list(json_.keys()) == ['message']
-        assert json_['message'] == "Task 'pytest' does not support pull_now() / async_pull_now(). " \
-                                   "Implement PullNowMixin / AsyncPullMixin for support"
+        assert status == 422
+        assert json_ == {
+            'detail': "Task 'pytest' does not support pull_now() / async_pull_now(). "
+                      "Implement PullNowMixin / AsyncPullMixin for support"
+        }
 
 
 @pytest.mark.asyncio
@@ -93,10 +99,9 @@ async def test_endpoint_polling_error():
         )
     }
     async with api_start() as api:
-        api.add_trigger_endpoint(tasks)
+        Trigger(tasks).attach(api.fastapi)
         url = 'http://127.0.0.1:{}/trigger?task=pytest'.format(api.port)
         status, json_ = await api_post(url)
 
         assert status == 500
-        assert list(json_.keys()) == ['message']
-        assert json_['message'] == "While triggering the poll an error occurred."
+        assert json_ == {'detail': 'While triggering the poll an error occurred.'}

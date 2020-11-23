@@ -59,8 +59,8 @@ Retrieve prometheus compliant metrics::
 
      curl -X GET "http://localhost:9999/metrics"
 
-See the swagger specification in your browser:
-`http://localhost:9999/swagger <http://localhost:9999/swagger>`_
+See the openapi specification in your browser:
+`http://localhost:9999/docs <http://localhost:9999/docs>`_
 
 Trigger tasks manually (even when the task has some schedule assigned)::
 
@@ -68,7 +68,7 @@ Trigger tasks manually (even when the task has some schedule assigned)::
 
 .. note::
 
-   You need to explicitly enable the ``/metrics`` and ``/swagger`` endpoint while configuring your api.
+   You need to explicitly enable the ``/metrics`` endpoint while configuring your api.
    Please see the example below for reference.
 
 .. literalinclude:: ../code-samples/advanced/api/example.yaml
