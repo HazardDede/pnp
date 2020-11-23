@@ -22,5 +22,3 @@ push:
       config:
         name: "{{var::object_id}}"
         device_class: problem
-        state_topic: "{{var::state_topic}}"
-        json_attributes_topic: "{{var::json_attributes_topic}}"
