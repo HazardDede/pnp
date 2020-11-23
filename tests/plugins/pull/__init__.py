@@ -1,7 +1,8 @@
 import asyncio
 from collections import namedtuple
-from contextlib import contextmanager, asynccontextmanager
 from threading import Thread
+
+import async_generator
 
 from pnp.plugins.pull import Pull
 
@@ -13,7 +14,7 @@ def dummy_callback(plugin, payload):
     pass
 
 
-@asynccontextmanager
+@async_generator.asynccontextmanager
 async def start_runner(runner):
     runner.start()
     try:
