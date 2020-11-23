@@ -1,6 +1,11 @@
 Changelog
 =========
 
+**0.27.0 (unreleased)**
+* **Breaking**: Migrates from sanic to fastapi (some endpoints have slightly changed; see openapi docs) `#34 <https://github.com/HazardDede/pnp/pull/34>`_
+* **Feature**: ``push.mqtt.Discovery``: Adds auto configuration of state- and json attributes topics `#33 <http://github.com/HazardDede/pnp/pull/33/files>`_
+* **Feature**: ``push.fs.Zipper``: Adds ``archive_name`` argument to (dynamically) control the name of the created archive `#31 <http://github.com/HazardDede/pnp/pull/31/files>`_
+
 **0.26.1**
 
 * **Fix**: ``pull.net.PortProbe``: Catches a socket error when there is no route to the target host `#32 <https://github.com/HazardDede/pnp/pull/32>`_
