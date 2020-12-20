@@ -38,7 +38,7 @@ COPY README.md pyproject.toml poetry.lock ./
 RUN poetry export \
         --without-hashes \
         -E "dht" -E "dropbox" -E "fitbit" -E "fritz" -E "fswatcher" -E "ftp" \
-        -E "gpio" -E "miflora" -E "pushbullet" \
+        -E "gpio" -E "miflora" \
         -E "speedtest" \
         -f requirements.txt \
         > requirements.txt && \

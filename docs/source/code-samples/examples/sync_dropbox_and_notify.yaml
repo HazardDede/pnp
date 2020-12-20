@@ -4,7 +4,7 @@
 #
 # You need to set your environment variables properly:
 # - DROPBOX_API_KEY
-# - PUSHBULLET_API_KEY
+# - SLACK_API_KEY
 
 - name: dropbox_sync_notify
   pull:
@@ -24,7 +24,8 @@
         data: "lambda data: data.source"  # Absolute path to file
         target_file_name: "lambda data: basename(data.source)"  # File name only
       deps:
-        - plugin: pnp.plugins.push.notify.Pushbullet
+        - plugin: pnp.plugins.push.notify.Slack
           args:
-            api_key: "{{env::PUSHBULLET_API_KEY}}"
+            api_key: "{{env::SLACK_API_KEY}}"
+            channel: test  # The channel to post to. Mandatory. Overridable by envelope.
           selector: data.raw_link
