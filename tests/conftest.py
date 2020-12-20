@@ -45,11 +45,10 @@ async def api_start(metrics=False):
     api.run_api_background(port)
     try:
         # TODO: Check if we can connect to server or timeout
-        await asyncio.sleep(0.1)  # Wait for the server to startup
+        await asyncio.sleep(0.5)  # Wait for the server to startup
         await yield_(api)
     finally:
         await api.shutdown()
-        await asyncio.sleep(0.2)
 
 
 async def api_get(url, data=None):
