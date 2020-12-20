@@ -1,7 +1,6 @@
 """Base implementation for asynchronous engines."""
 
 import asyncio
-import time
 from typing import Optional
 
 from pnp.engines._base import Engine, RetryHandler, SimpleRetryHandler, PushExecutor
@@ -19,39 +18,34 @@ class AsyncEngine(Engine):
 
     HEARTBEAT_INTERVAL = 1.0
 
-    def __init__(self, retry_handler: Optional[RetryHandler] = None):
+    def __init__(
+            self, retry_handler: Optional[RetryHandler] = None
+    ):
         super().__init__()
         if not retry_handler:
             self.retry_handler = SimpleRetryHandler()  # type: RetryHandler
         else:
             self.retry_handler = retry_handler
         self.loop = asyncio.get_event_loop()
-        self.tasks = None  # type: Optional[TaskSet]
 
-    async def _run(self, tasks: TaskSet) -> None:
-        self.tasks = tasks
-
-        # We need to wait for tasks:
-        # All pushes might be done, but pushes are pending / processing
+    async def _start(self, tasks: TaskSet) -> None:
         coros = [self._wait_for_tasks_to_complete()]
         for _, task in tasks.items():
             coros.append(self._start_task(task))
 
-        try:
-            await asyncio.gather(*coros)
-        except KeyboardInterrupt:
-            self.stop()
+        for coro in coros:
+            asyncio.create_task(coro)
 
-    def _stop(self) -> None:
+    async def _stop(self) -> None:
         if not self.tasks:
-            return
-        try:
-            self._shutdown()
-        except KeyboardInterrupt:
-            # It' ok -> non-graceful shutdown
-            self.logger.info("Forceful exit")
+            return  # Nothing to stop
 
-    async def _wait_for_tasks_to_complete(self) -> None:
+        await asyncio.gather(
+            *[self._stop_task(task) for task in self.tasks.values()]
+        )
+        await self._wait_for_tasks_to_complete(True)
+
+    async def _wait_for_tasks_to_complete(self, called_from_stop: bool = False) -> None:
         """Check if something is still running on the event loop (like running pushes) so that the
         event loop will not terminate but wait for pending tasks."""
 
@@ -81,6 +75,9 @@ class AsyncEngine(Engine):
         await asyncio.sleep(self.HEARTBEAT_INTERVAL)
         while await _pending_tasks_exist():
             await asyncio.sleep(self.HEARTBEAT_INTERVAL)
+
+        if not called_from_stop:
+            await self.stop()
 
     async def _start_task(self, task: TaskModel) -> None:
         """Start the given task."""
@@ -177,50 +174,3 @@ class AsyncEngine(Engine):
             pass
         except Exception:  # pragma: no cover, pylint: disable=broad-except
             self.logger.exception("Push '%s' failed", push.instance.name)
-
-    def _shutdown(self) -> None:
-        assert self.tasks and isinstance(self.tasks, dict)
-
-        loop = self.loop
-
-        # Optionally show a message if the shutdown may take a while
-        self.logger.info("Attempting graceful shutdown, press Ctrl+C again to exit forcefully...")
-
-        # If it's running: Stop it!
-        # Two scenarios:
-        # 1. KeyboardInterrupt/OOM/Other Exception -> loop is already down
-        # 2. stop() called -> We need to stop the loop (the code below assumes that the
-        #   loop is down)
-        self._wait_for_loop_to_stop(loop)
-
-        # Do not show `asyncio.CancelledError` exceptions during shutdown
-        # a lot of these may be generated, skip this if you prefer to see them
-        def shutdown_exception_handler(loop, context):  # type: ignore
-            if "exception" not in context \
-                    or not isinstance(context["exception"], asyncio.CancelledError):
-                loop.default_exception_handler(context)
-
-        loop.set_exception_handler(shutdown_exception_handler)
-
-        stop_tasks = asyncio.gather(
-            *[self._stop_task(task) for task in self.tasks.values()],
-            loop=loop
-        )
-        loop.run_until_complete(stop_tasks)
-
-        loop.run_until_complete(self._wait_for_tasks_to_complete())
-
-        # This check is only needed for Python 3.5 and below
-        if hasattr(self.loop, "shutdown_asyncgens"):
-            self.loop.run_until_complete(self.loop.shutdown_asyncgens())  # type: ignore
-
-    @staticmethod
-    def _wait_for_loop_to_stop(loop: asyncio.AbstractEventLoop) -> None:
-        if loop.is_running():
-            loop.stop()
-        for _ in range(10):
-            if not loop.is_running():
-                break
-            time.sleep(1)
-        if loop.is_running():
-            raise RuntimeError("Event loop did not stop")

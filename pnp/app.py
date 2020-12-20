@@ -1,5 +1,4 @@
 """The actual application wrapper around tasks and engine."""
-import asyncio
 from typing import Optional
 
 from typeguard import typechecked
@@ -8,8 +7,8 @@ from pnp.api import RestAPI
 from pnp.api.endpoints import Trigger
 from pnp.config import load_config, Configuration
 from pnp.engines import DEFAULT_ENGINE, Engine
+from pnp.models import TaskSet
 from pnp.selector import PayloadSelector
-from pnp.shared.exc import NoEngineError
 from pnp.utils import Loggable
 
 
@@ -43,30 +42,10 @@ class Application(Loggable):
         """Return the engine that is used to schedule and run the tasks."""
         return self._engine
 
-    async def _run_api(self):
-        if not self._api:
-            return
-
-        self._api.run_api_background(
-            port=self.config.api.port
-        )
-
-    def start(self) -> None:
-        """Starts the application."""
-        async def _run_coros() -> None:
-            await self._run_api()
-            await self._engine.run(self._tasks)
-
-        if not self._engine:
-            raise NoEngineError()
-
-        loop = asyncio.get_event_loop()
-        try:
-            loop.run_until_complete(_run_coros())
-        except KeyboardInterrupt:
-            if self._api:
-                loop.run_until_complete(self._api.shutdown())
-            self._engine.stop()
+    @property
+    def tasks(self) -> TaskSet:
+        """Return the tasks that are configured for this application."""
+        return self._tasks
 
     @classmethod
     def from_file(cls, file_path: str) -> 'Application':
@@ -75,8 +54,6 @@ class Application(Loggable):
 
         Args:
             file_path (str): Where the configuration file is located.
-            engine_override (str): If given overwrites the engine that is specified inside the
-                configuration file.
         """
         config = load_config(str(file_path))
         PayloadSelector.instance.register_udfs(config.udfs)  # pylint: disable=no-member

@@ -62,7 +62,7 @@ async def test_push_executor_unwrap():
     def callback(payload, push):
         nonlocal call_cnt
         assert payload in input
-        assert push is dep_push
+        assert push == dep_push
         call_cnt += 1
     await dut.execute("id", input, push, result_callback=callback)
     assert call_cnt == 3
@@ -81,7 +81,7 @@ async def test_push_executor_unwrap_selector():
     def callback(payload, push):
         nonlocal call_cnt
         assert payload in ['o', 't']
-        assert push is dep_push
+        assert push == dep_push
         call_cnt += 1
     await dut.execute("id", input, push, result_callback=callback)
     assert call_cnt == 3

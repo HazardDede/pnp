@@ -4,7 +4,7 @@ from multiprocessing import Process
 
 
 def run_engine(engine, tasks):
-    t = Process(target=partial(engine.run, tasks=tasks))
+    t = Process(target=partial(engine.start, tasks=tasks))
     try:
         t.start()
         time.sleep(1)

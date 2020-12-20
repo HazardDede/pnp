@@ -19,8 +19,9 @@ class Echo(AsyncPush):
     Examples:
 
         >>> import asyncio
+        >>> loop = asyncio.get_event_loop()
         >>> dut = Echo(name="echo_push")
-        >>> asyncio.run(dut.push("I will be logged"))
+        >>> loop.run_until_complete(dut.push("I will be logged"))
         'I will be logged'
     """
 
@@ -47,8 +48,9 @@ class Nop(AsyncPush):
     Examples:
 
         >>> import asyncio
+        >>> loop = asyncio.get_event_loop()
         >>> dut = Nop(name="nop_push")
-        >>> asyncio.run(dut.push('I will be returned unaltered'))
+        >>> loop.run_until_complete(dut.push('I will be returned unaltered'))
         'I will be returned unaltered'
     """
     def __init__(self, **kwargs):

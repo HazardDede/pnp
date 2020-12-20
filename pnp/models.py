@@ -1,93 +1,91 @@
 """Data model."""
-from functools import partial
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Union
 
-import attr
+from pydantic import BaseModel, Field  # pylint: disable=no-name-in-module
 
 from pnp.plugins.pull import Pull
 from pnp.plugins.push import Push
 from pnp.plugins.udf import UserDefinedFunction
 from pnp.typing import AnyCallable, SelectorExpression
-from pnp.validator import attrs_validate_list_items
 
 
-def _validate_push_dependencies(instance, attrib, val):  # type: ignore
-    return attrs_validate_list_items(instance, attrib, val, item_type=PushModel)
+class PullModel(BaseModel):
+    """Model representing a pull configuration."""
+
+    # The actual pull instance of type `Pull`
+    instance: Pull
+
+    class Config:
+        """Pydantic configuration."""
+        arbitrary_types_allowed = True
 
 
-@attr.s
-class PullModel:
-    """Model representing a pull."""
-    instance = attr.ib(
-        validator=attr.validators.instance_of(Pull)  # type: ignore
-    )  # type: Pull
-
-
-@attr.s
-class PushModel:
+class PushModel(BaseModel):
     """Model representing a push."""
-    instance = attr.ib(
-        validator=attr.validators.instance_of(Push)  # type: ignore
-    )  # type: Push
 
-    selector = attr.ib(
-        validator=attr.validators.instance_of((str, list, dict, type(None))),
-        default=None
-    )  # type: Optional[SelectorExpression]
+    # The actual push instance of type `Push`
+    instance: Push
 
-    unwrap = attr.ib(
-        converter=bool,
-        default=False
-    )  # type: bool
+    # The given selector expression or None if not passed.
+    selector: SelectorExpression = None
 
-    deps = attr.ib(
-        validator=_validate_push_dependencies,
-        factory=list
-    )  # type: List[PushModel]
+    # If true the selector will be computed for each payload item (if applicable)
+    unwrap: bool = False
+
+    # A list of push depdencies
+    deps: List['PushModel'] = Field(default_factory=list)
+
+    class Config:
+        """Pydantic configuration."""
+        arbitrary_types_allowed = True
 
 
-@attr.s
-class TaskModel:
+PushModel.update_forward_refs()
+
+
+class TaskModel(BaseModel):
     """Model representing a task (pull and dependant pushes)."""
-    name = attr.ib(
-        converter=str
-    )  # type: str
 
-    pull = attr.ib(
-        validator=attr.validators.instance_of(PullModel)
-    )  # type: PullModel
+    # The name of the task
+    name: str
 
-    pushes = attr.ib(
-        validator=partial(attrs_validate_list_items, item_type=PushModel)
-    )  # type: List[PushModel]
+    # The pull model to produce incoming data
+    pull: PullModel
+
+    # List of pushes that are triggered when the pull produced some data
+    pushes: List[PushModel]
+
+    class Config:
+        """Pydantic configuration."""
+        arbitrary_types_allowed = True
 
 
-@attr.s
-class APIModel:
+class APIModel(BaseModel):
     """Model representing the api server configuration."""
-    port = attr.ib(
-        converter=int
-    )  # type: int
 
-    enable_swagger = attr.ib(
-        converter=bool
-    )  # type: bool
+    # The port the api should listen for incoming requests
+    port: int
 
-    enable_metrics = attr.ib(
-        converter=bool
-    )  # type: bool
+    # DEPRECATED: Enables swagger/openapi documentation. Always enabled since fastapi migration
+    enable_swagger: bool
+
+    # Enables the /metrics endpoint
+    enable_metrics: bool
 
 
-@attr.s
-class UDFModel:
+class UDFModel(BaseModel):
     """Model representing a user-defined function."""
-    name = attr.ib(
-        converter=str
-    )  # type: str
 
-    callable = attr.ib(
-        validator=attr.validators.is_callable()
-    )  # type: Union[AnyCallable, UserDefinedFunction]
+    # The alias name of the udf
+    name: str
+
+    # The callable or the UDF to use
+    callable: Union[AnyCallable, UserDefinedFunction]
+
+    class Config:
+        """Pydantic configuration."""
+        arbitrary_types_allowed = True
 
 
+# Alias type for a set of tasks
 TaskSet = Dict[str, TaskModel]

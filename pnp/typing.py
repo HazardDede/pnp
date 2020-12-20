@@ -21,4 +21,4 @@ Payload = Any
 # * direct python code (str)
 # * A dictionary with lambdas or literals (Dict[str, str])
 # * A list of lambdas or literals
-SelectorExpression = Optional[Union[str, Dict[str, str], List[str]]]
+SelectorExpression = Optional[Union[str, Dict[Any, Any], List[Any]]]

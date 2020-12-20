@@ -24,10 +24,11 @@ class FileDump(SyncPush):
 
         >>> import tempfile
         >>> import asyncio
+        >>> loop = asyncio.get_event_loop()
         >>> with tempfile.TemporaryDirectory() as tmpdir:
         ...     # Automatic generated file name with extension '.dump'
         ...     dut = FileDump(name='doctest', directory=tmpdir, binary_mode=False)
-        ...     created_file = asyncio.run(dut.push("I am the content"))
+        ...     created_file = loop.run_until_complete(dut.push("I am the content"))
         ...     with open(created_file, 'r') as fs:
         ...         assert fs.read() == "I am the content"
 

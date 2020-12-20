@@ -37,18 +37,14 @@ def get_free_tcp_port():
 #
 
 @asynccontextmanager
-@async_generator
 async def api_start(metrics=False):
     port = get_free_tcp_port()
     api = RestAPI()
     api.create_api('pytest', enable_metrics=metrics)
-    api.run_api_background(port)
-    try:
+    async with api.run_api_background(port):
         # TODO: Check if we can connect to server or timeout
         await asyncio.sleep(0.1)  # Wait for the server to startup
-        await yield_(api)
-    finally:
-        await api.shutdown()
+        yield api
 
 
 async def api_get(url, data=None):

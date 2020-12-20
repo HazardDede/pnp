@@ -3,9 +3,10 @@
 import copy
 from abc import abstractmethod
 from datetime import datetime
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Coroutine
 
 import attr
+from typeguard import check_argument_types
 
 from pnp import validator
 from pnp.models import TaskSet, PushModel
@@ -22,7 +23,14 @@ class NotSupportedError(Exception):
     """Is raised when a task is not supported by an engine."""
 
 
+# Signature of push result callback
 PushResultCallback = Callable[[Payload, PushModel], None]
+
+# Signature of a on engine started callback
+OnStartedCallback = Callable[[], Coroutine[Any, Any, None]]
+
+# Signature of a on engine stopped callback
+OnStoppedCallback = Callable[[], Coroutine[Any, Any, None]]
 
 
 @auto_str(__repr__=True)
@@ -34,22 +42,82 @@ class Engine(Loggable):
     A call to to an engine's `run(...)` method will block the calling thread until the engine
     decides the job is done (normally an external SIGTERM occurs)
     """
-    async def run(self, tasks: TaskSet) -> None:
+    def __init__(self) -> None:
+        self._is_running = False
+        self._tasks: Optional[TaskSet] = None
+        self._on_started_callback: Optional[Any] = None
+        self._on_stopped_callback: Optional[Any] = None
+
+    @property
+    def is_running(self) -> bool:
+        """Returns True if this engine is currently running; otherwise False."""
+        return self._is_running
+
+    @property
+    def tasks(self) -> Optional[TaskSet]:
+        """Returns the tasks that are currently running; otherwise (non running)
+        None is returned."""
+        return self._tasks
+
+    @property
+    def on_started_callback(self) -> Optional[OnStartedCallback]:
+        """Returns the callback that is called when the engine has started."""
+        return self._on_started_callback
+
+    @on_started_callback.setter
+    def on_started_callback(self, value: Optional[OnStartedCallback]) -> None:
+        """Sets the callback that is called when the engine has started."""
+        check_argument_types()
+        self._on_started_callback = value
+
+    @property
+    def on_stopped_callback(self) -> Optional[OnStoppedCallback]:
+        """Returns the callback that is called when the engine has stopped."""
+        return self._on_stopped_callback
+
+    @on_stopped_callback.setter
+    def on_stopped_callback(self, value: Optional[OnStoppedCallback]) -> None:
+        """Sets the callback that is called when engine has stopped."""
+        check_argument_types()
+        self._on_stopped_callback = value
+
+    async def start(self, tasks: TaskSet) -> None:
         """Run the given task set inside the engine."""
-        return await self._run(tasks)
+        if self.is_running:
+            return
+
+        self._tasks = tasks
+        await self._start(tasks)
+        self._is_running = True
+
+        if self._on_started_callback is not None:
+            assert callable(self._on_started_callback)
+            await self._on_started_callback()
 
     @abstractmethod
-    async def _run(self, tasks: TaskSet) -> None:
+    async def _start(self, tasks: TaskSet) -> None:
         """Run the given task set inside the engine. Override in child classes to do the hard
         work."""
         raise NotImplementedError()
 
-    def stop(self) -> None:
+    async def stop(self) -> None:
         """Stop the engine."""
-        self._stop()
+        if not self.is_running:
+            return
+
+        if not self.tasks:
+            return
+
+        await self._stop()
+        self._tasks = None
+        self._is_running = False
+
+        if self._on_stopped_callback is not None:
+            assert callable(self._on_stopped_callback)
+            await self._on_stopped_callback()
 
     @abstractmethod
-    def _stop(self) -> None:
+    async def _stop(self) -> None:
         """Stop the engine. Override in child classes."""
         raise NotImplementedError()
 
