@@ -10,7 +10,7 @@ before_install:
   - pip install --upgrade pip
   - pip install poetry==1.0.0
 install:
-  - poetry install -E "dropbox fitbit fritz fswatcher ftp gmail miflora pushbullet sound speedtest"
+  - poetry install -E "dropbox fitbit fritz fswatcher ftp gmail miflora sound speedtest"
 script:
   - poetry run inv lint
   - poetry run inv test

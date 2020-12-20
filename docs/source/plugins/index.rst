@@ -101,8 +101,6 @@ and set the ``unwrap`` option to invoke a ``push`` for each element of an ``iter
 
 .. include:: push/mqtt.Publish.rst
 
-.. include:: push/notify.Pushbullet.rst
-
 .. include:: push/notify.Slack.rst
 
 .. include:: push/simple.Echo.rst
