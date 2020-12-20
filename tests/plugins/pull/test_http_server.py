@@ -113,7 +113,7 @@ async def test_http_server_query_params_wo_value():
 
 
 @pytest.mark.asyncio
-async def test_http_server_query_different_methods():
+async def test_http_server_query_different_methods_1():
     def assert_this(payload):
         assert payload['method'] == 'GET'
     await _run_test(
@@ -122,6 +122,9 @@ async def test_http_server_query_different_methods():
         assertion_fun=assert_this
     )
 
+
+@pytest.mark.asyncio
+async def test_http_server_query_different_methods_2():
     def assert_this(payload):
         assert payload['method'] == 'POST'
     await _run_test(
@@ -132,6 +135,9 @@ async def test_http_server_query_different_methods():
         assertion_fun=assert_this
     )
 
+
+@pytest.mark.asyncio
+async def test_http_server_query_different_methods_3():
     def assert_this(payload):
         assert payload is None
     await _run_test(
