@@ -68,8 +68,6 @@ arguments to control their polling behavior.
 
 .. include:: pull/simple.RunOnce.rst
 
-.. include:: pull/traffic.DeutscheBahn.rst
-
 .. include:: pull/zway.ZwayPoll.rst
 
 .. include:: pull/zway.ZwayReceiver.rst
