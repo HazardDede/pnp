@@ -95,8 +95,6 @@ and set the ``unwrap`` option to invoke a ``push`` for each element of an ``iter
 
 .. include:: push/http.Call.rst
 
-.. include:: push/mail.GMail.rst
-
 .. include:: push/ml.FaceR.rst
 
 .. include:: push/mqtt.Discovery.rst
@@ -142,7 +140,5 @@ All udfs do share the following base arguments:
 
 Appendix
 --------
-
-.. include:: appendix/gmail_token.rst
 
 .. include:: appendix/fitbit_auth.rst
