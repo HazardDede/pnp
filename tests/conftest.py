@@ -49,6 +49,7 @@ async def api_start(metrics=False):
         await yield_(api)
     finally:
         await api.shutdown()
+        await asyncio.sleep(0.2)
 
 
 async def api_get(url, data=None):
