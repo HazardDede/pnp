@@ -27,7 +27,6 @@ ENV = {
     'MQTT_HOST': 'localhost',
     'MQTT_BASE_TOPIC': 'anytopic',
     'OPENWEATHER_API_KEY': 'baz',
-    'PUSHBULLET_API_KEY': 'bla',
     'SLACK_API_KEY': 'the_slack_token',
     'WATCH_DIR': WATCHDIR_PATH,
     'ZWAY_USER': 'foo',
