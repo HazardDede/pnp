@@ -56,8 +56,6 @@ arguments to control their polling behavior.
 
 .. include:: pull/sensor.MiFlora.rst
 
-.. include:: pull/sensor.OpenWeather.rst
-
 .. include:: pull/sensor.Sound.rst
 
 .. include:: pull/simple.Count.rst
