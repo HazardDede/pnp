@@ -24,7 +24,6 @@ ENV = {
     'MESSAGE': 'Hello World',
     'MQTT_HOST': 'localhost',
     'MQTT_BASE_TOPIC': 'anytopic',
-    'MOTIONEYE_MEDIA_PATH': MOTIONEYE_MEDIA_PATH,
     'SLACK_API_KEY': 'the_slack_token',
     'WATCH_DIR': WATCHDIR_PATH,
     'ZWAY_USER': 'foo',

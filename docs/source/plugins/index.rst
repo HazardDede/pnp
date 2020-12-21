@@ -20,8 +20,6 @@ arguments to control their polling behavior.
 | instant_run | bool      | yes  | False   | If set to True the component will run as soon as ``pnp`` starts; otherwise it will run the next configured interval.                                                                                  |
 +-------------+-----------+------+---------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
-.. include:: pull/camera.MotionEyeWatcher.rst
-
 .. include:: pull/fitbit.Current.rst
 
 .. include:: pull/fitbit.Devices.rst
