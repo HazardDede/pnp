@@ -3,6 +3,12 @@ Changelog
 
 **0.27.0 (unreleased)**
 * **Breaking**: Migrates from sanic to fastapi (some endpoints have slightly changed; see openapi docs) `#34 <https://github.com/HazardDede/pnp/pull/34>`_
+* **Breaking**: Deprecates / Removes ``push.notify.Pushbullet`` `#35 <https://github.com/HazardDede/pnp/pull/35>`_
+* **Breaking**: Deprecates / Removes ``pull.zway.ZwayReceiver`` `#36 <https://github.com/HazardDede/pnp/pull/36>`_
+* **Breaking**: Deprecates / Removes ``push.mail.GMail`` `#37 <https://github.com/HazardDede/pnp/pull/37>`_
+* **Breaking**: Deprecates / Removes ``pull.traffic.DeutscheBahn`` `#38 <https://github.com/HazardDede/pnp/pull/38>`_
+* **Breaking**: Deprecates / Removes ``pull.camera.MotionEyeWatcher`` `#39 <https://github.com/HazardDede/pnp/pull/39>`_
+* **Breaking**: Deprecates / Removes ``pull.sensor.OpenWeather`` `#40 <https://github.com/HazardDede/pnp/pull/40>`_
 * **Feature**: ``push.mqtt.Discovery``: Adds auto configuration of state- and json attributes topics `#33 <http://github.com/HazardDede/pnp/pull/33/files>`_
 * **Feature**: ``push.fs.Zipper``: Adds ``archive_name`` argument to (dynamically) control the name of the created archive `#31 <http://github.com/HazardDede/pnp/pull/31/files>`_
 
