@@ -1,11 +1,9 @@
 """Useful sensor stuff."""
 
 import logging
-from datetime import datetime
 from functools import partial
 
 import attr
-import requests
 import schema as sc
 
 from pnp import validator
@@ -20,7 +18,6 @@ from pnp.shared.sound import (
     ALLOWED_MODES
 )
 from pnp.utils import (
-    safe_get,
     auto_str_ignore,
     parse_duration_literal,
     Cooldown
@@ -33,7 +30,7 @@ class DHT(SyncPolling):
     Polling interval is controlled by `interval`.
 
     See Also:
-        https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/sensor.DHT/index.md
+        https://pnp.readthedocs.io/en/stable/plugins/index.html#sensor-dht
     """
     EXTRA = 'dht'
 
@@ -80,8 +77,7 @@ class MiFlora(SyncPolling):
     Periodically polls a xiaomi miflora plant sensor for sensor readings via btle.
 
     See Also:
-        https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/sensor.MiFlora/index.md
-
+        https://pnp.readthedocs.io/en/stable/plugins/index.html#sensor-miflora
     """
     EXTRA = 'miflora'
 
@@ -142,68 +138,6 @@ class MiFlora(SyncPolling):
         return readings
 
 
-@auto_str_ignore(ignore_list=["api_key"])
-class OpenWeather(SyncPolling):
-    """
-    Periodically polls weather data from the OpenWeatherMap api.
-
-    See Also:
-        https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/sensor.OpenWeather/index.md
-    """
-
-    def __init__(self, api_key, lat=None, lon=None, city_name=None, units="metric", tz=None,
-                 **kwargs):
-        super().__init__(**kwargs)
-        self.api_key = str(api_key)
-        self.lat = lat and float(lat)
-        self.lon = lon and float(lon)
-        self.city_name = city_name and str(city_name)
-        if self.city_name is None and not self._validate_lat_lon():
-            raise ValueError("You have to pass city_name or lat and lon.")
-
-        validator.one_of(["metric", "imperial", "kelvin"], units=units)
-        self.units = units
-        self.tzone = tz and str(tz)
-
-        from pytz import timezone
-        from tzlocal import get_localzone
-        self._tz = get_localzone() if self.tzone is None else timezone(self.tzone)
-
-    def _poll(self):
-        url = self._create_request_url()
-        resp = requests.get(url)
-        if resp.status_code != 200:
-            raise PollingError("GET of '{url}' failed with status "
-                               "code = '{resp.status_code}'".format(**locals()))
-
-        raw_data = resp.json()
-
-        return dict(
-            temperature=safe_get(raw_data, "main", "temp"),
-            pressure=safe_get(raw_data, "main", "pressure"),
-            humidity=safe_get(raw_data, "main", "humidity"),
-            cloudiness=safe_get(raw_data, "clouds", "all"),
-            wind=safe_get(raw_data, "wind"),
-            poll_dts=datetime.now(self._tz).isoformat(),
-            last_updated_dts=datetime.fromtimestamp(
-                safe_get(raw_data, "dt"), tz=self._tz).isoformat(),
-            raw=raw_data
-        )
-
-    def _validate_lat_lon(self):
-        return self.lat is not None and self.lon is not None
-
-    def _create_request_url(self):
-        url = ("http://api.openweathermap.org/data/2.5/weather?"
-               "units={self.units}&"
-               "APPID={self.api_key}")
-        if self.lat is None and self.lon is None:
-            url += "&q={self.city_name}"
-        else:
-            url += "&lat={self.lat}&lon={self.lon}"
-        return url.format(**locals())
-
-
 # pylint: disable=too-many-instance-attributes
 @auto_str_ignore(ignore_list=[])
 class Sound(SyncPull):
@@ -213,7 +147,7 @@ class Sound(SyncPull):
     the electrical device ;-)
 
     See Also:
-        https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/sensor.Sound/index.md
+        https://pnp.readthedocs.io/en/stable/plugins/index.html#sensor-sound
     """
     @attr.s
     class WavConfig:

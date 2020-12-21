@@ -15,7 +15,7 @@ class Slack(SyncPush):
     Sends a message to slack. Optionally you can specify users to ping.
 
     See Also:
-        https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/notify.Slack/index.md
+        https://pnp.readthedocs.io/en/stable/plugins/index.html#notify-slack
     """
     DEFAULT_USERNAME = 'PnP'
     DEFAULT_EMOJI = ':robot:'

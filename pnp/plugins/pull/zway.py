@@ -15,7 +15,7 @@ class ZwayPoll(SyncPolling):
     all devices and serve the result as a json.
 
     See Also:
-        https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/zway.ZwayPoll/index.md
+        https://pnp.readthedocs.io/en/stable/plugins/index.html#zway-zwaypoll
     """
 
     def __init__(self, url, user, password, **kwargs):

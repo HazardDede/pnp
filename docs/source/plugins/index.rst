@@ -20,8 +20,6 @@ arguments to control their polling behavior.
 | instant_run | bool      | yes  | False   | If set to True the component will run as soon as ``pnp`` starts; otherwise it will run the next configured interval.                                                                                  |
 +-------------+-----------+------+---------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
-.. include:: pull/camera.MotionEyeWatcher.rst
-
 .. include:: pull/fitbit.Current.rst
 
 .. include:: pull/fitbit.Devices.rst
@@ -56,8 +54,6 @@ arguments to control their polling behavior.
 
 .. include:: pull/sensor.MiFlora.rst
 
-.. include:: pull/sensor.OpenWeather.rst
-
 .. include:: pull/sensor.Sound.rst
 
 .. include:: pull/simple.Count.rst
@@ -67,8 +63,6 @@ arguments to control their polling behavior.
 .. include:: pull/simple.Repeat.rst
 
 .. include:: pull/simple.RunOnce.rst
-
-.. include:: pull/traffic.DeutscheBahn.rst
 
 .. include:: pull/zway.ZwayPoll.rst
 
@@ -136,7 +130,5 @@ All udfs do share the following base arguments:
 
 Appendix
 --------
-
-.. include:: appendix/gmail_token.rst
 
 .. include:: appendix/fitbit_auth.rst

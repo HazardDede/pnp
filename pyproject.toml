@@ -42,13 +42,9 @@ dropbox = { version = "^9.0.0", optional = true }
 face-recognition = { version = "^1.2.2", optional = true }
 fitbit = { version = "^0.3.0", optional = true }
 fritzconnection = { version = "^1.2.0", optional = true, python = "^3.6" }
-google-api-python-client = { version = "^1.7.7", optional = true }
-google-auth-httplib2 = { version = "^0.0.3", optional = true }
-google-auth-oauthlib = { version = "^0.2.0", optional = true }
 image = { version = "^1.5.24", optional = true }
 miflora = { version = "^0.4.0", optional = true }
 numpy = { version = "^1.16.0", optional = true }
-"pushbullet.py" = { version = "^0.10.0", optional = true }
 PyAudio = { version = "^0.2.11", optional = true }
 pyftpdlib = { version = "^1.5.0", optional = true }
 "RPi.GPIO" = { version = "^0.6.5", optional = true }
@@ -76,7 +72,6 @@ requests = "^2.23.0"
 "ruamel.yaml" = "^0.16.10"
 schedule = "^0.6.0"
 schema = "^0.7.2"
-schiene = "^0.23"
 slacker = "^0.14.0"
 syncasync = "^20180812"
 typing-extensions = "^3.7.4"
@@ -117,10 +112,8 @@ fitbit = ['fitbit']
 fritz = ['fritzconnection']
 fswatcher = ['watchdog']
 ftp = ['pyftpdlib']
-gmail = ['google-api-python-client', 'google-auth-httplib2', 'google-auth-oauthlib']
 gpio = ['RPi.GPIO']
 miflora = ['miflora']
-pushbullet = ['pushbullet.py', 'urllib3']
 sound = ['PyAudio', 'numpy', 'scipy']
 speedtest = ['speedtest-cli']
 

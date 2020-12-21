@@ -43,8 +43,9 @@ async def api_start(metrics=False):
     api.create_api('pytest', enable_metrics=metrics)
     async with api.run_api_background(port):
         # TODO: Check if we can connect to server or timeout
-        await asyncio.sleep(0.1)  # Wait for the server to startup
+        await asyncio.sleep(1)  # Wait for the server to startup
         yield api
+        await asyncio.sleep(0.5)
 
 
 async def api_get(url, data=None):
