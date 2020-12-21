@@ -34,7 +34,7 @@ class AsyncEngine(Engine):
             coros.append(self._start_task(task))
 
         for coro in coros:
-            asyncio.create_task(coro)
+            asyncio.run_coroutine_threadsafe(coro, self.loop)
 
     async def _stop(self) -> None:
         if not self.tasks:

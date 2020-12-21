@@ -41,7 +41,7 @@ API
 
 .. versionadded:: 0.24.0
 
-You can explicitly activate an rest-api to do perform various stuff:
+You can explicitly activate an rest-api to perform various stuff:
 
 Determine if everything is up and running::
 
