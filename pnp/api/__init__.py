@@ -2,9 +2,9 @@
 
 import asyncio
 import logging
-from contextlib import asynccontextmanager
 from typing import Optional, AsyncGenerator
 
+from async_generator import asynccontextmanager
 from fastapi import FastAPI
 from uvicorn.config import Config
 from uvicorn.main import Server
@@ -72,8 +72,10 @@ class RestAPI(Singleton):
         if bool(enable_metrics):
             PrometheusExporter(app_name).attach(self.fastapi)
 
-    @asynccontextmanager
-    async def run_api_background(self, port: int = 9999) -> AsyncGenerator[None, None]:
+    @asynccontextmanager  # type: ignore
+    async def run_api_background(
+            self, port: int = 9999
+    ) -> AsyncGenerator[None, None]:
         """
         Runs the api application in the background.
         The control will be returned to the caller.
