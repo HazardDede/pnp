@@ -149,7 +149,7 @@ def test_load_config_with_engine():
 
 
 def test_supported_extensions():
-    assert YamlConfigLoader.supported_extensions() == ['json', 'yaml']
+    assert YamlConfigLoader.supported_extensions() == ['json', 'yaml', 'yml']
 
 
 def test_api():

@@ -285,7 +285,7 @@ class YamlConfigLoader(ConfigLoader):
 
     @classmethod
     def supported_extensions(cls) -> Iterable[str]:
-        return ['json', 'yaml']
+        return ['json', 'yaml', 'yml']
 
     def load_pull_from_snippet(self, snippet: Any, name: str, **extra: Any) -> PullModel:
         pull_config = Schemas.Pull.validate(snippet)

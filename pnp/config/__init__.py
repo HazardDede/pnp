@@ -42,5 +42,5 @@ def load_pull_from_snippet(snippet: Any, name: str, **extra: Any) -> PullModel:
     """Loads a pull from a snippet using the same `ConfigLoader` that was initially used
     to load the main configuration."""
     global _LOADER_USED  # pylint: disable=global-statement
-    loader = _LOADER_USED if _LOADER_USED else YamlConfigLoader()  # Default loader for testing
+    loader = _LOADER_USED or YamlConfigLoader()  # Default loader for testing
     return loader.load_pull_from_snippet(snippet, name, **extra)
