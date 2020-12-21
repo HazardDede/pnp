@@ -253,8 +253,7 @@ class YamlConfigLoader(ConfigLoader):
 
         return APIModel(
             port=api[Schemas.api_port_name],
-            enable_metrics=api[Schemas.api_endpoint_name].get(Schemas.api_endpoint_metrics, False),
-            enable_swagger=api[Schemas.api_endpoint_name].get(Schemas.api_endpoint_swagger, False)
+            enable_metrics=api[Schemas.api_endpoint_name].get(Schemas.api_endpoint_metrics, False)
         )
 
     def _tasks_from_config(self, config: Box, base_path: Optional[str] = None) -> TaskSet:

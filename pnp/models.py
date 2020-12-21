@@ -66,9 +66,6 @@ class APIModel(BaseModel):
     # The port the api should listen for incoming requests
     port: int
 
-    # DEPRECATED: Enables swagger/openapi documentation. Always enabled since fastapi migration
-    enable_swagger: bool
-
     # Enables the /metrics endpoint
     enable_metrics: bool
 
