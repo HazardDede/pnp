@@ -198,7 +198,7 @@ class Polling(AsyncPull, AsyncPullNowMixin):
         def _callback() -> None:
             loop = asyncio.get_event_loop()
             if loop.is_running():
-                asyncio.run_coroutine_threadsafe(self._run_schedule(), loop=loop)
+                asyncio.ensure_future(self._run_schedule())
 
         self._scheduler = Scheduler()
         self._configure_scheduler(self._scheduler, _callback)

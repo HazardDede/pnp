@@ -17,7 +17,7 @@ class Runner(Loggable):
         self.app = app
 
     async def _main_loop(self) -> None:
-        while not self.app.engine.stopped:
+        while self.app.engine.is_running:
             await asyncio.sleep(0.1)
 
     def run(self) -> None:

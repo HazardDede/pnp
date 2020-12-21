@@ -102,8 +102,7 @@ class RestAPI(Singleton):
         # Do not use signal handlers - these will block the KeyboardInterrupt in app.py
         # We need to remember this on shutdown
         self._fastapi_server.install_signal_handlers = lambda *args: None
-        loop = asyncio.get_event_loop()
-        loop.create_task(self._fastapi_server.serve())
+        asyncio.ensure_future(self._fastapi_server.serve())
 
         try:
             yield

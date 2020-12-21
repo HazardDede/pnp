@@ -34,7 +34,7 @@ class AsyncEngine(Engine):
             coros.append(self._start_task(task))
 
         for coro in coros:
-            asyncio.run_coroutine_threadsafe(coro, self.loop)
+            asyncio.ensure_future(coro)
 
     async def _stop(self) -> None:
         if not self.tasks:
@@ -48,15 +48,14 @@ class AsyncEngine(Engine):
     async def _wait_for_tasks_to_complete(self, called_from_stop: bool = False) -> None:
         """Check if something is still running on the event loop (like running pushes) so that the
         event loop will not terminate but wait for pending tasks."""
-
         # pylint: disable=no-member
         fun_pending_tasks = asyncio.all_tasks if PY37 else asyncio.Task.all_tasks  # type: ignore
         fun_current_task = (
             asyncio.current_task if PY37  # type: ignore
             else asyncio.Task.current_task
         )
-        # pylint: enable=no-member
 
+        # pylint: enable=no-member
         async def _pending_tasks_exist() -> bool:
             all_tasks = list(fun_pending_tasks())
             for task in all_tasks:
@@ -90,7 +89,7 @@ class AsyncEngine(Engine):
                     payload,
                     push
                 )
-                asyncio.run_coroutine_threadsafe(self._schedule_push(payload, push), self.loop)
+                asyncio.ensure_future(self._schedule_push(payload, push))
 
         task.pull.instance.callback(on_payload_sync)
 
@@ -161,7 +160,7 @@ class AsyncEngine(Engine):
         assert isinstance(push.instance, Push)
 
         def _callback(result: Payload, dependency: PushModel) -> None:
-            asyncio.run_coroutine_threadsafe(self._schedule_push(result, dependency), self.loop)
+            asyncio.ensure_future(self._schedule_push(result, dependency))
 
         try:
             await PushExecutor().execute(
