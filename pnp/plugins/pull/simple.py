@@ -1,12 +1,11 @@
 """Simple pull plugins"""
 
 import sys
-import time
 from datetime import datetime
 
 from pnp import validator
 from pnp.config import load_pull_from_snippet
-from pnp.plugins.pull import AsyncPull, AsyncPullNowMixin, SyncPolling, SyncPull
+from pnp.plugins.pull import AsyncPull, AsyncPullNowMixin, SyncPolling
 from pnp.typing import Payload
 from pnp.utils import make_list, auto_str_ignore, parse_duration_literal_float
 
@@ -87,17 +86,6 @@ class CustomPolling(SyncPolling):
 
     def _poll(self):
         return self.scheduled_callable()
-
-
-class Infinite(SyncPull):
-    """Just for demonstration purposes. DO NOT USE!"""
-
-    def __init__(self, **kwargs):  # pragma: no cover, pylint: disable=useless-super-delegation
-        super().__init__(**kwargs)
-
-    def _pull(self):  # pragma: no cover
-        while True:
-            time.sleep(0.5)
 
 
 @auto_str_ignore(['model'])
