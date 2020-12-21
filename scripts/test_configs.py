@@ -19,8 +19,6 @@ ENV = {
     'DROPBOX_API_KEY': 'blub',
     'FITBIT_AUTH': FITBIT_AUTH_PATH,
     'FTP_DIR': FTPDIR_PATH,
-    'GMAIL_TOKEN_FILE': GMAIL_AUTH_PATH,
-    'GMAIL_RECIPIENT': 'somebody@somehost.net',
     'HA_TOKEN': 'abcdefg',
     'HA_URL': 'http://localhost:8123',
     'MESSAGE': 'Hello World',
