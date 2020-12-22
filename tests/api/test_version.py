@@ -1,14 +1,9 @@
-import pytest
-
-from tests.conftest import api_get, api_start
+from tests.conftest import api_client
 
 
-@pytest.mark.asyncio
-async def test_endpoint():
-    async with api_start() as api:
-        url = 'http://127.0.0.1:{}/version'.format(api.port)
-        status, json_ = await api_get(url)
-
+def test_endpoint():
+    with api_client() as client:
+        response = client.get('/version')
+        assert response.status_code == 200
         from pnp import __version__
-        assert status == 200
-        assert json_['version'] == __version__
+        assert response.json()['version'] == __version__
