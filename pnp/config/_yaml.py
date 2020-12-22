@@ -84,18 +84,15 @@ class Schemas:
     # API
     api_port_name = "port"
     api_endpoint_name = "endpoints"
-    api_endpoint_swagger = "swagger"
     api_endpoint_metrics = "metrics"
 
     api_endpoint_defaults = {
-        api_endpoint_swagger: False,
         api_endpoint_metrics: False
     }
 
     API = sc.Schema({
         api_port_name: sc.Use(int),
         sc.Optional(api_endpoint_name, default=api_endpoint_defaults): {
-            sc.Optional(api_endpoint_swagger, False): sc.Use(bool),
             sc.Optional(api_endpoint_metrics, False): sc.Use(bool)
         }
     })
