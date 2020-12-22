@@ -1,12 +1,9 @@
 """Global pnp api toolkit."""
 
-import asyncio
 import logging
-from typing import Optional, AsyncGenerator
+from typing import Optional
 
-from async_generator import asynccontextmanager
 from fastapi import FastAPI
-from uvicorn.config import Config
 from uvicorn.main import Server
 
 from pnp import __version__
@@ -71,46 +68,3 @@ class RestAPI(Singleton):
 
         if bool(enable_metrics):
             PrometheusExporter(app_name).attach(self.fastapi)
-
-    @asynccontextmanager  # type: ignore
-    async def run_api_background(
-            self, port: int = 9999
-    ) -> AsyncGenerator[None, None]:
-        """
-        Runs the api application in the background.
-        The control will be returned to the caller.
-        If the caller gives back control the api will terminated.
-        Useful for testing and _NOT_ for production use.
-        """
-
-        api = self._assert_api()
-        port = int(port)
-        self.port = port
-
-        cfg = Config(app=api, host="0.0.0.0", port=port, log_config=None)
-        self._fastapi_server = Server(config=cfg)
-
-        # We need to tweak shutdown to mark the server as not started
-        original_shutdown = self._fastapi_server.shutdown
-
-        async def shutdown(sockets=None):  # type: ignore
-            await original_shutdown(sockets)
-            assert self._fastapi_server
-            self._fastapi_server.started = False
-        self._fastapi_server.shutdown = shutdown
-
-        # Do not use signal handlers - these will block the KeyboardInterrupt in app.py
-        # We need to remember this on shutdown
-        self._fastapi_server.install_signal_handlers = lambda *args: None
-        asyncio.ensure_future(self._fastapi_server.serve())
-
-        try:
-            yield
-        finally:
-            # We do what the signalhandler would normally do...
-            self._fastapi_server.should_exit = True
-            while self._fastapi_server.started:
-                await asyncio.sleep(0.1)
-
-            self.port = None
-            self._fastapi_server = None
