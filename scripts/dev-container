@@ -30,7 +30,7 @@ function run() {
     docker run -it --rm \
         -v ${SOURCE}:/src \
         python:${VERSION}-${distro} \
-        bash -c "cd /src; pip install poetry && poetry install -E 'dropbox fitbit fswatcher ftp gmail miflora pushbullet speedtest' && bash"
+        bash -c "cd /src; pip install poetry && poetry install -E 'dropbox fitbit fswatcher ftp miflora speedtest' && bash"
 }
 
 PYVERSION=$1
