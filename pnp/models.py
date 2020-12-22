@@ -1,7 +1,7 @@
 """Data model."""
 from typing import Dict, List, Union
 
-from pydantic import BaseModel, Field  # pylint: disable=no-name-in-module
+from pydantic import BaseModel, Field
 
 from pnp.plugins.pull import Pull
 from pnp.plugins.push import Push

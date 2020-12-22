@@ -29,7 +29,7 @@ def _package_installed():
 @pytest.mark.asyncio
 @pytest.mark.skipif(not _package_installed(), reason="requires package pyaudio, numpy, scipy")
 async def test_for_smoke_with_mode_pearson():
-    config = [{Sound.WavConfig.CONF_PATH: DING_SOUND}]
+    config = [{Sound.WavConfigSchema.CONF_PATH: DING_SOUND}]
     dut = Sound(name='pytest', wav_files=config)
 
     events = []
@@ -52,7 +52,7 @@ async def test_for_smoke_with_mode_pearson():
 @patch('pyaudio.PyAudio', MOCK)
 def test_minimal_wav_file_config():
     config = [
-        {Sound.WavConfig.CONF_PATH: DING_SOUND}
+        {Sound.WavConfigSchema.CONF_PATH: DING_SOUND}
     ]
     dut = Sound(name='pytest', wav_files=config)
 
@@ -70,7 +70,7 @@ def test_minimal_wav_file_config():
 @patch('pyaudio.PyAudio', MOCK)
 def test_minimal_wav_file_config():
     config = [
-        {Sound.WavConfig.CONF_PATH: DING_SOUND}
+        {Sound.WavConfigSchema.CONF_PATH: DING_SOUND}
     ]
     dut = Sound(name='pytest', wav_files=config)
 
@@ -89,13 +89,13 @@ def test_minimal_wav_file_config():
 def test_full_wav_file_config():
     config = [
         {
-            Sound.WavConfig.CONF_PATH: DING_SOUND,
-            Sound.WavConfig.CONF_COOLDOWN: {
-                Sound.WavConfig.CONF_COOLDOWN_EVENT: True,
-                Sound.WavConfig.CONF_COOLDOWN_PERIOD: "1m"
+            Sound.WavConfigSchema.CONF_PATH: DING_SOUND,
+            Sound.WavConfigSchema.CONF_COOLDOWN: {
+                Sound.WavConfigSchema.CONF_COOLDOWN_EVENT: True,
+                Sound.WavConfigSchema.CONF_COOLDOWN_PERIOD: "1m"
             },
-            Sound.WavConfig.CONF_MODE: MODE_STD,
-            Sound.WavConfig.CONF_OFFSET: 0.3
+            Sound.WavConfigSchema.CONF_MODE: MODE_STD,
+            Sound.WavConfigSchema.CONF_OFFSET: 0.3
         }
     ]
     dut = Sound(name='pytest', wav_files=config)

@@ -5,7 +5,8 @@ from abc import abstractmethod
 from datetime import datetime
 from typing import Any, Callable, Optional, Coroutine
 
-import attr
+import pydantic
+import typeguard
 from typeguard import check_argument_types
 
 from pnp import validator
@@ -122,16 +123,21 @@ class Engine(Loggable):
         raise NotImplementedError()
 
 
-@attr.s
-class RetryDirective:
+class RetryDirective(pydantic.BaseModel):
     """Contains directive information for engines on how to proceed in erroneous cases."""
 
     # If set to True, instructs the engine to abort the pull; otherwise retry the pull
-    abort = attr.ib(converter=bool, type=bool, default=True)  # type: bool
+    abort: bool = True
     # Instructs the engine to wait some time before retrying the pull again
-    wait_for = attr.ib(converter=parse_duration_literal, type=int, default=0)  # type: int
+    wait_for: int = 0
     # Just contextual information how many retries occurred so far
-    retry_cnt = attr.ib(converter=int, type=int, default=0)  # type: int
+    retry_cnt: int = 0
+
+    @pydantic.validator('wait_for', pre=True)
+    @classmethod
+    def _wait_for_duration_literal_converter(cls, value: Any) -> int:
+        typeguard.check_type('wait_for', value, DurationLiteral)  # type: ignore
+        return parse_duration_literal(value)
 
 
 @auto_str(__repr__=True)

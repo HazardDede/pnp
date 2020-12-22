@@ -3,7 +3,7 @@
 import logging
 from functools import partial
 
-import attr
+import pydantic
 import schema as sc
 
 from pnp import validator
@@ -149,15 +149,27 @@ class Sound(SyncPull):
     See Also:
         https://pnp.readthedocs.io/en/stable/plugins/index.html#sensor-sound
     """
-    @attr.s
-    class WavConfig:
+    class WavConfig(pydantic.BaseModel):
         """Wav configuration entity."""
-        wav_file = attr.ib(type=WavFile)
-        mode = attr.ib()
-        offset = attr.ib()
-        cooldown_period = attr.ib()
-        cooldown_event = attr.ib()
-        notify = attr.ib(repr=False)
+        wav_file: WavFile
+        mode: str
+        offset: float
+        cooldown_period: int
+        cooldown_event: bool
+        notify: Cooldown
+
+        class Config:
+            """Pydantic config."""
+            arbitrary_types_allowed = True
+
+        @pydantic.validator('mode')
+        @classmethod
+        def _check_mode(cls, mode: str) -> str:
+            validator.one_of(ALLOWED_MODES, mode=mode)
+            return mode
+
+    class WavConfigSchema:
+        """Wav configuration configuration schema."""
 
         CONF_COOLDOWN = 'cooldown'
         CONF_COOLDOWN_PERIOD = 'period'
@@ -188,11 +200,6 @@ class Sound(SyncPull):
         WAV_FILE_LIST_SCHEMA = sc.Schema([WAV_FILE_SCHEMA])
 
         @classmethod
-        def _check_mode(cls, mode):
-            validator.one_of(ALLOWED_MODES, mode=mode)
-            return mode
-
-        @classmethod
         def from_dict(cls, dct_config, base_path, notify_fun, cooldown_fun):
             """Loads a wav configuration from a dictionary."""
             config = cls.WAV_FILE_SCHEMA.validate(dct_config)
@@ -201,9 +208,9 @@ class Sound(SyncPull):
             cooldown_cb = None
             if cooldown_cfg[cls.CONF_COOLDOWN_EVENT]:
                 cooldown_cb = partial(cooldown_fun, file_name=wav_file.file_name)
-            return cls(
+            return Sound.WavConfig(
                 wav_file=wav_file,
-                mode=cls._check_mode(config[cls.CONF_MODE]),
+                mode=config[cls.CONF_MODE],
                 offset=config[cls.CONF_OFFSET],
                 cooldown_period=cooldown_cfg[cls.CONF_COOLDOWN_PERIOD],
                 cooldown_event=cooldown_cfg[cls.CONF_COOLDOWN_EVENT],
@@ -233,7 +240,7 @@ class Sound(SyncPull):
     def __init__(self, wav_files, device_index=None, ignore_overflow=False,
                  **kwargs):
         super().__init__(**kwargs)
-        self.wav_files = self.WavConfig.from_list(
+        self.wav_files = self.WavConfigSchema.from_list(
             wav_files, self.base_path, self.notify, self._on_cooldown
         )
         self.device_index = device_index and int(device_index)

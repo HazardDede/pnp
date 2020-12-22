@@ -48,3 +48,8 @@ async def test_advanced_retry_handler_infinite_retries():
     dut = eng.AdvancedRetryHandler(retry_wait="2m", max_retries=None, reset_retry_threshold=1)
     for i in range(100):
         assert await dut.handle_error() == eng.RetryDirective(abort=False, wait_for=120, retry_cnt=i + 1)
+
+
+def test_retry_directive():
+    assert eng.RetryDirective() == eng.RetryDirective(abort=True, wait_for=0, retry_cnt=0)
+    assert eng.RetryDirective(wait_for='1m') == eng.RetryDirective(abort=True, wait_for=60, retry_cnt=0)
