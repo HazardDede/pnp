@@ -3,6 +3,7 @@
 import asyncio
 import copy
 import functools
+import inspect
 from abc import abstractmethod
 from typing import Any, Callable, Optional, Dict, Iterable, Union, cast, List, Tuple, Awaitable
 
@@ -151,6 +152,14 @@ def _lookup(instance: object, lookups: Union[str, Iterable[str]]) -> Optional[An
 class Push(Plugin):
     """Base class for all push plugins."""
 
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self._assert_push_compat()
+
+    def _assert_push_compat(self) -> None:
+        self._assert_abstract_compat((SyncPush, AsyncPush))
+        self._assert_fun_compat('_push')
+
     def _parse_envelope_value(
             self, name: str, envelope: Optional[Envelope] = None,
             parse_fun: Optional[Callable[[Any], Any]] = None,
@@ -257,11 +266,10 @@ class Push(Plugin):
 
     async def push(self, payload: Payload) -> Payload:
         """Transforms the payload and/or pushes it to a sink."""
-        if isinstance(self, SyncPush):
-            return await run_sync(self._push, payload)  # pylint: disable=no-member
-        if isinstance(self, AsyncPush):
-            return await self._push(payload)  # pylint: disable=no-member
-        raise TypeError("Instance is neither a SyncPush nor an AsyncPush")
+        push_fun = getattr(self, '_push')
+        if inspect.iscoroutinefunction(push_fun):
+            return await push_fun(payload)
+        return await run_sync(push_fun, payload)
 
 
 class SyncPush(Push):

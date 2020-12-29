@@ -1,10 +1,11 @@
 """Basic stuff for implementing pull plugins."""
 
 import asyncio
+import inspect
 import multiprocessing as proc
 from abc import abstractmethod
 from datetime import datetime
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable, Optional
 
 from schedule import Scheduler  # type: ignore
 from typeguard import typechecked
@@ -42,6 +43,9 @@ class Pull(Plugin):
     """
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
+        self._assert_pull_compat()
+        self._assert_pull_now_compat()
+
         self._stopped = proc.Event()
         self._callback: Optional[PullCallback] = None
 
@@ -63,7 +67,7 @@ class Pull(Plugin):
         return isinstance(self, (AsyncPullNowMixin, SyncPullNowMixin))
 
     @typechecked
-    def callback(self, value: Union[PullCallback]) -> None:
+    def callback(self, value: PullCallback) -> None:
         """Sets the payload callback on this instance."""
         self._callback = value
 
@@ -72,33 +76,41 @@ class Pull(Plugin):
         if self._callback:
             self._callback(self, payload)
 
+    def _assert_pull_compat(self) -> None:
+        self._assert_abstract_compat((SyncPull, AsyncPull))
+        self._assert_fun_compat('_pull')
+        self._assert_fun_compat('_stop')
+
+    def _assert_pull_now_compat(self) -> None:
+        that = self
+        if isinstance(that, (SyncPullNowMixin, AsyncPullNowMixin)):
+            self._assert_fun_compat('_pull_now')
+
     async def pull(self) -> None:
         """Performs the actual data pulling."""
-        if isinstance(self, SyncPull):
-            return await run_sync(self._pull)  # pylint: disable=no-member
-        if isinstance(self, AsyncPull):
-            return await self._pull()  # pylint: disable=no-member
-        raise TypeError("Instance is neither a SyncPull nor an AsyncPull")
+        pull_fun = getattr(self, '_pull')
+        if inspect.iscoroutinefunction(pull_fun):
+            await pull_fun()
+            return
+        await run_sync(pull_fun)
 
     async def pull_now(self) -> None:
         """Performs a pull now. Be careful: Not every pull does support this. Make sure to call
         supports_pull_now() previously to check the compatibility.
         """
-        if isinstance(self, SyncPullNowMixin):
-            return await run_sync(self._pull_now)  # pylint: disable=no-member
-        if isinstance(self, AsyncPullNowMixin):
-            return await self._pull_now()  # pylint: disable=no-member
-
-        raise TypeError("Instance is neither a SyncPullNowMixin nor an AsyncPullNowMixin")
+        pull_now_fun = getattr(self, '_pull_now')
+        if inspect.iscoroutinefunction(pull_now_fun):
+            await pull_now_fun()
+            return
+        await run_sync(pull_now_fun)
 
     async def stop(self) -> None:
         """Stops the execution of this pull."""
-        if isinstance(self, SyncPull):
-            return await run_sync(self._stop)  # pylint: disable=no-member
-        if isinstance(self, AsyncPull):
-            return await self._stop()  # pylint: disable=no-member
-
-        raise TypeError("Instance is neither a SyncPull nor an AsyncPull")
+        stop_fun = getattr(self, '_stop')
+        if inspect.iscoroutinefunction(stop_fun):
+            await stop_fun()
+            return
+        await run_sync(stop_fun)
 
 
 class SyncPull(Pull):
@@ -175,6 +187,8 @@ class Polling(AsyncPull, AsyncPullNowMixin):
     ):
         super().__init__(**kwargs)
 
+        self._assert_polling_compat()
+
         if interval is None:
             # No scheduled execution. Use endpoint `/trigger` of api to execute.
             self._poll_interval = None
@@ -193,6 +207,10 @@ class Polling(AsyncPull, AsyncPullNowMixin):
         self._is_running = False
         self._scheduler: Optional[Scheduler] = None
         self._instant_run = try_parse_bool(instant_run, False)
+
+    def _assert_polling_compat(self) -> None:
+        self._assert_abstract_compat((SyncPolling, AsyncPolling))
+        self._assert_fun_compat('_poll')
 
     async def _pull(self) -> None:
         def _callback() -> None:
@@ -275,12 +293,10 @@ class Polling(AsyncPull, AsyncPullNowMixin):
 
     async def poll(self) -> Payload:
         """Performs polling."""
-        if isinstance(self, SyncPolling):
-            return await run_sync(self._poll)  # pylint: disable=no-member
-        if isinstance(self, AsyncPolling):
-            return await self._poll()  # pylint: disable=no-member
-
-        raise TypeError("Instance is neither a SyncPolling nor an AsyncPolling")
+        poll_fun = getattr(self, '_poll')
+        if inspect.iscoroutinefunction(poll_fun):
+            return await poll_fun()
+        return await run_sync(poll_fun)
 
 
 class SyncPolling(Polling):

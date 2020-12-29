@@ -1,6 +1,6 @@
 import pytest
 
-from pnp.plugins.push import SyncPush
+from pnp.plugins.push import SyncPush, Push, AsyncPush
 
 
 class Foo(SyncPush):
@@ -40,6 +40,9 @@ class Foo(SyncPush):
     def test_not_in_instance_not_in_envelope(self):
         assert self._parse_envelope_value('d', {}) is None  # Not existent either in envelope nor instance
 
+    def _push(self, payload):
+        pass
+
 
 @pytest.mark.parametrize("name,test_fun", [
     (name, getattr(Foo(), name))
@@ -48,3 +51,36 @@ class Foo(SyncPush):
 ])
 def test_parse_envelope(name, test_fun):
     test_fun()
+
+
+def test_compat_no_valid_subclass():
+    class NoAbstract(Push):
+        pass
+
+    class SyncAbstract(SyncPush):
+        def _push(self, payload):
+            pass
+
+    class AsyncAbstract(SyncPush):
+        async def _push(self, payload):
+            pass
+
+    with pytest.raises(TypeError, match="Instance is not a valid plugin subclass"):
+        NoAbstract(name='pytest')
+
+    SyncAbstract(name='pytest')
+    AsyncAbstract(name='pytest')
+
+
+def test_compat_no_pull_method():
+    class NoPushMethod(SyncPush):
+        pass
+
+    class NoPushMethodAsync(AsyncPush):
+        pass
+
+    with pytest.raises(TypeError, match="Can't instantiate abstract class"):
+        NoPushMethod(name='pytest')
+
+    with pytest.raises(TypeError, match="Can't instantiate abstract class"):
+        NoPushMethodAsync(name='pytest')
