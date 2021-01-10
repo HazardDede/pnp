@@ -18,6 +18,8 @@ class Server(SyncPull):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/ftp.Server/index.md
     """
+    __REPR_FIELDS__ = ['directory', 'events', 'max_cons', 'max_cons_ip', 'password', 'port', 'user']
+
     EXTRA = 'ftp'
 
     EVENT_CONNECT = 'connect'

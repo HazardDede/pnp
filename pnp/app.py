@@ -9,11 +9,13 @@ from pnp.config import load_config, Configuration
 from pnp.engines import DEFAULT_ENGINE, Engine
 from pnp.models import TaskSet
 from pnp.selector import PayloadSelector
-from pnp.utils import Loggable
+from pnp.utils import Loggable, ReprMixin
 
 
-class Application(Loggable):
+class Application(Loggable, ReprMixin):
     """The wrapper that knows about tasks and engine."""
+
+    __REPR_FIELDS__ = ['_api', '_engine', '_tasks']
 
     @typechecked
     def __init__(self, config: Configuration):

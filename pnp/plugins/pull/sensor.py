@@ -18,7 +18,6 @@ from pnp.shared.sound import (
     ALLOWED_MODES
 )
 from pnp.utils import (
-    auto_str_ignore,
     parse_duration_literal,
     Cooldown
 )
@@ -32,6 +31,8 @@ class DHT(SyncPolling):
     See Also:
         https://pnp.readthedocs.io/en/stable/plugins/index.html#sensor-dht
     """
+    __REPR_FIELDS__ = ['data_gpio', 'device', 'humidity_offset', 'temp_offset']
+
     EXTRA = 'dht'
 
     def __init__(self, device='dht22', data_gpio=17, humidity_offset=0.0, temp_offset=0.0,
@@ -71,7 +72,6 @@ class DHT(SyncPolling):
         }
 
 
-@auto_str_ignore(['_poller'])
 class MiFlora(SyncPolling):
     """
     Periodically polls a xiaomi miflora plant sensor for sensor readings via btle.
@@ -79,6 +79,8 @@ class MiFlora(SyncPolling):
     See Also:
         https://pnp.readthedocs.io/en/stable/plugins/index.html#sensor-miflora
     """
+    __REPR_FIELDS__ = ['adapter', 'mac']
+
     EXTRA = 'miflora'
 
     def __init__(self, mac, adapter='hci0', **kwargs):
@@ -139,7 +141,6 @@ class MiFlora(SyncPolling):
 
 
 # pylint: disable=too-many-instance-attributes
-@auto_str_ignore(ignore_list=[])
 class Sound(SyncPull):
     """
     Listens to the microphone in realtime and searches the stream for a specific sound pattern.
@@ -229,6 +230,8 @@ class Sound(SyncPull):
                 cls.from_dict(wav_file, base_path, notify_fun, cooldown_fun)
                 for wav_file in validated
             ]
+
+    __REPR_FIELDS__ = ['device_index', 'ignore_overflow', 'wav_files']
 
     EXTRA = 'sound'
 

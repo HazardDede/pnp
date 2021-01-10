@@ -15,8 +15,6 @@ class Stats(SyncPolling):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/monitor.Stats/index.md
     """
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
 
     @staticmethod
     def _root_path():

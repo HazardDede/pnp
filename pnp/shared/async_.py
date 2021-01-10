@@ -7,9 +7,12 @@ from pnp import validator
 from pnp.typing import T
 from pnp.utils import StopCycleError
 
+SleepInterruptPredicate = Callable[[], Coroutine[Any, Any, bool]]
+SleepInterruptCallback = Callable[[], Coroutine[Any, Any, None]]
+
 
 async def async_interruptible_sleep(
-    wait: float, callback: Callable[[], Coroutine[Any, Any, None]], interval: float = 0.5
+    wait: float, callback: SleepInterruptCallback, interval: float = 0.1
 ) -> None:
     """
     Waits the specified amount of time. The waiting can be interrupted when the callback raises a
@@ -31,8 +34,7 @@ async def async_interruptible_sleep(
 
 
 async def async_sleep_until_interrupt(
-    sleep_time: float, interrupt_fun: Callable[[], Coroutine[Any, Any, bool]],
-    interval: float = 0.5
+    sleep_time: float, interrupt_fun: SleepInterruptPredicate, interval: float = 0.1
 ) -> None:
     """Call this method to sleep an interruptable sleep until the interrupt co-routine returns
     True."""

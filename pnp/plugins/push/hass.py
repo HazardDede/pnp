@@ -2,10 +2,8 @@
 
 from pnp.plugins.push import SyncPush
 from pnp.shared.hass import HassApi
-from pnp.utils import auto_str_ignore
 
 
-@auto_str_ignore(['_client', 'token'])
 class Service(SyncPush):
     """
     Calls a home assistant service providing the payload as service-data.
@@ -13,6 +11,8 @@ class Service(SyncPush):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/hass.Service/index.md
     """
+
+    __REPR_FIELDS__ = ['domain', 'service', 'timeout', 'url']
 
     def __init__(self, url, token, domain, service, timeout=10, **kwargs):
         super().__init__(**kwargs)

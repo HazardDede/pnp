@@ -1,9 +1,9 @@
 """Contains base classes for engines."""
 
 import copy
-from abc import abstractmethod
+from abc import abstractmethod, ABCMeta
 from datetime import datetime
-from typing import Any, Callable, Optional, Coroutine
+from typing import Any, Callable, Optional, Coroutine, Iterable
 
 import pydantic
 import typeguard
@@ -15,8 +15,12 @@ from pnp.selector import PayloadSelector
 from pnp.shared.async_ import run_sync
 from pnp.typing import Payload
 from pnp.utils import (
-    Loggable, Singleton, parse_duration_literal, DurationLiteral, auto_str,
-    is_iterable_but_no_str, auto_str_ignore
+    Loggable,
+    Singleton,
+    parse_duration_literal,
+    DurationLiteral,
+    is_iterable_but_no_str,
+    ReprMixin
 )
 
 
@@ -34,8 +38,7 @@ OnStartedCallback = Callable[[], Coroutine[Any, Any, None]]
 OnStoppedCallback = Callable[[], Coroutine[Any, Any, None]]
 
 
-@auto_str(__repr__=True)
-class Engine(Loggable):
+class Engine(Loggable, ReprMixin, metaclass=ABCMeta):
     """
     An engine is responsible for launching a defined set of tasks and the communication between
     pulls and and their associated pushes.
@@ -43,6 +46,8 @@ class Engine(Loggable):
     A call to to an engine's `run(...)` method will block the calling thread until the engine
     decides the job is done (normally an external SIGTERM occurs)
     """
+    __REPR_FIELDS__ = 'is_running'
+
     def __init__(self) -> None:
         self._is_running = False
         self._tasks: Optional[TaskSet] = None
@@ -140,15 +145,19 @@ class RetryDirective(pydantic.BaseModel):
         return parse_duration_literal(value)
 
 
-@auto_str(__repr__=True)
-class RetryHandler:
+class RetryHandler(ReprMixin, Loggable, metaclass=ABCMeta):
     """
     A retry handler comes into play when a pull component exits unexpectedly whether by breaking
     the actual loop or by error. The `RetryHandler` decides how to proceed further (wait and retry
     the pull or more sophisticated logic).
     """
+    __REPR_FIELDS__: Iterable[str] = []
+
     def __init__(self, **kwargs: Any):
-        pass
+        super().__init__()
+
+        for unused_param in kwargs:
+            self.logger.warning("Argument '%s' is unused", unused_param)
 
     @abstractmethod
     async def handle_error(self) -> RetryDirective:
@@ -171,6 +180,8 @@ class NoRetryHandler(RetryHandler):
 class SimpleRetryHandler(RetryHandler):
     """Simply instructs the engine to wait for the given amount of time after an error."""
 
+    __REPR_FIELDS__ = ['retry_wait', 'retry_count']
+
     def __init__(self, retry_wait: DurationLiteral = 60, **kwargs: Any):
         super().__init__(**kwargs)
         self.retry_wait = parse_duration_literal(retry_wait)
@@ -184,6 +195,8 @@ class SimpleRetryHandler(RetryHandler):
 class LimitedRetryHandler(SimpleRetryHandler):
     """Instructs the engine to wait for the given amout of time after an error. If the specified
      `max_retries` is hit the engine is instructed to abort the `pull`."""
+
+    __REPR_FIELDS__ = ['max_retries']
 
     def __init__(self, max_retries: Optional[int] = 3, **kwargs: Any):
         super().__init__(**kwargs)
@@ -200,10 +213,11 @@ class LimitedRetryHandler(SimpleRetryHandler):
         return RetryDirective(abort=abort, wait_for=self.retry_wait, retry_cnt=self.retry_count)
 
 
-@auto_str_ignore(['last_error'])
 class AdvancedRetryHandler(LimitedRetryHandler):
     """Works like the `LimitedRetryHandler` but will reset the retry count when a given amount of
     time between the current failure and the previous failure has passed."""
+
+    __REPR_FIELDS__ = ['reset_retry_threshold']
 
     def __init__(self, reset_retry_threshold: DurationLiteral = 60, **kwargs: Any):
         super().__init__(**kwargs)

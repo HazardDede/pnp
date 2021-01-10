@@ -33,6 +33,8 @@ class FileDump(SyncPush):
         ...         assert fs.read() == "I am the content"
 
     """
+    __REPR_FIELDS__ = ['binary_mode', 'directory', 'extension', 'file_name']
+
     def __init__(self, directory='.', file_name=None, extension='.dump', binary_mode=True,
                  **kwargs):
         super().__init__(**kwargs)
@@ -86,6 +88,7 @@ class Zipper(SyncPush):
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/fs.Zipper/index.md
 
     """
+    __REPR_FIELDS__ = ['archive_name', 'out_path', 'source']
 
     def __init__(self, source=None, out_path=None, archive_name=None, **kwargs):
         super().__init__(**kwargs)

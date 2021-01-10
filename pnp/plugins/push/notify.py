@@ -6,10 +6,9 @@ import slacker
 
 from pnp.plugins.push import SyncPush, enveloped, parse_envelope
 from pnp.typing import Envelope, Payload
-from pnp.utils import auto_str_ignore, make_list
+from pnp.utils import make_list
 
 
-@auto_str_ignore(['api_key', '_slacker', '_user_cache'])
 class Slack(SyncPush):
     """
     Sends a message to slack. Optionally you can specify users to ping.
@@ -17,6 +16,8 @@ class Slack(SyncPush):
     See Also:
         https://pnp.readthedocs.io/en/stable/plugins/index.html#notify-slack
     """
+    __REPR_FIELDS__ = ['channel', 'emoji', 'ping_users', 'username']
+
     DEFAULT_USERNAME = 'PnP'
     DEFAULT_EMOJI = ':robot:'
 

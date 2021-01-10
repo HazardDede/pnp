@@ -13,9 +13,13 @@ from pnp.plugins.push.simple import Echo
 
 def _run_engine(engine, tasks):
     async def run_engine():
-        await engine.start(tasks)
-        while not engine.stopped:
-            await asyncio.sleep(0.1)
+        try:
+            await engine.start(tasks)
+            while engine.is_running:
+                await asyncio.sleep(0.1)
+        except:
+            import traceback
+            traceback.print_exc()
 
     loop = asyncio.new_event_loop()
     loop.run_until_complete(run_engine())
@@ -39,3 +43,9 @@ async def test_async_engine_for_smoke():
     finally:
         if t.is_alive():
             assert False
+
+
+def test_async_engine_repr():
+    dut = AsyncEngine(retry_handler=NoRetryHandler())
+    assert repr(dut) == "AsyncEngine(is_running=False, retry_handler=NoRetryHandler())"
+    assert str(dut) == "AsyncEngine(is_running=False, retry_handler=NoRetryHandler())"

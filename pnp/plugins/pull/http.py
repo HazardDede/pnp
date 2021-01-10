@@ -22,6 +22,8 @@ class Server(AsyncPull):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/http.Server/index.md
     """
+    __REPR_FIELDS__ = ['allowed_methods', 'prefix_path']
+
     def __init__(
             self, prefix_path: str, allowed_methods: Union[str, Iterable[str]] = 'GET',
             **kwargs: Any

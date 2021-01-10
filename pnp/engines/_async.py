@@ -9,14 +9,15 @@ from pnp.plugins.pull import SyncPull
 from pnp.plugins.push import Push
 from pnp.shared.async_ import async_sleep_until_interrupt
 from pnp.typing import Payload
-from pnp.utils import auto_str_ignore, PY37
+from pnp.utils import PY37
 
 
-@auto_str_ignore(['loop', 'tasks'])
 class AsyncEngine(Engine):
     """Asynchronous engine using asyncio."""
 
-    HEARTBEAT_INTERVAL = 1.0
+    __REPR_FIELDS__ = 'retry_handler'
+
+    HEARTBEAT_INTERVAL = 0.5
 
     def __init__(
             self, retry_handler: Optional[RetryHandler] = None

@@ -21,6 +21,7 @@ class PortProbe(SyncPolling):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/net.PortProbe/index.md
     """
+    __REPR_FIELDS__ = ['port', 'server', 'timeout']
 
     CONST_SERVER = 'server'
     CONST_PORT = 'port'
@@ -126,6 +127,7 @@ class SSLVerify(SyncPolling):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/net.SSLVerify/index.md
     """
+    __REPR_FIELDS__ = ['host', 'timeout']
 
     def __init__(self, host: str, timeout: float = 3.0, **kwargs):
         super().__init__(**kwargs)

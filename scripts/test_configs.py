@@ -65,6 +65,8 @@ def test_bundled_config(config_file):
     with modified_environ(**ENV):
         app = Application.from_file(config_file)
         assert app is not None
+        assert str(app)
+        assert repr(app)
 
 
 if __name__ == '__main__':

@@ -6,10 +6,9 @@ import json
 import asyncws
 
 from pnp.plugins.pull import AsyncPull
-from pnp.utils import make_list, auto_str_ignore, include_or_exclude, wildcards_to_regex
+from pnp.utils import make_list, include_or_exclude, wildcards_to_regex
 
 
-@auto_str_ignore(['token', '_websocket', '_loop', '_include_regex', '_exclude_regex'])
 class State(AsyncPull):
     """
     Connects to the home assistant websocket api and listens for state changes.
@@ -21,6 +20,7 @@ class State(AsyncPull):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/hass.State/index.md
     """
+    __REPR_FIELDS__ = ['exclude', 'include', 'url']
 
     def __init__(self, url, token, include=None, exclude=None, **kwargs):
         super().__init__(**kwargs)

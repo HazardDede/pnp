@@ -6,7 +6,7 @@ from typing import Union, Any
 from pnp import validator
 from pnp.plugins.push import enveloped, SyncPush, AsyncPush
 from pnp.shared.exc import TemplateError
-from pnp.utils import parse_duration_literal, make_list
+from pnp.utils import parse_duration_literal, make_list, parse_duration_literal_float
 
 
 class Echo(AsyncPush):
@@ -24,9 +24,6 @@ class Echo(AsyncPush):
         >>> loop.run_until_complete(dut.push("I will be logged"))
         'I will be logged'
     """
-
-    def __init__(self, **kwargs):  # pylint: disable=useless-super-delegation
-        super().__init__(**kwargs)
 
     @enveloped
     async def _push(self, envelope, payload):  # pylint: disable=arguments-differ
@@ -66,12 +63,12 @@ class Wait(AsyncPush):
     """
     Performs a sleep operation and wait for some time to go by.
     """
+    __REPR_FIELDS__ = ['waiting_interval']
+
     def __init__(self, wait_for: Union[str, float, int], **kwargs: Any):
         super().__init__(**kwargs)
-        if isinstance(wait_for, float):
-            self.waiting_interval = float(wait_for)
-        else:
-            self.waiting_interval = float(parse_duration_literal(wait_for))
+
+        self.waiting_interval = parse_duration_literal_float(wait_for)
 
     async def _push(self, payload):
         import asyncio
@@ -87,6 +84,8 @@ class Execute(SyncPush):
 
     Will return the exit code of the command and optionally the output from stdout and stderr.
     """
+    __REPR_FIELDS__ = ['_args', '_capture', '_command', '_cwd', '_timeout']
+
     def __init__(self, command, args=None, cwd=None, capture=True, timeout="5s", **kwargs):
         super().__init__(**kwargs)
         self._command = str(command) if command else None

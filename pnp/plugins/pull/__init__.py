@@ -17,7 +17,6 @@ from pnp.shared.async_ import (
 )
 from pnp.typing import Payload
 from pnp.utils import (
-    auto_str_ignore,
     parse_duration_literal,
     try_parse_bool,
     DurationLiteral,
@@ -36,11 +35,11 @@ class StopPollingError(Exception):
 PullCallback = Callable[['Pull', Payload], None]
 
 
-@auto_str_ignore(['_stopped', '_callback'])
 class Pull(Plugin):
     """
     Base class for pull plugins.
     """
+
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
         self._assert_pull_compat()
@@ -173,7 +172,6 @@ class AsyncPullNowMixin:
         raise NotImplementedError()
 
 
-@auto_str_ignore(['_scheduler', 'is_cron', '_is_running', '_instant_run'])
 class Polling(AsyncPull, AsyncPullNowMixin):
     """
     Base class for polling plugins.
@@ -181,6 +179,7 @@ class Polling(AsyncPull, AsyncPullNowMixin):
     You may specify duration literals such as 60 (60 secs), 1m, 1h (...) to realize a periodic
     polling or cron expressions (*/1 * * * * > every min) to realize cron like behaviour.
     """
+    __REPR_FIELDS__ = ['interval', 'is_cron']
 
     def __init__(
         self, interval: Optional[DurationLiteral] = 60, instant_run: bool = False, **kwargs: Any
@@ -192,16 +191,19 @@ class Polling(AsyncPull, AsyncPullNowMixin):
         if interval is None:
             # No scheduled execution. Use endpoint `/trigger` of api to execute.
             self._poll_interval = None
+            self.interval = None
             self.is_cron = False
         else:
             try:
                 # Literals such as 60s, 1m, 1h, ...
                 self._poll_interval = parse_duration_literal(interval)
+                self.interval = interval
                 self.is_cron = False
             except TypeError:
                 # ... or a cron-like expression is valid
                 from cronex import CronExpression  # type: ignore
                 self._cron_interval = CronExpression(interval)
+                self.interval = self._cron_interval
                 self.is_cron = True
 
         self._is_running = False

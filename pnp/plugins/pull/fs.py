@@ -17,6 +17,10 @@ class FileSystemWatcher(SyncPull):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/fs.FileSystemWatcher/index.md
     """
+    __REPR_FIELDS__ = [
+        'base64', 'case_sensitive', 'defer_modified', 'events', 'ignore_directories',
+        'ignore_patterns', 'load_file', 'mode', 'path', 'patterns', 'recursive'
+    ]
 
     EXTRA = 'fswatcher'
     EVENT_TYPE_MOVED = 'moved'
@@ -156,6 +160,8 @@ class Size(SyncPolling):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/fs.FileSize/index.md
     """
+
+    __REPR_FIELDS__ = ['fail_on_error', 'file_paths']
 
     def __init__(self, paths, fail_on_error=True, **kwargs):
         super().__init__(**kwargs)

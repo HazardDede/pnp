@@ -7,7 +7,7 @@ from pnp import validator
 from pnp.config import load_pull_from_snippet
 from pnp.plugins.pull import AsyncPull, AsyncPullNowMixin, SyncPolling
 from pnp.typing import Payload
-from pnp.utils import make_list, auto_str_ignore, parse_duration_literal_float
+from pnp.utils import make_list, parse_duration_literal_float
 
 
 class Count(AsyncPull):
@@ -19,6 +19,8 @@ class Count(AsyncPull):
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/simple.Count/index.md
 
     """
+    __REPR_FIELDS__ = ['from_cnt', 'interval', 'to_cnt']
+
     DEFAULT_INTERVAL = 5
 
     def __init__(self, from_cnt=0, to_cnt=None, wait=None, interval=None, **kwargs):
@@ -44,7 +46,6 @@ class Count(AsyncPull):
                 break
 
 
-@auto_str_ignore(['jobs'])
 class Cron(SyncPolling):
     """
     Cron-like triggering of dependent pushes.
@@ -52,6 +53,8 @@ class Cron(SyncPolling):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/simple.Cron/index.md
     """
+
+    __REPR_FIELDS__ = 'expressions'
 
     def __init__(self, expressions, **kwargs):
         super().__init__(interval=60, instant_run=False, **kwargs)
@@ -88,7 +91,6 @@ class CustomPolling(SyncPolling):
         return self.scheduled_callable()
 
 
-@auto_str_ignore(['model'])
 class RunOnce(AsyncPull):
     """
     Takes another valid `plugins.pull.Polling` component and immediately executes it and ventures
@@ -98,6 +100,8 @@ class RunOnce(AsyncPull):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/simple.RunOnce/index.md
     """
+
+    __REPR_FIELDS__ = 'model'
 
     def __init__(self, poll=None, **kwargs):
         super().__init__(**kwargs)
@@ -137,6 +141,7 @@ class Repeat(AsyncPull, AsyncPullNowMixin):
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/simple.Repeat/index.md
 
     """
+    __REPR_FIELDS__ = ['interval', 'repeat']
 
     DEFAULT_INTERVAL = 5
 

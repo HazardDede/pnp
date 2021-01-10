@@ -6,7 +6,7 @@ from importlib import import_module
 from typing import Any, Tuple, Optional, Union, cast, Callable, Iterable
 
 from pnp import validator
-from pnp.utils import auto_str, auto_str_ignore
+from pnp.utils import ReprMixin
 
 
 class InstallOptionalExtraError(ImportError):
@@ -39,12 +39,12 @@ class PluginLogAdapter(logging.LoggerAdapter):
         return '[{prefix}] {message}'.format(prefix=self.prefix, message=msg), kwargs
 
 
-@auto_str(__repr__=True)
-@auto_str_ignore(['_base_path'])
-class Plugin(metaclass=ABCMeta):
+class Plugin(ReprMixin, metaclass=ABCMeta):
     """Base class for a plugin."""
 
-    def __init__(self, name: str, base_path: Optional[str] = None, **kwargs: Any):  # pylint: disable=unused-argument
+    __REPR_FIELDS__ = ['name']
+
+    def __init__(self, name: str, base_path: Optional[str] = None, **kwargs: Any):
         """
         Initializer.
 
@@ -56,6 +56,9 @@ class Plugin(metaclass=ABCMeta):
         super().__init__()
         self.name = str(name)
         self._base_path = base_path and str(base_path)
+
+        for arg_name in kwargs:
+            self.logger.warning("Argument %s not consumed by plugin", arg_name)
 
     @property
     def base_path(self) -> str:

@@ -1,10 +1,8 @@
 """MQTT related plugins."""
 
 from pnp.plugins.pull import SyncPull
-from pnp.utils import auto_str_ignore
 
 
-@auto_str_ignore(['_client', 'password'])
 class Subscribe(SyncPull):
     """
     Pulls messages from the specified topic from the given mosquitto mqtt
@@ -14,6 +12,7 @@ class Subscribe(SyncPull):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/mqtt.Subscribe/index.md
     """
+    __REPR_FIELDS__ = ['host', 'port', 'topic', 'user']
 
     def __init__(self, host, topic, port=1883, user=None, password=None, **kwargs):
         super().__init__(**kwargs)

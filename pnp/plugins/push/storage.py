@@ -5,10 +5,9 @@ from typeguard import typechecked
 
 from pnp.plugins import load_optional_module
 from pnp.plugins.push import SyncPush, enveloped, parse_envelope, drop_envelope
-from pnp.utils import auto_str_ignore, get_bytes
+from pnp.utils import get_bytes
 
 
-@auto_str_ignore(['api_key'])
 class Dropbox(SyncPush):
     """
     Uploads provided file to the specified dropbox account.
@@ -16,6 +15,8 @@ class Dropbox(SyncPush):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/storage.Dropbox/index.md
     """
+    __REPR_FIELDS__ = ['create_shared_link', 'target_file_name']
+
     EXTRA = 'dropbox'
 
     def __init__(

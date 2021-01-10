@@ -18,6 +18,7 @@ class Watcher(SyncPull):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/gpio.Watcher/index.md
     """
+    __REPR_FIELDS__ = ['_mode_default', '_pins']
 
     EXTRA = 'gpio'
 

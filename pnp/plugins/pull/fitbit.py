@@ -12,11 +12,13 @@ from ruamel import yaml
 from pnp import validator
 from pnp.plugins import load_optional_module
 from pnp.plugins.pull import AsyncPolling
-from pnp.utils import auto_str_ignore, camel_to_snake, transform_dict_items, make_list, FileLock
+from pnp.utils import camel_to_snake, transform_dict_items, make_list, FileLock
 
 
-@auto_str_ignore(['_tokens', '_client', '_tokens_tstamp', '_client_lock'])
 class _FitbitBase(AsyncPolling):
+
+    __REPR_FIELDS__ = ['_config', '_system']
+
     EXTRA = 'fitbit'
 
     TOKEN_SCHEMA = schema.Schema({
@@ -92,7 +94,6 @@ class _FitbitBase(AsyncPolling):
         raise NotImplementedError()  # pragma: no cover
 
 
-@auto_str_ignore(['_resource_map'])
 class Current(_FitbitBase):
     """
     Requests various latest / current metrics (steps, calories, distance, ...)
@@ -101,6 +102,8 @@ class Current(_FitbitBase):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/fitbit.Current/index.md
     """
+    __REPR_FIELDS__ = '_resources'
+
     def __init__(self, resources: Iterable[str], **kwargs: Any):
         super().__init__(**kwargs)
         self._resource_map = self._create_resource_map()
@@ -171,15 +174,11 @@ class Devices(_FitbitBase):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/fitbit.Devices/index.md
     """
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
     async def _poll(self):
         devices = await asyncio.get_event_loop().run_in_executor(None, self.client.get_devices)
         return [transform_dict_items(d, keys_fun=camel_to_snake) for d in devices]
 
 
-@auto_str_ignore(['_goals_map'])
 class Goal(_FitbitBase):
     """
     Requests your goals (water, steps, ...) from the fitbit api.
@@ -187,6 +186,8 @@ class Goal(_FitbitBase):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/fitbit.Goal/index.md
     """
+    __REPR_FIELDS__ = '_goals'
+
     def __init__(self, goals, **kwargs):
         super().__init__(**kwargs)
         self._goals_map = self._create_goal_map()

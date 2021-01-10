@@ -11,6 +11,8 @@ from pnp.typing import Payload
 class FritzBoxTracker(SyncPolling):
     """Tracks connected / not connected devices using the Fritz!Box api."""
 
+    __REPR_FIELDS__ = ['host', 'offline_delay', 'user', 'whitelist']
+
     EXTRA = 'fritz'
 
     CONF_DEFAULT_IP = '169.254.1.1'  # This IP should be valid for all FRITZ!Box routers.

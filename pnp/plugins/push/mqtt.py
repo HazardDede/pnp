@@ -5,15 +5,16 @@ from dictmentor import DictMentor, ext
 from pnp import validator
 from pnp.plugins.push import SyncPush, enveloped, parse_envelope, drop_envelope
 from pnp.shared.mqtt import MQTTBase
-from pnp.utils import try_parse_bool, auto_str_ignore
+from pnp.utils import try_parse_bool
 
 
-@auto_str_ignore(['configured'])
 class Discovery(MQTTBase, SyncPush):
     """
     See Also:
         https://pnp.readthedocs.io/en/stable/plugins/index.html#mqtt-discovery
     """
+    __REPR_FIELDS__ = ['component', 'discovery_prefix', 'node_id', 'object_id']
+
     SUPPORTED_COMPONENTS = ['alarm_control_panel', 'binary_sensor', 'camera', 'cover', 'fan',
                             'climate', 'light', 'lock', 'sensor', 'switch']
 
@@ -123,6 +124,7 @@ class Publish(MQTTBase, SyncPush):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/mqtt.Publish/index.md
     """
+    __REPR_FIELDS__ = ['multi', 'retain', 'topic']
 
     def __init__(self, topic=None, retain=False, multi=False, **kwargs):
         super().__init__(**kwargs)

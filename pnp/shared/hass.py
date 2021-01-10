@@ -4,11 +4,12 @@ import json
 import urllib.parse as urlparse
 from typing import Any, Optional
 
-from fastcore.basics import basic_repr
 from typeguard import typechecked
 
+from pnp.utils import ReprMixin
 
-class HassApi:
+
+class HassApi(ReprMixin):
     """Utility class to communicate with home assistant via the rest-api."""
 
     METHOD_GET = 'get'
@@ -57,6 +58,3 @@ class HassApi:
                                "\nMessage: {response.text}".format(**locals()))
 
         return response.json()
-
-    __repr__ = basic_repr(__REPR_FIELDS__)
-    __str__ = basic_repr(__REPR_FIELDS__)

@@ -4,10 +4,8 @@ import requests
 from requests.auth import HTTPBasicAuth
 
 from pnp.plugins.pull import PollingError, SyncPolling
-from pnp.utils import auto_str_ignore
 
 
-@auto_str_ignore(['password'])
 class ZwayPoll(SyncPolling):
     """
     Pulls the specified json content from the z-way rest api.
@@ -17,6 +15,8 @@ class ZwayPoll(SyncPolling):
     See Also:
         https://pnp.readthedocs.io/en/stable/plugins/index.html#zway-zwaypoll
     """
+
+    __REPR_FIELDS__ = ['url', 'user']
 
     def __init__(self, url, user, password, **kwargs):
         super().__init__(**kwargs)

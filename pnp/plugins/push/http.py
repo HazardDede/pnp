@@ -4,8 +4,7 @@ import json
 
 import requests
 
-from pnp import utils
-from pnp import validator
+from pnp import utils, validator
 from pnp.plugins.push import SyncPush, PushExecutionError, enveloped, parse_envelope
 
 
@@ -17,6 +16,8 @@ class Call(SyncPush):
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/http.Call/index.md
 
     """
+    __REPR_FIELDS__ = ['fail_on_error', 'method', 'provide_response', 'url']
+
     def __init__(self, url, method='GET', fail_on_error=False, provide_response=False, **kwargs):
         super().__init__(**kwargs)
         self.url = self._parse_url(url)
