@@ -786,40 +786,6 @@ def parse_duration_literal_float(literal: DurationLiteral) -> float:
     return float(parse_duration_literal(literal))
 
 
-def safe_get(dct: Dict[Any, Any], *keys: Any, default: Any = None) -> Any:
-    """
-    Get the value inside the dictionary that is accessible by the given keys or - if a key doesn't
-    exists - the default.
-
-    Examples:
-
-        >>> dct = dict(nested=dict(nested1="a", nested2="b"), val="z")
-        >>> safe_get(dct, "nested", "nested1")
-        'a'
-        >>> safe_get(dct, "nested", "unknown") is None
-        True
-        >>> safe_get(dct, "nested", "unknown", default="default")
-        'default'
-        >>> safe_get(dct) == dict(nested=dict(nested1="a", nested2="b"), val="z")
-        True
-
-    Args:
-        dct: Dictionary to get the value from.
-        *keys (list of hashable type): Keys to lookup.
-        default (object, optional):
-
-    Returns:
-        Returns the requested value inside the probably nested dictionary. If a key does not
-        exists, the function will return the default.
-    """
-    for key in keys:
-        try:
-            dct = dct[key]
-        except KeyError:
-            return default
-    return dct
-
-
 def get_field_mro(cls: type, field_name: str) -> Set[str]:
     """
     Goes up the mro (method resolution order) of the given class and returns the union of a given
