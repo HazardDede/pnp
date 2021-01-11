@@ -12,6 +12,7 @@ from sty import fg, bg, ef, rs
 from pnp import __version__
 from pnp.app import Application
 from pnp.logo import PNP
+from pnp.runner import Runner
 from pnp.utils import get_first_existing_file
 
 
@@ -131,8 +132,9 @@ def _print_tasks_config(config):
 @click.version_option(version=__version__)
 def main(configfile, check, log, log_level, no_log_probe):
     """Pull 'n' Push. Runs or checks the given CONFIGFILE"""
-    print(f"{ef.bold}Welcome to {fg.green}pnp{fg.rs} @ {fg.green}{__version__}{rs.all}")
     print(f"{fg.green}{bg.black}{PNP}{bg.rs}{fg.rs}")
+    print(f"{ef.bold}Welcome to {fg.green}pnp{fg.rs} @ {fg.green}{__version__}{rs.all}")
+    print()
 
     app = Application.from_file(configfile)
     config = app.config
@@ -158,7 +160,8 @@ def main(configfile, check, log, log_level, no_log_probe):
         )
         print(f"{ef.bold}Logging{rs.all}\n{DSPACE}{fg.green}{logging_config_path}{fg.rs}")
 
-        app.start()
+        runner = Runner.choose_runner(app)
+        runner.run()
 
 
 if __name__ == '__main__':

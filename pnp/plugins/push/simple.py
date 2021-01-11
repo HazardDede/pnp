@@ -4,12 +4,12 @@ from functools import partial
 from typing import Union, Any
 
 from pnp import validator
-from pnp.plugins.push import enveloped, PushBase, AsyncPushBase
+from pnp.plugins.push import enveloped, SyncPush, AsyncPush
 from pnp.shared.exc import TemplateError
-from pnp.utils import parse_duration_literal, make_list
+from pnp.utils import parse_duration_literal, make_list, parse_duration_literal_float
 
 
-class Echo(AsyncPushBase):
+class Echo(AsyncPush):
     """
     This push simply logs the `payload` via the `logging` module.
 
@@ -18,22 +18,21 @@ class Echo(AsyncPushBase):
 
     Examples:
 
+        >>> import asyncio
+        >>> loop = asyncio.get_event_loop()
         >>> dut = Echo(name="echo_push")
-        >>> dut.push("I will be logged")
+        >>> loop.run_until_complete(dut.push("I will be logged"))
         'I will be logged'
     """
 
-    def __init__(self, **kwargs):  # pylint: disable=useless-super-delegation
-        super().__init__(**kwargs)
-
     @enveloped
-    async def async_push(self, envelope, payload):  # pylint: disable=arguments-differ
+    async def _push(self, envelope, payload):  # pylint: disable=arguments-differ
         self.logger.info("Got '%s' with envelope '%s'", payload, envelope)
         # Payload as is. With envelope (if any)
         return {'data': payload, **envelope} if envelope else payload
 
 
-class Nop(AsyncPushBase):
+class Nop(AsyncPush):
     """
     Executes no operation at all. A call to push(...) just returns the payload.
     This push is useful when you only need the power of the selector for dependent pushes.
@@ -45,59 +44,48 @@ class Nop(AsyncPushBase):
 
     Examples:
 
+        >>> import asyncio
+        >>> loop = asyncio.get_event_loop()
         >>> dut = Nop(name="nop_push")
-        >>> dut.push('I will be returned unaltered')
+        >>> loop.run_until_complete(dut.push('I will be returned unaltered'))
         'I will be returned unaltered'
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.last_payload = None
 
-    async def async_push(self, payload):
+    async def _push(self, payload):
         self.last_payload = payload
         return payload
 
 
-class Wait(AsyncPushBase):
+class Wait(AsyncPush):
     """
     Performs a sleep operation and wait for some time to go by.
-
-    IMPORTANT: Some engines do have a worker pool (like ThreadEngine).
-        This push will use a slot in this pool and will first release it when the waiting
-        time interval is over. Use with caution.
-
-    See Also:
-        https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/simple.Wait/index.md
     """
+    __REPR_FIELDS__ = ['waiting_interval']
+
     def __init__(self, wait_for: Union[str, float, int], **kwargs: Any):
         super().__init__(**kwargs)
-        if isinstance(wait_for, float):
-            self.waiting_interval = float(wait_for)
-        else:
-            self.waiting_interval = float(parse_duration_literal(wait_for))
 
-    def push(self, payload):
-        import time
-        time.sleep(self.waiting_interval)
-        return payload
+        self.waiting_interval = parse_duration_literal_float(wait_for)
 
-    async def async_push(self, payload):
+    async def _push(self, payload):
         import asyncio
         await asyncio.sleep(self.waiting_interval)
         return payload
 
 
-class Execute(PushBase):
+class Execute(SyncPush):
     """
     Executes a command with given arguments in a shell of the operating system.
     Both `command` and `args` may include placeholders (e.g. `{{placeholder}}`) which are injected
     at runtime by passing the specified payload after selector transformation.
 
     Will return the exit code of the command and optionally the output from stdout and stderr.
-
-    See Also:
-        https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/simple.Execute/index.md
     """
+    __REPR_FIELDS__ = ['_args', '_capture', '_command', '_cwd', '_timeout']
+
     def __init__(self, command, args=None, cwd=None, capture=True, timeout="5s", **kwargs):
         super().__init__(**kwargs)
         self._command = str(command) if command else None
@@ -173,7 +161,7 @@ class Execute(PushBase):
             proc.stdout.close()
             proc.stderr.close()
 
-    def push(self, payload):
+    def _push(self, payload):
         if isinstance(payload, dict):
             subs = payload
         else:

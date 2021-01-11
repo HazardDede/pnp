@@ -2,9 +2,9 @@
 
 import logging
 import os
-from typing import Any, Tuple
+from typing import Any, Tuple, Optional
 
-import attr
+from typeguard import typechecked
 
 from pnp import validator
 
@@ -20,13 +20,14 @@ MODE_STD = 'std'
 ALLOWED_MODES = [MODE_PEARSON, MODE_STD]
 
 
-@attr.s
 class WavFile:
     """Wav file representation including. FFT representation."""
-    abs_path = attr.ib()  # type: str
-    _file_name = attr.ib(default=None, repr=False)  # type: str
-    _signal_fft = attr.ib(default=None, repr=False)  # type: NumpyNDArray
-    _signal_length = attr.ib(default=None, repr=False)  # type: int
+    @typechecked
+    def __init__(self, abs_path: str):
+        self.abs_path = abs_path
+        self._file_name: Optional[str] = None
+        self._signal_fft: Optional[NumpyNDArray] = None
+        self._signal_length: Optional[int] = None
 
     @property
     def file_name(self) -> str:

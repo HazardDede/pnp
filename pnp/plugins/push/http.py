@@ -4,12 +4,11 @@ import json
 
 import requests
 
-from pnp import utils
-from pnp import validator
-from pnp.plugins.push import PushBase, PushExecutionError, enveloped, parse_envelope
+from pnp import utils, validator
+from pnp.plugins.push import SyncPush, PushExecutionError, enveloped, parse_envelope
 
 
-class Call(PushBase):
+class Call(SyncPush):
     """
     Makes a request to a http resource.
 
@@ -17,6 +16,8 @@ class Call(PushBase):
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/http.Call/index.md
 
     """
+    __REPR_FIELDS__ = ['fail_on_error', 'method', 'provide_response', 'url']
+
     def __init__(self, url, method='GET', fail_on_error=False, provide_response=False, **kwargs):
         super().__init__(**kwargs)
         self.url = self._parse_url(url)
@@ -42,7 +43,7 @@ class Call(PushBase):
     @parse_envelope('url')
     @parse_envelope('method')
     @parse_envelope('fail_on_error')
-    def push(self, url, method, fail_on_error, envelope, payload):  # pylint: disable=arguments-differ
+    def _push(self, url, method, fail_on_error, envelope, payload):  # pylint: disable=arguments-differ
         if isinstance(payload, (dict, list, tuple)):
             try:
                 payload = json.dumps(payload)

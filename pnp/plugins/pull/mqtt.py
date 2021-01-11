@@ -1,11 +1,9 @@
 """MQTT related plugins."""
 
-from pnp.plugins.pull import PullBase
-from pnp.utils import auto_str_ignore
+from pnp.plugins.pull import SyncPull
 
 
-@auto_str_ignore(['_client', 'password'])
-class Subscribe(PullBase):
+class Subscribe(SyncPull):
     """
     Pulls messages from the specified topic from the given mosquitto mqtt
     broker (identified by host and port).
@@ -14,6 +12,7 @@ class Subscribe(PullBase):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/mqtt.Subscribe/index.md
     """
+    __REPR_FIELDS__ = ['host', 'port', 'topic', 'user']
 
     def __init__(self, host, topic, port=1883, user=None, password=None, **kwargs):
         super().__init__(**kwargs)
@@ -51,12 +50,12 @@ class Subscribe(PullBase):
             payload=msg.payload.decode('utf-8')
         ))
 
-    def stop(self):
-        super().stop()
+    def _stop(self):
+        super()._stop()
         if self._client:
             self._client.disconnect()
 
-    def pull(self):
+    def _pull(self):
         import paho.mqtt.client as paho
 
         self._client = paho.Client()

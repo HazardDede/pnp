@@ -6,11 +6,11 @@ from contextlib import contextmanager
 
 from pnp import validator
 from pnp.plugins import load_optional_module
-from pnp.plugins.pull import PullBase
+from pnp.plugins.pull import SyncPull
 from pnp.utils import is_iterable_but_no_str, make_list
 
 
-class Server(PullBase):
+class Server(SyncPull):
     """
     Runs a ftp server on the specified port to receive and send files by ftp protocol.
     Optionally sets up a simple user/password authentication mechanism.
@@ -18,6 +18,8 @@ class Server(PullBase):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/ftp.Server/index.md
     """
+    __REPR_FIELDS__ = ['directory', 'events', 'max_cons', 'max_cons_ip', 'password', 'port', 'user']
+
     EXTRA = 'ftp'
 
     EVENT_CONNECT = 'connect'
@@ -62,7 +64,7 @@ class Server(PullBase):
 
         self.server = None
 
-    def pull(self):
+    def _pull(self):
         with self._setup_directory() as ftp_directory:
             authorizer = self._setup_auth(ftp_directory)
             handler = self._setup_handler(authorizer)
@@ -75,10 +77,10 @@ class Server(PullBase):
                 import traceback
                 self.logger.warning("%s", traceback.format_exc())
 
-    def stop(self):
+    def _stop(self):
         if self.server:
             self.server.close_all()
-        return super().stop()
+        return super()._stop()
 
     @contextmanager
     def _setup_directory(self):

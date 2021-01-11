@@ -1,10 +1,12 @@
 """Basic stuff for plugins (pull, push, udf)."""
+import inspect
 import logging
+from abc import ABCMeta
 from importlib import import_module
-from typing import Any, Tuple, Optional, Union, cast, Callable
+from typing import Any, Tuple, Optional, Union, cast, Callable, Iterable
 
 from pnp import validator
-from pnp.utils import auto_str, auto_str_ignore
+from pnp.utils import ReprMixin
 
 
 class InstallOptionalExtraError(ImportError):
@@ -37,12 +39,12 @@ class PluginLogAdapter(logging.LoggerAdapter):
         return '[{prefix}] {message}'.format(prefix=self.prefix, message=msg), kwargs
 
 
-@auto_str(__repr__=True)
-@auto_str_ignore(['_base_path'])
-class Plugin:
+class Plugin(ReprMixin, metaclass=ABCMeta):
     """Base class for a plugin."""
 
-    def __init__(self, name: str, base_path: Optional[str] = None, **kwargs: Any):  # pylint: disable=unused-argument
+    __REPR_FIELDS__ = ['name']
+
+    def __init__(self, name: str, base_path: Optional[str] = None, **kwargs: Any):
         """
         Initializer.
 
@@ -54,6 +56,9 @@ class Plugin:
         super().__init__()
         self.name = str(name)
         self._base_path = base_path and str(base_path)
+
+        for arg_name in kwargs:
+            self.logger.warning("Argument %s not consumed by plugin", arg_name)
 
     @property
     def base_path(self) -> str:
@@ -71,6 +76,24 @@ class Plugin:
         component = "{}.{}".format(type(self).__module__, type(self).__name__)
         logger = logging.getLogger(component)
         return cast(logging.Logger, PluginLogAdapter(logger, self.name))
+
+    def _assert_abstract_compat(self, abstracts: Iterable[type]) -> None:
+        if not isinstance(self, tuple(abstracts)):
+            raise TypeError(
+                f"Instance is not a valid plugin subclass. Need to subclass one of {abstracts}"
+            )
+
+    def _assert_fun_compat(self, fun_name: str) -> None:
+        pull_fun = getattr(self, fun_name, None)
+        if not pull_fun:
+            raise AttributeError(
+                f"Instance needs to implement '{fun_name}' method to be a compatible subclass"
+            )
+        if not inspect.ismethod(pull_fun):
+            raise ValueError(
+                f"Attribute {fun_name} of this instance is expected to be an instance method, "
+                f"but is {type(pull_fun)}",
+            )
 
 
 class ClassNotFoundError(Exception):

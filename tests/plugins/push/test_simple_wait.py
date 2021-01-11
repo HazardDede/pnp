@@ -21,12 +21,7 @@ def test_init():
     assert dut.waiting_interval == 60.0
 
 
-def test_push_for_smoke():
-    dut = DUT(0.01)
-    assert dut.push("TEST") == "TEST"
-
-
 @pytest.mark.asyncio
 async def test_async_push_for_smoke():
     dut = DUT(0.01)
-    assert await dut.async_push("TEST") == "TEST"
+    assert await dut.push("TEST") == "TEST"

@@ -43,7 +43,7 @@ def test_poll_for_smoke(speedtest_mock):
     speedtest_mock.return_value.results.dict.return_value = RESPONSE_MOCK
 
     dut = Speedtest(name='pytest')
-    res = dut.poll()
+    res = dut._poll()
 
     assert res == {
         'download_speed_bps': 8889157.466220528,

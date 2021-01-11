@@ -38,7 +38,7 @@ def _move(tmpdir, filename, newname):
     os.rename(os.path.join(tmpdir, filename), os.path.join(tmpdir, newname))
 
 
-def _helper_file_system_watcher(config, operations, expected):
+async def _helper_file_system_watcher(config, operations, expected):
     WAIT_SLEEP = 1
     events = []
 
@@ -48,8 +48,8 @@ def _helper_file_system_watcher(config, operations, expected):
     with tempfile.TemporaryDirectory() as tmpdir:
         dut = FileSystemWatcher(name='pytest', path=tmpdir, **config)
 
-        runner = make_runner(dut, callback)
-        with start_runner(runner):
+        runner = await make_runner(dut, callback)
+        async with start_runner(runner):
             time.sleep(1)
             time.sleep(WAIT_SLEEP)
 
@@ -64,8 +64,9 @@ def _helper_file_system_watcher(config, operations, expected):
     assert all([actual == expected for actual, expected in zip(events, exp)])
 
 
+@pytest.mark.asyncio
 @pytest.mark.skipif(not _required_packages_installed(), reason="requires package watchdog")
-def test_file_system_watcher_pull():
+async def test_file_system_watcher_pull():
     def expected(tmpdir):
         return [
             {'operation': 'created', 'is_directory': False, 'source': os.path.join(tmpdir, 'foo.txt'),
@@ -78,7 +79,7 @@ def test_file_system_watcher_pull():
              'destination': None}
         ]
 
-    _helper_file_system_watcher(
+    await _helper_file_system_watcher(
         config=dict(ignore_directories=True),
         operations=[
             partial(_touch, filename='foo.txt'),
@@ -90,8 +91,9 @@ def test_file_system_watcher_pull():
     )
 
 
+@pytest.mark.asyncio
 @pytest.mark.skipif(not _required_packages_installed(), reason="requires package watchdog")
-def test_file_system_watcher_pull_with_load_file():
+async def test_file_system_watcher_pull_with_load_file():
     def expected(tmpdir):
         return [
             {'operation': 'created', 'is_directory': False, 'source': os.path.join(tmpdir, 'foo.txt'),
@@ -102,7 +104,7 @@ def test_file_system_watcher_pull_with_load_file():
              'destination': None}
         ]
 
-    _helper_file_system_watcher(
+    await _helper_file_system_watcher(
         config=dict(ignore_directories=True, load_file=True),
         operations=[
             partial(_touch, filename='foo.txt'),
@@ -113,8 +115,9 @@ def test_file_system_watcher_pull_with_load_file():
     )
 
 
+@pytest.mark.asyncio
 @pytest.mark.skipif(not _required_packages_installed(), reason="requires package watchdog")
-def test_file_system_watcher_pull_with_deferred_modified_results_in_one_event():
+async def test_file_system_watcher_pull_with_deferred_modified_results_in_one_event():
     def expected(tmpdir):
         return [
             {'operation': 'created', 'is_directory': False, 'source': os.path.join(tmpdir, 'foo.txt'),
@@ -130,7 +133,7 @@ def test_file_system_watcher_pull_with_deferred_modified_results_in_one_event():
         time.sleep(1)
         _modify(tmpdir, filename='foo.txt', content="Last one")
 
-    _helper_file_system_watcher(
+    await _helper_file_system_watcher(
         config=dict(ignore_directories=True, load_file=True, defer_modified=1.5),
         operations=[
             partial(_touch, filename='foo.txt'),
@@ -140,8 +143,9 @@ def test_file_system_watcher_pull_with_deferred_modified_results_in_one_event():
     )
 
 
+@pytest.mark.asyncio
 @pytest.mark.skipif(not _required_packages_installed(), reason="requires package watchdog")
-def test_file_system_watcher_pull_with_defer_modified_correct_sequence():
+async def test_file_system_watcher_pull_with_defer_modified_correct_sequence():
     def expected(tmpdir):
         return [
             {'operation': 'created', 'is_directory': False, 'source': os.path.join(tmpdir, 'foo.txt'),
@@ -159,7 +163,7 @@ def test_file_system_watcher_pull_with_defer_modified_correct_sequence():
         time.sleep(1)
         _modify(tmpdir, filename='foo.txt', content="Last one")
 
-    _helper_file_system_watcher(
+    await _helper_file_system_watcher(
         config=dict(ignore_directories=True, load_file=True, defer_modified=1.5),
         operations=[
             partial(_touch, filename='foo.txt'),

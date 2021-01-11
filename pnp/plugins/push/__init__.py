@@ -3,17 +3,18 @@
 import asyncio
 import copy
 import functools
+import inspect
 from abc import abstractmethod
-from typing import Any, Callable, Optional, Dict, Iterable, Union, cast, List, Tuple
+from typing import Any, Callable, Optional, Dict, Iterable, Union, cast, List, Tuple, Awaitable
 
 from pnp import utils
 from pnp import validator
 from pnp.plugins import Plugin
-from pnp.shared.async_ import async_from_sync
+from pnp.shared.async_ import run_sync
 from pnp.typing import Envelope, Payload
 
 # Push function typing alias
-PushFunction = Callable[..., Payload]
+PushFunction = Union[Callable[..., Payload], Callable[..., Awaitable[Payload]]]
 
 
 class PushExecutionError(Exception):
@@ -22,14 +23,14 @@ class PushExecutionError(Exception):
 
 def enveloped(
     fun: PushFunction
-) -> Callable[['PushBase', Payload], Payload]:
+) -> Callable[['Push', Payload], Payload]:
     """Decorator to split the envelope and the actual payload. This is an but a convenience
     decorator for `envelope_payload` of the `PushBase` class."""
 
     validator.is_function(fun=fun)
 
-    def _call(self: 'PushBase', payload: Payload) -> Payload:
-        validator.is_instance(PushBase, self=self)
+    def _call(self: 'Push', payload: Payload) -> Payload:
+        validator.is_instance(Push, self=self)
         envelope, real_payload = self.envelope_payload(payload)
         return fun(
             self,
@@ -39,7 +40,7 @@ def enveloped(
 
     if asyncio.iscoroutinefunction(fun):
         @functools.wraps(fun)
-        async def _wrapper(self: 'PushBase', payload: Payload) -> Payload:
+        async def _wrapper(self: 'Push', payload: Payload) -> Payload:
             return await _call(self, payload)
         return _wrapper
 
@@ -56,10 +57,10 @@ def parse_envelope(value: str) -> PushFunction:
         validator.is_function(fun=fun)
 
         def _call(
-                self: 'PushBase', envelope: Optional[Envelope] = None, payload: Payload = None,
+                self: 'Push', envelope: Optional[Envelope] = None, payload: Payload = None,
                 **kwargs: Any
         ) -> Payload:
-            validator.is_instance(PushBase, self=self)
+            validator.is_instance(Push, self=self)
             parsed = self._parse_envelope_value(value, envelope=envelope)
 
             new_kwargs = {
@@ -74,7 +75,7 @@ def parse_envelope(value: str) -> PushFunction:
         if asyncio.iscoroutinefunction(fun):
             @functools.wraps(fun)
             async def _wrapper(
-                    self: 'PushBase', envelope: Optional[Envelope] = None, payload: Payload = None,
+                    self: 'Push', envelope: Optional[Envelope] = None, payload: Payload = None,
                     **kwargs: Any
             ) -> Payload:
                 return await _call(self, envelope, payload, **kwargs)
@@ -88,14 +89,14 @@ def drop_envelope(fun: PushFunction) -> PushFunction:
     """Decorator to drop the envelope from the arguments before calling the actual `push` method to
     make the linter happy again if necessary (unused-argument)."""
 
-    def _call(self: 'PushBase', *args: Any, **kwargs: Any) -> Any:
-        validator.is_instance(PushBase, self=self)
+    def _call(self: 'Push', *args: Any, **kwargs: Any) -> Any:
+        validator.is_instance(Push, self=self)
         kwargs.pop('envelope', None)
         return fun(self, *args, **kwargs)
 
     if asyncio.iscoroutinefunction(fun):
         @functools.wraps(fun)
-        async def _wrapper(self: 'PushBase', *args: Any, **kwargs: Any) -> Any:
+        async def _wrapper(self: 'Push', *args: Any, **kwargs: Any) -> Any:
             return await _call(self, *args, **kwargs)
         return _wrapper
 
@@ -148,26 +149,16 @@ def _lookup(instance: object, lookups: Union[str, Iterable[str]]) -> Optional[An
     return None
 
 
-class PushBase(Plugin):
+class Push(Plugin):
     """Base class for all push plugins."""
 
-    def __init__(self, **kwargs: Any):
+    def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
+        self._assert_push_compat()
 
-    @property
-    def supports_async(self) -> bool:
-        """Returns True if the async engine is fully supported; otherwise False."""
-        return hasattr(self, 'async_push')
-
-    @abstractmethod
-    def push(self, payload: Payload) -> Payload:
-        """
-        This is where the hard work happens.
-
-        Args:
-            payload: The payload.
-        """
-        raise NotImplementedError()  # pragma: no cover
+    def _assert_push_compat(self) -> None:
+        self._assert_abstract_compat((SyncPush, AsyncPush))
+        self._assert_fun_compat('_push')
 
     def _parse_envelope_value(
             self, name: str, envelope: Optional[Envelope] = None,
@@ -246,16 +237,16 @@ class PushBase(Plugin):
 
         Examples:
 
-            >>> PushBase.envelope_payload(1234)  # No envelope -> payload as is
+            >>> SyncPush.envelope_payload(1234)  # No envelope -> payload as is
             ({}, 1234)
-            >>> (PushBase.envelope_payload({'key1': 'val1', 'key2': 'val2'}) ==
+            >>> (SyncPush.envelope_payload({'key1': 'val1', 'key2': 'val2'}) ==
             ...     ({}, {'key1': 'val1', 'key2': 'val2'}))
             True
-            >>> PushBase.envelope_payload({'data': 1234})  # Envelope with the data key only
+            >>> SyncPush.envelope_payload({'data': 1234})  # Envelope with the data key only
             ({}, 1234)
-            >>> PushBase.envelope_payload({'payload': 1234})  # Works with 'payload' as well
+            >>> SyncPush.envelope_payload({'payload': 1234})  # Works with 'payload' as well
             ({}, 1234)
-            >>> PushBase.envelope_payload({'envelope1': 'envelope', 'payload': 1234})
+            >>> SyncPush.envelope_payload({'envelope1': 'envelope', 'payload': 1234})
             ({'envelope1': 'envelope'}, 1234)
         """
         payload = copy.deepcopy(payload)
@@ -273,25 +264,37 @@ class PushBase(Plugin):
         # We popped the real payload -> all what is left in payload is the envelope
         return payload, real_payload
 
+    async def push(self, payload: Payload) -> Payload:
+        """Transforms the payload and/or pushes it to a sink."""
+        push_fun = getattr(self, '_push')
+        if inspect.iscoroutinefunction(push_fun):
+            return await push_fun(payload)
+        return await run_sync(push_fun, payload)
 
-class AsyncPushBase(PushBase):
-    """Base class for push plugins that fully support the async engine."""
 
-    def __init__(self, **kwargs: Any):  # pylint: disable=useless-super-delegation
-        # Doesn't work without the useless-super-delegation
-        super().__init__(**kwargs)
+class SyncPush(Push):
+    """Base class for all synchronous push plugins."""
 
-    def _call_async_push_from_sync(self, payload: Payload) -> Payload:
-        """Calls the async pull from a sync context."""
-        if not self.supports_async:
-            raise RuntimeError(
-                "Cannot run async push version, cause async implementation is missing")
+    @abstractmethod
+    def _push(self, payload: Payload) -> Payload:
+        """
+        This is where the hard work happens.
 
-        return async_from_sync(self.async_push, payload=payload)
+        Args:
+            payload: The payload.
+        """
+        raise NotImplementedError()  # pragma: no cover
 
-    def push(self, payload: Payload) -> Payload:
-        return self._call_async_push_from_sync(payload)
 
-    async def async_push(self, payload: Payload) -> Payload:
-        """Performs the push in an asynchronous compatible (non-blocking) way."""
-        raise NotImplementedError()
+class AsyncPush(Push):
+    """Base class for all asynchronous push plugins."""
+
+    @abstractmethod
+    async def _push(self, payload: Payload) -> Payload:
+        """
+        This is where the hard work happens.
+
+        Args:
+            payload: The payload.
+        """
+        raise NotImplementedError()  # pragma: no cover

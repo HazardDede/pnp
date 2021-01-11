@@ -1,36 +1,31 @@
 """Contains base classes for config parsers."""
 from abc import abstractmethod
-from functools import partial
-from typing import Optional, Iterable, Any
+from typing import Optional, Iterable, Any, List
 
-import attr
+from pydantic import BaseModel  # pylint: disable=no-name-in-module
 
 from pnp.engines import Engine
-from pnp.models import TaskSet, UDFModel, TaskModel, PullModel, APIModel
-from pnp.validator import attrs_validator_dict_items, attrs_validate_list_items
+from pnp.models import TaskSet, UDFModel, PullModel, APIModel
 
 
-@attr.s
-class Configuration:
+class Configuration(BaseModel):
     """Represents a parsed, instantiated and valid configuration."""
-    api = attr.ib(
-        validator=attr.validators.instance_of((type(None), APIModel))
-    )  # type: Optional[APIModel]
 
-    tasks = attr.ib(
-        validator=partial(attrs_validator_dict_items, key_type=str, val_type=TaskModel)
-    )  # type: TaskSet
+    # API instance if configured or None
+    api: Optional[APIModel]
 
-    engine = attr.ib(
-        validator=attr.validators.instance_of((type(None), Engine)),
-        default=None
-    )  # type: Optional[Engine]
+    # A set of tasks of this configuration
+    tasks: TaskSet
 
-    udfs = attr.ib(
-        converter=lambda val: val or [],  # type: ignore
-        validator=partial(attrs_validate_list_items, item_type=UDFModel),
-        default=None
-    )  # type: Iterable[UDFModel]
+    # The engine that is configured; might be None if no engine was specified
+    engine: Optional[Engine]
+
+    # The configured udfs. List is empty if no udf is configured
+    udfs: List[UDFModel]
+
+    class Config:
+        """Pydantic configuration."""
+        arbitrary_types_allowed = True
 
 
 class ConfigLoader:

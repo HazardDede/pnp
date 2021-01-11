@@ -5,12 +5,11 @@ import logging
 from typing import Optional, Any
 
 from pnp.typing import Payload
-from pnp.utils import auto_str_ignore, try_parse_int
+from pnp.utils import try_parse_int
 
 _LOGGER = logging.getLogger(__name__)
 
 
-@auto_str_ignore(['password'])
 class MQTTBase:
     """MQTT base class for publishing message to a mqtt broker."""
 

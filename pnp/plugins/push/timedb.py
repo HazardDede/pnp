@@ -1,11 +1,9 @@
 """Time database related push plugins."""
 
-from pnp.plugins.push import PushBase, enveloped
-from pnp.utils import auto_str_ignore
+from pnp.plugins.push import SyncPush, enveloped
 
 
-@auto_str_ignore(['password'])
-class InfluxPush(PushBase):
+class InfluxPush(SyncPush):
     """
     Pushes the given `payload` to an influx database using the line `protocol`.
     You have to specify `host`, `port`, `user`, `password` and the `database`.
@@ -17,6 +15,8 @@ class InfluxPush(PushBase):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/timedb.InfluxPush/index.md
     """
+    __REPR_FIELDS__ = ['database', 'host', 'port', 'protocol', 'user']
+
     def __init__(self, host, port, user, password, database, protocol, **kwargs):
         super().__init__(**kwargs)
         self.host = str(host)
@@ -27,7 +27,7 @@ class InfluxPush(PushBase):
         self.protocol = str(protocol)
 
     @enveloped
-    def push(self, envelope, payload):  # pylint: disable=arguments-differ
+    def _push(self, envelope, payload):  # pylint: disable=arguments-differ
         points = [self.protocol.format(payload=payload)]
         self.logger.debug("Writing '%s' to influxdb", str(points))
 

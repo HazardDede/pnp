@@ -12,12 +12,13 @@ def directory():
     yield resource_path('faces')
 
 
-def test_fs_size_non_mapping(directory):
+@pytest.mark.asyncio
+async def test_fs_size_non_mapping(directory):
     dut = Size(paths=[
         directory, os.path.join(directory, 'obama.jpg'), os.path.join(directory, 'trump.jpg')
     ], name='pytest')
 
-    res = dut.poll()
+    res = await dut.poll()
 
     assert res == {
         'faces': res.get('obama.jpg') + res.get('trump.jpg'),
@@ -26,14 +27,15 @@ def test_fs_size_non_mapping(directory):
     }
 
 
-def test_fs_size_mapping(directory):
+@pytest.mark.asyncio
+async def test_fs_size_mapping(directory):
     dut = Size(paths={
         'root': directory,
         'obama': os.path.join(directory, 'obama.jpg'),
         'trump': os.path.join(directory, 'trump.jpg')
     }, name='pytest')
 
-    res = dut.poll()
+    res = await dut.poll()
 
     assert res == {
         'root': res.get('obama') + res.get('trump'),
@@ -42,13 +44,14 @@ def test_fs_size_mapping(directory):
     }
 
 
-def test_fs_size_non_existent(directory):
+@pytest.mark.asyncio
+async def test_fs_size_non_existent(directory):
     with pytest.raises(FileNotFoundError):
-        Size(paths={
+        await Size(paths={
             'root': '/this/one/does/not/exist!'
         }, name='pytest').poll()
 
-    res = Size(paths={
+    res = await Size(paths={
         'root': '/this/one/does/not/exist!'
     }, name='pytest', fail_on_error=False).poll()
 

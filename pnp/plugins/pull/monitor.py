@@ -5,18 +5,16 @@ import subprocess
 
 import psutil
 
-from pnp.plugins.pull import Polling
+from pnp.plugins.pull import SyncPolling
 
 
-class Stats(Polling):
+class Stats(SyncPolling):
     """
     Periodically emits stats about the host system, like cpu_use, memory_use, swap_use, ...
 
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/monitor.Stats/index.md
     """
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
 
     @staticmethod
     def _root_path():
@@ -70,7 +68,7 @@ class Stats(Polling):
         except FileNotFoundError:
             return 0, 0, 0, 0
 
-    def poll(self):
+    def _poll(self):
         l1m, l5m, l15m = os.getloadavg()
         uvolt, fcap, throttled, temp_limit = self._throttled()
         return {

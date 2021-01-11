@@ -4,10 +4,10 @@ import os
 import time
 
 from pnp import validator
-from pnp.plugins.push import PushBase, enveloped, parse_envelope, drop_envelope
+from pnp.plugins.push import SyncPush, enveloped, parse_envelope, drop_envelope
 
 
-class FileDump(PushBase):
+class FileDump(SyncPush):
     """
     This push dumps the given `payload` to a file to the specified `directory`.
     If argument `file_name` is None, a name will be generated based on the current datetime
@@ -23,14 +23,18 @@ class FileDump(PushBase):
     Examples:
 
         >>> import tempfile
+        >>> import asyncio
+        >>> loop = asyncio.get_event_loop()
         >>> with tempfile.TemporaryDirectory() as tmpdir:
         ...     # Automatic generated file name with extension '.dump'
         ...     dut = FileDump(name='doctest', directory=tmpdir, binary_mode=False)
-        ...     created_file = dut.push("I am the content")  #  e.g. 20180616-123159.dump
+        ...     created_file = loop.run_until_complete(dut.push("I am the content"))
         ...     with open(created_file, 'r') as fs:
         ...         assert fs.read() == "I am the content"
 
     """
+    __REPR_FIELDS__ = ['binary_mode', 'directory', 'extension', 'file_name']
+
     def __init__(self, directory='.', file_name=None, extension='.dump', binary_mode=True,
                  **kwargs):
         super().__init__(**kwargs)
@@ -55,7 +59,7 @@ class FileDump(PushBase):
     @parse_envelope('file_name')
     @parse_envelope('extension')
     @drop_envelope
-    def push(self, file_name, extension, payload):  # pylint: disable=arguments-differ
+    def _push(self, file_name, extension, payload):  # pylint: disable=arguments-differ
         if file_name is None:
             file_name = time.strftime("%Y%m%d-%H%M%S")
         file_path = os.path.join(self.directory, file_name + extension)
@@ -65,7 +69,7 @@ class FileDump(PushBase):
         return file_path
 
 
-class Zipper(PushBase):
+class Zipper(SyncPush):
     """
     Zips the given source directory or file and returns the path to the created zip
     archive.
@@ -84,6 +88,7 @@ class Zipper(PushBase):
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/fs.Zipper/index.md
 
     """
+    __REPR_FIELDS__ = ['archive_name', 'out_path', 'source']
 
     def __init__(self, source=None, out_path=None, archive_name=None, **kwargs):
         super().__init__(**kwargs)
@@ -115,7 +120,7 @@ class Zipper(PushBase):
     @enveloped
     @parse_envelope('archive_name')
     @drop_envelope
-    def push(self, archive_name, payload):  # pylint: disable=arguments-differ
+    def _push(self, archive_name, payload):  # pylint: disable=arguments-differ
         source = self._parse_source(self.source or payload)
 
         if os.path.isdir(source):

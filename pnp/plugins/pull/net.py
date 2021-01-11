@@ -8,12 +8,12 @@ from typing import Tuple
 from glom import glom
 
 from pnp.plugins import load_optional_module
-from pnp.plugins.pull import Polling
+from pnp.plugins.pull import SyncPolling
 from pnp.typing import Payload
 from pnp.utils import is_local, bps_mbps
 
 
-class PortProbe(Polling):
+class PortProbe(SyncPolling):
     """
     Periodically establishes socket connection to check if anybody is listening
     on a given server on a specific port.
@@ -21,6 +21,7 @@ class PortProbe(Polling):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/net.PortProbe/index.md
     """
+    __REPR_FIELDS__ = ['port', 'server', 'timeout']
 
     CONST_SERVER = 'server'
     CONST_PORT = 'port'
@@ -32,7 +33,7 @@ class PortProbe(Polling):
         self.server = str(server)
         self.timeout = int(timeout)
 
-    def poll(self):
+    def _poll(self):
         if is_local(self.server):
             available = self._local_probe()
         else:
@@ -74,7 +75,7 @@ class PortProbe(Polling):
             return True
 
 
-class Speedtest(Polling):
+class Speedtest(SyncPolling):
     """
     Periodically tests your real internet download / upload speed as well as the ping latency.
     """
@@ -104,7 +105,7 @@ class Speedtest(Polling):
         }
     }
 
-    def poll(self) -> Payload:
+    def _poll(self) -> Payload:
         speedtest = load_optional_module('speedtest', self.EXTRA)
 
         client = speedtest.Speedtest()
@@ -118,7 +119,7 @@ class Speedtest(Polling):
         return glom(res, self.OUTPUT_SPEC)
 
 
-class SSLVerify(Polling):
+class SSLVerify(SyncPolling):
     """
     Periodically checks if the ssl certificate of a given host is valid and how
     many days are remaining before the certificate will expire.
@@ -126,6 +127,7 @@ class SSLVerify(Polling):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/net.SSLVerify/index.md
     """
+    __REPR_FIELDS__ = ['host', 'timeout']
 
     def __init__(self, host: str, timeout: float = 3.0, **kwargs):
         super().__init__(**kwargs)
@@ -160,7 +162,7 @@ class SSLVerify(Polling):
 
         return expires, expires - datetime.utcnow()
 
-    def poll(self) -> Payload:
+    def _poll(self) -> Payload:
         expires_at, expires_delta = self._ssl_expiry_datetime()
         return {
             'host': self.host,

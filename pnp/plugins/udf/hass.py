@@ -2,10 +2,8 @@
 
 from pnp.plugins.udf import UserDefinedFunction
 from pnp.shared.hass import HassApi
-from pnp.utils import auto_str_ignore
 
 
-@auto_str_ignore(['_client', 'token'])
 class State(UserDefinedFunction):
     """
     Fetches the state of an entity from home assistant by a rest-api request.
@@ -13,6 +11,8 @@ class State(UserDefinedFunction):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/udf/hass.State/index.md
     """
+    __REPR_FIELDS__ = ['timeout', 'url']
+
     def __init__(self, url, token, timeout=10, **kwargs):
         super().__init__(**kwargs)
         self.url = str(url)

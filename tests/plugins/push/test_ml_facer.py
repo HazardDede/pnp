@@ -37,15 +37,16 @@ def test_facer_with_mapping():
     assert set(dut.known_names) == {'obama', 'trump'}
 
 
+@pytest.mark.asyncio
 @pytest.mark.skipif(not _package_installed(), reason="requires package face-recognition")
-def test_facer_find_known():
+async def test_facer_find_known():
     from pnp.plugins.push.ml import FaceR
     dut = FaceR(name='pytest', known_faces_dir=path_to_faces())
 
     trump_jpg = os.path.join(path_to_faces(), 'trump.jpg')
     with open(trump_jpg, 'rb') as fs:
         jpg = fs.read()
-    res = dut.push(jpg)
+    res = await dut.push(jpg)
 
     assert isinstance(res, dict)
     assert all(item in res for item in ['tagged_image', 'no_of_faces', 'known_faces'])
@@ -53,8 +54,9 @@ def test_facer_find_known():
     assert 'trump' in res['known_faces']
 
 
+@pytest.mark.asyncio
 @pytest.mark.skipif(not _package_installed(), reason="requires package face-recognition")
-def test_facer_find_known_lazy_mode():
+async def test_facer_find_known_lazy_mode():
     from pnp.plugins.push.ml import FaceR
     dut = FaceR(name='pytest', known_faces_dir=path_to_faces(), lazy=True)
     assert dut.face_recognition is None
@@ -64,7 +66,7 @@ def test_facer_find_known_lazy_mode():
     trump_jpg = os.path.join(path_to_faces(), 'trump.jpg')
     with open(trump_jpg, 'rb') as fs:
         jpg = fs.read()
-    dut.push(jpg)
+    await dut.push(jpg)
 
     assert dut.face_recognition is not None
     assert dut.known_names is not None

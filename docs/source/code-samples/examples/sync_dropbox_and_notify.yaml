@@ -26,6 +26,6 @@
       deps:
         - plugin: pnp.plugins.push.notify.Slack
           args:
-            api_key: "{{env::SLACK_API_KEY}}"
+            api_key: "{{env::SLACK_API_KEY}}"  # Your slack api key.
             channel: test  # The channel to post to. Mandatory. Overridable by envelope.
           selector: data.raw_link

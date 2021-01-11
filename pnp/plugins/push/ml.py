@@ -5,13 +5,12 @@ import os
 
 from pnp import validator
 from pnp.plugins import load_optional_module
-from pnp.plugins.push import PushBase, enveloped, drop_envelope
-from pnp.utils import make_list, auto_str_ignore
+from pnp.plugins.push import SyncPush, enveloped, drop_envelope
+from pnp.utils import make_list
 from pnp.validator import one_not_none
 
 
-@auto_str_ignore(['known_encodings'])
-class FaceR(PushBase):
+class FaceR(SyncPush):
     """
     FaceR (short one for face recognition) tags known faces in images.
     Output is the image with all faces tagged whether with the known name or an `unknown_label`.
@@ -20,6 +19,8 @@ class FaceR(PushBase):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/ml.FaceR/index.md
     """
+    __REPR_FIELDS__ = ['known_faces', 'known_faces_dir', 'known_names']
+
     EXTRA = 'faceR'
 
     def __init__(self, known_faces=None, known_faces_dir=None, unknown_label="Unknown", lazy=False,
@@ -111,7 +112,7 @@ class FaceR(PushBase):
 
     @enveloped
     @drop_envelope
-    def push(self, payload):
+    def _push(self, payload):
         if not self.face_recognition:
             self._configure()
 

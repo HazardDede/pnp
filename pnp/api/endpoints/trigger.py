@@ -1,6 +1,5 @@
 """Contains a trigger endpoint."""
 
-import asyncio
 import logging
 
 from fastapi import FastAPI, Query, HTTPException
@@ -8,7 +7,6 @@ from starlette.responses import JSONResponse
 
 from pnp.api.models import EmptyResponse
 from pnp.models import TaskSet
-from pnp.plugins.pull import PullNowMixin, AsyncPullNowMixin
 from .base import Endpoint
 
 _LOGGER = logging.getLogger(__name__)
@@ -41,20 +39,15 @@ class Trigger(Endpoint):
             )
 
         pull = task.pull.instance
-        if not isinstance(pull, (PullNowMixin, AsyncPullNowMixin)):
+        if not pull.supports_pull_now:
             raise HTTPException(
                 status_code=422,
-                detail=f"Task '{task_name}' does not support pull_now() / async_pull_now(). "
-                       f"Implement PullNowMixin / AsyncPullMixin for support"
+                detail=f"Task '{task_name}' does not support pull_now(). "
+                       f"Implement PullNowMixin / AsyncPullNowMixin for support"
             )
 
         try:
-            if isinstance(pull, AsyncPullNowMixin):
-                await pull.async_pull_now()  # type: ignore
-            else:
-                loop = asyncio.get_event_loop()
-                await loop.run_in_executor(None, pull.pull_now)
-
+            await pull.pull_now()
             return EmptyResponse()
         except Exception as exc:  # pylint: disable=broad-except
             _LOGGER.exception("While triggering the poll an error occurred.")

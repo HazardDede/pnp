@@ -1,14 +1,16 @@
+import asyncio
 import json
 
 import pytest
+from httpx import AsyncClient
 
+from pnp.api import RestAPI
 from pnp.plugins.pull.http import Server
-from tests.conftest import api_start, api_get, api_post
 from . import make_runner, start_runner
 
 
 async def _run_test(
-        url, data, assertion_fun, method='GET', allowed_methods='GET', status_code=200
+        url, data, assertion_fun, method='POST', allowed_methods='POST', status_code=200
 ):
     output = None
     def callback(plugin, payload):
@@ -16,26 +18,27 @@ async def _run_test(
         output = payload
 
     dut = Server(prefix_path='pytest', name='pytest', allowed_methods=allowed_methods)
-    runner = make_runner(dut, callback)
-    async with api_start() as api:
-        with start_runner(runner):
-            kwargs = dict(url=url.format(port=api.port))
-            if data is not None:
-                kwargs['data'] = data
+    runner = await make_runner(dut, callback)
 
-            fun = api_get
+    rest = RestAPI()
+    rest.create_api('pytest', False)
+
+    async with start_runner(runner):
+        await asyncio.sleep(0.1)  # Wait for the initialization completed
+        async with AsyncClient(app=rest.fastapi, base_url="http://test") as client:
+            fun = client.get
             if method == 'POST':
-                fun = api_post
+                fun = client.post
 
-            actual_status, response = await fun(
-                url=url.format(port=api.port),
+            response = await fun(
+                url=url,
                 data=data
             )
 
-        assert actual_status == status_code
-        if status_code == 200:
-            assert response == {'success': True}
-        assertion_fun(output)
+    assert response.status_code == status_code
+    if status_code == 200:
+        assert response.json() == {'success': True}
+    assertion_fun(output)
 
 
 @pytest.mark.asyncio
@@ -43,13 +46,13 @@ async def test_http_server_json_data():
     def assert_this(payload):
         assert payload is not None
         assert payload['endpoint'] == "resource/endpoint"
-        assert payload['method'] == "GET"
+        assert payload['method'] == "POST"
         assert payload['query'] == {'foo': 'bar', 'bar': 'baz'}
         assert payload['data'] == {"baz": "bar"}
         assert payload['is_json'] is True
 
     await _run_test(
-        url='http://localhost:{port}/pytest/resource/endpoint?foo=bar&bar=baz',
+        url='/pytest/resource/endpoint?foo=bar&bar=baz',
         data=json.dumps({"baz": "bar"}),
         assertion_fun=assert_this
     )
@@ -60,13 +63,13 @@ async def test_http_server_non_json_data():
     def assert_this(payload):
         assert payload is not None
         assert payload['endpoint'] == "resource/endpoint"
-        assert payload['method'] == "GET"
+        assert payload['method'] == "POST"
         assert payload['query'] == {'foo': 'bar', 'bar': 'baz'}
         assert payload['data'] == b'foobarbaznojson'
         assert payload['is_json'] is False
 
     await _run_test(
-        url='http://localhost:{port}/pytest/resource/endpoint?foo=bar&bar=baz',
+        url='/pytest/resource/endpoint?foo=bar&bar=baz',
         data="foobarbaznojson",
         assertion_fun=assert_this
     )
@@ -77,7 +80,7 @@ async def test_http_server_multiple_query_params():
     def assert_this(payload):
         assert payload is not None
         assert payload['endpoint'] == "resource/endpoint/queryparam"
-        assert payload['method'] == "GET"
+        assert payload['method'] == "POST"
         # On some systems the requests.args do not return a list, when the paramkey occurs multiple times
         # For now just make the test pass. I have to investigate later
         assert (payload['query'] == {'foo': 'bar', 'bar': ['baz', 'foo']}
@@ -86,7 +89,7 @@ async def test_http_server_multiple_query_params():
         assert payload['is_json'] is False
 
     await _run_test(
-        url='http://localhost:{port}/pytest/resource/endpoint/queryparam?foo=bar&bar=baz&bar=foo',
+        url='/pytest/resource/endpoint/queryparam?foo=bar&bar=baz&bar=foo',
         data=None,
         assertion_fun=assert_this
     )
@@ -97,7 +100,7 @@ async def test_http_server_query_params_wo_value():
     def assert_this(payload):
         assert payload is not None
         assert payload['endpoint'] == "resource/endpoint/queryparam"
-        assert payload['method'] == "GET"
+        assert payload['method'] == "POST"
         # On some systems the requests.args do not return a list, when the paramkey occurs multiple times
         # For now just make the test pass. I have to investigate later
         assert ((payload['query'] == {'foo': '1'})
@@ -106,7 +109,7 @@ async def test_http_server_query_params_wo_value():
         assert payload['is_json'] is False
 
     await _run_test(
-        url='http://localhost:{port}/pytest/resource/endpoint/queryparam?foo=1&bar=&bar=',
+        url='/pytest/resource/endpoint/queryparam?foo=1&bar=&bar=',
         data=None,
         assertion_fun=assert_this
     )
@@ -115,9 +118,10 @@ async def test_http_server_query_params_wo_value():
 @pytest.mark.asyncio
 async def test_http_server_query_different_methods_1():
     def assert_this(payload):
-        assert payload['method'] == 'GET'
+        assert payload['method'] == 'POST'
+
     await _run_test(
-        url='http://localhost:{port}/pytest/resource/endpoint/queryparam?foo=&bar=&bar',
+        url='/pytest/resource/endpoint/queryparam?foo=&bar=&bar',
         data=None,
         assertion_fun=assert_this
     )
@@ -127,8 +131,9 @@ async def test_http_server_query_different_methods_1():
 async def test_http_server_query_different_methods_2():
     def assert_this(payload):
         assert payload['method'] == 'POST'
+
     await _run_test(
-        url='http://localhost:{port}/pytest/resource/endpoint/queryparam?foo=&bar=&bar',
+        url='/pytest/resource/endpoint/queryparam?foo=&bar=&bar',
         data=None,
         allowed_methods='POST',
         method='POST',
@@ -140,8 +145,9 @@ async def test_http_server_query_different_methods_2():
 async def test_http_server_query_different_methods_3():
     def assert_this(payload):
         assert payload is None
+
     await _run_test(
-        url='http://localhost:{port}/pytest/resource/endpoint/queryparam?foo=&bar=&bar',
+        url='/pytest/resource/endpoint/queryparam?foo=&bar=&bar',
         data=None,
         allowed_methods='GET',
         method='POST',

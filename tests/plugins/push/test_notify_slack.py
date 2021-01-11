@@ -1,10 +1,12 @@
-from mock import MagicMock, patch
+import pytest
+from mock import MagicMock
 
 from pnp.plugins.push.notify import Slack
 
 
-@patch('pnp.plugins.push.notify.slacker.Slacker')
-def test_slack_push(slacker_mock):
+@pytest.mark.asyncio
+async def test_slack_push(mocker):
+    slacker_mock = mocker.patch('pnp.plugins.push.notify.slacker.Slacker')
     slacker_mock.return_value = MagicMock()
 
     dut = Slack(
@@ -12,7 +14,7 @@ def test_slack_push(slacker_mock):
         channel='pytest',
         name='pytest'
     )
-    dut.push('Simple message')
+    await dut.push('Simple message')
 
     slacker_mock.return_value.chat.post_message.assert_called_once_with(
         text='Simple message',
@@ -22,8 +24,9 @@ def test_slack_push(slacker_mock):
     )
 
 
-@patch('pnp.plugins.push.notify.slacker.Slacker')
-def test_slack_push_with_ping_user(slacker_mock):
+@pytest.mark.asyncio
+async def test_slack_push_with_ping_user(mocker):
+    slacker_mock = mocker.patch('pnp.plugins.push.notify.slacker.Slacker')
     slacker_mock.return_value = MagicMock()
     slacker_mock.return_value.users.list.return_value.body = {
         'members': [{
@@ -51,7 +54,7 @@ def test_slack_push_with_ping_user(slacker_mock):
     )
 
     # Use the real_name
-    dut.push('Simple message')
+    await dut.push('Simple message')
     slacker_mock.return_value.chat.post_message.assert_called_with(
         text='<@42> Simple message',
         channel='#pytest',
@@ -60,7 +63,7 @@ def test_slack_push_with_ping_user(slacker_mock):
     )
 
     # Envelope override with name
-    dut.push({'data': 'Simple message', 'ping_users': 'another_user'})
+    await dut.push({'data': 'Simple message', 'ping_users': 'another_user'})
     slacker_mock.return_value.chat.post_message.assert_called_with(
         text='<@99> Simple message',
         channel='#pytest',
@@ -69,7 +72,7 @@ def test_slack_push_with_ping_user(slacker_mock):
     )
 
     # Envelope override with unknown user
-    dut.push({'data': 'Simple message', 'ping_users': 'unknown_user'})
+    await dut.push({'data': 'Simple message', 'ping_users': 'unknown_user'})
     slacker_mock.return_value.chat.post_message.assert_called_with(
         text='Simple message',
         channel='#pytest',

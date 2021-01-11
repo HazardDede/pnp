@@ -16,6 +16,7 @@ from typing import (Union, Any, Optional, Iterable, Pattern, Dict, Callable, cas
 
 from binaryornot.check import is_binary  # type: ignore
 from box import Box, BoxKeyError  # type: ignore
+from fastcore.basics import basic_repr
 from typeguard import typechecked
 
 from pnp import validator
@@ -37,7 +38,7 @@ class EvaluationError(Exception):
 
 
 class StopCycleError(Exception):
-    """A callback of interruptible_sleep should call this, when the sleep should be interrupted."""
+    """A callback of interruptable_sleep should call this, when the sleep should be interrupted."""
 
 
 def make_list(item_or_items: Any) -> Optional[List[Any]]:
@@ -263,7 +264,7 @@ def is_iterable_but_no_str(candidate: Any) -> bool:
     return hasattr(candidate, '__iter__') and not isinstance(candidate, (str, bytes))
 
 
-def interruptible_sleep(wait: float, callback: Callable[[], None], interval: float = 0.5) -> None:
+def interruptable_sleep(wait: float, callback: Callable[[], None], interval: float = 0.5) -> None:
     """
     Waits the specified amount of time. The waiting can be interrupted when the callback raises a
     `StopCycleError`. The argument `interval` defines after how much wait time the callback
@@ -272,7 +273,7 @@ def interruptible_sleep(wait: float, callback: Callable[[], None], interval: flo
     Examples:
 
         # Does perform two cycles of 0.2 secs and one 0.1
-        >>> interruptible_sleep(0.5, lambda: print("Cycle"), 0.2)
+        >>> interruptable_sleep(0.5, lambda: print("Cycle"), 0.2)
         Cycle
         Cycle
         >>> i = 0
@@ -282,7 +283,7 @@ def interruptible_sleep(wait: float, callback: Callable[[], None], interval: flo
         ...         raise StopCycleError()
         ...     print("Cycle")
         ...     i = i + 1
-        >>> interruptible_sleep(0.5, callback, 0.1)  # Aborts the wait after 2 cycles
+        >>> interruptable_sleep(0.5, callback, 0.1)  # Aborts the wait after 2 cycles
         Cycle
         Cycle
 
@@ -319,7 +320,7 @@ def sleep_until_interrupt(sleep_time: float, interrupt_fun: Callable[[], bool],
     def callback() -> None:
         if interrupt_fun():
             raise StopCycleError()
-    interruptible_sleep(sleep_time, callback, interval=interval)
+    interruptable_sleep(sleep_time, callback, interval=interval)
 
 
 def make_public_protected_private_attr_lookup(attr_name: str, as_dict: bool = False) \
@@ -785,40 +786,6 @@ def parse_duration_literal_float(literal: DurationLiteral) -> float:
     return float(parse_duration_literal(literal))
 
 
-def safe_get(dct: Dict[Any, Any], *keys: Any, default: Any = None) -> Any:
-    """
-    Get the value inside the dictionary that is accessible by the given keys or - if a key doesn't
-    exists - the default.
-
-    Examples:
-
-        >>> dct = dict(nested=dict(nested1="a", nested2="b"), val="z")
-        >>> safe_get(dct, "nested", "nested1")
-        'a'
-        >>> safe_get(dct, "nested", "unknown") is None
-        True
-        >>> safe_get(dct, "nested", "unknown", default="default")
-        'default'
-        >>> safe_get(dct) == dict(nested=dict(nested1="a", nested2="b"), val="z")
-        True
-
-    Args:
-        dct: Dictionary to get the value from.
-        *keys (list of hashable type): Keys to lookup.
-        default (object, optional):
-
-    Returns:
-        Returns the requested value inside the probably nested dictionary. If a key does not
-        exists, the function will return the default.
-    """
-    for key in keys:
-        try:
-            dct = dct[key]
-        except KeyError:
-            return default
-    return dct
-
-
 def get_field_mro(cls: type, field_name: str) -> Set[str]:
     """
     Goes up the mro (method resolution order) of the given class and returns the union of a given
@@ -865,94 +832,8 @@ def get_field_mro(cls: type, field_name: str) -> Set[str]:
         values_ = getattr(clazz, field_name, None)
         if values_ is not None:
             res = res.union(set(cast(Iterable[str], make_list(values_))))
+
     return res
-
-
-def auto_str(__repr__: bool = False) -> Callable[[type], type]:
-    """
-    Use this decorator to auto implement __str__() and optionally __repr__() methods on classes.
-
-    Args:
-        __repr__ (bool): If set to true, the decorator will auto-implement the __repr__() method
-        as well.
-
-    Returns:
-        callable: Decorating function.
-
-    Note:
-        There are known issues with self referencing (self.s = self). Recursion will be identified
-        by the python interpreter and will do no harm, but it will actually not work.
-        A eval(class.__repr__()) will obviously not work, when there are attributes that are not
-        part of the __init__'s arguments.
-
-    Example:
-        >>> @auto_str(__repr__=True)
-        ... class Demo(object):
-        ...    def __init__(self, i=0, s="a", l=None, t=None):
-        ...        self.i = i
-        ...        self.s = s
-        ...        self.l = l
-        ...        self.t = t
-        >>> dut = Demo(10, 'abc', [1, 2, 3], (1,2,3))
-        >>> print(dut.__str__())
-        Demo(i=10, l=[1, 2, 3], s='abc', t=(1, 2, 3))
-        >>> print(eval(dut.__repr__()).__str__())
-        Demo(i=10, l=[1, 2, 3], s='abc', t=(1, 2, 3))
-        >>> print(dut.__repr__())
-        Demo(i=10, l=[1, 2, 3], s='abc', t=(1, 2, 3))
-    """
-    def decorator(cls: type) -> type:
-        def __str__(self: object) -> str:
-            items = [
-                "{name}={value}".format(
-                    name=name,
-                    value=vars(self)[name].__repr__()
-                ) for name in sorted(vars(self))
-                if name not in get_field_mro(self.__class__, '__auto_str_ignore__')
-            ]
-            return "{clazz}({items})".format(
-                clazz=str(type(self).__name__),
-                items=', '.join(items)
-            )
-        cls.__str__ = __str__  # type: ignore
-        if __repr__:
-            cls.__repr__ = __str__  # type: ignore
-
-        return cls
-
-    return decorator
-
-
-def auto_str_ignore(ignore_list: Union[Iterable[str], str]) -> Callable[[type], type]:
-    """
-    Use this decorator to suppress any fields that should not be part of the dynamically created
-    `__str__` or `__repr__` function of `auto_str`.
-
-    Example:
-
-        >>> @auto_str()
-        ... @auto_str_ignore(["l", "d"])
-        ... class Demo(object):
-        ...    def __init__(self, i=0, s="a", l=None, d=None):
-        ...        self.i = i
-        ...        self.s = s
-        ...        self.l = l
-        ...        self.d = d
-        >>> dut = Demo(10, 'abc', [1, 2, 3], {'a': 1, 'b': 2})
-        >>> print(str(dut))
-        Demo(i=10, s='abc')
-
-    Args:
-        ignore_list: List or item of the fields to suppress by `auto_str`.
-
-    Returns:
-        Returns a decorator.
-    """
-    def decorator(cls: type) -> type:
-        ignored = make_list(ignore_list)
-        cls.__auto_str_ignore__ = ignored  # type: ignore
-        return cls
-    return decorator
 
 
 class classproperty(property):  # pylint: disable=invalid-name
@@ -1002,6 +883,39 @@ class Loggable:
         """
         component = "{}.{}".format(cls.__module__, cls.__name__)  # pylint: disable=no-member
         return logging.getLogger(component)
+
+
+class ReprMixin:
+    """Adds a __repr__ and a __str__ method to this instance. You can control the repr fields
+    via the __REPR_FIELDS__ class instance.
+
+    Examples:
+
+        >>> class A(ReprMixin):
+        ...     __REPR_FIELDS__ = ['a']
+        ...     def __init__(self):
+        ...         self.a = 13
+
+        >>> class B(A):
+        ...     __REPR_FIELDS__ = 'b'
+        ...     def __init__(self):
+        ...         super().__init__()
+        ...         self.b = 42
+
+        >>> repr(A())
+        'A(a=13)'
+        >>> repr(B())
+        'B(a=13, b=42)'
+    """
+
+    def __repr__(self) -> str:
+        repr_fields = sorted(list(get_field_mro(self.__class__, '__REPR_FIELDS__')))
+        res = basic_repr(repr_fields)(self)
+        assert isinstance(res, str)
+        return res
+
+    def __str__(self) -> str:
+        return repr(self)
 
 
 class FallbackBox(Box):  # type: ignore

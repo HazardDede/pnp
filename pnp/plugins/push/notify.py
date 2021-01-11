@@ -4,19 +4,20 @@ from typing import Any, Dict, List, Optional
 
 import slacker
 
-from pnp.plugins.push import PushBase, enveloped, parse_envelope
+from pnp.plugins.push import SyncPush, enveloped, parse_envelope
 from pnp.typing import Envelope, Payload
-from pnp.utils import auto_str_ignore, make_list
+from pnp.utils import make_list
 
 
-@auto_str_ignore(['api_key', '_slacker', '_user_cache'])
-class Slack(PushBase):
+class Slack(SyncPush):
     """
     Sends a message to slack. Optionally you can specify users to ping.
 
     See Also:
-        https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/notify.Slack/index.md
+        https://pnp.readthedocs.io/en/stable/plugins/index.html#notify-slack
     """
+    __REPR_FIELDS__ = ['channel', 'emoji', 'ping_users', 'username']
+
     DEFAULT_USERNAME = 'PnP'
     DEFAULT_EMOJI = ':robot:'
 
@@ -97,8 +98,8 @@ class Slack(PushBase):
     @parse_envelope('username')
     @parse_envelope('emoji')
     @parse_envelope('ping_users')
-    def push(self, channel: str, username: str, emoji: str,  # pylint: disable=arguments-differ
-             ping_users: List[str], envelope: Envelope, payload: Payload):
+    def _push(self, channel: str, username: str, emoji: str,  # pylint: disable=arguments-differ
+              ping_users: List[str], envelope: Envelope, payload: Payload):
 
         text = self._build_message_text(str(payload), ping_users)
         self._slacker.chat.post_message(

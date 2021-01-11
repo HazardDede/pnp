@@ -1,11 +1,9 @@
 """Global pnp api toolkit."""
 
-import asyncio
 import logging
 from typing import Optional
 
 from fastapi import FastAPI
-from uvicorn.config import Config
 from uvicorn.main import Server
 
 from pnp import __version__
@@ -55,11 +53,6 @@ class RestAPI(Singleton):
         """Return True if the api is enabled; otherwise False."""
         return self.fastapi is not None
 
-    @property
-    def running(self) -> bool:
-        """Return True if the api is running; otherwise False."""
-        return self._fastapi_server is not None
-
     def create_api(
         self, app_name: str = "pnp", enable_metrics: bool = True
     ) -> None:
@@ -75,40 +68,3 @@ class RestAPI(Singleton):
 
         if bool(enable_metrics):
             PrometheusExporter(app_name).attach(self.fastapi)
-
-    def run_api_background(self, port: int = 9999) -> None:
-        """Run the api application in the background. The control will be returned to the caller."""
-
-        api = self._assert_api()
-        port = int(port)
-        self.port = port
-
-        cfg = Config(app=api, host="0.0.0.0", port=port)
-        self._fastapi_server = Server(config=cfg)
-
-        # We need to tweak shutdown to mark the server as not started
-        original_shutdown = self._fastapi_server.shutdown
-
-        async def shutdown(sockets=None):  # type: ignore
-            await original_shutdown(sockets)
-            assert self._fastapi_server
-            self._fastapi_server.started = False
-        self._fastapi_server.shutdown = shutdown
-
-        # Do not use signal handlers - these will block the KeyboardInterrupt in app.py
-        # We need to remember this on shutdown
-        self._fastapi_server.install_signal_handlers = lambda *args: None
-        loop = asyncio.get_event_loop()
-        loop.create_task(self._fastapi_server.serve())
-
-    async def shutdown(self) -> None:
-        """Shutdown the api."""
-        if self._fastapi_server:
-            # We do what the signalhandler would normally do...
-            self._fastapi_server.should_exit = True
-            while self._fastapi_server.started:
-                await asyncio.sleep(0.1)
-
-        self.fastapi = None
-        self.port = None
-        self._fastapi_server = None

@@ -1,18 +1,18 @@
 """Home assistant related push plugins"""
 
-from pnp.plugins.push import PushBase
+from pnp.plugins.push import SyncPush
 from pnp.shared.hass import HassApi
-from pnp.utils import auto_str_ignore
 
 
-@auto_str_ignore(['_client', 'token'])
-class Service(PushBase):
+class Service(SyncPush):
     """
     Calls a home assistant service providing the payload as service-data.
 
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/hass.Service/index.md
     """
+
+    __REPR_FIELDS__ = ['domain', 'service', 'timeout', 'url']
 
     def __init__(self, url, token, domain, service, timeout=10, **kwargs):
         super().__init__(**kwargs)
@@ -41,6 +41,6 @@ class Service(PushBase):
                 )
             ) from exc
 
-    def push(self, payload):
+    def _push(self, payload):
         self._call(payload)
         return payload

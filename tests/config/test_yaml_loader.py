@@ -149,7 +149,7 @@ def test_load_config_with_engine():
 
 
 def test_supported_extensions():
-    assert YamlConfigLoader.supported_extensions() == ['json', 'yaml']
+    assert YamlConfigLoader.supported_extensions() == ['json', 'yaml', 'yml']
 
 
 def test_api():
@@ -159,7 +159,7 @@ def test_api():
     assert config.api is None
 
     config = dut.load_config(path_to_config('config.api.min.yaml'))
-    assert config.api == APIModel(port=12345, enable_swagger=False, enable_metrics=False)
+    assert config.api == APIModel(port=12345, enable_metrics=False)
 
     config = dut.load_config(path_to_config('config.api.max.yaml'))
-    assert config.api == APIModel(port=23456, enable_swagger=False, enable_metrics=True)
+    assert config.api == APIModel(port=23456, enable_metrics=True)

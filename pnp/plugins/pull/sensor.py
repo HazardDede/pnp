@@ -3,12 +3,12 @@
 import logging
 from functools import partial
 
-import attr
+import pydantic
 import schema as sc
 
 from pnp import validator
 from pnp.plugins import load_optional_module
-from pnp.plugins.pull import PullBase, Polling, PollingError
+from pnp.plugins.pull import PollingError, SyncPolling, SyncPull
 from pnp.shared.sound import (
     WavFile,
     similarity_pearson,
@@ -18,20 +18,21 @@ from pnp.shared.sound import (
     ALLOWED_MODES
 )
 from pnp.utils import (
-    auto_str_ignore,
     parse_duration_literal,
     Cooldown
 )
 
 
-class DHT(Polling):
+class DHT(SyncPolling):
     """
     Periodically polls a dht11 or dht22 (aka am2302) for temperature and humidity readings.
     Polling interval is controlled by `interval`.
 
     See Also:
-        https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/sensor.DHT/index.md
+        https://pnp.readthedocs.io/en/stable/plugins/index.html#sensor-dht
     """
+    __REPR_FIELDS__ = ['data_gpio', 'device', 'humidity_offset', 'temp_offset']
+
     EXTRA = 'dht'
 
     def __init__(self, device='dht22', data_gpio=17, humidity_offset=0.0, temp_offset=0.0,
@@ -54,7 +55,7 @@ class DHT(Polling):
             from ...mocking import DHTMock as Pkg
         return Pkg
 
-    def poll(self):
+    def _poll(self):
         # Adafruit package is optional - import at the last moment
         pkg = self._load_dht_package()
 
@@ -71,15 +72,15 @@ class DHT(Polling):
         }
 
 
-@auto_str_ignore(['_poller'])
-class MiFlora(Polling):
+class MiFlora(SyncPolling):
     """
     Periodically polls a xiaomi miflora plant sensor for sensor readings via btle.
 
     See Also:
-        https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/sensor.MiFlora/index.md
-
+        https://pnp.readthedocs.io/en/stable/plugins/index.html#sensor-miflora
     """
+    __REPR_FIELDS__ = ['adapter', 'mac']
+
     EXTRA = 'miflora'
 
     def __init__(self, mac, adapter='hci0', **kwargs):
@@ -131,7 +132,7 @@ class MiFlora(Polling):
         res = {para: self._poller.parameter_value(para) for para in reading_params}
         return {**res, **{'firmware': self._poller.firmware_version()}}
 
-    def poll(self):
+    def _poll(self):
         self._init()
         self._connect_sensor()
         readings = self._get_sensor_readings()
@@ -140,25 +141,36 @@ class MiFlora(Polling):
 
 
 # pylint: disable=too-many-instance-attributes
-@auto_str_ignore(ignore_list=[])
-class Sound(PullBase):
+class Sound(SyncPull):
     """
     Listens to the microphone in realtime and searches the stream for a specific sound pattern.
     Practical example: I use this plugin to recognize my doorbell without tampering with
     the electrical device ;-)
 
     See Also:
-        https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/sensor.Sound/index.md
+        https://pnp.readthedocs.io/en/stable/plugins/index.html#sensor-sound
     """
-    @attr.s
-    class WavConfig:
+    class WavConfig(pydantic.BaseModel):
         """Wav configuration entity."""
-        wav_file = attr.ib(type=WavFile)
-        mode = attr.ib()
-        offset = attr.ib()
-        cooldown_period = attr.ib()
-        cooldown_event = attr.ib()
-        notify = attr.ib(repr=False)
+        wav_file: WavFile
+        mode: str
+        offset: float
+        cooldown_period: int
+        cooldown_event: bool
+        notify: Cooldown
+
+        class Config:
+            """Pydantic config."""
+            arbitrary_types_allowed = True
+
+        @pydantic.validator('mode')
+        @classmethod
+        def _check_mode(cls, mode: str) -> str:
+            validator.one_of(ALLOWED_MODES, mode=mode)
+            return mode
+
+    class WavConfigSchema:
+        """Wav configuration configuration schema."""
 
         CONF_COOLDOWN = 'cooldown'
         CONF_COOLDOWN_PERIOD = 'period'
@@ -189,11 +201,6 @@ class Sound(PullBase):
         WAV_FILE_LIST_SCHEMA = sc.Schema([WAV_FILE_SCHEMA])
 
         @classmethod
-        def _check_mode(cls, mode):
-            validator.one_of(ALLOWED_MODES, mode=mode)
-            return mode
-
-        @classmethod
         def from_dict(cls, dct_config, base_path, notify_fun, cooldown_fun):
             """Loads a wav configuration from a dictionary."""
             config = cls.WAV_FILE_SCHEMA.validate(dct_config)
@@ -202,9 +209,9 @@ class Sound(PullBase):
             cooldown_cb = None
             if cooldown_cfg[cls.CONF_COOLDOWN_EVENT]:
                 cooldown_cb = partial(cooldown_fun, file_name=wav_file.file_name)
-            return cls(
+            return Sound.WavConfig(
                 wav_file=wav_file,
-                mode=cls._check_mode(config[cls.CONF_MODE]),
+                mode=config[cls.CONF_MODE],
                 offset=config[cls.CONF_OFFSET],
                 cooldown_period=cooldown_cfg[cls.CONF_COOLDOWN_PERIOD],
                 cooldown_event=cooldown_cfg[cls.CONF_COOLDOWN_EVENT],
@@ -224,6 +231,8 @@ class Sound(PullBase):
                 for wav_file in validated
             ]
 
+    __REPR_FIELDS__ = ['device_index', 'ignore_overflow', 'wav_files']
+
     EXTRA = 'sound'
 
     RATE = 44100
@@ -234,7 +243,7 @@ class Sound(PullBase):
     def __init__(self, wav_files, device_index=None, ignore_overflow=False,
                  **kwargs):
         super().__init__(**kwargs)
-        self.wav_files = self.WavConfig.from_list(
+        self.wav_files = self.WavConfigSchema.from_list(
             wav_files, self.base_path, self.notify, self._on_cooldown
         )
         self.device_index = device_index and int(device_index)
@@ -269,7 +278,7 @@ class Sound(PullBase):
             'sound': file_name
         })
 
-    def pull(self):
+    def _pull(self):
         self._check_dependencies()
         np = load_optional_module('numpy', self.EXTRA)
         pyaudio = load_optional_module('pyaudio', self.EXTRA)

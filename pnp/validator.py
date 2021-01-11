@@ -29,49 +29,6 @@ def all_items(item_type: type, **kwargs: Iterable[Any]) -> None:
                 )
 
 
-@typechecked
-def attrs_validator_dict_items(
-    instance: Any, attrib: Any, val: Any, key_type: type, val_type: type
-) -> Any:
-    """Attrs helper function to validate a dictionary and it's items."""
-    _ = instance  # Fake usage
-
-    if not isinstance(val, dict):
-        raise TypeError(
-            "Argument {} is expected to be a dictionary, but is {}".format(attrib.name, type(val))
-        )
-    for i, (key, value) in enumerate(val.items()):
-        if not isinstance(key, key_type):
-            raise TypeError(
-                "Key at {} position is expected to be a {}, but is {}".format(
-                    i, key_type, type(value)
-                )
-            )
-        if not isinstance(value, val_type):
-            raise TypeError(
-                "Value at {} position is expected to be a {}, but is {}".format(
-                    i, val_type, type(value)
-                )
-            )
-    return val
-
-
-@typechecked
-def attrs_validate_list_items(instance: Any, attrib: Any, val: Any, item_type: type) -> Any:
-    """Attrs helper function to validate a list and it's items."""
-    _ = instance
-
-    is_iterable_but_no_str(**{attrib.name: val})
-    for i, item in enumerate(val):
-        if not isinstance(item, item_type):
-            raise TypeError(
-                "Item value at {} position is expected to be a {}, but is {}".format(
-                    i, item_type, type(item)
-                )
-            )
-    return val
-
-
 def is_directory(**kwargs: Any) -> None:
     """
     Examples:

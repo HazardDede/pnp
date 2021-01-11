@@ -9,14 +9,14 @@ from pnp.plugins import Plugin
 from pnp.utils import (
     parse_duration_literal,
     DurationLiteral,
-    make_hashable,
-    auto_str_ignore
+    make_hashable
 )
 
 
-@auto_str_ignore(['_cache'])
 class UserDefinedFunction(Plugin):
     """Base class for a user defined expression."""
+
+    __REPR_FIELDS__ = ['throttle']
 
     MAX_CACHE_SIZE = 12
 

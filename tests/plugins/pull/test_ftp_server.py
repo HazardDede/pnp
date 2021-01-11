@@ -50,15 +50,16 @@ def test_ftp_server_init_events():
         ftp.Server(name='pytest', events='unknown')
 
 
-def test_ftp_server_pull_connect_login_disconnect():
+@pytest.mark.asyncio
+async def test_ftp_server_pull_connect_login_disconnect():
     dut = ftp.Server(name='pytest')
 
     events = []
     def callback(plugin, payload):
         events.append(payload)
 
-    runner = make_runner(dut, callback)
-    with start_runner(runner):
+    runner = await make_runner(dut, callback)
+    async with start_runner(runner):
         time.sleep(0.5)
         client = FTP()
         client.connect('localhost', 2121)
@@ -73,15 +74,16 @@ def test_ftp_server_pull_connect_login_disconnect():
     ]
 
 
-def test_ftp_server_pull_connect_login_user_disconnect():
+@pytest.mark.asyncio
+async def test_ftp_server_pull_connect_login_user_disconnect():
     dut = ftp.Server(name='pytest', user_pwd=('root', 'admin'))
 
     events = []
     def callback(plugin, payload):
         events.append(payload)
 
-    runner = make_runner(dut, callback)
-    with start_runner(runner):
+    runner = await make_runner(dut, callback)
+    async with start_runner(runner):
         time.sleep(0.5)
         client = FTP()
         client.connect('localhost', 2121)
@@ -96,7 +98,8 @@ def test_ftp_server_pull_connect_login_user_disconnect():
     ]
 
 
-def test_ftp_server_pull_connect_store_retr_disconnect():
+@pytest.mark.asyncio
+async def test_ftp_server_pull_connect_store_retr_disconnect():
     with TemporaryDirectory() as tmpdir:
         dut = ftp.Server(name='pytest', directory=tmpdir)
 
@@ -104,8 +107,8 @@ def test_ftp_server_pull_connect_store_retr_disconnect():
         def callback(plugin, payload):
             events.append(payload)
 
-        runner = make_runner(dut, callback)
-        with start_runner(runner):
+        runner = await make_runner(dut, callback)
+        async with start_runner(runner):
             time.sleep(0.5)
             client = FTP()
             client.connect('localhost', 2121)

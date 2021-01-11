@@ -3,17 +3,18 @@
 from dictmentor import DictMentor, ext
 
 from pnp import validator
-from pnp.plugins.push import PushBase, enveloped, parse_envelope, drop_envelope
+from pnp.plugins.push import SyncPush, enveloped, parse_envelope, drop_envelope
 from pnp.shared.mqtt import MQTTBase
-from pnp.utils import try_parse_bool, auto_str_ignore
+from pnp.utils import try_parse_bool
 
 
-@auto_str_ignore(['configured'])
-class Discovery(MQTTBase, PushBase):
+class Discovery(MQTTBase, SyncPush):
     """
     See Also:
         https://pnp.readthedocs.io/en/stable/plugins/index.html#mqtt-discovery
     """
+    __REPR_FIELDS__ = ['component', 'discovery_prefix', 'node_id', 'object_id']
+
     SUPPORTED_COMPONENTS = ['alarm_control_panel', 'binary_sensor', 'camera', 'cover', 'fan',
                             'climate', 'light', 'lock', 'sensor', 'switch']
 
@@ -100,7 +101,7 @@ class Discovery(MQTTBase, PushBase):
     @parse_envelope('node_id')
     @parse_envelope('attributes')
     @drop_envelope
-    def push(self, object_id, node_id, attributes, payload):  # pylint: disable=arguments-differ
+    def _push(self, object_id, node_id, attributes, payload):  # pylint: disable=arguments-differ
         if object_id is None:
             raise ValueError("object_id was not defined either by the __init__ nor by the envelope")
 
@@ -114,7 +115,7 @@ class Discovery(MQTTBase, PushBase):
         return payload
 
 
-class Publish(MQTTBase, PushBase):
+class Publish(MQTTBase, SyncPush):
     """
     This push will push the given `payload` to a mqtt broker (in this case mosquitto).
     The broker is specified by `host` and `port`. In addition a topic needs to be specified
@@ -123,6 +124,7 @@ class Publish(MQTTBase, PushBase):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/mqtt.Publish/index.md
     """
+    __REPR_FIELDS__ = ['multi', 'retain', 'topic']
 
     def __init__(self, topic=None, retain=False, multi=False, **kwargs):
         super().__init__(**kwargs)
@@ -148,7 +150,7 @@ class Publish(MQTTBase, PushBase):
     @parse_envelope('topic')
     @parse_envelope('retain')
     @parse_envelope('qos')
-    def push(self, topic, retain, qos, envelope, payload):  # pylint: disable=arguments-differ
+    def _push(self, topic, retain, qos, envelope, payload):  # pylint: disable=arguments-differ
         if topic is None:
             raise ValueError("Topic was not defined either by the __init__ nor by the envelope")
 

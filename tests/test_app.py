@@ -1,6 +1,7 @@
 import pytest
 
 from pnp.app import Application
+from pnp.runner import Runner
 from tests.conftest import path_to_config
 
 configs = [
@@ -19,4 +20,5 @@ configs = [
 def test_app(config):
     full_path = path_to_config(config)
     app = Application.from_file(full_path)
-    app.start()
+    Runner.choose_runner(app)
+    # runner.run()

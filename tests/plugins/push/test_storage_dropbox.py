@@ -1,7 +1,7 @@
 from tempfile import NamedTemporaryFile
 
+import pytest
 from box import Box
-from mock import patch
 
 from pnp.plugins.push.storage import Dropbox
 
@@ -16,12 +16,12 @@ def setup_mock(mock_dbx):
     return mock_dbx
 
 
-@patch('dropbox.Dropbox')
-def test_dropbox_push_with_file(dbx_mock):
-    dbx_mock = setup_mock(dbx_mock)
+@pytest.mark.asyncio
+async def test_dropbox_push_with_file(mocker):
+    dbx_mock = setup_mock(mocker.patch('dropbox.Dropbox'))
     dut = Dropbox(name='pytest', api_key='secret', create_shared_link=False)
     with NamedTemporaryFile() as tmp:
-        res = dut.push({'target_file_name': 'tmp', 'data': tmp.name})
+        res = await dut.push({'target_file_name': 'tmp', 'data': tmp.name})
 
     assert isinstance(res, dict)
     res = Box(res)
@@ -37,12 +37,12 @@ def test_dropbox_push_with_file(dbx_mock):
     dbx_mock.return_value.files_upload.assert_called()
 
 
-@patch('dropbox.Dropbox')
-def test_dropbox_push_with_file_and_shared_link(dbx_mock):
-    dbx_mock = setup_mock(dbx_mock)
+@pytest.mark.asyncio
+async def test_dropbox_push_with_file_and_shared_link(mocker):
+    dbx_mock = setup_mock(mocker.patch('dropbox.Dropbox'))
     dut = Dropbox(name='pytest', api_key='secret', target_file_name="42", create_shared_link=True)
     with NamedTemporaryFile() as tmp:
-        res = dut.push(tmp.name)
+        res = await dut.push(tmp.name)
 
     assert isinstance(res, dict)
     res = Box(res)

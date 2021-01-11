@@ -13,8 +13,8 @@ from pnp.config._base import Configuration, ConfigLoader
 from pnp.engines import Engine as RealEngine, RetryHandler
 from pnp.models import UDFModel, PullModel, PushModel, TaskModel, TaskSet, APIModel
 from pnp.plugins import load_plugin
-from pnp.plugins.pull import PullBase
-from pnp.plugins.push import PushBase
+from pnp.plugins.pull import Pull
+from pnp.plugins.push import Push
 from pnp.plugins.udf import UserDefinedFunction
 from pnp.utils import make_list
 
@@ -84,18 +84,15 @@ class Schemas:
     # API
     api_port_name = "port"
     api_endpoint_name = "endpoints"
-    api_endpoint_swagger = "swagger"
     api_endpoint_metrics = "metrics"
 
     api_endpoint_defaults = {
-        api_endpoint_swagger: False,
         api_endpoint_metrics: False
     }
 
     API = sc.Schema({
         api_port_name: sc.Use(int),
         sc.Optional(api_endpoint_name, default=api_endpoint_defaults): {
-            sc.Optional(api_endpoint_swagger, False): sc.Use(bool),
             sc.Optional(api_endpoint_metrics, False): sc.Use(bool)
         }
     })
@@ -153,9 +150,9 @@ def _mk_pull(task_config: Box, **extra: Any) -> PullModel:
     pull_args = task_config[Schemas.task_pull_name][Schemas.plugin_args_name]
     plugin = task_config[Schemas.task_pull_name][Schemas.plugin_name]
     args = {'name': name, **extra, **pull_args}
-    return PullModel(instance=cast(PullBase, load_plugin(
+    return PullModel(instance=cast(Pull, load_plugin(
         plugin_path=plugin,
-        plugin_type=PullBase,
+        plugin_type=Pull,
         instantiate=True,
         **args
     )))
@@ -172,9 +169,9 @@ def _mk_push(task_config: Box, **extra: Any) -> List[PushModel]:
             args = {'name': push_name, **extra, **push[Schemas.plugin_args_name]}
             unwrap = getattr(push, Schemas.push_unwrap_name, False)
             yield PushModel(
-                instance=cast(PushBase, load_plugin(
+                instance=cast(Push, load_plugin(
                     plugin_path=push[Schemas.plugin_name],
-                    plugin_type=PushBase,
+                    plugin_type=Push,
                     instantiate=True,
                     **args
                 )),
@@ -253,8 +250,7 @@ class YamlConfigLoader(ConfigLoader):
 
         return APIModel(
             port=api[Schemas.api_port_name],
-            enable_metrics=api[Schemas.api_endpoint_name].get(Schemas.api_endpoint_metrics, False),
-            enable_swagger=api[Schemas.api_endpoint_name].get(Schemas.api_endpoint_swagger, False)
+            enable_metrics=api[Schemas.api_endpoint_name].get(Schemas.api_endpoint_metrics, False)
         )
 
     def _tasks_from_config(self, config: Box, base_path: Optional[str] = None) -> TaskSet:
@@ -285,7 +281,7 @@ class YamlConfigLoader(ConfigLoader):
 
     @classmethod
     def supported_extensions(cls) -> Iterable[str]:
-        return ['json', 'yaml']
+        return ['json', 'yaml', 'yml']
 
     def load_pull_from_snippet(self, snippet: Any, name: str, **extra: Any) -> PullModel:
         pull_config = Schemas.Pull.validate(snippet)

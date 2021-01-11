@@ -4,18 +4,19 @@ from typing import Optional, Any
 from typeguard import typechecked
 
 from pnp.plugins import load_optional_module
-from pnp.plugins.push import PushBase, enveloped, parse_envelope, drop_envelope
-from pnp.utils import auto_str_ignore, get_bytes
+from pnp.plugins.push import SyncPush, enveloped, parse_envelope, drop_envelope
+from pnp.utils import get_bytes
 
 
-@auto_str_ignore(['api_key'])
-class Dropbox(PushBase):
+class Dropbox(SyncPush):
     """
     Uploads provided file to the specified dropbox account.
 
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/storage.Dropbox/index.md
     """
+    __REPR_FIELDS__ = ['create_shared_link', 'target_file_name']
+
     EXTRA = 'dropbox'
 
     def __init__(
@@ -51,7 +52,7 @@ class Dropbox(PushBase):
     @enveloped
     @parse_envelope('target_file_name')
     @drop_envelope
-    def push(self, target_file_name, payload):  # pylint: disable=arguments-differ
+    def _push(self, target_file_name, payload):  # pylint: disable=arguments-differ
         target_file_name = self._sanitze_target_file_name(target_file_name)
 
         # Upload file or stream to dropbox

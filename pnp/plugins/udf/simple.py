@@ -25,6 +25,8 @@ class Counter(UserDefinedFunction):
         >>> dut(), dut(), dut()
         (5, 6, 7)
     """
+    __REPR_FIELDS__ = ['cnt']
+
     def __init__(self, init=0, **kwargs):
         super().__init__(**kwargs)
         self.cnt = int(init)
@@ -63,9 +65,6 @@ class FormatSize(UserDefinedFunction):
         ...
         ValueError: No negative values supported.
     """
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
     @staticmethod
     def _human_size(size_bytes):
         """
@@ -116,6 +115,8 @@ class Memory(UserDefinedFunction):
         >>> dut(), dut(new_memory='baz'), dut()
         ('foo', 'foo', 'baz')
     """
+    __REPR_FIELDS__ = ['current']
+
     _MISSING = object()
 
     def __init__(self, init=_MISSING, **kwargs):

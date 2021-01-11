@@ -1,36 +1,29 @@
 import logging
 
-import pytest
-
-from tests.conftest import api_start, api_post
+from tests.conftest import api_client
 
 
-@pytest.mark.asyncio
-async def test_endpoint():
-    async with api_start() as api:
-        url = 'http://127.0.0.1:{}/loglevel?level=ERROR'.format(api.port)
-        status, json_ = await api_post(url)
+def test_endpoint():
+    with api_client() as client:
+        response = client.post('/loglevel?level=ERROR')
 
-        assert status == 200
-        assert json_ == {}
+        assert response.status_code == 200
+        assert response.json() == {}
         assert logging.getLogger().level == logging.ERROR
 
-        url = 'http://127.0.0.1:{}/loglevel?level=INFO'.format(api.port)
-        status, json_ = await api_post(url)
+        response = client.post('/loglevel?level=INFO')
 
-        assert status == 200
-        assert json_ == {}
+        assert response.status_code == 200
+        assert response.json() == {}
         assert logging.getLogger().level == logging.INFO
 
 
-@pytest.mark.asyncio
-async def test_endpoint_no_log_level():
-    async with api_start() as api:
-        url = 'http://127.0.0.1:{}/loglevel'.format(api.port)
-        status, json_ = await api_post(url)
+def test_endpoint_no_log_level():
+    with api_client() as client:
+        response = client.post('/loglevel')
 
-        assert status == 422
-        assert json_ == {
+        assert response.status_code == 422
+        assert response.json() == {
             'detail': [{
                 'loc': ['query', 'level'],
                 'msg': 'field required',
@@ -39,14 +32,12 @@ async def test_endpoint_no_log_level():
         }
 
 
-@pytest.mark.asyncio
-async def test_endpoint_unknown_log_level():
-    async with api_start() as api:
-        url = 'http://127.0.0.1:{}/loglevel?level=UNKNOWN'.format(api.port)
-        status, json_ = await api_post(url)
+def test_endpoint_unknown_log_level():
+    with api_client() as client:
+        response = client.post('/loglevel?level=UNKNOWN')
 
-        assert status == 422
-        assert json_ == {
+        assert response.status_code == 422
+        assert response.json() == {
             'detail': [{
                 'ctx': {
                     'pattern': '^DEBUG|INFO|WARNING|ERROR|CRITICAL$'

@@ -10,7 +10,7 @@ def test_port_probe_remote(socket_mock):
     socket_mock.socket.return_value.__enter__.return_value.connect_ex.return_value = 0
 
     dut = PortProbe(9999, 'www.anyserver.de', name='pytest')
-    payload = dut.poll()
+    payload = dut._poll()
     assert payload == {
         PortProbe.CONST_SERVER: 'www.anyserver.de',
         PortProbe.CONST_PORT: 9999,
@@ -18,7 +18,7 @@ def test_port_probe_remote(socket_mock):
     }
 
     socket_mock.socket.return_value.__enter__.return_value.connect_ex.return_value = 255
-    payload = dut.poll()
+    payload = dut._poll()
     assert payload == {
         PortProbe.CONST_SERVER: 'www.anyserver.de',
         PortProbe.CONST_PORT: 9999,
@@ -29,7 +29,7 @@ def test_port_probe_remote(socket_mock):
 @patch("pnp.plugins.pull.net.socket")
 def test_port_probe_local(socket_mock):
     dut = PortProbe(9999, 'localhost', name='pytest')
-    payload = dut.poll()
+    payload = dut._poll()
     assert payload == {
         PortProbe.CONST_SERVER: 'localhost',
         PortProbe.CONST_PORT: 9999,
@@ -39,7 +39,7 @@ def test_port_probe_local(socket_mock):
 
     socket_mock.error = OSError
     socket_mock.socket.return_value.__enter__.return_value.bind.side_effect = socket.error('Failed on purpose')
-    payload = dut.poll()
+    payload = dut._poll()
     assert payload == {
         PortProbe.CONST_SERVER: 'localhost',
         PortProbe.CONST_PORT: 9999,

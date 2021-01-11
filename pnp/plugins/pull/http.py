@@ -6,11 +6,11 @@ from typing import Union, Iterable, Any
 from pnp import validator
 from pnp.api import RestAPI, APINotConfiguredError
 from pnp.api.endpoints import CatchAllRoute, CatchAllRequest
-from pnp.plugins.pull import AsyncPullBase
+from pnp.plugins.pull import AsyncPull
 from pnp.utils import make_list, HTTP_METHODS
 
 
-class Server(AsyncPullBase):
+class Server(AsyncPull):
     """
     Creates a specific route on the builtin api server and listens to any call to
     that route.
@@ -22,6 +22,8 @@ class Server(AsyncPullBase):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/http.Server/index.md
     """
+    __REPR_FIELDS__ = ['allowed_methods', 'prefix_path']
+
     def __init__(
             self, prefix_path: str, allowed_methods: Union[str, Iterable[str]] = 'GET',
             **kwargs: Any
@@ -31,7 +33,7 @@ class Server(AsyncPullBase):
         self.allowed_methods = [str(m).upper() for m in make_list(allowed_methods)]
         validator.subset_of(HTTP_METHODS, allowed_methods=self.allowed_methods)
 
-    async def _callback(self, request: CatchAllRequest):
+    async def _incoming(self, request: CatchAllRequest):
         def _make_clean(item):
             if not item:  # Empty string or empty list
                 return None
@@ -61,14 +63,14 @@ class Server(AsyncPullBase):
         )
         self.notify(payload)
 
-    async def async_pull(self) -> None:
+    async def _pull(self) -> None:
         restapi = RestAPI()
         if not restapi.enabled:
             raise APINotConfiguredError()
         CatchAllRoute(
             route_prefix=self.prefix_path,
             allowed_methods=self.allowed_methods,
-            callback=self._callback
+            callback=self._incoming
         ).attach(restapi.fastapi)
 
         while not self.stopped:

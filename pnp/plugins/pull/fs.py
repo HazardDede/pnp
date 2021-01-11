@@ -5,11 +5,11 @@ import time
 
 from pnp import validator
 from pnp.plugins import load_optional_module, PluginStoppedError
-from pnp.plugins.pull import PullBase, Polling
+from pnp.plugins.pull import SyncPull, SyncPolling
 from pnp.utils import make_list, load_file, FILE_MODES, Debounce
 
 
-class FileSystemWatcher(PullBase):
+class FileSystemWatcher(SyncPull):
     """
     Watches the given directory for changes like created, moved, modified and deleted files.
     If ignore_directories is set to False, then directories will be reported as well.
@@ -17,6 +17,10 @@ class FileSystemWatcher(PullBase):
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/fs.FileSystemWatcher/index.md
     """
+    __REPR_FIELDS__ = [
+        'base64', 'case_sensitive', 'defer_modified', 'events', 'ignore_directories',
+        'ignore_patterns', 'load_file', 'mode', 'path', 'patterns', 'recursive'
+    ]
 
     EXTRA = 'fswatcher'
     EVENT_TYPE_MOVED = 'moved'
@@ -50,7 +54,7 @@ class FileSystemWatcher(PullBase):
         if self.defer_modified < 0.0:
             self.defer_modified = 0.5
 
-    def pull(self):
+    def _pull(self):
         wdog = load_optional_module('watchdog.observers', self.EXTRA)
         wev = load_optional_module('watchdog.events', self.EXTRA)
 
@@ -149,13 +153,15 @@ class FileSystemWatcher(PullBase):
         observer.join()
 
 
-class Size(Polling):
+class Size(SyncPolling):
     """
     Periodically determines the size of the specified files or directories in bytes.
 
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/fs.FileSize/index.md
     """
+
+    __REPR_FIELDS__ = ['fail_on_error', 'file_paths']
 
     def __init__(self, paths, fail_on_error=True, **kwargs):
         super().__init__(**kwargs)
@@ -197,7 +203,7 @@ class Size(Polling):
                 raise
             return None
 
-    def poll(self):
+    def _poll(self):
         return {
             alias: self._size(fp)
             for alias, fp in self.file_paths.items()

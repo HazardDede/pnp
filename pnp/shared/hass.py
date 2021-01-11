@@ -4,26 +4,28 @@ import json
 import urllib.parse as urlparse
 from typing import Any, Optional
 
-import attr
+from typeguard import typechecked
+
+from pnp.utils import ReprMixin
 
 
-def _convert_timeout(value: Any) -> Optional[int]:
-    return value and int(value)
-
-
-@attr.s
-class HassApi:
+class HassApi(ReprMixin):
     """Utility class to communicate with home assistant via the rest-api."""
 
     METHOD_GET = 'get'
     METHOD_POST = 'post'
     ALLOWED_METHODS = [METHOD_GET, METHOD_POST]
 
-    base_url = attr.ib(converter=str)  # type: str
-    token = attr.ib(converter=str)  # type: str
-    timeout = attr.ib(converter=_convert_timeout, default=None)  # type: Optional[int]
+    __REPR_FIELDS__ = ["base_url", "timeout"]
 
-    def call(self, endpoint: str, method: str = 'get', data: Any = None) -> Any:
+    @typechecked
+    def __init__(self, base_url: str, token: str, timeout: Optional[int] = None):
+        self.base_url = base_url
+        self.token = token
+        self.timeout = timeout and int(timeout)
+
+    @typechecked
+    def call(self, endpoint: str, method: str = METHOD_GET, data: Any = None) -> Any:
         """Calls the specified endpoint (without prefix api) using the given method.
         You can optionally pass data to the request which will be json encoded."""
         from requests import get, post

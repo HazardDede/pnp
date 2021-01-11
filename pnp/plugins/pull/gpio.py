@@ -3,7 +3,7 @@
 from collections import Counter
 
 from pnp import validator
-from pnp.plugins.pull import PullBase
+from pnp.plugins.pull import SyncPull
 from pnp.shared.gpio import (
     CONST_RISING, CONST_RISING_OPTIONS, CONST_FALLING_OPTIONS,
     CONST_SWITCH_OPTIONS, CONST_MOTION_OPTIONS, Callback, GPIOAdapter
@@ -11,13 +11,14 @@ from pnp.shared.gpio import (
 from pnp.utils import (make_list)
 
 
-class Watcher(PullBase):
+class Watcher(SyncPull):
     """
     Listens for low/high state changes on the configured gpio pins.
 
     See Also:
         https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/gpio.Watcher/index.md
     """
+    __REPR_FIELDS__ = ['_mode_default', '_pins']
 
     EXTRA = 'gpio'
 
@@ -42,7 +43,7 @@ class Watcher(PullBase):
         self.logger.info("GPIO '%s' raised event '%s'", gpio_pin, event)
         self.notify(dict(gpio_pin=gpio_pin, event=event))
 
-    def pull(self):
+    def _pull(self):
         GPIO = GPIOAdapter()
 
         try:

@@ -1,21 +1,22 @@
 """Basic stuff for implementing pull plugins."""
 
 import asyncio
+import inspect
 import multiprocessing as proc
 from abc import abstractmethod
 from datetime import datetime
 from typing import Any, Callable, Optional
 
 from schedule import Scheduler  # type: ignore
+from typeguard import typechecked
 
 from pnp.plugins import Plugin
 from pnp.shared.async_ import (
-    async_from_sync,
-    async_sleep_until_interrupt
+    async_sleep_until_interrupt,
+    run_sync
 )
 from pnp.typing import Payload
 from pnp.utils import (
-    auto_str_ignore,
     parse_duration_literal,
     try_parse_bool,
     DurationLiteral,
@@ -31,25 +32,26 @@ class StopPollingError(Exception):
     """Raise this exception in child classes if you want to stop the polling scheduler."""
 
 
-@auto_str_ignore(['_stopped', 'on_payload'])
-class PullBase(Plugin):
+PullCallback = Callable[['Pull', Payload], None]
+
+
+class Pull(Plugin):
     """
     Base class for pull plugins.
-    The plugin has to implements `pull` to do the actual data retrieval / task.
     """
+
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
+        self._assert_pull_compat()
+        self._assert_pull_now_compat()
+
         self._stopped = proc.Event()
+        self._callback: Optional[PullCallback] = None
 
     @property
     def stopped(self) -> bool:
         """Returns True if the pull is considered stopped; otherwise False."""
         return self._stopped.is_set()
-
-    @property
-    def supports_async(self) -> bool:
-        """Returns True if the pull supports the asyncio engine; otherwise False."""
-        return hasattr(self, 'async_pull')
 
     @property
     def can_exit(self) -> bool:
@@ -58,8 +60,63 @@ class PullBase(Plugin):
         or countermeasures like retries."""
         return False
 
+    @property
+    def supports_pull_now(self) -> bool:
+        """Returns True if this instance supports an immediate pull; otherwise False."""
+        return isinstance(self, (AsyncPullNowMixin, SyncPullNowMixin))
+
+    @typechecked
+    def callback(self, value: PullCallback) -> None:
+        """Sets the payload callback on this instance."""
+        self._callback = value
+
+    def notify(self, payload: Payload) -> None:
+        """Emit some payload to the execution engine."""
+        if self._callback:
+            self._callback(self, payload)
+
+    def _assert_pull_compat(self) -> None:
+        self._assert_abstract_compat((SyncPull, AsyncPull))
+        self._assert_fun_compat('_pull')
+        self._assert_fun_compat('_stop')
+
+    def _assert_pull_now_compat(self) -> None:
+        that = self
+        if isinstance(that, (SyncPullNowMixin, AsyncPullNowMixin)):
+            self._assert_fun_compat('_pull_now')
+
+    async def pull(self) -> None:
+        """Performs the actual data pulling."""
+        pull_fun = getattr(self, '_pull')
+        if inspect.iscoroutinefunction(pull_fun):
+            await pull_fun()
+            return
+        await run_sync(pull_fun)
+
+    async def pull_now(self) -> None:
+        """Performs a pull now. Be careful: Not every pull does support this. Make sure to call
+        supports_pull_now() previously to check the compatibility.
+        """
+        pull_now_fun = getattr(self, '_pull_now')
+        if inspect.iscoroutinefunction(pull_now_fun):
+            await pull_now_fun()
+            return
+        await run_sync(pull_now_fun)
+
+    async def stop(self) -> None:
+        """Stops the execution of this pull."""
+        stop_fun = getattr(self, '_stop')
+        if inspect.iscoroutinefunction(stop_fun):
+            await stop_fun()
+            return
+        await run_sync(stop_fun)
+
+
+class SyncPull(Pull):
+    """Base class for synchronous pulls."""
+
     @abstractmethod
-    def pull(self) -> None:
+    def _pull(self) -> None:
         """
         Performs the actual data retrieval / task.
         Returns:
@@ -67,15 +124,8 @@ class PullBase(Plugin):
         """
         raise NotImplementedError()  # pragma: no cover
 
-    def on_payload(self, payload: Payload) -> None:
-        """Callback for execution engine."""
-
-    def notify(self, payload: Payload) -> None:
-        """Call in subclass to emit some payload to the execution engine."""
-        self.on_payload(self, payload)  # type: ignore  # pylint: disable=too-many-function-args
-
-    def stop(self) -> None:
-        """Stops the plugin."""
+    def _stop(self) -> None:
+        """Async variant of `stop()`."""
         self._stopped.set()
 
     def _sleep(self, sleep_time: float = 10) -> None:
@@ -83,48 +133,31 @@ class PullBase(Plugin):
         sleep_until_interrupt(sleep_time, lambda: self.stopped, interval=0.5)
 
 
-class AsyncPullBase(PullBase):
+class AsyncPull(Pull):
     """
-    Base class for pulls that support the async engine.
+    Base class for asynchronous pulls.
     """
-    def __init__(self, **kwargs: Any):  # pylint: disable=useless-super-delegation
-        # Doesn't work without the useless-super-delegation
-        super().__init__(**kwargs)
-
-    def pull(self) -> None:
-        return self._call_async_pull_from_sync()
-
-    async def async_pull(self) -> None:
+    @abstractmethod
+    async def _pull(self) -> None:
         """Performs the actual data retrieval in a way that is compatible with the async engine."""
         raise NotImplementedError()
 
-    def _call_async_pull_from_sync(self) -> None:
-        """Calls the async pull from a sync context."""
-        if not self.supports_async:
-            raise RuntimeError(
-                "Cannot run async pull version, cause async implementation is missing")
-
-        async_from_sync(self.async_pull)
-
-    def stop(self) -> None:
-        async_from_sync(self.async_stop)
-
-    async def async_stop(self) -> None:
+    async def _stop(self) -> None:
         """Async variant of `stop()`."""
         self._stopped.set()
 
-    async def _async_sleep(self, sleep_time: float = 10) -> None:
+    async def _sleep(self, sleep_time: float = 10) -> None:
         """Call in subclass to perform some sleeping."""
         async def _interrupt() -> bool:
             return self.stopped
         await async_sleep_until_interrupt(sleep_time, _interrupt, interval=0.5)
 
 
-class PullNowMixin:
+class SyncPullNowMixin:
     """Adds support to execute the pull right now without waiting for a specific trigger
     (like cron, special events, ...). This comes in handy for api triggers or the RunOnce pull."""
 
-    def pull_now(self) -> None:
+    def _pull_now(self) -> None:
         """Executes the pull right now."""
         raise NotImplementedError()
 
@@ -134,67 +167,73 @@ class AsyncPullNowMixin:
     specific trigger (like cron, special events, ...). This comes in handy for api
     triggers or the RunOnce pull."""
 
-    async def async_pull_now(self) -> None:
+    async def _pull_now(self) -> None:
         """Asynchronously executes the pull right now."""
         raise NotImplementedError()
 
 
-@auto_str_ignore(['_scheduler', 'is_cron', '_is_running', '_instant_run'])
-class Polling(AsyncPullBase, AsyncPullNowMixin):
+class Polling(AsyncPull, AsyncPullNowMixin):
     """
     Base class for polling plugins.
 
     You may specify duration literals such as 60 (60 secs), 1m, 1h (...) to realize a periodic
     polling or cron expressions (*/1 * * * * > every min) to realize cron like behaviour.
     """
+    __REPR_FIELDS__ = ['interval', 'is_cron']
 
     def __init__(
         self, interval: Optional[DurationLiteral] = 60, instant_run: bool = False, **kwargs: Any
     ):
         super().__init__(**kwargs)
 
+        self._assert_polling_compat()
+
         if interval is None:
             # No scheduled execution. Use endpoint `/trigger` of api to execute.
             self._poll_interval = None
+            self.interval = None
             self.is_cron = False
         else:
             try:
                 # Literals such as 60s, 1m, 1h, ...
                 self._poll_interval = parse_duration_literal(interval)
+                self.interval = interval
                 self.is_cron = False
             except TypeError:
                 # ... or a cron-like expression is valid
                 from cronex import CronExpression  # type: ignore
                 self._cron_interval = CronExpression(interval)
+                self.interval = self._cron_interval
                 self.is_cron = True
 
         self._is_running = False
-        self._scheduler = None  # type: Optional[Scheduler]
+        self._scheduler: Optional[Scheduler] = None
         self._instant_run = try_parse_bool(instant_run, False)
 
-    @property
-    def supports_async_poll(self) -> bool:
-        """Returns True if the poll natively supports async polling."""
-        return hasattr(self, 'async_poll')
+    def _assert_polling_compat(self) -> None:
+        self._assert_abstract_compat((SyncPolling, AsyncPolling))
+        self._assert_fun_compat('_poll')
 
-    def pull(self) -> None:
-        self._call_async_pull_from_sync()
+    async def _pull(self) -> None:
+        def _callback() -> None:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                asyncio.ensure_future(self._run_schedule())
 
-    async def async_pull(self) -> None:
         self._scheduler = Scheduler()
-        self._configure_scheduler(self._scheduler, self._run_schedule)
+        self._configure_scheduler(self._scheduler, _callback)
 
         if self._instant_run:
             self._scheduler.run_all()
 
         while not self.stopped:
             self._scheduler.run_pending()
-            await self._async_sleep(0.5)
+            await self._sleep(0.5)
 
         while self._is_running:  # Keep the loop alive until the job is finished
             await asyncio.sleep(0.1)
 
-    async def async_pull_now(self) -> None:
+    async def _pull_now(self) -> None:
         await self._run_now()
 
     async def _run_now(self) -> Payload:
@@ -205,10 +244,7 @@ class Polling(AsyncPullBase, AsyncPullNowMixin):
 
         self._is_running = True
         try:
-            if isinstance(self, AsyncPolling) and hasattr(self, 'async_poll'):
-                payload = await self.async_poll()  # pylint: disable=no-member
-            else:
-                payload = await asyncio.get_event_loop().run_in_executor(None, self.poll)
+            payload = await self.poll()
 
             if payload is not None:
                 self.notify(payload)
@@ -217,12 +253,7 @@ class Polling(AsyncPullBase, AsyncPullNowMixin):
         finally:
             self._is_running = False
 
-    def _run_schedule(self) -> None:
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            asyncio.run_coroutine_threadsafe(self._async_run_schedule(), loop=loop)
-
-    async def _async_run_schedule(self) -> None:
+    async def _run_schedule(self) -> None:
         try:
             if self.is_cron:
                 dtime = datetime.now()
@@ -234,7 +265,7 @@ class Polling(AsyncPullBase, AsyncPullNowMixin):
 
             await self._run_now()
         except StopPollingError:
-            self.stop()
+            await self._stop()
         except Exception:  # pragma: no cover, pylint: disable=broad-except
             self.logger.exception("Polling of '%s' failed", self.name)
 
@@ -262,8 +293,21 @@ class Polling(AsyncPullBase, AsyncPullNowMixin):
                 # Scheduler executes every interval seconds to execute the poll
                 scheduler.every(self._poll_interval).seconds.do(callback)
 
+    async def poll(self) -> Payload:
+        """Performs polling."""
+        poll_fun = getattr(self, '_poll')
+        if inspect.iscoroutinefunction(poll_fun):
+            return await poll_fun()
+        return await run_sync(poll_fun)
+
+
+class SyncPolling(Polling):
+    """
+    Base class for polling plugins who can poll synchronously.
+    """
+
     @abstractmethod
-    def poll(self) -> Payload:
+    def _poll(self) -> Payload:
         """
         Implement in plugin components to do the actual polling.
 
@@ -272,29 +316,13 @@ class Polling(AsyncPullBase, AsyncPullNowMixin):
         raise NotImplementedError()  # pragma: no cover
 
 
-class AsyncPolling(Polling, AsyncPullNowMixin):
+class AsyncPolling(Polling):
     """
-    Base class for polling plugins who can poll asynchronous.
-
-    You may specify duration literals such as 60 (60 secs), 1m, 1h (...) to realize a periodic
-    polling or cron expressions (*/1 * * * * > every min) to realize cron like behaviour.
+    Base class for polling plugins who can poll asynchronously.
     """
-    def __init__(self, **kwargs: Any):
-        super().__init__(**kwargs)
-
-    def _call_async_poll_from_sync(self) -> Payload:
-        """Calls the async pull from a sync context."""
-        if isinstance(self, AsyncPolling) and hasattr(self, 'async_poll'):
-            raise RuntimeError(
-                "Cannot run async poll version, cause async implementation is missing.")
-
-        return async_from_sync(self.async_poll)
-
-    def poll(self) -> Payload:
-        return self._call_async_poll_from_sync()
 
     @abstractmethod
-    async def async_poll(self) -> Payload:
+    async def _poll(self) -> Payload:
         """
         Implement in plugin components to do the actual polling.
 

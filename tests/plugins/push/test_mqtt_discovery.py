@@ -1,9 +1,12 @@
 import json
 
+import pytest
+
 from pnp.plugins.push.mqtt import Discovery
 
 
-def test_push_mqtt_discovery(monkeypatch):
+@pytest.mark.asyncio
+async def test_push_mqtt_discovery(monkeypatch):
     call_cnt = 0
     calls = []
     def call_validator(*args, **kwargs):
@@ -24,7 +27,7 @@ def test_push_mqtt_discovery(monkeypatch):
         node_id='12345',
         name='pytest__push'
     )
-    dut.push(10)
+    await dut.push(10)
 
     assert call_cnt == 2
     # config
@@ -46,7 +49,8 @@ def test_push_mqtt_discovery(monkeypatch):
     }
 
 
-def test_push_mqtt_discovery_envelope_override(monkeypatch):
+@pytest.mark.asyncio
+async def test_push_mqtt_discovery_envelope_override(monkeypatch):
     call_cnt = 0
     calls = []
     def call_validator(*args, **kwargs):
@@ -67,7 +71,7 @@ def test_push_mqtt_discovery_envelope_override(monkeypatch):
         node_id='12345',
         name='pytest__push',
     )
-    dut.push({'data': 10, 'object_id': 'object_override', 'node_id': 'node_override'})
+    await dut.push({'data': 10, 'object_id': 'object_override', 'node_id': 'node_override'})
 
     assert call_cnt == 2
     # config
@@ -89,7 +93,8 @@ def test_push_mqtt_discovery_envelope_override(monkeypatch):
     }
 
 
-def test_push_mqtt_config_vars(monkeypatch):
+@pytest.mark.asyncio
+async def test_push_mqtt_config_vars(monkeypatch):
     call_cnt = 0
     calls = []
     def call_validator(*args, **kwargs):
@@ -110,7 +115,7 @@ def test_push_mqtt_config_vars(monkeypatch):
         node_id='12345',
         name='pytest__push',
     )
-    dut.push(10)
+    await dut.push(10)
 
     assert call_cnt == 2
     # config

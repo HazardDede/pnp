@@ -9,7 +9,7 @@ from typing import Optional, Iterable, Any, Callable, Dict, Tuple, List, Union
 
 from pnp.typing import DurationLiteral
 from pnp.utils import (
-    try_parse_int, auto_str, auto_str_ignore, Debounce, parse_duration_literal, Singleton,
+    try_parse_int, Debounce, parse_duration_literal, Singleton,
     Loggable
 )
 
@@ -135,10 +135,11 @@ class GPIOAdapter(Singleton, Loggable):
         return GPIO
 
 
-@auto_str(__repr__=True)
-@auto_str_ignore(['_GPIO'])
 class Callback:
     """Base class for a gpio callback."""
+
+    __REPR_FIELDS__ = 'gpio_pin'
+
     def __init__(self, gpio_pin: str):
         self.gpio_pin = self._str_to_gpio_pin(gpio_pin)
 
