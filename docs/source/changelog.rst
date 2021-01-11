@@ -2,6 +2,7 @@ Changelog
 =========
 
 **0.27.0 (unreleased)**
+
 * **Breaking**: Migrates from sanic to fastapi (some endpoints have slightly changed; see openapi docs) `#34 <https://github.com/HazardDede/pnp/pull/34>`_
 * **Breaking**: Deprecates / Removes ``push.notify.Pushbullet`` `#35 <https://github.com/HazardDede/pnp/pull/35>`_
 * **Breaking**: Deprecates / Removes ``pull.zway.ZwayReceiver`` `#36 <https://github.com/HazardDede/pnp/pull/36>`_
@@ -9,6 +10,11 @@ Changelog
 * **Breaking**: Deprecates / Removes ``pull.traffic.DeutscheBahn`` `#38 <https://github.com/HazardDede/pnp/pull/38>`_
 * **Breaking**: Deprecates / Removes ``pull.camera.MotionEyeWatcher`` `#39 <https://github.com/HazardDede/pnp/pull/39>`_
 * **Breaking**: Deprecates / Removes ``pull.sensor.OpenWeather`` `#40 <https://github.com/HazardDede/pnp/pull/40>`_
+* **Breaking (dev)**: Refactors the plugin interface to better distinguish between sync / async plugins to provide a simpler developer interface `#41 <https://github.com/HazardDede/pnp/pull/41>`_
+* **Breaking**: Removes `enable_swagger` from the api configuration properties `#41 <https://github.com/HazardDede/pnp/pull/41>`_
+* **Breaking (dev)**: Replaces `auto_str` decorator by `ReprMixin` based on `basic_repr` from `fastcore` package `#41 <https://github.com/HazardDede/pnp/pull/41>`_
+* **Feature**: Migrates from `attrs` to pydantic for container objects `#41 <https://github.com/HazardDede/pnp/pull/41>`_
+* **Feature**: Introduces a runner to start up an application context `#41 <https://github.com/HazardDede/pnp/pull/41>`_
 * **Feature**: ``push.mqtt.Discovery``: Adds auto configuration of state- and json attributes topics `#33 <http://github.com/HazardDede/pnp/pull/33/files>`_
 * **Feature**: ``push.fs.Zipper``: Adds ``archive_name`` argument to (dynamically) control the name of the created archive `#31 <http://github.com/HazardDede/pnp/pull/31/files>`_
 
