@@ -90,7 +90,7 @@ class AsyncEngine(Engine):
                     payload,
                     push
                 )
-                asyncio.ensure_future(self._schedule_push(payload, push))
+                asyncio.ensure_future(self._schedule_push(payload, push), loop=self.loop)
 
         task.pull.instance.callback(on_payload_sync)
 
@@ -161,7 +161,7 @@ class AsyncEngine(Engine):
         assert isinstance(push.instance, Push)
 
         def _callback(result: Payload, dependency: PushModel) -> None:
-            asyncio.ensure_future(self._schedule_push(result, dependency))
+            asyncio.ensure_future(self._schedule_push(result, dependency), loop=self.loop)
 
         try:
             await PushExecutor().execute(
