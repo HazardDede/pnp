@@ -19,7 +19,7 @@ sys.setrecursionlimit(1500)
 # -- Project information -----------------------------------------------------
 
 project = "Pull 'n' Push"
-copyright = '2018 - 2020, Dennis Muth'
+copyright = '2018 - 2021, Dennis Muth'
 author = 'Dennis Muth'
 
 
