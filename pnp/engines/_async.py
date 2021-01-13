@@ -30,12 +30,14 @@ class AsyncEngine(Engine):
         self.loop = asyncio.get_event_loop()
 
     async def _start(self, tasks: TaskSet) -> None:
+        # Use the loop to create callbacks that was used to start the engine
+        self.loop = asyncio.get_event_loop()
         coros = [self._wait_for_tasks_to_complete()]
         for _, task in tasks.items():
             coros.append(self._start_task(task))
 
         for coro in coros:
-            asyncio.ensure_future(coro)
+            self.loop.create_task(coro)
 
     async def _stop(self) -> None:
         if not self.tasks:
@@ -90,7 +92,7 @@ class AsyncEngine(Engine):
                     payload,
                     push
                 )
-                asyncio.ensure_future(self._schedule_push(payload, push), loop=self.loop)
+                self.loop.create_task(self._schedule_push(payload, push))
 
         task.pull.instance.callback(on_payload_sync)
 
@@ -161,7 +163,7 @@ class AsyncEngine(Engine):
         assert isinstance(push.instance, Push)
 
         def _callback(result: Payload, dependency: PushModel) -> None:
-            asyncio.ensure_future(self._schedule_push(result, dependency), loop=self.loop)
+            self.loop.create_task(self._schedule_push(result, dependency))
 
         try:
             await PushExecutor().execute(
