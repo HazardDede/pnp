@@ -120,6 +120,20 @@ All udfs do share the following base arguments:
 | throttle | str/float | yes  | None    | If set to a valid duration literal (e.g. ``5m``) the return value of the called functions will be cached for the given amount of time. |
 +----------+-----------+------+---------+----------------------------------------------------------------------------------------------------------------------------------------+
 
+.. NOTE::
+    Please note that even when an udf does not require arguments, you anyway have to specify the ``args:`` section.
+    Otherwise it will be interpreted as a regular function and not as a UDF.
+
+    .. code-block::
+       yaml
+
+       ...
+       udfs:
+         - name: fsize
+           args:
+       tasks:
+         ...
+
 .. include:: udf/hass.State.rst
 
 .. include:: udf/simple.Counter.rst
