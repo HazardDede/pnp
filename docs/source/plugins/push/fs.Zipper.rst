@@ -36,7 +36,7 @@ the absolute path to the created zip file.
 +--------------+------+------+---------+-----+-------------------------------------------------------------------------------------------------------------------------------------------------+
 | out_path     | str  | yes  | tmp     | no  | Specifies the path to the general output path where all target zip files should be generated. If not passed the systems temp directory is used. |
 +--------------+------+------+---------+-----+-------------------------------------------------------------------------------------------------------------------------------------------------+
-| archive_name | str  | yes  | below   | yes | Specifies the path to the general output path where all target zip files should be generated. If not passed the systems temp directory is used. |
+| archive_name | str  | yes  | below   | yes | Explicitly specifies the name of the resulting archive.                                                                                         |
 +--------------+------+------+---------+-----+-------------------------------------------------------------------------------------------------------------------------------------------------+
 
 The default of ``archive_name`` will be either the original file name (if you zip a single file)
