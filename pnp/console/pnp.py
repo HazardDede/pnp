@@ -3,6 +3,7 @@
 import logging
 import logging.config
 import os
+from functools import partial
 
 import click
 import coloredlogs
@@ -21,6 +22,9 @@ DEFAULT_LOGGING_FILE_NAME = 'logging.yaml'
 
 # Double space
 DSPACE = " " * 2
+
+# Print + flush
+printf = partial(print, flush=True)
 
 
 def _setup_logging(*candidates, log_level_override=None, env_key='PNP_LOG_CONF'):
@@ -53,7 +57,7 @@ def _print_api_config(config):
             return f'{fg.yellow}No API configured{fg.rs}'
         return f'{fg.green}{config.api}{fg.rs}'
 
-    print(f"{ef.bold}API{rs.all}\n{DSPACE}{helper()}")
+    printf(f"{ef.bold}API{rs.all}\n{DSPACE}{helper()}")
 
 
 def _print_udf_config(config):
@@ -63,12 +67,12 @@ def _print_udf_config(config):
     else:
         all_udfs = [f"{DSPACE}- {fg.green}{str(udf)}{fg.rs}" for udf in config.udfs]
         print_str += "\n".join(all_udfs)
-    print(print_str)
+    printf(print_str)
 
 
 def _print_engine_config(config):
     engine_str = f"{fg.green}{str(config.engine)}{fg.rs}"
-    print(f"{ef.bold}Engine{rs.all}\n{DSPACE}{engine_str}")
+    printf(f"{ef.bold}Engine{rs.all}\n{DSPACE}{engine_str}")
 
 
 def _stringify_single_push(push, level):
@@ -99,7 +103,7 @@ def _print_tasks_config(config):
         task_str += _stringify_push_config(task.pushes)
         all_tasks.append(task_str)
     print_str += "\n".join(all_tasks)
-    print(print_str)
+    printf(print_str)
 
 
 @click.command('pnp')
@@ -132,9 +136,9 @@ def _print_tasks_config(config):
 @click.version_option(version=__version__)
 def main(configfile, check, log, log_level, no_log_probe):
     """Pull 'n' Push. Runs or checks the given CONFIGFILE"""
-    print(f"{fg.green}{bg.black}{PNP}{bg.rs}{fg.rs}")
-    print(f"{ef.bold}Welcome to {fg.green}pnp{fg.rs} @ {fg.green}{__version__}{rs.all}")
-    print()
+    printf(f"{fg.green}{bg.black}{PNP}{bg.rs}{fg.rs}")
+    printf(f"{ef.bold}Welcome to {fg.green}pnp{fg.rs} @ {fg.green}{__version__}{rs.all}")
+    printf()
 
     app = Application.from_file(configfile)
     config = app.config
@@ -158,7 +162,7 @@ def main(configfile, check, log, log_level, no_log_probe):
             *probing_log_conf,
             log_level_override=log_level_override
         )
-        print(f"{ef.bold}Logging{rs.all}\n{DSPACE}{fg.green}{logging_config_path}{fg.rs}")
+        printf(f"{ef.bold}Logging{rs.all}\n{DSPACE}{fg.green}{logging_config_path}{fg.rs}")
 
         runner = Runner.choose_runner(app)
         runner.run()
