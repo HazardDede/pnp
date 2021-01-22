@@ -2,7 +2,6 @@ udfs:
   - name: mem
     plugin: pnp.plugins.udf.simple.Memory
     args:
-      init: 1
 tasks:
   - name: countme
     pull:

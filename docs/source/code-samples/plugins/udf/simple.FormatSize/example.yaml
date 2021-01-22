@@ -3,7 +3,6 @@ udfs:
   - name: fsize
     plugin: pnp.plugins.udf.simple.FormatSize
     args:
-      init: 1
 tasks:
   - name: format_size
     pull:

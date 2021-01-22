@@ -3,7 +3,6 @@ udfs:
   - name: counter
     plugin: pnp.plugins.udf.simple.Counter
     args:
-      init: 1
 tasks:
   - name: countme
     pull:
