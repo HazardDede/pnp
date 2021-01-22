@@ -1,7 +1,7 @@
 Changelog
 =========
 
-**0.27.0 (unreleased)**
+**0.27.0**
 
 * **Breaking**: Migrates from sanic to fastapi (some endpoints have slightly changed; see openapi docs) `#34 <https://github.com/HazardDede/pnp/pull/34>`_
 * **Breaking**: Deprecates / Removes ``push.notify.Pushbullet`` `#35 <https://github.com/HazardDede/pnp/pull/35>`_
