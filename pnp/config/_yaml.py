@@ -5,9 +5,10 @@ from functools import partial
 from typing import Any, Dict, Iterator, cast, Union, List, Iterable, Optional
 
 import schema as sc
+import yaml
 from box import Box
 from dictmentor import DictMentor, ext
-from ruamel import yaml
+from yamlinclude import YamlIncludeConstructor
 
 from pnp.config._base import Configuration, ConfigLoader
 from pnp.engines import Engine as RealEngine, RetryHandler
@@ -213,13 +214,16 @@ class YamlConfigLoader(ConfigLoader):
             validated_push[Schemas.push_deps_name] = list(self._validate_push_deps(validated_push))
             yield validated_push
 
-    def _add_constructors(self) -> None:
+    def _add_constructors(self, base_path: str) -> None:
         _ = self  # Fake usage
-        yaml.SafeLoader.add_constructor(
-            u"!engine", partial(_custom_yaml_constructor, clstype=RealEngine)
+        yaml.SafeLoader.add_constructor(  # type: ignore
+            "!engine", partial(_custom_yaml_constructor, clstype=RealEngine)
         )
-        yaml.SafeLoader.add_constructor(
-            u"!retry", partial(_custom_yaml_constructor, clstype=RetryHandler)
+        yaml.SafeLoader.add_constructor(  # type: ignore
+            "!retry", partial(_custom_yaml_constructor, clstype=RetryHandler)
+        )
+        yaml.SafeLoader.add_constructor(  # type: ignore
+            "!include", YamlIncludeConstructor(base_dir=base_path)
         )
 
     def _augment(self, configuration: PartialConfig, base_path: str) -> Any:
@@ -289,11 +293,11 @@ class YamlConfigLoader(ConfigLoader):
 
     def load_config(self, config_file: str) -> Configuration:
         config_file = str(config_file)
-        base_path = os.path.dirname(config_file)
+        base_path = os.path.abspath(os.path.dirname(config_file))
 
         with open(config_file, 'r') as fp:
             # Custom yaml constructors: !engine and !retry
-            self._add_constructors()
+            self._add_constructors(base_path)
             cfg = yaml.safe_load(fp)
 
         validated = Schemas.Root.validate(self._augment(cfg, base_path))

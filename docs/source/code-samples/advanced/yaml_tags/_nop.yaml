@@ -1,0 +1,2 @@
+# Contents of _nop.yaml
+plugin: pnp.plugins.push.simple.Nop

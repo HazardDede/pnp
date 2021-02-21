@@ -34,7 +34,7 @@ ENV = {
 def get_files_from_path(base_path, extensions):
     for root, dirs, files in os.walk(base_path):
         for file in files:
-            if file.endswith(extensions):
+            if file.endswith(extensions) and not file.startswith("_"):
                 yield os.path.join(root, file)
 
 

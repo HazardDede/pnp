@@ -1,0 +1,5 @@
+tasks:
+  - name: include_tag
+    pull: !include _pull.yaml
+    push:
+      - !include _push.yaml

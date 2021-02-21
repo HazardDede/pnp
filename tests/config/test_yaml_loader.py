@@ -163,3 +163,16 @@ def test_api():
 
     config = dut.load_config(path_to_config('config.api.max.yaml'))
     assert config.api == APIModel(port=23456, enable_metrics=True)
+
+
+def test_yaml_tag_include():
+    dut = YamlConfigLoader()
+
+    config = dut.load_config(path_to_config('yaml_tag_include/config.yaml'))
+    assert config is not None
+
+    task = config.tasks.get('include_tag')
+    assert task
+    assert str(task.pull.instance) == str(Repeat("Hello World", name="include_tag_pull", interval="1s"))
+    assert len(task.pushes) == 1
+    assert str(task.pushes[0].instance) == str(Echo(name="include_tag_push_0"))
