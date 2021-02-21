@@ -1,5 +1,5 @@
 #
-# Notice: Keep this file in sync with Dockerfile.arm32v7
+# Notice: Keep this file in sync with Dockerfile.arm
 #
 
 FROM python:3.7-slim-buster
