@@ -145,6 +145,31 @@ def _custom_yaml_constructor(loader: Any, node: Any, clstype: Any) -> Any:
     return load_plugin(clazz_name, clstype, **args)
 
 
+def _custom_env_tag(loader: Any, node: Any) -> Any:
+    if not isinstance(node, yaml.nodes.ScalarNode):
+        raise yaml.constructor.ConstructorError(
+            None, None,
+            f'expected a scalar or sequence node, but found {node.id}',
+            node.start_mark
+        )
+
+    node_value = loader.construct_scalar(node)
+    sep_index = node_value.find(':=')
+    if sep_index >= 1:
+        envvar = node_value[:sep_index]
+        default = node_value[sep_index + 2:]
+    else:
+        envvar = node_value
+        default = None
+
+    value = os.environ.get(envvar, default)
+    if value is None:
+        raise EnvironmentError(f"Environment variable '{envvar}' not found and no default set")
+
+    tag = loader.resolve(yaml.nodes.ScalarNode, value, (True, False))
+    return loader.construct_object(yaml.nodes.ScalarNode(tag, value))
+
+
 def _mk_pull(task_config: Box, **extra: Any) -> PullModel:
     """Make a pull out of a task configuration."""
     name = '{}_pull'.format(task_config[Schemas.task_name])
@@ -224,6 +249,9 @@ class YamlConfigLoader(ConfigLoader):
         )
         yaml.SafeLoader.add_constructor(  # type: ignore
             "!include", YamlIncludeConstructor(base_dir=base_path)
+        )
+        yaml.SafeLoader.add_constructor(  # type: ignore
+            "!env", _custom_env_tag
         )
 
     def _augment(self, configuration: PartialConfig, base_path: str) -> Any:

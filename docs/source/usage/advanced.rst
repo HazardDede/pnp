@@ -303,7 +303,9 @@ YAML Tags
 You can use yaml tags to augment your yaml configuration.
 Right now the following tags are supported:
 
-``!include``: To incorporate another yaml file into your configuration
+* ``!include``: To incorporate another yaml file into your configuration
+* ``!env``: To inject a environment variable. Use ``:=`` to denote a default value.
+  The configuration loading process will fail if the environment variable is not set and no default is given.
 
 The following example will demonstrate the yaml tags in more depth:
 
