@@ -79,10 +79,10 @@ def perform_fft(
     import numpy as np
     try:
         import scipy.fft
-        fft_fun = scipy.fft.fft
+        fft_fun = scipy.fft.fft  # pylint: disable=no-member
     except ImportError:
         import scipy
-        fft_fun = scipy.fft
+        fft_fun = scipy.fft  # pylint: disable=no-member
 
     chn = len(signal.shape)
     if chn >= 2:  # Make mono channel
