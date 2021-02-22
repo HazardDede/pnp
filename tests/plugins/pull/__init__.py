@@ -4,14 +4,39 @@ from threading import Thread
 
 import async_generator
 
-from pnp.plugins.pull import Pull
+from pnp.plugins.pull import Pull, SyncPolling
 
-Runner = namedtuple("Runner", ["pull", "start", "stop", "join", "raise_on_error"])
+Runner = namedtuple("Runner", ["pull", "start", "stop", "join", "raise_on_error", "events"])
 MqttMessage = namedtuple("MqttMessage", ["payload", "topic"])
+
+
+class CustomPolling(SyncPolling):
+    """
+    Calls the specified callable every `interval`. The result of the callable is simply returned.
+    This plugin is basically for _internal_ use only.
+    """
+    def __init__(self, scheduled_callable, **kwargs):
+        super().__init__(**kwargs)
+        self.scheduled_callable = scheduled_callable
+
+    def _poll(self):
+        return self.scheduled_callable()
 
 
 def dummy_callback(plugin, payload):
     pass
+
+
+class CallbackMemory:
+    def __init__(self):
+        self.events = []
+
+    def _callback(self, plugin, payload):
+        self.events.append(payload)
+
+    def bind(self, pull):
+        pull.callback(self._callback)
+        return self
 
 
 @async_generator.asynccontextmanager
@@ -25,9 +50,16 @@ async def start_runner(runner):
         runner.raise_on_error()
 
 
-async def make_runner(plugin, callback):
+async def make_runner(plugin, callback=None):
     assert isinstance(plugin, Pull)
-    plugin.callback(callback)
+
+    issued_events = []
+    if callback:
+        plugin.callback(callback)
+    else:
+        def callback(plugin, payload):
+            issued_events.append(payload)
+        plugin.callback(callback)
 
     error = None
     def _wrapper():
@@ -53,4 +85,14 @@ async def make_runner(plugin, callback):
     def raise_if_applicable():
         assert error is None, error
 
-    return Runner(pull=t, start=start, stop=stop, join=join, raise_on_error=raise_if_applicable)
+    def events():
+        return events
+
+    return Runner(
+        pull=t,
+        start=start,
+        stop=stop,
+        join=join,
+        raise_on_error=raise_if_applicable,
+        events=issued_events
+    )

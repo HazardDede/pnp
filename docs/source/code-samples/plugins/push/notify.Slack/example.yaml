@@ -3,7 +3,7 @@ tasks:
     pull:
       plugin: pnp.plugins.pull.simple.Count  # Let's count
       args:
-        wait: 10
+        interval: 10
     push:
       - plugin: pnp.plugins.push.notify.Slack
         selector:

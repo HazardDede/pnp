@@ -3,6 +3,7 @@
 import logging
 import logging.config
 import os
+import warnings
 from functools import partial
 
 import click
@@ -16,7 +17,6 @@ from pnp.logo import PNP
 from pnp.runner import Runner
 from pnp.utils import get_first_existing_file
 
-
 # Default log file name
 DEFAULT_LOGGING_FILE_NAME = 'logging.yaml'
 
@@ -25,6 +25,9 @@ DSPACE = " " * 2
 
 # Print + flush
 printf = partial(print, flush=True)
+
+# Allow deprecation warnings to bubble up
+warnings.simplefilter('default')
 
 
 def _setup_logging(*candidates, log_level_override=None, env_key='PNP_LOG_CONF'):
