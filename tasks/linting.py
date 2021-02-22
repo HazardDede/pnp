@@ -37,6 +37,7 @@ def mypy(ctx):
         "{}/engines/*.py".format(SOURCE_PATH),
         "{}/plugins/__init__.py".format(SOURCE_PATH),
         "{}/plugins/pull/__init__.py".format(SOURCE_PATH),
+        "{}/plugins/pull/monitor/stats.py".format(SOURCE_PATH),
         "{}/plugins/pull/simple/count.py".format(SOURCE_PATH),
         "{}/plugins/pull/simple/cron.py".format(SOURCE_PATH),
         "{}/plugins/pull/simple/repeat.py".format(SOURCE_PATH),

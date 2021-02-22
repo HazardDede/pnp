@@ -1,4 +1,4 @@
-"""Pull: Cron."""
+"""Pull: simple.Cron."""
 
 from datetime import datetime
 from typing import Any, List, Callable, Union
