@@ -1,6 +1,10 @@
 Changelog
 =========
 
+**0.28.0 (unreleased)**
+
+* **Fix**: Fixes import issue on recent scipy version `#42 <https://github.com/HazardDede/pnp/pull/42>`_
+
 **0.27.0**
 
 * **Breaking**: Migrates from sanic to fastapi (some endpoints have slightly changed; see openapi docs) `#34 <https://github.com/HazardDede/pnp/pull/34>`_
