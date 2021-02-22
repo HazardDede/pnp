@@ -250,9 +250,10 @@ class Sound(SyncPull):
         self.ignore_overflow = bool(ignore_overflow)
 
     def _check_dependencies(self):
-        load_optional_module('scipy.io.wavfile', self.EXTRA)
         load_optional_module('numpy', self.EXTRA)
+        load_optional_module('pyaudio', self.EXTRA)
         load_optional_module('scipy', self.EXTRA)
+        load_optional_module('scipy.io.wavfile', self.EXTRA)
         load_optional_module('scipy.stats.stats', self.EXTRA)
 
     def _similarity(self, buffer, config: WavConfig):
