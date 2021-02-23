@@ -15,5 +15,5 @@ for import_path, clazz in __IMPORTS__:
 
 
 __all__ = [
-    'FritzBoxTracker'
+    'FritzBoxTracker'  # pylint: disable=undefined-all-variable
 ]
