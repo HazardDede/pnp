@@ -48,8 +48,6 @@ arguments to control their polling behavior.
 
 .. include:: pull/net.SSLVerify.rst
 
-.. include:: pull/presence.FritzBoxTracker.rst
-
 .. include:: pull/sensor.DHT.rst
 
 .. include:: pull/sensor.MiFlora.rst
@@ -63,6 +61,8 @@ arguments to control their polling behavior.
 .. include:: pull/simple.Repeat.rst
 
 .. include:: pull/simple.RunOnce.rst
+
+.. include:: pull/tracking.FritzBoxTracker.rst
 
 .. include:: pull/zway.ZwayPoll.rst
 

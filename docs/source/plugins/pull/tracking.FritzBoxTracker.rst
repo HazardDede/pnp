@@ -1,10 +1,10 @@
-presence.FritzBoxTracker
+tracking.FritzBoxTracker
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 ========================================== ====== ============ ========
 plugin                                     type   extra        version
 ========================================== ====== ============ ========
-pnp.plugins.pull.presence.FritzBoxTracker  poll   fritz        0.22.0
+pnp.plugins.pull.tracking.FritzBoxTracker   poll   fritz        0.22.0
 ========================================== ====== ============ ========
 
 **Description**
@@ -49,8 +49,8 @@ Periodically asks a Fritz!Box router for the devices that were connected in the 
 
 **Example**
 
-.. literalinclude:: ../code-samples/plugins/pull/presence.FritzBoxTracker/example.yaml
+.. literalinclude:: ../code-samples/plugins/pull/tracking.FritzBoxTracker/example.yaml
    :language: YAML
 
-.. literalinclude:: ../code-samples/plugins/pull/presence.FritzBoxTracker/example_whitelist.yaml
+.. literalinclude:: ../code-samples/plugins/pull/tracking.FritzBoxTracker/example_whitelist.yaml
    :language: YAML

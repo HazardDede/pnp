@@ -42,6 +42,7 @@ def mypy(ctx):
         "{}/plugins/pull/simple/cron.py".format(SOURCE_PATH),
         "{}/plugins/pull/simple/repeat.py".format(SOURCE_PATH),
         "{}/plugins/pull/simple/run_once.py".format(SOURCE_PATH),
+        "{}/plugins/pull/tracking/fritzboxtracker.py".format(SOURCE_PATH),
         "{}/plugins/push/__init__.py".format(SOURCE_PATH),
         "{}/plugins/udf/__init__.py".format(SOURCE_PATH),
         "{}/shared/*.py".format(SOURCE_PATH),

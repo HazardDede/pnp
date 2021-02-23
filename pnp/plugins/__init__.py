@@ -3,7 +3,7 @@ import inspect
 import logging
 from abc import ABCMeta
 from importlib import import_module
-from typing import Any, Tuple, Optional, Union, cast, Callable, Iterable
+from typing import Any, Tuple, Optional, Union, cast, Callable, Iterable, Type
 
 from pnp import validator
 from pnp.utils import ReprMixin
@@ -112,6 +112,17 @@ class PluginTypeError(Exception):
     """Is raised when the plugin does not meet the requested plugin type or is no plugin at all."""
 
 
+class BrokenImport:
+    """Represents a plugin that failed to be loaded."""
+    def __init__(self, extra: Optional[str], error: ImportError, clazz: Type[Plugin]):
+        self.extra = extra
+        self.error = error
+        self.clazz = clazz
+
+    def __call__(self, **kwargs: Any) -> Plugin:
+        return self.clazz(extra=self.extra, error=self.error, **kwargs)
+
+
 def load_plugin(plugin_path: str, plugin_type: Union[type, str], instantiate: bool = True,
                 **kwargs: Any) -> Union[Plugin, Callable[..., Any]]:
     """
@@ -156,7 +167,8 @@ def load_plugin(plugin_path: str, plugin_type: Union[type, str], instantiate: bo
             if not callable(clazz):
                 raise PluginTypeError("The plugin is requested to be a callable, but it is not.")
         else:
-            if not issubclass(clazz, cast(type, plugin_type)):
+            if (not isinstance(clazz, BrokenImport)
+                    and not issubclass(clazz, cast(type, plugin_type))):
                 raise PluginTypeError(
                     "The plugin is requested to inherit from '{}', but it does not."
                     .format(plugin_type)

@@ -3,14 +3,16 @@
 import asyncio
 import inspect
 import multiprocessing as proc
+import os
+import re
 from abc import abstractmethod
 from datetime import datetime
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Type, Union
 
 from schedule import Scheduler  # type: ignore
 from typeguard import typechecked
 
-from pnp.plugins import Plugin
+from pnp.plugins import Plugin, InstallOptionalExtraError, BrokenImport
 from pnp.shared.async_ import (
     async_sleep_until_interrupt,
     run_sync
@@ -329,3 +331,49 @@ class AsyncPolling(Polling):
         Returns: Returns the data for the downstream pipeline.
         """
         raise NotImplementedError()  # pragma: no cover
+
+
+class BrokenImportPull(AsyncPull):
+    """A pull that represents a pull that failed to be loaded due to importing
+    issues."""
+
+    __REPR_FIELDS__ = ["extra", "error"]
+
+    def __init__(self, extra: Optional[str], error: ImportError, **kwargs: Any):
+        super().__init__(**kwargs)
+        self.extra = extra
+        self.error = error
+
+    def _raise_error(self) -> None:
+        if self.extra:
+            raise InstallOptionalExtraError(self.extra) from self.error
+        raise ImportError("Something went wrong when importing the plugin") from self.error
+
+    async def _pull(self) -> None:
+        self._raise_error()
+
+    async def _poll(self) -> None:
+        self._raise_error()
+
+
+def try_import_pull(import_path: str, clazz: str) -> Union[BrokenImport, Type[Pull]]:
+    """Tries to import a pull plugin located in given relative import_path
+    and named after clazz."""
+    try:
+        imp = __import__(import_path, globals(), locals(), ['object'], 1)
+        ctype = getattr(imp, clazz)
+        assert issubclass(ctype, Pull)
+        return ctype  # type: ignore
+    except ImportError as imp_err:
+        partial_path = f"{import_path.replace('.', os.sep)}.py"
+        import_file_path = os.path.join(os.path.dirname(__file__), partial_path)
+        regex = r'^\s*__EXTRA__\s*=\s*["\'](?P<extra>\w+)["\']\s*$'
+        extra = None
+        with open(import_file_path, "r") as fhandle:
+            for line in fhandle:
+                match = re.search(regex, line)
+                if match:
+                    extra = match.group('extra')
+                    break
+
+        return BrokenImport(extra=extra, error=imp_err, clazz=BrokenImportPull)

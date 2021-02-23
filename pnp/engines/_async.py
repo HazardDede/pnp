@@ -5,6 +5,7 @@ from typing import Optional
 
 from pnp.engines._base import Engine, RetryHandler, SimpleRetryHandler, PushExecutor
 from pnp.models import TaskSet, TaskModel, PushModel
+from pnp.plugins import InstallOptionalExtraError
 from pnp.plugins.pull import SyncPull
 from pnp.plugins.push import Push
 from pnp.shared.async_ import async_sleep_until_interrupt
@@ -114,7 +115,13 @@ class AsyncEngine(Engine):
                     task.pull.instance
                 )
                 await self._stop_task(task)
-                # self.loop.call_soon_threadsafe(task.pull.instance.stop)
+            except (ImportError, InstallOptionalExtraError):
+                self.logger.exception(
+                    "[Task-%s] Pulling of '%s' had some importing errors",
+                    task.name,
+                    task.pull.instance.name
+                )
+                await self._stop_task(task)
             except:  # pylint: disable=bare-except
                 # Bad thing... Pulling exited with exception
                 self.logger.exception(
