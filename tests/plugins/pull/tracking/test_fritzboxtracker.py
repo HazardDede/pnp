@@ -96,3 +96,17 @@ def test_polling_whitelist_with_offline_delay():
 def test_backwards_compat():
     from pnp.plugins.pull.presence import FritzBoxTracker
     _ = FritzBoxTracker
+
+
+@pytest.mark.skipif(not _plugin_available(), reason="requires package fritzconnection")
+def test_repr():
+    dut = FritzBoxTracker(
+        name='pytest',
+        whitelist=['12:34:56:78:12', '12:34:56:78:14'],
+        offline_delay=1
+    )
+    assert (
+            repr(dut) == "FritzBoxTracker(host='169.254.1.1', interval=60, is_cron=False, "
+                         "name='pytest', offline_delay=1, user='admin', "
+                         "whitelist=['12:34:56:78:12', '12:34:56:78:14'])"
+    )

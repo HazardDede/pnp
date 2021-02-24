@@ -1,11 +1,13 @@
-"""Tracking related pulls."""
+"""Network related pulls."""
 
 import sys
 
 from pnp.plugins.pull import try_import_pull
 
 __IMPORTS__ = [
-    ('tracking.fritzboxtracker', 'FritzBoxTracker'),
+    ('net.portprobe', 'PortProbe'),
+    ('net.speedtest', 'Speedtest'),
+    ('net.sslverify', 'SSLVerify')
 ]
 
 thismodule = sys.modules[__name__]

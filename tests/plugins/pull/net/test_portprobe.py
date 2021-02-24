@@ -1,39 +1,38 @@
 import socket
 
-from mock import patch, Mock
-
 from pnp.plugins.pull.net import PortProbe
 
 
-@patch("pnp.plugins.pull.net.socket")
-def test_port_probe_remote(socket_mock):
+def test_poll_remote(mocker):
+    socket_mock = mocker.patch("pnp.plugins.pull.net.portprobe.socket")
     socket_mock.socket.return_value.__enter__.return_value.connect_ex.return_value = 0
 
     dut = PortProbe(9999, 'www.anyserver.de', name='pytest')
     payload = dut._poll()
     assert payload == {
-        PortProbe.CONST_SERVER: 'www.anyserver.de',
-        PortProbe.CONST_PORT: 9999,
-        PortProbe.CONST_REACHABLE: True
+        'server': 'www.anyserver.de',
+        'port': 9999,
+        'reachable': True
     }
 
     socket_mock.socket.return_value.__enter__.return_value.connect_ex.return_value = 255
     payload = dut._poll()
     assert payload == {
-        PortProbe.CONST_SERVER: 'www.anyserver.de',
-        PortProbe.CONST_PORT: 9999,
-        PortProbe.CONST_REACHABLE: False
+        'server': 'www.anyserver.de',
+        'port': 9999,
+        'reachable': False
     }
 
 
-@patch("pnp.plugins.pull.net.socket")
-def test_port_probe_local(socket_mock):
+def test_poll_local(mocker):
+    socket_mock = mocker.patch("pnp.plugins.pull.net.portprobe.socket")
+
     dut = PortProbe(9999, 'localhost', name='pytest')
     payload = dut._poll()
     assert payload == {
-        PortProbe.CONST_SERVER: 'localhost',
-        PortProbe.CONST_PORT: 9999,
-        PortProbe.CONST_REACHABLE: False
+        'server': 'localhost',
+        'port': 9999,
+        'reachable': False
     }
     assert socket_mock.socket.return_value.__enter__.return_value.listen.call_count == 2
 
@@ -41,8 +40,13 @@ def test_port_probe_local(socket_mock):
     socket_mock.socket.return_value.__enter__.return_value.bind.side_effect = socket.error('Failed on purpose')
     payload = dut._poll()
     assert payload == {
-        PortProbe.CONST_SERVER: 'localhost',
-        PortProbe.CONST_PORT: 9999,
-        PortProbe.CONST_REACHABLE: True
+        'server': 'localhost',
+        'port': 9999,
+        'reachable': True
     }
     assert socket_mock.socket.return_value.__enter__.return_value.listen.call_count == 2  # No change
+
+
+def test_repr():
+    dut = dut = PortProbe(9999, 'localhost', name='pytest')
+    assert repr(dut) == "PortProbe(interval=60, is_cron=False, name='pytest', port=9999, server='localhost', timeout=1)"

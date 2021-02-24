@@ -1,6 +1,5 @@
-from mock import patch
-
 from pnp.plugins.pull.net import Speedtest
+
 
 RESPONSE_MOCK = {
   'download': 8889157.466220528,
@@ -38,8 +37,8 @@ RESPONSE_MOCK = {
 }
 
 
-@patch("speedtest.Speedtest")
-def test_poll_for_smoke(speedtest_mock):
+def test_poll(mocker):
+    speedtest_mock = mocker.patch("pnp.plugins.pull.net.speedtest.speedtest.Speedtest")
     speedtest_mock.return_value.results.dict.return_value = RESPONSE_MOCK
 
     dut = Speedtest(name='pytest')
@@ -67,3 +66,8 @@ def test_poll_for_smoke(speedtest_mock):
             'rating': '5.0'  # The rating of your isp
         }
     }
+
+
+def test_repr():
+    dut = Speedtest(name='pytest')
+    assert repr(dut) == "Speedtest(interval=60, is_cron=False, name='pytest')"

@@ -6,7 +6,7 @@ from pnp.plugins.pull.net import SSLVerify
 
 
 @pytest.mark.asyncio
-async def test_google_cert():
+async def test_poll_google_cert():
     # The assumption is that google never misses the time window for
     # re-issuing
 
@@ -23,3 +23,8 @@ async def test_google_cert():
     assert isinstance(payload['expires_at'], datetime)
     assert 'expired' in payload
     assert isinstance(payload['expired'], bool)
+
+
+def test_repr():
+    dut = SSLVerify('www.google.com', name='pytest')
+    assert repr(dut) == "SSLVerify(host='www.google.com', interval=60, is_cron=False, name='pytest', timeout=3.0)"
