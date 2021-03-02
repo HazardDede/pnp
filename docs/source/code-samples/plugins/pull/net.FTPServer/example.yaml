@@ -1,7 +1,7 @@
 tasks:
   - name: ftp_server
     pull:
-      plugin: pnp.plugins.pull.ftp.Server
+      plugin: pnp.plugins.pull.net.FTPServer
       args:
         directory: "{{env::FTP_DIR}}"
         user_pwd: [admin, root]  # user: admin, pw: root

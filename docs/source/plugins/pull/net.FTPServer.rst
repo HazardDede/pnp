@@ -1,10 +1,10 @@
-ftp.Server
+net.FTPServer
 ^^^^^^^^^^^^^^
 
 ================================ ====== ============ ========
 plugin                           type   extra        version
 ================================ ====== ============ ========
-pnp.plugins.pull.ftp.Server      pull   ftp          0.17.0
+pnp.plugins.pull.net.FTPServer   pull   ftp          0.17.0
 ================================ ====== ============ ========
 
 **Description**
@@ -49,5 +49,5 @@ The data field will contain the user for login/logout events and the file_path f
 
 **Example**
 
-.. literalinclude:: ../code-samples/plugins/pull/ftp.Server/example.yaml
+.. literalinclude:: ../code-samples/plugins/pull/net.FTPServer/example.yaml
    :language: YAML

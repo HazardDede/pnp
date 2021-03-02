@@ -5,60 +5,53 @@ from tempfile import NamedTemporaryFile, TemporaryDirectory
 
 import pytest
 
-import pnp.plugins.pull.ftp as ftp
-from . import make_runner, start_runner
+from pnp.plugins.pull.net import ftpserver as ftp
+from tests.plugins.pull import make_runner, start_runner
 
 
 def path_to_test_file():
-    return os.path.join(os.path.dirname(__file__), '../../resources/faces/obama.jpg')
+    return os.path.join(os.path.dirname(__file__), '../../../resources/faces/obama.jpg')
 
 
-def test_ftp_server_init_default():
-    dut = ftp.Server(name='pytest')
-    assert dut.events == ftp.Server.ALL_EVENTS
+def test_init_default():
+    dut = ftp.FTPServer(name='pytest')
+    assert dut.events == ftp.ALL_EVENTS
     assert dut.port == 2121
     assert dut.user is None
     assert dut.max_cons == 256
     assert dut.max_cons_ip == 5
 
 
-def test_ftp_server_init_user_pwd():
-    dut = ftp.Server(name='pytest', user_pwd=None)
+def test_init_user_pwd():
+    dut = ftp.FTPServer(name='pytest', user_pwd=None)
     assert dut.user is None
-    assert not hasattr(dut, 'password')
+    assert dut.password is None
 
-    dut = ftp.Server(name='pytest', user_pwd='admin')
+    dut = ftp.FTPServer(name='pytest', user_pwd='admin')
     assert dut.user == 'admin'
     assert dut.password == ''
 
-    dut = ftp.Server(name='pytest', user_pwd=('admin', 'root'))
+    dut = ftp.FTPServer(name='pytest', user_pwd=('admin', 'root'))
     assert dut.user == 'admin'
     assert dut.password == 'root'
 
-    with pytest.raises(TypeError, match=r"Argument 'user_pwd' is expected to be a str \(user\) or a tuple of user and password") as err:
-        ftp.Server(name='pytest', user_pwd=5)
 
+def test_init_events():
+    dut = ftp.FTPServer(name='pytest', events='login')
+    assert dut.events == [ftp.EVENT_LOGIN]
 
-def test_ftp_server_init_events():
-    dut = ftp.Server(name='pytest', events='login')
-    assert dut.events == [dut.EVENT_LOGIN]
-
-    dut = ftp.Server(name='pytest', events=('login', 'logout'))
-    assert dut.events == [dut.EVENT_LOGIN, dut.EVENT_LOGOUT]
+    dut = ftp.FTPServer(name='pytest', events=('login', 'logout'))
+    assert dut.events == [ftp.EVENT_LOGIN, ftp.EVENT_LOGOUT]
 
     with pytest.raises(ValueError, match="Argument 'events' is expected to be a subset of") as err:
-        ftp.Server(name='pytest', events='unknown')
+        ftp.FTPServer(name='pytest', events='unknown')
 
 
 @pytest.mark.asyncio
-async def test_ftp_server_pull_connect_login_disconnect():
-    dut = ftp.Server(name='pytest')
+async def test_pull_connect_login_disconnect():
+    dut = ftp.FTPServer(name='pytest')
 
-    events = []
-    def callback(plugin, payload):
-        events.append(payload)
-
-    runner = await make_runner(dut, callback)
+    runner = await make_runner(dut)
     async with start_runner(runner):
         time.sleep(0.5)
         client = FTP()
@@ -67,7 +60,7 @@ async def test_ftp_server_pull_connect_login_disconnect():
         client.close()
         time.sleep(0.2)
 
-    assert events == [
+    assert runner.events == [
         {'event': 'connect', 'data': {}},
         {'event': 'login', 'data': {'user': 'anonymous'}},
         {'event': 'disconnect', 'data': {}},
@@ -75,14 +68,10 @@ async def test_ftp_server_pull_connect_login_disconnect():
 
 
 @pytest.mark.asyncio
-async def test_ftp_server_pull_connect_login_user_disconnect():
-    dut = ftp.Server(name='pytest', user_pwd=('root', 'admin'))
+async def test_pull_connect_login_user_disconnect():
+    dut = ftp.FTPServer(name='pytest', user_pwd=('root', 'admin'))
 
-    events = []
-    def callback(plugin, payload):
-        events.append(payload)
-
-    runner = await make_runner(dut, callback)
+    runner = await make_runner(dut)
     async with start_runner(runner):
         time.sleep(0.5)
         client = FTP()
@@ -91,7 +80,7 @@ async def test_ftp_server_pull_connect_login_user_disconnect():
         client.close()
         time.sleep(0.2)
 
-    assert events == [
+    assert runner.events == [
         {'event': 'connect', 'data': {}},
         {'event': 'login', 'data': {'user': 'root'}},
         {'event': 'disconnect', 'data': {}},
@@ -99,15 +88,11 @@ async def test_ftp_server_pull_connect_login_user_disconnect():
 
 
 @pytest.mark.asyncio
-async def test_ftp_server_pull_connect_store_retr_disconnect():
+async def test_pull_connect_store_retr_disconnect():
     with TemporaryDirectory() as tmpdir:
-        dut = ftp.Server(name='pytest', directory=tmpdir)
+        dut = ftp.FTPServer(name='pytest', directory=tmpdir)
 
-        events = []
-        def callback(plugin, payload):
-            events.append(payload)
-
-        runner = await make_runner(dut, callback)
+        runner = await make_runner(dut)
         async with start_runner(runner):
             time.sleep(0.5)
             client = FTP()
@@ -121,10 +106,23 @@ async def test_ftp_server_pull_connect_store_retr_disconnect():
             client.close()
             time.sleep(0.2)
 
-        assert events == [
+        assert runner.events == [
             {'event': 'connect', 'data': {}},
             {'event': 'login', 'data': {'user': 'anonymous'}},
             {'event': 'file_received', 'data': {'file_path': os.path.join(os.path.realpath(tmpdir), 'test.txt')}},
             {'event': 'file_sent', 'data': {'file_path': os.path.join(os.path.realpath(tmpdir), 'test.txt')}},
             {'event': 'disconnect', 'data': {}},
         ]
+
+
+def test_repr():
+    dut = ftp.FTPServer(name='pytest')
+    assert repr(dut) == (
+        "FTPServer(directory=None, events=['connect', 'disconnect', 'file_received', 'file_received_incomplete', "
+        "'file_sent', 'file_sent_incomplete', 'login', 'logout'], max_cons=256, max_cons_ip=5, name='pytest', "
+        "password=None, port=2121, user=None)"
+    )
+
+
+def test_backwards_compat():
+    from pnp.plugins.pull.ftp import Server

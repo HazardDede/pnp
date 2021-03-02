@@ -30,8 +30,6 @@ arguments to control their polling behavior.
 
 .. include:: pull/fs.Size.rst
 
-.. include:: pull/ftp.Server.rst
-
 .. include:: pull/gpio.Watcher.rst
 
 .. include:: pull/hass.State.rst
@@ -41,6 +39,8 @@ arguments to control their polling behavior.
 .. include:: pull/monitor.Stats.rst
 
 .. include:: pull/mqtt.Subscribe.rst
+
+.. include:: pull/net.FTPServer.rst
 
 .. include:: pull/net.PortProbe.rst
 

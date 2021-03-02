@@ -5,6 +5,7 @@ import sys
 from pnp.plugins.pull import try_import_pull
 
 __IMPORTS__ = [
+    ('net.ftpserver', 'FTPServer'),
     ('net.portprobe', 'PortProbe'),
     ('net.speedtest', 'Speedtest'),
     ('net.sslverify', 'SSLVerify')
