@@ -1,7 +1,7 @@
 tasks:
   - name: gpio
     pull:
-      plugin: pnp.plugins.pull.gpio.Watcher
+      plugin: pnp.plugins.pull.io.GPIOWatcher
       args:
         default: rising
         pins:

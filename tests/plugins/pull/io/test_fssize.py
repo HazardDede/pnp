@@ -3,7 +3,7 @@ import os
 import pytest
 from pytest import yield_fixture
 
-from pnp.plugins.pull.fs import Size
+from pnp.plugins.pull.io import FSSize
 from tests.conftest import resource_path
 
 
@@ -13,8 +13,8 @@ def directory():
 
 
 @pytest.mark.asyncio
-async def test_fs_size_non_mapping(directory):
-    dut = Size(paths=[
+async def test_poll_non_mapping(directory):
+    dut = FSSize(paths=[
         directory, os.path.join(directory, 'obama.jpg'), os.path.join(directory, 'trump.jpg')
     ], name='pytest')
 
@@ -28,8 +28,8 @@ async def test_fs_size_non_mapping(directory):
 
 
 @pytest.mark.asyncio
-async def test_fs_size_mapping(directory):
-    dut = Size(paths={
+async def test_poll_with_mapping(directory):
+    dut = FSSize(paths={
         'root': directory,
         'obama': os.path.join(directory, 'obama.jpg'),
         'trump': os.path.join(directory, 'trump.jpg')
@@ -45,14 +45,27 @@ async def test_fs_size_mapping(directory):
 
 
 @pytest.mark.asyncio
-async def test_fs_size_non_existent(directory):
+async def test_poll_non_existent(directory):
     with pytest.raises(FileNotFoundError):
-        await Size(paths={
+        await FSSize(paths={
             'root': '/this/one/does/not/exist!'
         }, name='pytest').poll()
 
-    res = await Size(paths={
+    res = await FSSize(paths={
         'root': '/this/one/does/not/exist!'
     }, name='pytest', fail_on_error=False).poll()
 
     assert res == {'root': None}
+
+
+def test_backwards_compat():
+    from pnp.plugins.pull.fs import Size
+    _ = Size
+
+
+def test_repr(directory):
+    dut = FSSize(paths=[
+        directory, os.path.join(directory, 'obama.jpg'), os.path.join(directory, 'trump.jpg')
+    ], name='pytest')
+
+    assert repr(dut)

@@ -28,11 +28,11 @@ arguments to control their polling behavior.
 
 .. include:: pull/fs.FileSystemWatcher.rst
 
-.. include:: pull/fs.Size.rst
-
 .. include:: pull/hass.State.rst
 
 .. include:: pull/http.Server.rst
+
+.. include:: pull/io.FSSize.rst
 
 .. include:: pull/io.GPIOWatcher.rst
 

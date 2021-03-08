@@ -1,7 +1,7 @@
 tasks:
   - name: file_size
     pull:
-      plugin: pnp.plugins.pull.fs.Size
+      plugin: pnp.plugins.pull.io.FSSize
       args:
         instant_run: true
         interval: 5s

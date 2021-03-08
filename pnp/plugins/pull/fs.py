@@ -1,11 +1,11 @@
 """File system related plugins."""
 
-import os
 import time
 
 from pnp import validator
-from pnp.plugins import load_optional_module, PluginStoppedError
-from pnp.plugins.pull import SyncPull, SyncPolling
+from pnp.plugins import load_optional_module
+from pnp.plugins.pull import SyncPull
+from pnp.plugins.pull.io import FSSize
 from pnp.utils import make_list, load_file, FILE_MODES, Debounce
 
 
@@ -153,58 +153,4 @@ class FileSystemWatcher(SyncPull):
         observer.join()
 
 
-class Size(SyncPolling):
-    """
-    Periodically determines the size of the specified files or directories in bytes.
-
-    See Also:
-        https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/fs.FileSize/index.md
-    """
-
-    __REPR_FIELDS__ = ['fail_on_error', 'file_paths']
-
-    def __init__(self, paths, fail_on_error=True, **kwargs):
-        super().__init__(**kwargs)
-        if isinstance(paths, dict):
-            self.file_paths = paths  # alias -> file path mapping
-        else:
-            # No explicit alias: Use the basename of the file
-            self.file_paths = {os.path.basename(str(fp)): str(fp) for fp in make_list(paths)}
-        self.fail_on_error = bool(fail_on_error)
-
-    @staticmethod
-    def _file_size(path):
-        return os.path.getsize(path)
-
-    def _dir_size(self, path):
-        total_size = 0
-        for dirpath, _, filenames in os.walk(path):
-            for fname in filenames:
-                fp = os.path.join(dirpath, fname)
-                try:
-                    total_size += self._file_size(os.path.realpath(fp))
-                except FileNotFoundError:
-                    self.logger.warning(
-                        "File %s does not exists when calculating the directory size", fp)
-                finally:
-                    if self.stopped:
-                        raise PluginStoppedError(
-                            "Aborted calculation of directory size, due to stop of plugin")
-
-        return total_size
-
-    def _size(self, path):
-        try:
-            if os.path.isdir(path):
-                return self._dir_size(path)
-            return self._file_size(path)
-        except (FileNotFoundError, NotADirectoryError):
-            if self.fail_on_error:
-                raise
-            return None
-
-    def _poll(self):
-        return {
-            alias: self._size(fp)
-            for alias, fp in self.file_paths.items()
-        }
+Size = FSSize
