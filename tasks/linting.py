@@ -39,6 +39,7 @@ def mypy(ctx):
         "{}/plugins/pull/__init__.py".format(SOURCE_PATH),
         "{}/plugins/pull/io/*.py".format(SOURCE_PATH),
         "{}/plugins/pull/monitor/*.py".format(SOURCE_PATH),
+        "{}/plugins/pull/mqtt/*.py".format(SOURCE_PATH),
         "{}/plugins/pull/net/*.py".format(SOURCE_PATH),
         "{}/plugins/pull/simple/*.py".format(SOURCE_PATH),
         "{}/plugins/pull/tracking/*.py".format(SOURCE_PATH),

@@ -7,7 +7,6 @@ import async_generator
 from pnp.plugins.pull import Pull, SyncPolling
 
 Runner = namedtuple("Runner", ["pull", "start", "stop", "join", "raise_on_error", "events"])
-MqttMessage = namedtuple("MqttMessage", ["payload", "topic"])
 
 
 class CustomPolling(SyncPolling):
@@ -21,10 +20,6 @@ class CustomPolling(SyncPolling):
 
     def _poll(self):
         return self.scheduled_callable()
-
-
-def dummy_callback(plugin, payload):
-    pass
 
 
 class CallbackMemory:
