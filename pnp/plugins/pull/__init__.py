@@ -132,7 +132,7 @@ class SyncPull(Pull):
 
     def _sleep(self, sleep_time: float = 10) -> None:
         """Call in subclass to perform some sleeping."""
-        sleep_until_interrupt(sleep_time, lambda: self.stopped, interval=0.5)
+        sleep_until_interrupt(sleep_time, lambda: self.stopped, interval=0.1)
 
 
 class AsyncPull(Pull):

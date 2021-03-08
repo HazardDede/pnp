@@ -1,7 +1,7 @@
 tasks:
   - name: file_watcher
     pull:
-      plugin: pnp.plugins.pull.fs.FileSystemWatcher
+      plugin: pnp.plugins.pull.io.FSWatcher
       args:
         path: "/tmp"
         ignore_directories: true

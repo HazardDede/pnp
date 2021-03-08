@@ -26,13 +26,13 @@ arguments to control their polling behavior.
 
 .. include:: pull/fitbit.Goal.rst
 
-.. include:: pull/fs.FileSystemWatcher.rst
-
 .. include:: pull/hass.State.rst
 
 .. include:: pull/http.Server.rst
 
 .. include:: pull/io.FSSize.rst
+
+.. include:: pull/io.FSWatcher.rst
 
 .. include:: pull/io.GPIOWatcher.rst
 

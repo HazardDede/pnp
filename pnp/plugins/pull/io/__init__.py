@@ -6,6 +6,7 @@ from pnp.plugins.pull import try_import_pull
 
 __IMPORTS__ = [
     ('io.fssize', 'FSSize'),
+    ('io.fswatcher', 'FSWatcher'),
     ('io.gpiowatcher', 'GPIOWatcher')
 ]
 

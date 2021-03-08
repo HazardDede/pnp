@@ -1,10 +1,10 @@
-fs.FileSystemWatcher
+io.FSWatcher
 ^^^^^^^^^^^^^^^^^^^^
 
 ====================================== ====== ============ ========
 plugin                                 type   extra        version
 ====================================== ====== ============ ========
-pnp.plugins.pull.fs.FileSystemWatcher  pull   fswatcher    < 0.10.0
+pnp.plugins.pull.io.FSWatcher          pull   fswatcher    < 0.10.0
 ====================================== ====== ============ ========
 
 **Description**
@@ -64,5 +64,5 @@ Example of an emitted message:
 
 **Example**
 
-.. literalinclude:: ../code-samples/plugins/pull/fs.FileSystemWatcher/example.yaml
+.. literalinclude:: ../code-samples/plugins/pull/io.FSWatcher/example.yaml
    :language: YAML
