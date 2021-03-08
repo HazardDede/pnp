@@ -1,19 +1,23 @@
-"""Shared functionality for gpio related stuff."""
+"""Pull: io.GPIOWatcher"""
 
-import logging
 import re
 from abc import abstractmethod
+from collections import Counter
 from collections import defaultdict
 from functools import partial
 from typing import Optional, Iterable, Any, Callable, Dict, Tuple, List, Union
 
+from pnp import validator
+from pnp.plugins.pull import SyncPull
 from pnp.typing import DurationLiteral
+from pnp.utils import make_list, ReprMixin
 from pnp.utils import (
     try_parse_int, Debounce, parse_duration_literal, Singleton,
     Loggable
 )
 
-_LOGGER = logging.getLogger(__name__)
+__EXTRA__ = 'gpio'
+
 
 CONST_AVAILABLE_GPIO_PINS = list(range(2, 28))
 CONST_RISING_OPTIONS = ["rise", "rising"]
@@ -125,20 +129,16 @@ class GPIOAdapter(Singleton, Loggable):
     @staticmethod
     def _load_gpio_package() -> Any:
         try:
-            try:
-                import RPi.GPIO as GPIO
-            except ImportError:
-                from RPi import GPIO  # Only works for test cases when using the mocked package
-        except ImportError:  # pragma: no cover
-            _LOGGER.warning("RPi.GPIO package is not available - Using mock")
-            from ..mocking import GPIOMock as GPIO  # type: ignore
+            import RPi.GPIO as GPIO
+        except ImportError:
+            from RPi import GPIO  # Only works for test cases when using the mocked package
         return GPIO
 
 
-class Callback:
+class Callback(ReprMixin):
     """Base class for a gpio callback."""
 
-    __REPR_FIELDS__ = 'gpio_pin'
+    __REPR_FIELDS__ = ['gpio_pin']
 
     def __init__(self, gpio_pin: str):
         self.gpio_pin = self._str_to_gpio_pin(gpio_pin)
@@ -297,3 +297,52 @@ class MotionCallback(RisingCallback):
     def stop(self) -> None:
         if self._debouncer:
             self._debouncer.execute_now()
+
+
+class GPIOWatcher(SyncPull):
+    """
+    Listens for low/high state changes on the configured gpio pins.
+
+    See Also:
+        https://pnp.readthedocs.io/en/stable/plugins/index.html#io-gpiowatcher
+    """
+    __REPR_FIELDS__ = ['mode_default', 'pins']
+
+    def __init__(
+            self, pins: Union[str, Iterable[str]], default: Edge = CONST_RISING, **kwargs: Any
+    ):
+        super().__init__(**kwargs)
+        self.mode_default = default
+        validator.one_of(
+            CONST_RISING_OPTIONS + CONST_FALLING_OPTIONS + CONST_SWITCH_OPTIONS
+            + CONST_MOTION_OPTIONS,
+            mode_default=self.mode_default
+        )
+        self.pins = [
+            Callback.from_str(pin_str, default=default) for pin_str in make_list(pins) or []
+        ]
+        _without_duplicate = set(self.pins)
+        if len(_without_duplicate) != len(self.pins):
+            diff = list((Counter(self.pins) - Counter(_without_duplicate)).elements())
+            self.logger.warning(
+                "You provided duplicate gpio pin configurations. Will ignore '%s'", diff
+            )
+            self.pins = list(_without_duplicate)
+
+    def _universal_callback(self, gpio_pin: Channel, event: Edge) -> None:
+        self.logger.info("GPIO '%s' raised event '%s'", gpio_pin, event)
+        self.notify(dict(gpio_pin=gpio_pin, event=event))
+
+    def _pull(self) -> None:
+        GPIO = GPIOAdapter()
+
+        try:
+            for pin in self.pins:
+                pin.run(self._universal_callback)
+            GPIO.apply()
+            while not self.stopped:
+                self._sleep()
+        finally:
+            for pin in self.pins:
+                pin.stop()
+            GPIO.cleanup()

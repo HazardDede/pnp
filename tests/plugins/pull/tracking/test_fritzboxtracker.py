@@ -3,7 +3,7 @@ from mock import patch
 
 from pnp.plugins import BrokenImport
 from pnp.plugins.pull.tracking import FritzBoxTracker
-from tests.plugins.pull.tracking.mocking import FritzBoxHostsMock
+from tests.plugins.pull.tracking.fritzhosts_mocking import FritzBoxHostsMock
 
 
 def _plugin_available():

@@ -30,11 +30,11 @@ arguments to control their polling behavior.
 
 .. include:: pull/fs.Size.rst
 
-.. include:: pull/gpio.Watcher.rst
-
 .. include:: pull/hass.State.rst
 
 .. include:: pull/http.Server.rst
+
+.. include:: pull/io.GPIOWatcher.rst
 
 .. include:: pull/monitor.Stats.rst
 

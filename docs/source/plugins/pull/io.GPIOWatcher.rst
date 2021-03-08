@@ -1,10 +1,10 @@
-gpio.Watcher
-^^^^^^^^^^^^
+io.GPIOWatcher
+^^^^^^^^^^^^^^
 
 ================================ ====== ============ ========
 plugin                           type   extra        version
 ================================ ====== ============ ========
-pnp.plugins.pull.gpio.Watcher    poll   gpio         0.12.0
+pnp.plugins.pull.io.GPIOWatcher  poll   gpio         0.12.0
 ================================ ====== ============ ========
 
 **Description**
@@ -32,8 +32,6 @@ In more detail the plugin can raise events when one of the following situations 
 
 **Result**
 
-Emits a dictionary that contains an entry for every sensor of the plant sensor device:
-
 
 .. code-block:: python
 
@@ -44,5 +42,5 @@ Emits a dictionary that contains an entry for every sensor of the plant sensor d
 
 **Example**
 
-.. literalinclude:: ../code-samples/plugins/pull/gpio.Watcher/example.yaml
+.. literalinclude:: ../code-samples/plugins/pull/io.GPIOWatcher/example.yaml
    :language: YAML
