@@ -35,7 +35,7 @@ def _move(tmpdir, filename, newname):
 
 
 async def _helper_file_system_watcher(config, operations, expected):
-    WAIT_SLEEP = 0.5
+    WAIT_SLEEP = 1.0
 
     with tempfile.TemporaryDirectory() as tmpdir:
         dut = FileSystemWatcher(name='pytest', path=tmpdir, **config)
@@ -49,7 +49,7 @@ async def _helper_file_system_watcher(config, operations, expected):
                 op(tmpdir)
                 time.sleep(WAIT_SLEEP)
 
-            # time.sleep(2)
+            time.sleep(2)
 
     exp = expected(tmpdir)
     events = runner.events
@@ -121,13 +121,13 @@ async def test_pull_with_deferred_modified_results_in_one_event():
 
     def _multiple_modifications(tmpdir):
         _modify(tmpdir, filename='foo.txt', content="First one")
-        time.sleep(0.25)
+        time.sleep(1)
         _modify(tmpdir, filename='foo.txt', content="Second one")
-        time.sleep(0.25)
+        time.sleep(1)
         _modify(tmpdir, filename='foo.txt', content="Last one")
 
     await _helper_file_system_watcher(
-        config=dict(ignore_directories=True, load_file=True, defer_modified=0.5),
+        config=dict(ignore_directories=True, load_file=True, defer_modified=1.5),
         operations=[
             partial(_touch, filename='foo.txt'),
             _multiple_modifications
@@ -151,13 +151,13 @@ async def test_pull_with_defer_modified_correct_sequence():
 
     def _multiple_modifications(tmpdir):
         _modify(tmpdir, filename='foo.txt', content="First one")
-        time.sleep(0.25)
+        time.sleep(1)
         _modify(tmpdir, filename='foo.txt', content="Second one")
-        time.sleep(0.25)
+        time.sleep(1)
         _modify(tmpdir, filename='foo.txt', content="Last one")
 
     await _helper_file_system_watcher(
-        config=dict(ignore_directories=True, load_file=True, defer_modified=0.5),
+        config=dict(ignore_directories=True, load_file=True, defer_modified=1.5),
         operations=[
             partial(_touch, filename='foo.txt'),
             _multiple_modifications,
