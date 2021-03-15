@@ -149,3 +149,8 @@ async def test_query_different_methods_3():
         assertion_fun=assert_this,
         status_code=405
     )
+
+
+def test_repr():
+    dut = Server(prefix_path='pytest', name='pytest', allowed_methods="GET")
+    assert repr(dut) == "Server(allowed_methods=['GET'], name='pytest', prefix_path='pytest')"

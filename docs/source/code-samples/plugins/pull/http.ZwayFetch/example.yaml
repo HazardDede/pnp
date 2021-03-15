@@ -5,7 +5,7 @@
 tasks:
   - name: zway
     pull:
-      plugin: pnp.plugins.pull.zway.ZwayPoll
+      plugin: pnp.plugins.pull.http.ZwayFetch
       args:
         url: "http://smarthome:8083/ZWaveAPI/Run/devices"
         interval: 5s

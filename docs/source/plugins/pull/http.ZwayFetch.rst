@@ -1,10 +1,10 @@
-zway.ZwayPoll
-^^^^^^^^^^^^^
+http.ZwayFetch
+^^^^^^^^^^^^^^
 
 ================================ ====== ============ ========
 plugin                           type   extra        version
 ================================ ====== ============ ========
-pnp.plugins.pull.zway.ZwayPoll   poll   none         < 0.10.0
+pnp.plugins.pull.http.ZwayFetch  poll   none         < 0.10.0
 ================================ ====== ============ ========
 
 **Description**
@@ -62,5 +62,5 @@ Emits the content of the fetched url as it is.
 
 **Example**
 
-.. literalinclude:: ../code-samples/plugins/pull/zway.ZwayPoll/example.yaml
+.. literalinclude:: ../code-samples/plugins/pull/http.ZwayFetch/example.yaml
    :language: YAML

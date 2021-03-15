@@ -2,7 +2,7 @@ import pytest
 import requests
 
 from pnp.plugins.pull import PollingError
-from pnp.plugins.pull.zway import ZwayPoll
+from pnp.plugins.pull.http.zwayfetch import ZwayFetch
 
 
 class ZwayResponseDummy:
@@ -18,7 +18,7 @@ class ZwayResponseDummy:
         return {}
 
 
-def test_zway_poll(monkeypatch):
+def test_poll(monkeypatch):
     zway_url = 'http://test:8083/ZWaveAPI/Run/devices'
     zway_user = 'admin'
     zway_password = 'secret'
@@ -32,12 +32,12 @@ def test_zway_poll(monkeypatch):
 
     monkeypatch.setattr(requests, 'get', call_validator)
 
-    dut = ZwayPoll(name='pytest', url=zway_url, user=zway_user, password=zway_password)
+    dut = ZwayFetch(name='pytest', url=zway_url, user=zway_user, password=zway_password)
 
     assert dut._poll() == {}
 
 
-def test_zway_poll_on_error(monkeypatch):
+def test_poll_on_error(monkeypatch):
     zway_url = 'http://test:8083/ZWaveAPI/Run/devices'
     zway_user = 'admin'
     zway_password = 'secret'
@@ -55,6 +55,19 @@ def test_zway_poll_on_error(monkeypatch):
         return ZwayResponseError()
 
     monkeypatch.setattr(requests, 'get', call_validator)
-    dut = ZwayPoll(name='pytest', url=zway_url, user=zway_user, password=zway_password)
+    dut = ZwayFetch(name='pytest', url=zway_url, user=zway_user, password=zway_password)
     with pytest.raises(PollingError):
         dut._poll()
+
+
+def test_backwards_compat():
+    from pnp.plugins.pull.zway import ZwayPoll
+    _ = ZwayPoll
+
+
+def test_repr():
+    dut = ZwayFetch(name='pytest', url="http://test:8083/ZWaveAPI/Run/devices", user="admin", password="foo")
+    assert repr(dut) == (
+        "ZwayFetch(interval=60, is_cron=False, name='pytest', "
+        "url='http://test:8083/ZWaveAPI/Run/devices', user='admin')"
+    )

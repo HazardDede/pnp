@@ -30,6 +30,8 @@ arguments to control their polling behavior.
 
 .. include:: pull/http.Server.rst
 
+.. include:: pull/http.ZwayFetch.rst
+
 .. include:: pull/io.FSSize.rst
 
 .. include:: pull/io.FSWatcher.rst
@@ -63,8 +65,6 @@ arguments to control their polling behavior.
 .. include:: pull/simple.RunOnce.rst
 
 .. include:: pull/tracking.FritzBoxTracker.rst
-
-.. include:: pull/zway.ZwayPoll.rst
 
 
 Pushes
