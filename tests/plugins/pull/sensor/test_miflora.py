@@ -7,7 +7,8 @@ from pnp.plugins.pull.sensor import MiFlora
 
 @pytest.yield_fixture()
 def poller():
-    with patch('btlewrap.BluepyBackend') as gatttool, patch('btlewrap.GatttoolBackend') as bluepy, patch('miflora.miflora_poller.MiFloraPoller') as poller:
+    with patch('btlewrap.BluepyBackend') as gatttool, patch('btlewrap.GatttoolBackend') as bluepy,\
+            patch('miflora.miflora_poller.MiFloraPoller') as poller:
         gatttool.__name__ = 'gatttool mock'
         bluepy.__name__ = 'bluepy mock'
 
@@ -26,9 +27,10 @@ def poller():
         yield poller
 
 
-def test_miflora_for_smoke(poller):
+@pytest.mark.asyncio
+async def test_poll_for_smoke(poller):
     dut = MiFlora(mac='C4:7C:8D:67:50:AB', name="pytest")
-    res = dut._poll()
+    res = await dut.poll()
     assert isinstance(res, dict)
     assert res.get('conductivity') == 800
     assert res.get('light') == 2000
@@ -38,14 +40,15 @@ def test_miflora_for_smoke(poller):
     assert res.get('firmware') == '1.0.0'
 
 
-def test_miflora_backend_exception(poller):
+@pytest.mark.asyncio
+async def test_poll_backend_exception(poller):
     def raise_exc():
         raise IOError()
     poller.return_value.fill_cache = MagicMock(side_effect=raise_exc)
 
     dut = MiFlora(mac='C4:7C:8D:67:50:AB', name="pytest")
     with pytest.raises(PollingError):
-        dut._poll()
+        await dut.poll()
 
     def raise_exc():
         from btlewrap import BluetoothBackendException
@@ -55,3 +58,8 @@ def test_miflora_backend_exception(poller):
     dut = MiFlora(mac='C4:7C:8D:67:50:AB', name="pytest")
     with pytest.raises(PollingError):
         dut._poll()
+
+
+def test_repr():
+    dut = MiFlora(mac='C4:7C:8D:67:50:AB', name="pytest")
+    assert repr(dut) == "MiFlora(adapter='hci0', interval=60, is_cron=False, mac='C4:7C:8D:67:50:AB', name='pytest')"

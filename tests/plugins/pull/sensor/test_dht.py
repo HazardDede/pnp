@@ -2,6 +2,7 @@ import math
 import sys
 import types
 
+import pytest
 from mock import Mock
 
 from pnp.plugins.pull.sensor import DHT
@@ -16,19 +17,29 @@ mock_adafruit.DHT22 = Mock(name=module_name + '.DHT22', return_value='dht22')
 mock_adafruit.AM2302 = Mock(name=module_name + '.AM2302', return_value='am2302')
 
 
-def test_dht_poll_for_smoke():
+@pytest.mark.asyncio
+async def test_poll_for_smoke():
     mock_adafruit.read_retry.return_value = (57.5, 23.2)  # (humidity, temp)
     dut = DHT(name='pytest', device='dht22', data_gpio=99, interval="1s")
 
-    res = dut._poll()
+    res = await dut.poll()
 
     assert all([math.isclose(e['humidity'], 57.5) and math.isclose(e['temperature'], 23.2) for e in [res]])
 
 
-def test_dht_poll_with_offset():
+@pytest.mark.asyncio
+async def test_poll_with_offset():
     mock_adafruit.read_retry.return_value = (57.5, 23.2)  # (humidity, temp)
     dut = DHT(name='pytest', device='dht22', data_gpio=99, interval="1s", humidity_offset=-5.25, temp_offset=1.5)
 
-    res = dut._poll()
+    res = await dut.poll()
 
     assert all([math.isclose(e['humidity'], 52.25) and math.isclose(e['temperature'], 24.7) for e in [res]])
+
+
+def test_repr():
+    dut = DHT(name='pytest', device='dht22', data_gpio=99, interval="1s", humidity_offset=-5.25, temp_offset=1.5)
+    assert repr(dut) == (
+        "DHT(data_gpio=99, device='dht22', humidity_offset=-5.25, interval='1s', "
+        "is_cron=False, name='pytest', temp_offset=1.5)"
+    )
