@@ -1,7 +1,7 @@
-"""Http related plugins."""
+"""Pull: http.Server."""
 
 import asyncio
-from typing import Union, Iterable, Any
+from typing import Union, Iterable, Any, List, Optional
 
 from pnp import validator
 from pnp.api import RestAPI, APINotConfiguredError
@@ -20,7 +20,7 @@ class Server(AsyncPull):
     You need to enable the api via configuration to make this work.
 
     See Also:
-        https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/http.Server/index.md
+        https://pnp.readthedocs.io/en/stable/plugins/index.html#http-server
     """
     __REPR_FIELDS__ = ['allowed_methods', 'prefix_path']
 
@@ -30,15 +30,15 @@ class Server(AsyncPull):
     ) -> None:
         super().__init__(**kwargs)
         self.prefix_path = str(prefix_path)
-        self.allowed_methods = [str(m).upper() for m in make_list(allowed_methods)]
+        self.allowed_methods = [str(m).upper() for m in make_list(allowed_methods) or []]
         validator.subset_of(HTTP_METHODS, allowed_methods=self.allowed_methods)
 
-    async def _incoming(self, request: CatchAllRequest):
-        def _make_clean(item):
+    async def _incoming(self, request: CatchAllRequest) -> None:
+        def _make_clean(item: Any) -> Optional[List[Any]]:
             if not item:  # Empty string or empty list
                 return None
             if not isinstance(item, list):
-                return item
+                return item  # type: ignore
             # item -> list
             if len(item) == 1:
                 return item[0] if item[0] else None  # Empty string -> None
@@ -65,7 +65,7 @@ class Server(AsyncPull):
 
     async def _pull(self) -> None:
         restapi = RestAPI()
-        if not restapi.enabled:
+        if not restapi.enabled or not restapi.fastapi:
             raise APINotConfiguredError()
         CatchAllRoute(
             route_prefix=self.prefix_path,

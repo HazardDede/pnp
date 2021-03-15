@@ -6,19 +6,14 @@ from httpx import AsyncClient
 
 from pnp.api import RestAPI
 from pnp.plugins.pull.http import Server
-from . import make_runner, start_runner
+from tests.plugins.pull import make_runner, start_runner
 
 
 async def _run_test(
         url, data, assertion_fun, method='POST', allowed_methods='POST', status_code=200
 ):
-    output = None
-    def callback(plugin, payload):
-        nonlocal output
-        output = payload
-
     dut = Server(prefix_path='pytest', name='pytest', allowed_methods=allowed_methods)
-    runner = await make_runner(dut, callback)
+    runner = await make_runner(dut)
 
     rest = RestAPI()
     rest.create_api('pytest', False)
@@ -38,11 +33,11 @@ async def _run_test(
     assert response.status_code == status_code
     if status_code == 200:
         assert response.json() == {'success': True}
-    assertion_fun(output)
+    assertion_fun(runner.events[0] if runner.events else None)
 
 
 @pytest.mark.asyncio
-async def test_http_server_json_data():
+async def test_json_data():
     def assert_this(payload):
         assert payload is not None
         assert payload['endpoint'] == "resource/endpoint"
@@ -59,7 +54,7 @@ async def test_http_server_json_data():
 
 
 @pytest.mark.asyncio
-async def test_http_server_non_json_data():
+async def test_non_json_data():
     def assert_this(payload):
         assert payload is not None
         assert payload['endpoint'] == "resource/endpoint"
@@ -76,7 +71,7 @@ async def test_http_server_non_json_data():
 
 
 @pytest.mark.asyncio
-async def test_http_server_multiple_query_params():
+async def test_multiple_query_params():
     def assert_this(payload):
         assert payload is not None
         assert payload['endpoint'] == "resource/endpoint/queryparam"
@@ -96,7 +91,7 @@ async def test_http_server_multiple_query_params():
 
 
 @pytest.mark.asyncio
-async def test_http_server_query_params_wo_value():
+async def test_query_params_wo_value():
     def assert_this(payload):
         assert payload is not None
         assert payload['endpoint'] == "resource/endpoint/queryparam"
@@ -116,7 +111,7 @@ async def test_http_server_query_params_wo_value():
 
 
 @pytest.mark.asyncio
-async def test_http_server_query_different_methods_1():
+async def test_query_different_methods_1():
     def assert_this(payload):
         assert payload['method'] == 'POST'
 
@@ -128,7 +123,7 @@ async def test_http_server_query_different_methods_1():
 
 
 @pytest.mark.asyncio
-async def test_http_server_query_different_methods_2():
+async def test_query_different_methods_2():
     def assert_this(payload):
         assert payload['method'] == 'POST'
 
@@ -142,7 +137,7 @@ async def test_http_server_query_different_methods_2():
 
 
 @pytest.mark.asyncio
-async def test_http_server_query_different_methods_3():
+async def test_query_different_methods_3():
     def assert_this(payload):
         assert payload is None
 
