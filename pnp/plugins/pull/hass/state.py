@@ -1,12 +1,47 @@
-"""Home assistant related plugins."""
+"""Pull: hass.State."""
 
-import asyncio
 import json
+from typing import Iterable, Union, Optional, Any, Dict
 
 import asyncws
+from pydantic import BaseModel
 
 from pnp.plugins.pull import AsyncPull
 from pnp.utils import make_list, include_or_exclude, wildcards_to_regex
+
+
+HassRawStateEvent = Dict[str, Any]
+IncludeExclude = Union[Iterable[str], str]
+StateChange = Dict[str, Any]
+
+
+class HassStateEvent(BaseModel):
+    """Represents a home assistant state event."""
+
+    entity_id: str
+    old_state: StateChange
+    new_state: StateChange
+
+    class Config:
+        """Pydantic configuration."""
+        arbitrary_types_allowed = True
+
+    @classmethod
+    def from_raw(cls, raw_message: HassRawStateEvent) -> 'HassStateEvent':
+        """Parses a raw home assistant state messages into this representation."""
+        def _parse_state(state: HassRawStateEvent) -> HassRawStateEvent:
+            from copy import copy
+            _copy = copy(state)
+            _copy.pop('entity_id', None)
+            _copy.pop('context', None)
+            return _copy
+
+        state_data = raw_message.get('event', {}).get('data', {})
+        entity_id = state_data.get('entity_id')
+        old_state = _parse_state(state_data.get('old_state', {}))
+        new_state = _parse_state(state_data.get('new_state', {}))
+
+        return cls(entity_id=entity_id, old_state=old_state, new_state=new_state)
 
 
 class State(AsyncPull):
@@ -18,51 +53,39 @@ class State(AsyncPull):
     be ignored. Exclude patterns overrides include patterns.
 
     See Also:
-        https://github.com/HazardDede/pnp/blob/master/docs/plugins/pull/hass.State/index.md
+        https://pnp.readthedocs.io/en/stable/plugins/index.html#hass-state
     """
     __REPR_FIELDS__ = ['exclude', 'include', 'url']
 
-    def __init__(self, url, token, include=None, exclude=None, **kwargs):
+    def __init__(
+            self, url: str, token: str, include: Optional[IncludeExclude] = None,
+            exclude: Optional[IncludeExclude] = None, **kwargs: Any
+    ):
         super().__init__(**kwargs)
         self.url = self._sanitize_url(url)
         self.token = str(token)
         self.include = make_list(include)
         self.exclude = make_list(exclude)
         self._websocket = None
-        self._loop = None
 
         self._include_regex = self.include and wildcards_to_regex(self.include)
         self._exclude_regex = self.exclude and wildcards_to_regex(self.exclude)
 
     @staticmethod
-    def _sanitize_url(url):
+    def _sanitize_url(url: str) -> str:
         res = str(url).replace('https://', 'wss://').replace('http://', 'ws://')
         if res.endswith('/'):
             return res[:-1]  # Remove last /
         return res
 
-    @staticmethod
-    def _layout_message(message):
-        def _layout_state(state):
-            from copy import copy
-            _copy = copy(state)
-            _copy.pop('entity_id', None)
-            _copy.pop('context', None)
-            return _copy
+    async def _emit(self, message: HassRawStateEvent) -> None:
+        state_event = HassStateEvent.from_raw(message)
+        if include_or_exclude(state_event.entity_id, self._include_regex, self._exclude_regex):
+            self.notify(state_event.dict())
 
-        state_data = message.get('event', {}).get('data', {})
-        entity_id = state_data.get('entity_id')
-        old_state = _layout_state(state_data.get('old_state', {}))
-        new_state = _layout_state(state_data.get('new_state', {}))
-        return {'entity_id': entity_id, 'old_state': old_state, 'new_state': new_state}
-
-    async def _emit(self, message):
-        payload = self._layout_message(message)
-        if include_or_exclude(payload['entity_id'], self._include_regex, self._exclude_regex):
-            self.notify(payload)
-
-    async def _receive_states(self):
+    async def _receive_states(self) -> None:
         self._websocket = await asyncws.connect('{self.url}/api/websocket'.format(**locals()))
+        assert self._websocket
 
         while True:
             message = await self._websocket.recv()
@@ -97,11 +120,10 @@ class State(AsyncPull):
             else:
                 self.logger.warning("Got unexpected message '%s'", message)
 
-    async def _stop(self):
+    async def _stop(self) -> None:
         await super()._stop()
         if self._websocket:
             await self._websocket.close()
 
-    async def _pull(self):
-        self._loop = asyncio.get_event_loop()
+    async def _pull(self) -> None:
         await self._receive_states()

@@ -38,6 +38,7 @@ def mypy(ctx):
         "{}/plugins/__init__.py".format(SOURCE_PATH),
         "{}/plugins/pull/__init__.py".format(SOURCE_PATH),
         "{}/plugins/pull/fitbit/*.py".format(SOURCE_PATH),
+        "{}/plugins/pull/hass/*.py".format(SOURCE_PATH),
         "{}/plugins/pull/http/*.py".format(SOURCE_PATH),
         "{}/plugins/pull/io/*.py".format(SOURCE_PATH),
         "{}/plugins/pull/monitor/*.py".format(SOURCE_PATH),
