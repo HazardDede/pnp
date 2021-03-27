@@ -3,25 +3,24 @@
 import asyncio
 import inspect
 import multiprocessing as proc
-import os
-import re
 from abc import abstractmethod
 from datetime import datetime
 from typing import Any, Callable, Optional, Type, Union
 
-from schedule import Scheduler  # type: ignore
+from schedule import Scheduler
 from typeguard import typechecked
 
-from pnp.plugins import Plugin, InstallOptionalExtraError, BrokenImport
+from pnp.plugins import Plugin, InstallOptionalExtraError, BrokenImport, try_import_plugin
 from pnp.shared.async_ import (
     async_sleep_until_interrupt,
     run_sync
 )
-from pnp.typing import Payload
+from pnp.typing import (
+    DurationLiteral, Payload
+)
 from pnp.utils import (
     parse_duration_literal,
     try_parse_bool,
-    DurationLiteral,
     sleep_until_interrupt
 )
 
@@ -203,7 +202,7 @@ class Polling(AsyncPull, AsyncPullNowMixin):
                 self.is_cron = False
             except TypeError:
                 # ... or a cron-like expression is valid
-                from cronex import CronExpression  # type: ignore
+                from cronex import CronExpression
                 self._cron_interval = CronExpression(interval)
                 self.interval = self._cron_interval
                 self.is_cron = True
@@ -359,21 +358,6 @@ class BrokenImportPull(AsyncPull):
 def try_import_pull(import_path: str, clazz: str) -> Union[BrokenImport, Type[Pull]]:
     """Tries to import a pull plugin located in given relative import_path
     and named after clazz."""
-    try:
-        imp = __import__(import_path, globals(), locals(), ['object'], 1)
-        ctype = getattr(imp, clazz)
-        assert issubclass(ctype, Pull)
-        return ctype  # type: ignore
-    except ImportError as imp_err:
-        partial_path = f"{import_path.replace('.', os.sep)}.py"
-        import_file_path = os.path.join(os.path.dirname(__file__), partial_path)
-        regex = r'^\s*__EXTRA__\s*=\s*["\'](?P<extra>\w+)["\']\s*$'
-        extra = None
-        with open(import_file_path, "r") as fhandle:
-            for line in fhandle:
-                match = re.search(regex, line)
-                if match:
-                    extra = match.group('extra')
-                    break
-
-        return BrokenImport(extra=extra, error=imp_err, clazz=BrokenImportPull)
+    pull = try_import_plugin("pull." + import_path, clazz, BrokenImportPull)
+    assert isinstance(pull, BrokenImport) or issubclass(pull, Pull)
+    return pull

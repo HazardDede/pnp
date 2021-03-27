@@ -79,13 +79,13 @@ and set the ``unwrap`` option to invoke a ``push`` for each element of an ``iter
    Some ``pushes`` do support the ``envelope`` feature to alter the arguments for a ``push`` during
    runtime: :ref:`Envelope <blocks_envelope>`
 
-.. include:: push/fs.FileDump.rst
-
-.. include:: push/fs.Zipper.rst
-
 .. include:: push/hass.Service.rst
 
 .. include:: push/http.Call.rst
+
+.. include:: push/io.FileDump.rst
+
+.. include:: push/io.Zipper.rst
 
 .. include:: push/ml.FaceR.rst
 

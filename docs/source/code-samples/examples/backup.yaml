@@ -9,7 +9,7 @@ tasks:
         expressions:
           - "0 1 * * SUN {{env::BACKUP_FOLDER}}"
     push:
-      plugin: pnp.plugins.push.fs.Zipper
+      plugin: pnp.plugins.push.io.Zipper
       deps:
         - plugin: pnp.plugins.push.storage.Dropbox
           args:

@@ -53,9 +53,9 @@ class AsyncEngine(Engine):
         """Check if something is still running on the event loop (like running pushes) so that the
         event loop will not terminate but wait for pending tasks."""
         # pylint: disable=no-member
-        fun_pending_tasks = asyncio.all_tasks if PY37 else asyncio.Task.all_tasks  # type: ignore
+        fun_pending_tasks = asyncio.all_tasks if PY37 else asyncio.Task.all_tasks
         fun_current_task = (
-            asyncio.current_task if PY37  # type: ignore
+            asyncio.current_task if PY37
             else asyncio.Task.current_task
         )
 

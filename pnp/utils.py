@@ -14,8 +14,8 @@ from functools import wraps
 from threading import Timer
 from typing import (Union, Any, Optional, Iterable, Pattern, Dict, Callable, cast, Set, List)
 
-from binaryornot.check import is_binary  # type: ignore
-from box import Box, BoxKeyError  # type: ignore
+from binaryornot.check import is_binary
+from box import Box, BoxKeyError
 from fastcore.basics import basic_repr
 from typeguard import typechecked
 

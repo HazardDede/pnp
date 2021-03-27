@@ -1,10 +1,10 @@
-fs.FileDump
+io.FileDump
 ^^^^^^^^^^^
 
 ================================ ====== ============ ========
 plugin                           type   extra        version
 ================================ ====== ============ ========
-pnp.plugins.push.fs.FileDump     push   none         < 0.10.0
+pnp.plugins.push.io.FileDump     push   none         < 0.10.0
 ================================ ====== ============ ========
 
 **Description**
@@ -36,8 +36,8 @@ Will return an absolute path to the file created.
 
 **Example**
 
-.. literalinclude:: ../code-samples/plugins/push/fs.FileDump/example1.yaml
+.. literalinclude:: ../code-samples/plugins/push/io.FileDump/example1.yaml
    :language: YAML
 
-.. literalinclude:: ../code-samples/plugins/push/fs.FileDump/example2.yaml
+.. literalinclude:: ../code-samples/plugins/push/io.FileDump/example2.yaml
    :language: YAML

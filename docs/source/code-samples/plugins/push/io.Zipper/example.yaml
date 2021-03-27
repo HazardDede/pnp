@@ -6,7 +6,7 @@ tasks:
         expressions:
           - "*/1 * * * * /path/to/backup"
     push:
-      plugin: pnp.plugins.push.fs.Zipper
+      plugin: pnp.plugins.push.io.Zipper
       args:
         out_path: "{{env::BACKUP_DIR}}"
       deps:

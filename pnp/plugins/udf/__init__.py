@@ -3,12 +3,14 @@
 from abc import abstractmethod
 from typing import Optional, Any
 
-import cachetools  # type: ignore
+import cachetools
 
 from pnp.plugins import Plugin
+from pnp.typing import (
+    DurationLiteral
+)
 from pnp.utils import (
     parse_duration_literal,
-    DurationLiteral,
     make_hashable
 )
 

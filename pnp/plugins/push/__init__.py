@@ -5,11 +5,14 @@ import copy
 import functools
 import inspect
 from abc import abstractmethod
-from typing import Any, Callable, Optional, Dict, Iterable, Union, cast, List, Tuple, Awaitable
+from typing import (
+    Any, Callable, Optional, Dict, Iterable, Union, cast, List,
+    Tuple, Awaitable, Type
+)
 
 from pnp import utils
 from pnp import validator
-from pnp.plugins import Plugin
+from pnp.plugins import Plugin, InstallOptionalExtraError, BrokenImport, try_import_plugin
 from pnp.shared.async_ import run_sync
 from pnp.typing import Envelope, Payload
 
@@ -298,3 +301,31 @@ class AsyncPush(Push):
             payload: The payload.
         """
         raise NotImplementedError()  # pragma: no cover
+
+
+class BrokenImportPush(AsyncPush):
+    """A push that represents a push that failed to be loaded due to importing
+    issues."""
+
+    __REPR_FIELDS__ = ["extra", "error"]
+
+    def __init__(self, extra: Optional[str], error: ImportError, **kwargs: Any):
+        super().__init__(**kwargs)
+        self.extra = extra
+        self.error = error
+
+    def _raise_error(self) -> None:
+        if self.extra:
+            raise InstallOptionalExtraError(self.extra) from self.error
+        raise ImportError("Something went wrong when importing the plugin") from self.error
+
+    async def _push(self, payload: Payload) -> Payload:
+        self._raise_error()
+
+
+def try_import_push(import_path: str, clazz: str) -> Union[BrokenImport, Type[Push]]:
+    """Tries to import a pull plugin located in given relative import_path
+    and named after clazz."""
+    pull = try_import_plugin("push." + import_path, clazz, BrokenImportPush)
+    assert isinstance(pull, BrokenImport) or issubclass(pull, Push)
+    return pull

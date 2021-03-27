@@ -1,6 +1,8 @@
 """Basic stuff for plugins (pull, push, udf)."""
 import inspect
 import logging
+import os
+import re
 from abc import ABCMeta
 from importlib import import_module
 from typing import Any, Tuple, Optional, Union, cast, Callable, Iterable, Type
@@ -15,17 +17,24 @@ class InstallOptionalExtraError(ImportError):
         super().__init__("You have to install extra '{}' to use this plugin".format(extra_name))
 
 
-def load_optional_module(namespace: str, extra: str) -> Any:
-    """Load an optional module. If the module does not exist an `InstallOptionalExtraError` is
-    raised."""
-    try:
-        return import_module(namespace)
-    except ImportError:
-        raise InstallOptionalExtraError(extra) from None
-
-
 class PluginStoppedError(RuntimeError):
     """Is raised when a operation is canceled / refused because the plugin has stopped."""
+
+
+class ClassNotFoundError(Exception):
+    """Is raised when the specified class of a plugin is not found."""
+
+
+class NamespaceNotFoundError(Exception):
+    """Is raised when the namespace of a class is not found."""
+
+
+class InvocationError(Exception):
+    """Is raised when the invocation (creation) of the plugin failed."""
+
+
+class PluginTypeError(Exception):
+    """Is raised when the plugin does not meet the requested plugin type or is no plugin at all."""
 
 
 class PluginLogAdapter(logging.LoggerAdapter):
@@ -66,7 +75,6 @@ class Plugin(ReprMixin, metaclass=ABCMeta):
         # Base path is whether injected (most probably were the loaded config is located
         if self._base_path is None:
             # ... or the current working directory
-            import os
             return os.getcwd()
         return self._base_path
 
@@ -96,22 +104,6 @@ class Plugin(ReprMixin, metaclass=ABCMeta):
             )
 
 
-class ClassNotFoundError(Exception):
-    """Is raised when the specified class of a plugin is not found."""
-
-
-class NamespaceNotFoundError(Exception):
-    """Is raised when the namespace of a class is not found."""
-
-
-class InvocationError(Exception):
-    """Is raised when the invocation (creation) of the plugin failed."""
-
-
-class PluginTypeError(Exception):
-    """Is raised when the plugin does not meet the requested plugin type or is no plugin at all."""
-
-
 class BrokenImport:
     """Represents a plugin that failed to be loaded."""
     def __init__(self, extra: Optional[str], error: ImportError, clazz: Type[Plugin]):
@@ -121,6 +113,40 @@ class BrokenImport:
 
     def __call__(self, **kwargs: Any) -> Plugin:
         return self.clazz(extra=self.extra, error=self.error, **kwargs)
+
+
+def load_optional_module(namespace: str, extra: str) -> Any:
+    """Load an optional module. If the module does not exist an `InstallOptionalExtraError` is
+    raised."""
+    try:
+        return import_module(namespace)
+    except ImportError:
+        raise InstallOptionalExtraError(extra) from None
+
+
+def try_import_plugin(
+        import_path: str, clazz: str, broken_class: Type[Plugin]
+) -> Union[BrokenImport, Type[Plugin]]:
+    """Tries to import a plugin located in given relative import_path
+    and named after clazz."""
+    try:
+        imp = __import__(import_path, globals(), locals(), ['object'], 1)
+        ctype = getattr(imp, clazz)
+        assert issubclass(ctype, Plugin)
+        return ctype  # type: ignore
+    except ImportError as imp_err:
+        partial_path = f"{import_path.replace('.', os.sep)}.py"
+        import_file_path = os.path.join(os.path.dirname(__file__), partial_path)
+        regex = r'^\s*__EXTRA__\s*=\s*["\'](?P<extra>\w+)["\']\s*$'
+        extra = None
+        with open(import_file_path, "r") as fhandle:
+            for line in fhandle:
+                match = re.search(regex, line)
+                if match:
+                    extra = match.group('extra')
+                    break
+
+        return BrokenImport(extra=extra, error=imp_err, clazz=broken_class)
 
 
 def load_plugin(plugin_path: str, plugin_type: Union[type, str], instantiate: bool = True,

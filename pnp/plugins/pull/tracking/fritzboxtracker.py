@@ -104,7 +104,7 @@ class FritzBoxTracker(SyncPolling):
 
         if not self.whitelist:
             # Get all hosts
-            return self.fritz_box.get_hosts_info()  # type: ignore
+            return self.fritz_box.get_hosts_info()
 
         # Whitelist is used: Different call to fritzbox
         res = []

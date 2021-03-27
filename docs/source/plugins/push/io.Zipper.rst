@@ -1,10 +1,10 @@
-fs.Zipper
+io.Zipper
 ^^^^^^^^^
 
 ================================ ====== ============ ========
 plugin                           type   extra        version
 ================================ ====== ============ ========
-pnp.plugins.push.fs.Zipper       push   none         0.21.0
+pnp.plugins.push.io.Zipper       push   none         0.21.0
 ================================ ====== ============ ========
 
 **Description**
@@ -51,11 +51,11 @@ Will return an absolute path to the zip file created.
 
 **Example**
 
-.. literalinclude:: ../code-samples/plugins/push/fs.Zipper/example.yaml
+.. literalinclude:: ../code-samples/plugins/push/io.Zipper/example.yaml
    :language: YAML
 
 The next example is useful for dynamically adjusting the archive name to generate
 unique names for storing multiple backups:
 
-.. literalinclude:: ../code-samples/plugins/push/fs.Zipper/example_backup.yaml
+.. literalinclude:: ../code-samples/plugins/push/io.Zipper/example_backup.yaml
    :language: YAML

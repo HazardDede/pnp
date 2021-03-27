@@ -18,7 +18,7 @@ from logging import (
 )
 from typing import Optional, Iterable, Dict, Any, List
 
-import slacker  # type: ignore
+import slacker
 from typeguard import typechecked
 
 from pnp import validator
