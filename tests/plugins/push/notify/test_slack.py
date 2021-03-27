@@ -5,8 +5,8 @@ from pnp.plugins.push.notify import Slack
 
 
 @pytest.mark.asyncio
-async def test_slack_push(mocker):
-    slacker_mock = mocker.patch('pnp.plugins.push.notify.slacker.Slacker')
+async def test_push(mocker):
+    slacker_mock = mocker.patch('pnp.plugins.push.notify.slack.slacker.Slacker')
     slacker_mock.return_value = MagicMock()
 
     dut = Slack(
@@ -19,14 +19,14 @@ async def test_slack_push(mocker):
     slacker_mock.return_value.chat.post_message.assert_called_once_with(
         text='Simple message',
         channel='#pytest',
-        username=Slack.DEFAULT_USERNAME,
-        icon_emoji=Slack.DEFAULT_EMOJI
+        username='PnP',
+        icon_emoji=':robot:'
     )
 
 
 @pytest.mark.asyncio
-async def test_slack_push_with_ping_user(mocker):
-    slacker_mock = mocker.patch('pnp.plugins.push.notify.slacker.Slacker')
+async def test_push_with_ping_user(mocker):
+    slacker_mock = mocker.patch('pnp.plugins.push.notify.slack.slacker.Slacker')
     slacker_mock.return_value = MagicMock()
     slacker_mock.return_value.users.list.return_value.body = {
         'members': [{
@@ -58,8 +58,8 @@ async def test_slack_push_with_ping_user(mocker):
     slacker_mock.return_value.chat.post_message.assert_called_with(
         text='<@42> Simple message',
         channel='#pytest',
-        username=Slack.DEFAULT_USERNAME,
-        icon_emoji=Slack.DEFAULT_EMOJI
+        username='PnP',
+        icon_emoji=':robot:'
     )
 
     # Envelope override with name
@@ -67,8 +67,8 @@ async def test_slack_push_with_ping_user(mocker):
     slacker_mock.return_value.chat.post_message.assert_called_with(
         text='<@99> Simple message',
         channel='#pytest',
-        username=Slack.DEFAULT_USERNAME,
-        icon_emoji=Slack.DEFAULT_EMOJI
+        username='PnP',
+        icon_emoji=':robot:'
     )
 
     # Envelope override with unknown user
@@ -76,6 +76,18 @@ async def test_slack_push_with_ping_user(mocker):
     slacker_mock.return_value.chat.post_message.assert_called_with(
         text='Simple message',
         channel='#pytest',
-        username=Slack.DEFAULT_USERNAME,
-        icon_emoji=Slack.DEFAULT_EMOJI
+        username='PnP',
+        icon_emoji=':robot:'
+    )
+
+
+def test_repr():
+    dut = Slack(
+        api_key='doesnt_matter',
+        channel='pytest',
+        ping_users=['PyTest'],
+        name='pytest'
+    )
+    assert repr(dut) == (
+        "Slack(channel='#pytest', emoji=':robot:', name='pytest', ping_users=['PyTest'], username='PnP')"
     )

@@ -40,6 +40,7 @@ def mypy(ctx):
         "{}/plugins/push/__init__.py".format(SOURCE_PATH),
         "{}/plugins/push/envelope.py".format(SOURCE_PATH),
         "{}/plugins/push/io/*.py".format(SOURCE_PATH),
+        "{}/plugins/push/notify/*.py".format(SOURCE_PATH),
         "{}/plugins/udf/__init__.py".format(SOURCE_PATH),
         "{}/shared/*.py".format(SOURCE_PATH),
     ]
