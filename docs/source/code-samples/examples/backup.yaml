@@ -7,13 +7,13 @@ tasks:
       plugin: pnp.plugins.pull.simple.Cron
       args:
         expressions:
-          - "0 1 * * SUN {{env::BACKUP_FOLDER}}"
+          - "0 1 * * SUN /tmp"
     push:
       plugin: pnp.plugins.push.fs.Zipper
       deps:
         - plugin: pnp.plugins.push.storage.Dropbox
           args:
-            api_key: "{{env::DROPBOX_API_KEY}}"
+            api_key: !env DROPBOX_API_KEY
             create_shared_link: false
           selector:
             data: "lambda payload: payload"

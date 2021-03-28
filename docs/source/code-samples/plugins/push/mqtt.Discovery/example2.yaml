@@ -16,8 +16,8 @@ push:
         friendly_name: My Service
         icon: mdi:monitor-dashboard
     args:
-      host: "{{env::MQTT_HOST}}"
-      discovery_prefix: "{{env::MQTT_BASE_TOPIC}}"
+      host: !env MQTT_HOST
+      discovery_prefix: !env MQTT_BASE_TOPIC
       component: binary_sensor
       config:
         name: "{{var::object_id}}"
