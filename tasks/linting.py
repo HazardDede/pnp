@@ -39,6 +39,7 @@ def mypy(ctx):
         "{}/plugins/pull/".format(SOURCE_PATH),
         "{}/plugins/push/__init__.py".format(SOURCE_PATH),
         "{}/plugins/push/envelope.py".format(SOURCE_PATH),
+        "{}/plugins/push/http/*.py".format(SOURCE_PATH),
         "{}/plugins/push/io/*.py".format(SOURCE_PATH),
         "{}/plugins/push/notify/*.py".format(SOURCE_PATH),
         "{}/plugins/udf/__init__.py".format(SOURCE_PATH),

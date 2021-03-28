@@ -38,13 +38,13 @@ async def http_call(
 
 
 @pytest.mark.asyncio
-async def test_call_valid(monkeypatch):
+async def test_push_valid(monkeypatch):
     res = await http_call(monkeypatch, call_data="payload")
     assert res == 'payload'  # Payload as is
 
 
 @pytest.mark.asyncio
-async def test_call_with_error(monkeypatch):
+async def test_push_with_error(monkeypatch):
     res = await http_call(monkeypatch, call_data='payload', status_code=500)
     assert res == 'payload'  # Default fail_on_error = False => payload as is
 
@@ -59,13 +59,13 @@ async def test_call_with_error(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_call_with_response(monkeypatch):
+async def test_push_with_provide_response(monkeypatch):
     res = await http_call(monkeypatch, response_data=dict(key="value"), provide_response=True)
     assert res == dict(status_code=200, data=dict(key="value"), is_json=True)
 
 
 @pytest.mark.asyncio
-async def test_call_with_envelope_override(monkeypatch):
+async def test_push_with_envelope_override(monkeypatch):
     def assert_put_method(**kwargs):
         assert kwargs.pop('method') == "PUT"
         assert kwargs.pop('data') == "payload"
@@ -91,3 +91,10 @@ async def test_call_with_envelope_override(monkeypatch):
             monkeypatch, call_data=dict(data="payload", fail_on_error=True), status_code=500,
             call_assert_fun=assert_fail_on_error
         )
+
+
+def test_repr():
+    dut = Call(name='pytest', url='http://blah', method='GET')
+    assert repr(dut) == (
+        "Call(fail_on_error=False, method='GET', name='pytest', provide_response=False, url='http://blah')"
+    )

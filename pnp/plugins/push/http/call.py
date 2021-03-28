@@ -1,11 +1,16 @@
 """Http related push plugins."""
 
 import json
+from typing import Any
 
 import requests
 
 from pnp import utils, validator
-from pnp.plugins.push import SyncPush, PushExecutionError, enveloped, parse_envelope
+from pnp.plugins.push import SyncPush, PushExecutionError
+from pnp.plugins.push.envelope import Envelope
+from pnp.typing import Payload, Envelope as EnvelopeType
+
+CONST_METHOD_DEFAULT = 'GET'
 
 
 class Call(SyncPush):
@@ -13,12 +18,15 @@ class Call(SyncPush):
     Makes a request to a http resource.
 
     See Also:
-        https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/http.Call/index.md
+        https://pnp.readthedocs.io/en/stable/plugins/index.html#http-call
 
     """
     __REPR_FIELDS__ = ['fail_on_error', 'method', 'provide_response', 'url']
 
-    def __init__(self, url, method='GET', fail_on_error=False, provide_response=False, **kwargs):
+    def __init__(
+            self, url: str, method: str = CONST_METHOD_DEFAULT, fail_on_error: bool = False,
+            provide_response: bool = False, **kwargs: Any
+    ):
         super().__init__(**kwargs)
         self.url = self._parse_url(url)
         self.method = self._parse_method(method)
@@ -26,24 +34,27 @@ class Call(SyncPush):
         self.provide_response = bool(provide_response)
 
     @staticmethod
-    def _parse_url(val):
+    def _parse_url(val: Any) -> str:
         return str(val)
 
     @staticmethod
-    def _parse_method(val):
-        val = str(val).upper()
-        validator.one_of(utils.HTTP_METHODS, method=val)
-        return val
+    def _parse_method(val: Any) -> str:
+        val_str = str(val).upper()
+        validator.one_of(utils.HTTP_METHODS, method=val_str)
+        return val_str
 
     @staticmethod
-    def _parse_fail_on_error(val):
-        return utils.try_parse_bool(val)
+    def _parse_fail_on_error(val: Any) -> bool:
+        return utils.try_parse_bool(val)  # type: ignore
 
-    @enveloped
-    @parse_envelope('url')
-    @parse_envelope('method')
-    @parse_envelope('fail_on_error')
-    def _push(self, url, method, fail_on_error, envelope, payload):  # pylint: disable=arguments-differ
+    @Envelope.unwrap
+    @Envelope.parse('url')
+    @Envelope.parse('method')
+    @Envelope.parse('fail_on_error')
+    def _push_unwrap(
+            self, url: str, method: str, fail_on_error: bool,
+            envelope: EnvelopeType, payload: Payload
+    ) -> Payload:
         if isinstance(payload, (dict, list, tuple)):
             try:
                 payload = json.dumps(payload)
@@ -66,3 +77,6 @@ class Call(SyncPush):
         except ValueError:
             # No valid json, try text
             return dict(status_code=resp.status_code, is_json=False, data=resp.text)
+
+    def _push(self, payload: Payload) -> Payload:
+        return self._push_unwrap(payload)  # pylint: disable=no-value-for-parameter
