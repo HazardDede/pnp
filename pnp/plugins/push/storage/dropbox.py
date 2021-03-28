@@ -1,11 +1,16 @@
-"""Storage related push plugins."""
+"""Push: storage.Dropbox."""
+import urllib.parse
 from typing import Optional, Any
 
+from dropbox import dropbox
 from typeguard import typechecked
 
-from pnp.plugins import load_optional_module
-from pnp.plugins.push import SyncPush, enveloped, parse_envelope, drop_envelope
+from pnp.plugins.push import SyncPush
+from pnp.plugins.push.envelope import Envelope
+from pnp.typing import Payload
 from pnp.utils import get_bytes
+
+__EXTRA__ = 'dropbox'
 
 
 class Dropbox(SyncPush):
@@ -13,11 +18,9 @@ class Dropbox(SyncPush):
     Uploads provided file to the specified dropbox account.
 
     See Also:
-        https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/storage.Dropbox/index.md
+        https://pnp.readthedocs.io/en/stable/plugins/index.html#storage-dropbox
     """
     __REPR_FIELDS__ = ['create_shared_link', 'target_file_name']
-
-    EXTRA = 'dropbox'
 
     def __init__(
         self, api_key: str, target_file_name: Optional[str] = None,
@@ -36,27 +39,18 @@ class Dropbox(SyncPush):
         return val
 
     @staticmethod
-    def _make_raw_file_url(shared_url):
-        try:
-            import urlparse
-            from urllib import urlencode
-        except ImportError:  # For Python 3
-            import urllib.parse as urlparse
-            from urllib.parse import urlencode
-
-        url_parts = list(urlparse.urlparse(shared_url))
+    def _make_raw_file_url(shared_url: str) -> str:
+        url_parts = list(urllib.parse.urlparse(shared_url))
         # Replace all query params with ?raw=1
-        url_parts[4] = urlencode({'raw': '1'})
-        return urlparse.urlunparse(url_parts)
+        url_parts[4] = urllib.parse.urlencode({'raw': '1'})
+        return str(urllib.parse.urlunparse(url_parts))
 
-    @enveloped
-    @parse_envelope('target_file_name')
-    @drop_envelope
-    def _push(self, target_file_name, payload):  # pylint: disable=arguments-differ
+    @Envelope.unwrap
+    @Envelope.parse('target_file_name')
+    @Envelope.drop
+    def _push_unwrap(self, target_file_name: str, payload: Payload) -> Payload:
         target_file_name = self._sanitze_target_file_name(target_file_name)
 
-        # Upload file or stream to dropbox
-        dropbox = load_optional_module('dropbox', self.EXTRA)
         dbx = dropbox.Dropbox(self.api_key, timeout=None)
         fcontent = get_bytes(payload)  # Might be a file or a stream
         self.logger.info("Uploading file to dropbox '%s'", target_file_name)
@@ -82,3 +76,6 @@ class Dropbox(SyncPush):
             res['raw_link'] = self._make_raw_file_url(shared_link.url)
 
         return res
+
+    def _push(self, payload: Payload) -> Payload:
+        return self._push_unwrap(payload)    # pylint: disable=no-value-for-parameter
