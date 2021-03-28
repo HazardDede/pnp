@@ -1,3 +1,5 @@
+from tempfile import TemporaryDirectory
+
 import pytest
 
 from pnp.plugins.push.simple import Execute
@@ -14,7 +16,7 @@ class MockedBufferedReader:
 
 
 @pytest.mark.asyncio
-async def test_execute_push(mocker):
+async def test_push_no_args(mocker):
     dut = Execute(command="date", name='pytest')  # no args
 
     mock_popen = mocker.patch('subprocess.Popen')
@@ -32,7 +34,7 @@ async def test_execute_push(mocker):
 
 
 @pytest.mark.asyncio
-async def test_execute_push_with_args(mocker):
+async def test_push_with_args(mocker):
     mock_popen = mocker.patch('subprocess.Popen')
     mock_popen.return_value.returncode = 0
     mock_popen.return_value.stdout = MockedBufferedReader(["hello", "you"])
@@ -56,7 +58,7 @@ async def test_execute_push_with_args(mocker):
 
 
 @pytest.mark.asyncio
-async def test_execute_push_without_args_but_payload(mocker):
+async def test_push_no_args_but_payload(mocker):
     mock_popen = mocker.patch('subprocess.Popen')
     mock_popen.return_value.returncode = 0
     mock_popen.return_value.stdout = MockedBufferedReader(["2018-11-27"])
@@ -73,7 +75,7 @@ async def test_execute_push_without_args_but_payload(mocker):
 
 
 @pytest.mark.asyncio
-async def test_execute_push_with_args_and_payload(mocker):
+async def test_push_with_args_and_payload(mocker):
     mock_popen = mocker.patch('subprocess.Popen')
     mock_popen.return_value.returncode = 0
     mock_popen.return_value.stdout = MockedBufferedReader(["hello", "dude", "!"])
@@ -90,7 +92,7 @@ async def test_execute_push_with_args_and_payload(mocker):
 
 
 @pytest.mark.asyncio
-async def test_execute_push_with_unknown_template_var(mocker):
+async def test_push_with_unknown_template_var(mocker):
     dut = Execute(command="{{command}}", args=['hello', '{{name}}', '!'], capture=True, name='pytest')
 
     with pytest.raises(TemplateError) as e:
@@ -99,7 +101,7 @@ async def test_execute_push_with_unknown_template_var(mocker):
 
 
 @pytest.mark.asyncio
-async def test_execute_push_with_unused_template_var(mocker):
+async def test_push_with_unused_template_var(mocker):
     mock_popen = mocker.patch('subprocess.Popen')
     dut = Execute(command="{{command}}", args=['hello', '{{name}}', '!'], capture=True, name='pytest')
 
@@ -109,7 +111,7 @@ async def test_execute_push_with_unused_template_var(mocker):
 
 
 @pytest.mark.asyncio
-async def test_execute_push_with_dict_in_dict_referencing(mocker):
+async def test_push_with_dict_in_dict_referencing(mocker):
     mock_popen = mocker.patch('subprocess.Popen')
     dut = Execute(command="{{command}}", args=['hello', '{{label.name}}', '!'], capture=True, name='pytest')
 
@@ -119,7 +121,7 @@ async def test_execute_push_with_dict_in_dict_referencing(mocker):
 
 
 @pytest.mark.asyncio
-async def test_execute_push_with_empty_and_none_args(mocker):
+async def test_push_with_empty_and_none_args(mocker):
     mock_popen = mocker.patch('subprocess.Popen')
     dut = Execute(command="{{command}}", args=['hello', '{{label.name}}', '!'], capture=True, name='pytest')
 
@@ -133,10 +135,19 @@ async def test_execute_push_with_empty_and_none_args(mocker):
 
 
 @pytest.mark.asyncio
-async def test_execute_push_with_no_dict_as_args(mocker):
+async def test_push_with_no_dict_as_args(mocker):
     mock_popen = mocker.patch('subprocess.Popen')
     dut = Execute(command="echo", args=['hello', '{{payload}}', '!'], capture=True, name='pytest')
 
     await dut.push("no dict")
     mock_popen.assert_called_with(args='echo "hello" "no dict" "!"', cwd=dut.base_path, shell=True, stderr=-1, stdout=-1,
                                   universal_newlines=True)
+
+
+def test_repr():
+    with TemporaryDirectory() as tmpdir:
+        dut = Execute(command="echo", args=['hello', '{{payload}}', '!'], capture=True, name='pytest', cwd=tmpdir)
+        assert repr(dut) == (
+            f"Execute(args=['hello', '{{{{payload}}}}', '!'], capture=True, command='echo', cwd='{tmpdir}', "
+            f"name='pytest', timeout=5)"
+        )

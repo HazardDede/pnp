@@ -1,4 +1,4 @@
-"""Http related push plugins."""
+"""Push: http.Call."""
 
 import json
 from typing import Any
