@@ -8,7 +8,7 @@ before_install:
   - sudo apt-get install -yy gcc
   - sudo apt-get install -yy portaudio19-dev
   - pip install --upgrade pip
-  - pip install poetry==1.0.0
+  - pip install poetry==1.1.4
 install:
   - poetry install -E "dropbox fitbit fritz fswatcher ftp miflora sound speedtest"
 script:
