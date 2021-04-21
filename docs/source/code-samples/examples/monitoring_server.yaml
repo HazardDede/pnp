@@ -8,7 +8,7 @@ tasks:
     pull:
       plugin: pnp.plugins.pull.mqtt.MQTTPull
       args:
-        host: "{{env::MQTT_HOST}}"
+        host: !env MQTT_HOST
         topic: devices/+/stats/#
     push:
       plugin: pnp.plugins.push.timedb.InfluxPush

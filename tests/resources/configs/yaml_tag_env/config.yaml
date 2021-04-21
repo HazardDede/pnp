@@ -1,0 +1,17 @@
+tasks:
+  - name: env_tag_wo_default
+    pull:
+      plugin: pnp.plugins.pull.simple.Repeat
+      args:
+        wait: 1
+        repeat: !env REPEAT_STR
+    push:
+      - plugin: pnp.plugins.push.simple.Echo
+  - name: env_tag_with_default
+    pull:
+      plugin: pnp.plugins.pull.simple.Repeat
+      args:
+        wait: 1
+        repeat: !env WILL_NOT_BE_SET:=the_default
+    push:
+      - plugin: pnp.plugins.push.simple.Echo

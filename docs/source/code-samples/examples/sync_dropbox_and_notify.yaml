@@ -19,13 +19,13 @@
   push:
     - plugin: pnp.plugins.push.storage.Dropbox
       args:
-        api_key: "{{env::DROPBOX_API_KEY}}"
+        api_key: !env DROPBOX_API_KEY
       selector:
         data: "lambda data: data.source"  # Absolute path to file
         target_file_name: "lambda data: basename(data.source)"  # File name only
       deps:
         - plugin: pnp.plugins.push.notify.Slack
           args:
-            api_key: "{{env::SLACK_API_KEY}}"  # Your slack api key.
+            api_key: !env SLACK_API_KEY  # Your slack api key.
             channel: test  # The channel to post to. Mandatory. Overridable by envelope.
           selector: data.raw_link

@@ -1,0 +1,2 @@
+# Contents of _echo.yaml
+plugin: pnp.plugins.push.simple.Echo

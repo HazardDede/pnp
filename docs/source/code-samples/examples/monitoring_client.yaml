@@ -12,7 +12,7 @@ tasks:
     push:
       plugin: pnp.plugins.push.mqtt.Publish
       args:
-        host: "{{env::MQTT_HOST}}"
+        host: !env MQTT_HOST
         topic: devices/my_name/stats
         port: 1883
         retain: true

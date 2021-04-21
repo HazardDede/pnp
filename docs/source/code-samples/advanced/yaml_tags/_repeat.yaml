@@ -1,0 +1,5 @@
+# Contents of _repeat.yaml
+plugin: pnp.plugins.pull.simple.Repeat
+args:
+  wait: 1
+  repeat: !env MESSAGE:=Hello World

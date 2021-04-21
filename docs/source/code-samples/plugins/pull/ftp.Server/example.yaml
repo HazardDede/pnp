@@ -3,7 +3,7 @@ tasks:
     pull:
       plugin: pnp.plugins.pull.ftp.Server
       args:
-        directory: "{{env::FTP_DIR}}"
+        directory: !env FTP_DIR
         user_pwd: [admin, root]  # user: admin, pw: root
         events:
           - file_received
