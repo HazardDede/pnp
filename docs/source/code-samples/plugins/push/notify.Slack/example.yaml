@@ -18,7 +18,7 @@ tasks:
           # ping_users:
           #   - clone_dede
         args:
-          api_key: "{{env::SLACK_API_KEY}}"  # Your slack api key.
+          api_key: !env SLACK_API_KEY  # Your slack api key.
           channel: test  # The channel to post to. Mandatory. Overridable by envelope.
           username: slack_tester  # The username to show. Default is PnP. Overridable by envelope
           emoji: ':pig:'  # The emoji to use. Default is :robot: . Overridable by envelope

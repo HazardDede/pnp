@@ -6,7 +6,7 @@ tasks:
     pull:
       plugin: pnp.plugins.pull.fitbit.Devices
       args:
-        config: "{{env::FITBIT_AUTH}}"
+        config: !env FITBIT_AUTH
         instant_run: true
         interval: 15m
     push:

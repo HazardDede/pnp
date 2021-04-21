@@ -11,6 +11,6 @@ tasks:
         name: "lambda i: 'clear' if i % 2 == 0 else 'dark'"
       args:
         url: http://localhost:8123
-        token: "{{env::HA_TOKEN}}"
+        token: !env HA_TOKEN
         domain: frontend
         service: set_theme

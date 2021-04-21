@@ -84,6 +84,10 @@ way to run it is to do it explicitly via the api.
 Augment configuration
 ^^^^^^^^^^^^^^^^^^^^^
 
+.. deprecated:: 0.28.0
+   Use `YAML Tags`_.
+   dictmentor for configuration augmentation will be removed in a future release.
+
 You can augment the configuration by extensions from the ``dictmentor`` package.
 Please see `dictmentor on Github <https://github.com/HazardDede/dictmentor>`_ for further reference.
 
@@ -291,4 +295,28 @@ external system again when a specified time has passed since the last call that 
 system.
 
 .. literalinclude:: ../code-samples/advanced/udf/udf-throttle.yaml
+   :language: YAML
+
+YAML Tags
+^^^^^^^^^
+
+You can use yaml tags to augment your yaml configuration.
+Right now the following tags are supported:
+
+* ``!include``: To incorporate another yaml file into your configuration
+* ``!env``: To inject a environment variable. Use ``:=`` to denote a default value.
+  The configuration loading process will fail if the environment variable is not set and no default is given.
+
+The following example will demonstrate the yaml tags in more depth:
+
+.. literalinclude:: ../code-samples/advanced/yaml_tags/base.yaml
+   :language: YAML
+
+.. literalinclude:: ../code-samples/advanced/yaml_tags/_repeat.yaml
+   :language: YAML
+
+.. literalinclude:: ../code-samples/advanced/yaml_tags/_echo.yaml
+   :language: YAML
+
+.. literalinclude:: ../code-samples/advanced/yaml_tags/_nop.yaml
    :language: YAML

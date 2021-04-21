@@ -5,9 +5,10 @@ from functools import partial
 from typing import Any, Dict, Iterator, cast, Union, List, Iterable, Optional
 
 import schema as sc
+import yaml
 from box import Box
 from dictmentor import DictMentor, ext
-from ruamel import yaml
+from yamlinclude import YamlIncludeConstructor
 
 from pnp.config._base import Configuration, ConfigLoader
 from pnp.engines import Engine as RealEngine, RetryHandler
@@ -144,6 +145,31 @@ def _custom_yaml_constructor(loader: Any, node: Any, clstype: Any) -> Any:
     return load_plugin(clazz_name, clstype, **args)
 
 
+def _custom_env_tag(loader: Any, node: Any) -> Any:
+    if not isinstance(node, yaml.nodes.ScalarNode):
+        raise yaml.constructor.ConstructorError(
+            None, None,
+            f'expected a scalar or sequence node, but found {node.id}',
+            node.start_mark
+        )
+
+    node_value = loader.construct_scalar(node)
+    sep_index = node_value.find(':=')
+    if sep_index >= 1:
+        envvar = node_value[:sep_index]
+        default = node_value[sep_index + 2:]
+    else:
+        envvar = node_value
+        default = None
+
+    value = os.environ.get(envvar, default)
+    if value is None:
+        raise EnvironmentError(f"Environment variable '{envvar}' not found and no default set")
+
+    tag = loader.resolve(yaml.nodes.ScalarNode, value, (True, False))
+    return loader.construct_object(yaml.nodes.ScalarNode(tag, value))
+
+
 def _mk_pull(task_config: Box, **extra: Any) -> PullModel:
     """Make a pull out of a task configuration."""
     name = '{}_pull'.format(task_config[Schemas.task_name])
@@ -213,13 +239,19 @@ class YamlConfigLoader(ConfigLoader):
             validated_push[Schemas.push_deps_name] = list(self._validate_push_deps(validated_push))
             yield validated_push
 
-    def _add_constructors(self) -> None:
+    def _add_constructors(self, base_path: str) -> None:
         _ = self  # Fake usage
-        yaml.SafeLoader.add_constructor(
-            u"!engine", partial(_custom_yaml_constructor, clstype=RealEngine)
+        yaml.SafeLoader.add_constructor(  # type: ignore
+            "!engine", partial(_custom_yaml_constructor, clstype=RealEngine)
         )
-        yaml.SafeLoader.add_constructor(
-            u"!retry", partial(_custom_yaml_constructor, clstype=RetryHandler)
+        yaml.SafeLoader.add_constructor(  # type: ignore
+            "!retry", partial(_custom_yaml_constructor, clstype=RetryHandler)
+        )
+        yaml.SafeLoader.add_constructor(  # type: ignore
+            "!include", YamlIncludeConstructor(base_dir=base_path)
+        )
+        yaml.SafeLoader.add_constructor(  # type: ignore
+            "!env", _custom_env_tag
         )
 
     def _augment(self, configuration: PartialConfig, base_path: str) -> Any:
@@ -289,11 +321,11 @@ class YamlConfigLoader(ConfigLoader):
 
     def load_config(self, config_file: str) -> Configuration:
         config_file = str(config_file)
-        base_path = os.path.dirname(config_file)
+        base_path = os.path.abspath(os.path.dirname(config_file))
 
         with open(config_file, 'r') as fp:
             # Custom yaml constructors: !engine and !retry
-            self._add_constructors()
+            self._add_constructors(base_path)
             cfg = yaml.safe_load(fp)
 
         validated = Schemas.Root.validate(self._augment(cfg, base_path))
