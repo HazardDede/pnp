@@ -68,8 +68,8 @@ class State(AsyncPull):
         self.exclude = make_list(exclude)
         self._websocket = None
 
-        self._include_regex = self.include and wildcards_to_regex(self.include)
-        self._exclude_regex = self.exclude and wildcards_to_regex(self.exclude)
+        self._include_regex = make_list(self.include and wildcards_to_regex(self.include))
+        self._exclude_regex = make_list(self.exclude and wildcards_to_regex(self.exclude))
 
     @staticmethod
     def _sanitize_url(url: str) -> str:

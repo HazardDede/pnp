@@ -9,7 +9,7 @@
   pull:
     plugin: pnp.plugins.pull.fitbit.Current
     args:
-      config: "{{env::FITBIT_AUTH}}"
+      config: !env FITBIT_AUTH
       instant_run: true  # Run as soon as pnp starts
       interval: 5m
       resources:
@@ -31,7 +31,7 @@
   pull:
     plugin: pnp.plugins.pull.fitbit.Devices
     args:
-      config: "{{env::FITBIT_AUTH}}"
+      config: !env FITBIT_AUTH
       instant_run: true
       interval: 5m
   push:

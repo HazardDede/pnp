@@ -3,8 +3,8 @@ tasks:
     pull:
       plugin: pnp.plugins.pull.hass.State
       args:
-        url: "{{env::HA_URL}}"
-        token: "{{env::HA_TOKEN}}"
+        url: http://localhost:8123
+        token: !env HA_TOKEN
         exclude:
           - light.lamp
         include:

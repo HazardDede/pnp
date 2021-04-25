@@ -13,7 +13,7 @@ tasks:
         file_name: hello-world
         extension: .hello
       args:
-        directory: "{{env::WATCH_DIR}}"
+        directory: !env WATCH_DIR
         file_name: null  # Auto-generated file (timestamp)
         extension: ".txt"  # Extension of auto-generated file
         binary_mode: false  # text mode

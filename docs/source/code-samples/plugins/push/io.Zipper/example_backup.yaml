@@ -8,7 +8,7 @@ tasks:
     push:
       plugin: pnp.plugins.push.io.Zipper
       args:
-        out_path: "{{env::BACKUP_DIR}}"
+        out_path: !env BACKUP_DIR
       selector:
         archive_name: "lambda payload: '{}_{}'.format(now().isoformat(), 'backup.zip')"
         data: "lambda payload: payload"

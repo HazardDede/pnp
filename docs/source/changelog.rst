@@ -1,9 +1,11 @@
 Changelog
 =========
 
-**0.28.0 (unreleased)**
+**0.28.0**
 
+* **Feature**: Implements yaml tags !env and !include `#43 <https://github.com/HazardDede/pnp/pull/43>`_
 * **Fix**: Fixes import issue on recent scipy version `#42 <https://github.com/HazardDede/pnp/pull/42>`_
+* **Fix**: Bumps dependency ``speedtest-cli`` to fix a bug that appears on empty server ids `#44 <speedtest-cli>`_
 
 **0.27.0**
 

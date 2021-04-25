@@ -151,7 +151,7 @@ def one_not_none(**kwargs: Any) -> None:
         ...
         ValueError: Arguments ['arg1', 'arg2'] expects at least one passed, but all are none
     """
-    if all([x is None for x in kwargs.values()]):
+    if all(x is None for x in kwargs.values()):
         raise ValueError(
             "Arguments {args} expects at least one passed, but all are none".format(
                 args=sorted(list(kwargs.keys()))

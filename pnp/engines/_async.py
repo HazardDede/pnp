@@ -94,7 +94,7 @@ class AsyncEngine(Engine):
                 )
                 self.loop.create_task(self._schedule_push(payload, push))
 
-        task.pull.instance.callback(on_payload_sync)
+        task.pull.instance.callback(on_payload_sync)  # type: ignore
 
         while not task.pull.instance.stopped:
             try:

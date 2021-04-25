@@ -8,6 +8,6 @@ tasks:
     push:
       plugin: pnp.plugins.push.io.Zipper
       args:
-        out_path: "{{env::BACKUP_DIR}}"
+        out_path: !env BACKUP_DIR
       deps:
         plugin: pnp.plugins.push.simple.Echo

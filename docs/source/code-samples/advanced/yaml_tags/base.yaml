@@ -1,0 +1,8 @@
+# Use !include to incorporate another yaml file into this one
+
+tasks:
+  - name: tags
+    pull: !include _repeat.yaml
+    push:
+      - !include _echo.yaml
+      - !include _nop.yaml
