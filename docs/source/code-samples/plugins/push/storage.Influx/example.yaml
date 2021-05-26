@@ -6,7 +6,7 @@ tasks:
         host: mqtt
         topic: home/#
     push:
-      plugin: pnp.plugins.push.timedb.InfluxPush
+      plugin: pnp.plugins.push.storage.Influx
       selector:
         data: "lambda data: data"
       args:

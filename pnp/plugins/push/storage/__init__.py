@@ -6,6 +6,7 @@ from pnp.plugins.push import try_import_push
 
 __IMPORTS__ = [
     ('storage.dropbox', 'Dropbox'),
+    ('storage.influx', 'Influx')
 ]
 
 thismodule = sys.modules[__name__]

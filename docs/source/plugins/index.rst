@@ -105,7 +105,7 @@ and set the ``unwrap`` option to invoke a ``push`` for each element of an ``iter
 
 .. include:: push/storage.Dropbox.rst
 
-.. include:: push/timedb.InfluxPush.rst
+.. include:: push/storage.Influx.rst
 
 UDFs
 ----

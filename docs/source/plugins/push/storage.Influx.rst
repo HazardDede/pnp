@@ -1,10 +1,10 @@
-timedb.InfluxPush
+storage.Influx
 ^^^^^^^^^^^^^^^^^
 
 =================================== ====== ============ ========
 plugin                              type   extra        version
 =================================== ====== ============ ========
-pnp.plugins.push.timedb.InfluxPush  push   none         < 0.10.0
+pnp.plugins.push.storage.Influx     push   none         < 0.10.0
 =================================== ====== ============ ========
 
 **Description**
@@ -46,5 +46,5 @@ For the ability to chain multiple pushes together the payload is simply returned
 
 **Example**
 
-.. literalinclude:: ../code-samples/plugins/push/timedb.InfluxPush/example.yaml
+.. literalinclude:: ../code-samples/plugins/push/storage.Influx/example.yaml
    :language: YAML
