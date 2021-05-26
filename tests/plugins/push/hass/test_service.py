@@ -32,7 +32,7 @@ class HassResponseDummy:
 
 
 @pytest.mark.asyncio
-async def test_valid_call(monkeypatch):
+async def test_push_with_valid_call(monkeypatch):
     called = False
 
     def call_validator(url, *args, headers=None, timeout=None, data=None, **kwargs):
@@ -58,7 +58,7 @@ async def test_valid_call(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_errornous_call(monkeypatch):
+async def test_push_with_errornous_call(monkeypatch):
     def call_validator(*args, **kwargs):
         return HassResponseDummy(402)
 
