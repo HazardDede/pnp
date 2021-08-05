@@ -1,0 +1,16 @@
+tasks:
+  - name: zipper
+    pull:
+      plugin: pnp.plugins.pull.simple.Cron
+      args:
+        expressions:
+          - "*/1 * * * * /tmp/backup_folder"
+    push:
+      plugin: pnp.plugins.push.io.Zipper
+      args:
+        out_path: !env BACKUP_DIR
+      selector:
+        archive_name: "lambda payload: '{}_{}'.format(now().isoformat(), 'backup.zip')"
+        data: "lambda payload: payload"
+      deps:
+        plugin: pnp.plugins.push.simple.Echo

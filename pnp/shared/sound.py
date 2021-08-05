@@ -9,6 +9,8 @@ from typeguard import typechecked
 from pnp import validator
 
 # Cannot import numpy because it's an extra package and might not be available at runtime
+from pnp.utils import ReprMixin
+
 NumpyNDArray = Any
 
 
@@ -20,8 +22,11 @@ MODE_STD = 'std'
 ALLOWED_MODES = [MODE_PEARSON, MODE_STD]
 
 
-class WavFile:
+class WavFile(ReprMixin):
     """Wav file representation including. FFT representation."""
+
+    __REPR_FIELDS__ = ["abs_path"]
+
     @typechecked
     def __init__(self, abs_path: str):
         self.abs_path = abs_path

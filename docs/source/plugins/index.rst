@@ -26,29 +26,29 @@ arguments to control their polling behavior.
 
 .. include:: pull/fitbit.Goal.rst
 
-.. include:: pull/fs.FileSystemWatcher.rst
-
-.. include:: pull/fs.Size.rst
-
-.. include:: pull/ftp.Server.rst
-
-.. include:: pull/gpio.Watcher.rst
-
 .. include:: pull/hass.State.rst
 
 .. include:: pull/http.Server.rst
 
+.. include:: pull/http.ZwayFetch.rst
+
+.. include:: pull/io.FSSize.rst
+
+.. include:: pull/io.FSWatcher.rst
+
+.. include:: pull/io.GPIOWatcher.rst
+
 .. include:: pull/monitor.Stats.rst
 
 .. include:: pull/mqtt.Subscribe.rst
+
+.. include:: pull/net.FTPServer.rst
 
 .. include:: pull/net.PortProbe.rst
 
 .. include:: pull/net.Speedtest.rst
 
 .. include:: pull/net.SSLVerify.rst
-
-.. include:: pull/presence.FritzBoxTracker.rst
 
 .. include:: pull/sensor.DHT.rst
 
@@ -64,7 +64,7 @@ arguments to control their polling behavior.
 
 .. include:: pull/simple.RunOnce.rst
 
-.. include:: pull/zway.ZwayPoll.rst
+.. include:: pull/tracking.FritzBoxTracker.rst
 
 
 Pushes
@@ -79,13 +79,13 @@ and set the ``unwrap`` option to invoke a ``push`` for each element of an ``iter
    Some ``pushes`` do support the ``envelope`` feature to alter the arguments for a ``push`` during
    runtime: :ref:`Envelope <blocks_envelope>`
 
-.. include:: push/fs.FileDump.rst
-
-.. include:: push/fs.Zipper.rst
-
 .. include:: push/hass.Service.rst
 
 .. include:: push/http.Call.rst
+
+.. include:: push/io.FileDump.rst
+
+.. include:: push/io.Zipper.rst
 
 .. include:: push/ml.FaceR.rst
 
@@ -105,7 +105,7 @@ and set the ``unwrap`` option to invoke a ``push`` for each element of an ``iter
 
 .. include:: push/storage.Dropbox.rst
 
-.. include:: push/timedb.InfluxPush.rst
+.. include:: push/storage.Influx.rst
 
 UDFs
 ----

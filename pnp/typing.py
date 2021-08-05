@@ -22,3 +22,6 @@ Payload = Any
 # * A dictionary with lambdas or literals (Dict[str, str])
 # * A list of lambdas or literals
 SelectorExpression = Optional[Union[str, Dict[Any, Any], List[Any]]]
+
+# A string that should represent an url
+UrlLike = str

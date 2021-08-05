@@ -3,7 +3,7 @@ tasks:
     pull:
       plugin: pnp.plugins.pull.simple.Repeat
       args:
-        wait: 1
+        interval: 1
         repeat: "Hello World Moon Mars"
     push:
       - plugin: pnp.plugins.push.simple.Echo

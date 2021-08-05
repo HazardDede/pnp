@@ -5,21 +5,22 @@ import inspect
 import multiprocessing as proc
 from abc import abstractmethod
 from datetime import datetime
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Type, Union
 
-from schedule import Scheduler  # type: ignore
+from schedule import Scheduler
 from typeguard import typechecked
 
-from pnp.plugins import Plugin
+from pnp.plugins import Plugin, InstallOptionalExtraError, BrokenImport, try_import_plugin
 from pnp.shared.async_ import (
     async_sleep_until_interrupt,
     run_sync
 )
-from pnp.typing import Payload
+from pnp.typing import (
+    DurationLiteral, Payload
+)
 from pnp.utils import (
     parse_duration_literal,
     try_parse_bool,
-    DurationLiteral,
     sleep_until_interrupt
 )
 
@@ -130,7 +131,7 @@ class SyncPull(Pull):
 
     def _sleep(self, sleep_time: float = 10) -> None:
         """Call in subclass to perform some sleeping."""
-        sleep_until_interrupt(sleep_time, lambda: self.stopped, interval=0.5)
+        sleep_until_interrupt(sleep_time, lambda: self.stopped, interval=0.1)
 
 
 class AsyncPull(Pull):
@@ -201,7 +202,7 @@ class Polling(AsyncPull, AsyncPullNowMixin):
                 self.is_cron = False
             except TypeError:
                 # ... or a cron-like expression is valid
-                from cronex import CronExpression  # type: ignore
+                from cronex import CronExpression
                 self._cron_interval = CronExpression(interval)
                 self.interval = self._cron_interval
                 self.is_cron = True
@@ -329,3 +330,34 @@ class AsyncPolling(Polling):
         Returns: Returns the data for the downstream pipeline.
         """
         raise NotImplementedError()  # pragma: no cover
+
+
+class BrokenImportPull(AsyncPull):
+    """A pull that represents a pull that failed to be loaded due to importing
+    issues."""
+
+    __REPR_FIELDS__ = ["extra", "error"]
+
+    def __init__(self, extra: Optional[str], error: ImportError, **kwargs: Any):
+        super().__init__(**kwargs)
+        self.extra = extra
+        self.error = error
+
+    def _raise_error(self) -> None:
+        if self.extra:
+            raise InstallOptionalExtraError(self.extra) from self.error
+        raise ImportError("Something went wrong when importing the plugin") from self.error
+
+    async def _pull(self) -> None:
+        self._raise_error()
+
+    async def _poll(self) -> None:
+        self._raise_error()
+
+
+def try_import_pull(import_path: str, clazz: str) -> Union[BrokenImport, Type[Pull]]:
+    """Tries to import a pull plugin located in given relative import_path
+    and named after clazz."""
+    pull = try_import_plugin("pull." + import_path, clazz, BrokenImportPull)
+    assert isinstance(pull, BrokenImport) or issubclass(pull, Pull)
+    return pull

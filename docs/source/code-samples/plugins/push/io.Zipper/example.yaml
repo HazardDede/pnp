@@ -1,0 +1,13 @@
+tasks:
+  - name: zipper
+    pull:
+      plugin: pnp.plugins.pull.simple.Cron
+      args:
+        expressions:
+          - "*/1 * * * * /path/to/backup"
+    push:
+      plugin: pnp.plugins.push.io.Zipper
+      args:
+        out_path: !env BACKUP_DIR
+      deps:
+        plugin: pnp.plugins.push.simple.Echo

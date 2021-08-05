@@ -13,12 +13,14 @@ from pnp import validator
 from pnp.models import TaskSet, PushModel
 from pnp.selector import PayloadSelector
 from pnp.shared.async_ import run_sync
-from pnp.typing import Payload
+from pnp.typing import (
+    DurationLiteral,
+    Payload
+)
 from pnp.utils import (
     Loggable,
     Singleton,
     parse_duration_literal,
-    DurationLiteral,
     is_iterable_but_no_str,
     ReprMixin
 )

@@ -6,7 +6,7 @@
 tasks:
   - name: stats_mqtt_pull
     pull:
-      plugin: pnp.plugins.pull.mqtt.MQTTPull
+      plugin: pnp.plugins.pull.mqtt.Subscribe
       args:
         host: !env MQTT_HOST
         topic: devices/+/stats/#

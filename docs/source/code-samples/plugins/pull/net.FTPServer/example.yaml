@@ -1,0 +1,12 @@
+tasks:
+  - name: ftp_server
+    pull:
+      plugin: pnp.plugins.pull.net.FTPServer
+      args:
+        directory: !env FTP_DIR
+        user_pwd: [admin, root]  # user: admin, pw: root
+        events:
+          - file_received
+          - file_sent
+    push:
+      - plugin: pnp.plugins.push.simple.Echo

@@ -1,0 +1,13 @@
+tasks:
+  - name: file_size
+    pull:
+      plugin: pnp.plugins.pull.io.FSSize
+      args:
+        instant_run: true
+        interval: 5s
+        fail_on_error: false
+        paths:
+          logs: /var/log  # directory - recursively determines size
+          copy: /bin/cp  # file
+    push:
+      plugin: pnp.plugins.push.simple.Echo

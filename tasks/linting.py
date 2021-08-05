@@ -36,12 +36,12 @@ def mypy(ctx):
         "{}/api/endpoints/*.py".format(SOURCE_PATH),
         "{}/engines/*.py".format(SOURCE_PATH),
         "{}/plugins/__init__.py".format(SOURCE_PATH),
-        "{}/plugins/pull/__init__.py".format(SOURCE_PATH),
-        "{}/plugins/push/__init__.py".format(SOURCE_PATH),
-        "{}/plugins/udf/__init__.py".format(SOURCE_PATH),
+        "{}/plugins/pull/".format(SOURCE_PATH),
+        "{}/plugins/push/".format(SOURCE_PATH),
+        "{}/plugins/udf/".format(SOURCE_PATH),
         "{}/shared/*.py".format(SOURCE_PATH),
     ]
-    ctx.run("mypy --ignore-missing-imports {}".format(' '.join(_includes)))
+    ctx.run("mypy --strict --implicit-reexport --ignore-missing-imports {}".format(' '.join(_includes)))
 
 
 @task

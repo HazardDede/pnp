@@ -5,11 +5,11 @@ from typing import Optional
 
 from pnp.engines._base import Engine, RetryHandler, SimpleRetryHandler, PushExecutor
 from pnp.models import TaskSet, TaskModel, PushModel
+from pnp.plugins import InstallOptionalExtraError
 from pnp.plugins.pull import SyncPull
 from pnp.plugins.push import Push
 from pnp.shared.async_ import async_sleep_until_interrupt
 from pnp.typing import Payload
-from pnp.utils import PY37
 
 
 class AsyncEngine(Engine):
@@ -51,11 +51,11 @@ class AsyncEngine(Engine):
     async def _wait_for_tasks_to_complete(self, called_from_stop: bool = False) -> None:
         """Check if something is still running on the event loop (like running pushes) so that the
         event loop will not terminate but wait for pending tasks."""
-        # pylint: disable=no-member
-        fun_pending_tasks = asyncio.all_tasks if PY37 else asyncio.Task.all_tasks  # type: ignore
+        fun_pending_tasks = (
+            getattr(asyncio, 'all_tasks', None) or getattr(asyncio.Task, 'all_tasks')
+        )
         fun_current_task = (
-            asyncio.current_task if PY37  # type: ignore
-            else asyncio.Task.current_task
+            getattr(asyncio, 'current_task', None) or getattr(asyncio.Task, 'current_task')
         )
 
         # pylint: enable=no-member
@@ -114,7 +114,13 @@ class AsyncEngine(Engine):
                     task.pull.instance
                 )
                 await self._stop_task(task)
-                # self.loop.call_soon_threadsafe(task.pull.instance.stop)
+            except (ImportError, InstallOptionalExtraError):
+                self.logger.exception(
+                    "[Task-%s] Pulling of '%s' had some importing errors",
+                    task.name,
+                    task.pull.instance.name
+                )
+                await self._stop_task(task)
             except:  # pylint: disable=bare-except
                 # Bad thing... Pulling exited with exception
                 self.logger.exception(
