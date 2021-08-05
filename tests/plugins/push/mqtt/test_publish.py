@@ -128,3 +128,10 @@ async def test_mqtt_push_in_multi_mode_with_error_not_aborting_other(monkeypatch
     await dut.push({"attr1": "payload1", "attr2": "payload2", "attr3": "payload3"})
 
     assert call_count == 3
+
+
+def test_repr():
+    dut = Publish(name='pytest', host='localhost', topic='test/foo/bar', multi=True)
+    assert repr(dut) == (
+        "Publish(multi=True, name='pytest', retain=False, topic='test/foo/bar')"
+    )

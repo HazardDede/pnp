@@ -126,3 +126,19 @@ async def test_push_mqtt_config_vars(monkeypatch):
         'json_attributes_topic': 'pytest/sensor/12345/pytest_sensor/attributes',
         'state_topic': 'pytest/sensor/12345/pytest_sensor/state'
     }
+
+
+def test_repr():
+    dut = Discovery(
+        host='doesnotmatter',
+        discovery_prefix='pytest',
+        component='sensor',
+        config={'key': 'value'},
+        object_id='pytest_sensor',
+        node_id='12345',
+        name='pytest__push',
+    )
+    assert repr(dut) == (
+        "Discovery(component='sensor', discovery_prefix='pytest', name='pytest__push', node_id='12345', "
+        "object_id='pytest_sensor')"
+    )

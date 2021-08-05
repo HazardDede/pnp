@@ -1,15 +1,22 @@
-"""MQTT related push plugins."""
+"""Push: mqtt.Discovery."""
+from typing import Any, Dict, Optional, Tuple
 
 from dictmentor import DictMentor, ext
 
 from pnp import validator
-from pnp.plugins.push import SyncPush, enveloped, parse_envelope, drop_envelope
-from pnp.shared.mqtt import MQTTBase
-from pnp.utils import try_parse_bool
+from pnp.plugins.push import SyncPush
+from pnp.plugins.push.envelope import Envelope
+from pnp.typing import Payload
+from .base import MQTTBase
+
+AutoDiscoveryConfig = Dict[str, Any]
 
 
 class Discovery(MQTTBase, SyncPush):
     """
+    Pushes an entity to home assistant by publishing it to an mqtt broker.
+    The entity will be enabled to be auto discovered by home assistant.
+
     See Also:
         https://pnp.readthedocs.io/en/stable/plugins/index.html#mqtt-discovery
     """
@@ -21,7 +28,10 @@ class Discovery(MQTTBase, SyncPush):
     CONST_STATE_TOPIC = 'state_topic'
     CONST_JSON_ATTRIBUTES_TOPIC = 'json_attributes_topic'
 
-    def __init__(self, discovery_prefix, component, config, object_id=None, node_id=None, **kwargs):
+    def __init__(
+            self, discovery_prefix: str, component: str, config: AutoDiscoveryConfig,
+            object_id: Optional[str] = None, node_id: Optional[str] = None, **kwargs: Any
+    ):
         super().__init__(**kwargs)
         self.discovery_prefix = str(discovery_prefix)
         validator.one_of(self.SUPPORTED_COMPONENTS, component=str(component))
@@ -30,23 +40,23 @@ class Discovery(MQTTBase, SyncPush):
         validator.is_instance(dict, config=config)
         self._config = config
         self.node_id = self._parse_node_id(node_id)
-        self.configured = {}
+        self.configured: Dict[str, bool] = {}
 
     @property
-    def config(self):
+    def config(self) -> AutoDiscoveryConfig:
         """Return the mqtt discovery configuration."""
         import copy
         return copy.copy(self._config)
 
     @staticmethod
-    def _parse_object_id(val):
+    def _parse_object_id(val: Any) -> str:
         return str(val)
 
     @staticmethod
-    def _parse_node_id(val):
+    def _parse_node_id(val: Any) -> Optional[str]:
         return val and str(val)
 
-    def _topics(self, object_id, node_id):  # pylint: disable=unused-argument
+    def _topics(self, object_id: str, node_id: Optional[str]) -> Tuple[str, str, str, str]:
         node_id = "{node_id}/".format(node_id=node_id) if node_id else ""
         base_topic = "{prefix}/{component}/{node_id}{object_id}".format(
             prefix=self.discovery_prefix,
@@ -59,7 +69,7 @@ class Discovery(MQTTBase, SyncPush):
         attr_topic = base_topic + "/attributes"
         return base_topic, config_topic, state_topic, attr_topic
 
-    def _configure(self, object_id, node_id):
+    def _configure(self, object_id: str, node_id: Optional[str]) -> None:
         configure_key = str(object_id) + str(node_id)
         if configure_key not in self.configured:
             base_topic, config_topic, state_topic, attr_topic = self._topics(object_id, node_id)
@@ -96,12 +106,15 @@ class Discovery(MQTTBase, SyncPush):
             self._publish(config_augmented, config_topic, retain=True)
             self.configured[configure_key] = True
 
-    @enveloped
-    @parse_envelope('object_id')
-    @parse_envelope('node_id')
-    @parse_envelope('attributes')
-    @drop_envelope
-    def _push(self, object_id, node_id, attributes, payload):  # pylint: disable=arguments-differ
+    @Envelope.unwrap
+    @Envelope.parse('object_id')
+    @Envelope.parse('node_id')
+    @Envelope.parse('attributes')
+    @Envelope.drop
+    def _push_unwrap(
+            self, object_id: str, node_id: Optional[str], attributes: AutoDiscoveryConfig,
+            payload: Payload
+    ) -> Payload:
         if object_id is None:
             raise ValueError("object_id was not defined either by the __init__ nor by the envelope")
 
@@ -114,63 +127,5 @@ class Discovery(MQTTBase, SyncPush):
 
         return payload
 
-
-class Publish(MQTTBase, SyncPush):
-    """
-    This push will push the given `payload` to a mqtt broker (in this case mosquitto).
-    The broker is specified by `host` and `port`. In addition a topic needs to be specified
-    were the payload is pushed to (e.g. home/living/thermostat).
-
-    See Also:
-        https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/mqtt.Publish/index.md
-    """
-    __REPR_FIELDS__ = ['multi', 'retain', 'topic']
-
-    def __init__(self, topic=None, retain=False, multi=False, **kwargs):
-        super().__init__(**kwargs)
-        self.topic = self._parse_topic(topic)
-        self.retain = self._parse_retain(retain)
-        self.multi = bool(multi)
-
-    @staticmethod
-    def _parse_retain(val):
-        return try_parse_bool(val, default=False)
-
-    @staticmethod
-    def _parse_topic(val):
-        return str(val) if val is not None else None
-
-    @staticmethod
-    def _topic_concat(topic1, topic2):
-        if str(topic1).endswith('/'):
-            return topic1 + topic2
-        return topic1 + '/' + topic2
-
-    @enveloped
-    @parse_envelope('topic')
-    @parse_envelope('retain')
-    @parse_envelope('qos')
-    def _push(self, topic, retain, qos, envelope, payload):  # pylint: disable=arguments-differ
-        if topic is None:
-            raise ValueError("Topic was not defined either by the __init__ nor by the envelope")
-
-        if not self.multi:
-            self._publish(payload, topic, retain, qos)
-        else:
-            if not isinstance(payload, dict):
-                raise TypeError("In multi mode the payload is required to be a dictionary")
-            for k, v in payload.items():
-                key_topic = self._topic_concat(topic, k)
-                try:
-                    self._publish(v, key_topic, retain, qos)
-                except:  # pylint: disable=bare-except
-                    self.logger.exception(
-                        "Publishing failed for message on '%s' @ "
-                        "%s:%s with qos=%s. Payload='%s'",
-                        key_topic, self.host, self.port, qos, v
-                    )
-
-        return {'data': payload, **envelope} if envelope else payload
-
-
-MQTTPush = Publish
+    def _push(self, payload: Payload) -> Payload:
+        return self._push_unwrap(payload)  # pylint: disable=no-value-for-parameter

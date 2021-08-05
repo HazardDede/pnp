@@ -37,15 +37,8 @@ def mypy(ctx):
         "{}/engines/*.py".format(SOURCE_PATH),
         "{}/plugins/__init__.py".format(SOURCE_PATH),
         "{}/plugins/pull/".format(SOURCE_PATH),
-        "{}/plugins/push/__init__.py".format(SOURCE_PATH),
-        "{}/plugins/push/envelope.py".format(SOURCE_PATH),
-        "{}/plugins/push/hass/*.py".format(SOURCE_PATH),
-        "{}/plugins/push/http/*.py".format(SOURCE_PATH),
-        "{}/plugins/push/io/*.py".format(SOURCE_PATH),
-        "{}/plugins/push/notify/*.py".format(SOURCE_PATH),
-        "{}/plugins/push/simple/*.py".format(SOURCE_PATH),
-        "{}/plugins/push/storage/*.py".format(SOURCE_PATH),
-        "{}/plugins/udf/__init__.py".format(SOURCE_PATH),
+        "{}/plugins/push/".format(SOURCE_PATH),
+        "{}/plugins/udf/".format(SOURCE_PATH),
         "{}/shared/*.py".format(SOURCE_PATH),
     ]
     ctx.run("mypy --strict --implicit-reexport --ignore-missing-imports {}".format(' '.join(_includes)))

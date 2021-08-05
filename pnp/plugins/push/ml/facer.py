@@ -2,12 +2,24 @@
 
 import io
 import os
+from typing import Dict, List, Optional, Any, Tuple, Iterator
 
 from pnp import validator
 from pnp.plugins import load_optional_module
-from pnp.plugins.push import SyncPush, enveloped, drop_envelope
+from pnp.plugins.push import SyncPush
+from pnp.plugins.push.envelope import Envelope
+from pnp.typing import Payload
 from pnp.utils import make_list
 from pnp.validator import one_not_none
+
+
+__EXTRA__ = 'faceR'
+
+
+PersonName = str
+FaceEncoding = Any
+FaceMapping = Dict[PersonName, List[str]]  # Person name -> List of files
+LoadingResult = Tuple[List[PersonName], List[FaceEncoding]]
 
 
 class FaceR(SyncPush):
@@ -17,14 +29,14 @@ class FaceR(SyncPush):
     Default for unknown ones is 'Unknown'.
 
     See Also:
-        https://github.com/HazardDede/pnp/blob/master/docs/plugins/push/ml.FaceR/index.md
+        https://pnp.readthedocs.io/en/stable/plugins/index.html#ml-facer
     """
     __REPR_FIELDS__ = ['known_faces', 'known_faces_dir', 'known_names']
 
-    EXTRA = 'faceR'
-
-    def __init__(self, known_faces=None, known_faces_dir=None, unknown_label="Unknown", lazy=False,
-                 **kwargs):
+    def __init__(
+            self, known_faces: Optional[FaceMapping] = None, known_faces_dir: Optional[str] = None,
+            unknown_label: str = "Unknown", lazy: bool = False, **kwargs: Any
+    ):
         # known_faces -> mapping name -> list of files
         # known_faces_dir -> directory with known faces (filename -> name)
         # unknown_label -> Label for unknown faces
@@ -40,26 +52,27 @@ class FaceR(SyncPush):
         if not lazy:
             self._configure()
         else:
-            self.known_names = None
-            self.known_encodings = None
-            self.face_recognition = None
+            self.known_names: Optional[List[PersonName]] = None
+            self.known_encodings: Optional[List[FaceEncoding]] = None
+            self.face_recognition: Any = None
 
         self.unknown_label = str(unknown_label)
 
-    def _load_fencodings(self, fp):
-        img = self.face_recognition.load_image_file(fp)
+    def _load_fencodings(self, image_file: str) -> FaceEncoding:
+        assert self.face_recognition
+        img = self.face_recognition.load_image_file(image_file)
         return self.face_recognition.face_encodings(img)[0]
 
-    def _load_from_mapping(self, mapping):
-        def _loop():
+    def _load_from_mapping(self, mapping: FaceMapping) -> LoadingResult:
+        def _loop() -> Iterator[Tuple[PersonName, FaceEncoding]]:
             for name, fps in mapping.items():
-                for fp in make_list(fps):
+                for fp in make_list(fps) or []:
                     yield name, self._load_fencodings(fp)
         targets = list(_loop())
         return [name for name, _ in targets], [fp for _, fp in targets]
 
-    def _load_from_directory(self, directory):
-        def _loop():
+    def _load_from_directory(self, directory: str) -> LoadingResult:
+        def _loop() -> Iterator[Tuple[PersonName, FaceEncoding]]:
             accepted = ('.tif', '.tiff', '.gif', '.jpeg', '.jpg', '.jif', '.jfif', '.png')
             for file in os.listdir(os.fsencode(directory)):
                 filename = os.fsdecode(file)
@@ -72,18 +85,18 @@ class FaceR(SyncPush):
         targets = list(_loop())
         return [name for name, _ in targets], [fp for _, fp in targets]
 
-    def _configure(self):
+    def _configure(self) -> None:
         # Do not break the complete module, when extra_packages are not present
-        self.face_recognition = load_optional_module('face_recognition', self.EXTRA)
+        self.face_recognition = load_optional_module('face_recognition', __EXTRA__)
 
         # If both are set known_faces is the default
         if self.known_faces:
             self.known_names, self.known_encodings = self._load_from_mapping(self.known_faces)
-        else:
+        elif self.known_faces_dir:
             self.known_names, self.known_encodings = self._load_from_directory(self.known_faces_dir)
 
     @staticmethod
-    def _tag_image(unknown_image, tags):
+    def _tag_image(unknown_image: Any, tags: List[Tuple[str, Any]]) -> Any:
         from PIL import Image, ImageDraw  # pylint: disable=import-error
 
         # Convert the image to a PIL-format image so that we can draw on top of it with the
@@ -110,9 +123,9 @@ class FaceR(SyncPush):
             # Remove the drawing library from memory as per the Pillow docs
             del draw
 
-    @enveloped
-    @drop_envelope
-    def _push(self, payload):
+    @Envelope.unwrap
+    @Envelope.drop
+    def _push_unwrap(self, payload: Payload) -> Payload:
         if not self.face_recognition:
             self._configure()
 
@@ -130,7 +143,7 @@ class FaceR(SyncPush):
             # If a match was found in known_face_encodings, just use the first one.
             if True in matches:
                 first_match_index = matches.index(True)
-                name = self.known_names[first_match_index]
+                name = self.known_names[first_match_index]  # type: ignore
             tags.append((name, flocation))
 
         # Tag the face locations
@@ -147,3 +160,6 @@ class FaceR(SyncPush):
             )
         finally:
             del out_io
+
+    def _push(self, payload: Payload) -> Payload:
+        return self._push_unwrap(payload)

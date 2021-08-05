@@ -2,8 +2,8 @@ from tempfile import TemporaryDirectory
 
 import pytest
 
+from pnp.exc import TemplateError
 from pnp.plugins.push.simple import Execute
-from pnp.shared.exc import TemplateError
 
 
 class MockedBufferedReader:

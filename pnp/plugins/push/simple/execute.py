@@ -9,8 +9,8 @@ from jinja2.exceptions import UndefinedError
 from typeguard import typechecked
 
 from pnp import validator
+from pnp.exc import TemplateError
 from pnp.plugins.push import SyncPush
-from pnp.shared.exc import TemplateError
 from pnp.typing import DurationLiteral, Payload
 from pnp.utils import parse_duration_literal, make_list
 

@@ -11,7 +11,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MQTTBase:
-    """MQTT base class for publishing message to a mqtt broker."""
+    """MQTT base class for publishing messages to a mqtt broker."""
 
     def __init__(
         self, host: str, port: int = 1883, user: Optional[str] = None,

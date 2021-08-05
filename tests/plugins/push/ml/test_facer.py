@@ -4,7 +4,7 @@ import pytest
 
 
 def path_to_faces():
-    return os.path.join(os.path.dirname(__file__), '../../resources/faces')
+    return os.path.join(os.path.dirname(__file__), '../../../resources/faces')
 
 
 def _package_installed():
@@ -71,3 +71,11 @@ async def test_facer_find_known_lazy_mode():
     assert dut.face_recognition is not None
     assert dut.known_names is not None
     assert dut.known_encodings is not None
+
+
+def test_repr():
+    from pnp.plugins.push.ml import FaceR
+    dut = FaceR(name='pytest', known_faces_dir=path_to_faces(), lazy=True)
+    assert repr(dut) == (
+        f"FaceR(known_faces=None, known_faces_dir='{path_to_faces()}', known_names=None, name='pytest')"
+    )

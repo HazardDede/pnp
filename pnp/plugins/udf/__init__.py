@@ -1,11 +1,11 @@
 """Contains base stuff for user-defined functions in selector expressions."""
 
 from abc import abstractmethod
-from typing import Optional, Any
+from typing import Optional, Any, Union, Type
 
 import cachetools
 
-from pnp.plugins import Plugin
+from pnp.plugins import Plugin, BrokenImport, InstallOptionalExtraError, try_import_plugin
 from pnp.typing import (
     DurationLiteral
 )
@@ -52,3 +52,31 @@ class UserDefinedFunction(Plugin):
     def action(self, *args: Any, **kwargs: Any) -> Any:
         """Actual definition of the hard-work of the user defined function."""
         raise NotImplementedError()
+
+
+class BrokenImportUdf(UserDefinedFunction):
+    """A UDF-class that represents a failed plugin load due to importing
+    issues or other reasons.."""
+
+    __REPR_FIELDS__ = ["extra", "error"]
+
+    def __init__(self, extra: Optional[str], error: ImportError, **kwargs: Any):
+        super().__init__(**kwargs)
+        self.extra = extra
+        self.error = error
+
+    def _raise_error(self) -> None:
+        if self.extra:
+            raise InstallOptionalExtraError(self.extra) from self.error
+        raise ImportError("Something went wrong when importing the plugin") from self.error
+
+    def action(self, *args: Any, **kwargs: Any) -> Any:
+        self._raise_error()
+
+
+def try_import_udf(import_path: str, clazz: str) -> Union[BrokenImport, Type[UserDefinedFunction]]:
+    """Tries to import a pull plugin located in given relative import_path
+    and named after clazz."""
+    udf = try_import_plugin("udf." + import_path, clazz, BrokenImportUdf)
+    assert isinstance(udf, BrokenImport) or issubclass(udf, UserDefinedFunction)
+    return udf

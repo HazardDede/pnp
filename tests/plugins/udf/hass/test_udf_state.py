@@ -60,3 +60,10 @@ def test_hass_state_for_error(monkeypatch):
     with pytest.raises(RuntimeError) as e:
         dut.action(ENTITY_ID)
     assert "Failed to fetch the state for sun.sun @ http://hass:8123" in str(e)
+
+
+def test_repr():
+    dut = State(name='pytest', url=HASS_URL, token=HA_TOKEN, timeout=TIMEOUT)
+    assert repr(dut) == (
+        "State(name='pytest', throttle=None, timeout=10, url='http://hass:8123')"
+    )

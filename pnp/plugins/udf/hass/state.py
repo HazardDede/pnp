@@ -1,7 +1,9 @@
-"""Home assistant related user-defined functions."""
+"""UDF: hass.State."""
+from typing import Any, Optional
 
 from pnp.plugins.udf import UserDefinedFunction
 from pnp.shared.hass import HassApi
+from pnp.typing import UrlLike
 
 
 class State(UserDefinedFunction):
@@ -9,20 +11,20 @@ class State(UserDefinedFunction):
     Fetches the state of an entity from home assistant by a rest-api request.
 
     See Also:
-        https://github.com/HazardDede/pnp/blob/master/docs/plugins/udf/hass.State/index.md
+        https://pnp.readthedocs.io/en/stable/plugins/index.html#id2
     """
     __REPR_FIELDS__ = ['timeout', 'url']
 
-    def __init__(self, url, token, timeout=10, **kwargs):
+    def __init__(self, url: UrlLike, token: str, timeout: int = 10, **kwargs: Any):
         super().__init__(**kwargs)
         self.url = str(url)
         self.token = str(token)
-        self.timeout = timeout and int(timeout)
+        self.timeout: Optional[int] = timeout and int(timeout)
         if self.timeout <= 0:
             self.timeout = None  # Basically means no timeout
         self._client = HassApi(self.url, self.token, self.timeout)
 
-    def action(self, entity_id, attribute=None):  # pylint: disable=arguments-differ
+    def _action(self, entity_id: str, attribute: Optional[str] = None) -> Any:
         """
         Calls the home assistant api to fetch the state of the given entity (or one of it's
         attributes).
@@ -50,3 +52,6 @@ class State(UserDefinedFunction):
             return response.get('attributes', {}).get(str(attribute))
 
         return response.get('state', None)
+
+    def action(self, *args: Any, **kwargs: Any) -> Any:
+        return self._action(*args, **kwargs)
